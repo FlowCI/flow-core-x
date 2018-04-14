@@ -24,7 +24,6 @@ import com.flow.platform.api.service.user.PermissionService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.core.exception.NotFoundException;
-import com.flow.platform.util.Logger;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,8 +34,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserSecurityServiceImpl implements UserSecurityService {
-
-    private final static Logger LOGGER = new Logger(UserSecurityServiceImpl.class);
 
     @Autowired
     private UserService userService;

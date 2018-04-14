@@ -21,19 +21,18 @@ import com.flow.platform.cmd.Log;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.core.sysinfo.SystemInfo.Status;
 import com.flow.platform.core.sysinfo.SystemInfo.Type;
-import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * @author yang
  */
+@Log4j2
 public class AppServerLoader implements SystemInfoLoader {
-
-    private final static Logger LOGGER = new Logger(AppServerLoader.class);
 
     private final static String CATALINA_HOME = "catalina.home";
 
@@ -105,7 +104,7 @@ public class AppServerLoader implements SystemInfoLoader {
             return info;
 
         } catch (Throwable warn) {
-            LOGGER.warn("Unable to get tomcat server config: %s", warn.getMessage());
+            log.warn("Unable to get tomcat server config: {}", warn.getMessage());
         }
 
         return new SystemInfo(Status.OFFLINE, Type.SERVER);

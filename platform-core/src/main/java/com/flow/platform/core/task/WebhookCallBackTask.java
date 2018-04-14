@@ -21,6 +21,7 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import java.io.UnsupportedEncodingException;
+import lombok.extern.log4j.Log4j2;
 import org.apache.http.entity.ContentType;
 
 /**
@@ -28,9 +29,8 @@ import org.apache.http.entity.ContentType;
  *
  * @author gy@fir.im
  */
+@Log4j2
 public final class WebhookCallBackTask implements Runnable {
-
-    private final static Logger LOGGER = new Logger(WebhookCallBackTask.class);
 
     private final static int MAX_RETRY_TIMES = 5;
 
@@ -57,13 +57,13 @@ public final class WebhookCallBackTask implements Runnable {
                 .bodyAsString();
 
             if (!response.hasSuccess()) {
-                LOGGER.warn("Webhook fail with max retry time for '%s'", webhook);
+                log.warn("Webhook fail with max retry time for '{}'", webhook);
                 return;
             }
 
-            LOGGER.trace("webhook been reported: '%s'", webhook);
+            log.trace("webhook been reported: '{}'", webhook);
         } catch (UnsupportedEncodingException e) {
-            LOGGER.warn("Webhook request error", e);
+            log.warn("Webhook request error", e);
         }
     }
 }

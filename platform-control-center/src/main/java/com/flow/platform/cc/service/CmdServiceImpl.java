@@ -43,7 +43,6 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.queue.PlatformQueue;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -59,6 +58,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -68,12 +68,10 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author gy@fir.im
  */
-
+@Log4j2
 @Service
 @Transactional
 public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService {
-
-    private final static Logger LOGGER = new Logger(CmdService.class);
 
     @Autowired
     private AgentService agentService;
@@ -154,7 +152,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
         // auto create session id when create cmd
         if (cmd.getType() == CmdType.CREATE_SESSION) {
             cmd.setSessionId(UUID.randomUUID().toString());
-            LOGGER.traceMarker("create", "Create session id when cmd created: %s", cmd.getSessionId());
+            log.trace("Create session id when cmd created: {}", cmd.getSessionId());
         }
 
         if (cmd.getTimeout() == null) {
@@ -211,12 +209,12 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     @Override
     public void updateStatus(CmdStatusItem statusItem, boolean inQueue) {
         if (inQueue) {
-            LOGGER.trace("Report cmd status from queue: %s", statusItem.getCmdId());
+            log.trace("Report cmd status from queue: {}", statusItem.getCmdId());
             cmdStatusQueue.enqueue(PriorityMessage.create(statusItem.toBytes(), QueueConfig.DEFAULT_PRIORITY));
             return;
         }
 
-        LOGGER.trace("Report cmd %s to status %s", statusItem.getCmdId(), statusItem.getStatus());
+        log.trace("Report cmd {} to status {}", statusItem.getCmdId(), statusItem.getStatus());
         String cmdId = statusItem.getCmdId();
         Cmd cmd = find(cmdId);
         if (cmd == null) {
@@ -226,7 +224,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
         //TODO: missing unit test
         // set cmd status in sequence
         if (!cmd.addStatus(statusItem.getStatus())) {
-            LOGGER.warn("Cannot add cmd '%s' from '%s' status to '%s'",
+            log.warn("Cannot add cmd '{}' from '{}' status to '{}'",
                 cmd.getId(), cmd.getStatus(), statusItem.getStatus());
             return;
         }

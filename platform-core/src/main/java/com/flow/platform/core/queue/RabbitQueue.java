@@ -19,12 +19,11 @@ package com.flow.platform.core.queue;
 import com.flow.platform.core.context.ContextEvent;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.queue.QueueListener;
-import com.flow.platform.util.Logger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.Queue;
@@ -39,9 +38,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author yang
  */
+@Log4j2
 public class RabbitQueue extends PlatformQueue<PriorityMessage> implements ContextEvent {
-
-    private final static Logger LOGGER = new Logger(RabbitQueue.class);
 
     private final static int DEFAULT_CONCURRENCY = 1;
 
@@ -71,7 +69,7 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> implements Conte
     @Override
     public void start() {
         container.start();
-        LOGGER.trace("RabbitMQ ready to process");
+        log.trace("RabbitMQ ready to process");
     }
 
     @Override
@@ -148,7 +146,7 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> implements Conte
 
         container = factory.createListenerContainer(simpleEndpoint);
         container.setQueueNames(name);
-        LOGGER.trace("RabbitMQ initialized on '%s' with queue name '%s'", host, name);
+        log.trace("RabbitMQ initialized on '{}' with queue name '{}'", host, name);
     }
 
     private class RabbitMessageListener implements MessageListener {

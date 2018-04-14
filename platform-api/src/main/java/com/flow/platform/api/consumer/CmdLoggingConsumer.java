@@ -18,7 +18,6 @@ package com.flow.platform.api.consumer;
 
 import com.flow.platform.core.http.converter.RawGsonMessageConverter;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.util.Logger;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -32,8 +31,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
  * @author yang
  */
 public class CmdLoggingConsumer extends TextWebSocketHandler {
-
-    private final static Logger LOGGER = new Logger(CmdLoggingConsumer.class);
 
     private final static int MIN_LENGTH_LOG = 6;
 

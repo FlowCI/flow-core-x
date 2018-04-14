@@ -27,16 +27,16 @@ import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.Logger;
 import java.util.Objects;
 import javax.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author yh@firim
  */
+@Log4j2
 @Component
 public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> {
-
-    private final static Logger LOGGER = new Logger(CmdCallbackQueueConsumer.class);
 
     // requeue 1 s
     private final static int REQUEUE_DELAY_TIME = 1000;
@@ -71,7 +71,7 @@ public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> 
             reEnqueueJobCallback(item, REQUEUE_DELAY_TIME, message.getMessageProperties().getPriority());
 
         } catch (Throwable throwable) {
-            LOGGER.traceMarker("onQueueItem", "exception - %s", throwable.getMessage());
+            log.trace("Exception on queue item: {}", throwable.getMessage());
         }
     }
 

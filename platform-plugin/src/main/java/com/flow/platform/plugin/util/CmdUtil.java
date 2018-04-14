@@ -18,7 +18,6 @@ package com.flow.platform.plugin.util;
 
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.util.CommandUtil.Unix;
-import com.flow.platform.util.Logger;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,13 +25,13 @@ import java.io.InputStreamReader;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * @author yh@firim
  */
+@Log4j2
 public class CmdUtil {
-
-    private final static Logger LOGGER = new Logger(CmdUtil.class);
 
     private final static int BUFFER_SIZE = 1024;
 
@@ -40,8 +39,8 @@ public class CmdUtil {
         new LinkedBlockingQueue<>());
 
     public static void exeCmd(String shell) {
+        log.debug("Exec cmd is " + shell);
 
-        LOGGER.debug("Exec cmd is " + shell);
         try {
             Process process;
             ProcessBuilder pb = new ProcessBuilder(Unix.CMD_EXECUTOR, "-c", shell);
@@ -54,7 +53,7 @@ public class CmdUtil {
             process = pb.start();
             if (process != null) {
 
-                LOGGER.trace("Start debug logs");
+                log.trace("Start debug logs");
                 executor.execute(new LoggerRunner(process.getInputStream()));
 
                 // wait process finish
@@ -65,8 +64,7 @@ public class CmdUtil {
 
 
         } catch (Exception e) {
-            LOGGER.error("Exec cmd error", e);
-        } finally {
+            log.error("Exec cmd error", e);
         }
     }
 
@@ -87,10 +85,10 @@ public class CmdUtil {
             try {
                 while (br != null && (line = br.readLine()) != null) {
                     // show running log
-                    LOGGER.debug(line);
+                    log.debug(line);
                 }
             } catch (IOException e) {
-                LOGGER.error("Logger running log", e);
+                log.error("Logger running log", e);
             }
         }
     }

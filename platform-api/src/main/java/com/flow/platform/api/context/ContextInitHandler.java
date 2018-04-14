@@ -19,7 +19,7 @@ package com.flow.platform.api.context;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.core.context.AbstractContextInitHandler;
 import com.flow.platform.core.context.SpringContext;
-import com.flow.platform.util.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -28,10 +28,9 @@ import org.springframework.stereotype.Component;
 /**
  * @author yh@firim
  */
+@Log4j2
 @Component
 public class ContextInitHandler extends AbstractContextInitHandler {
-
-    private static final Logger LOGGER = new Logger(ContextInitHandler.class);
 
     @Autowired
     private SpringContext springContext;
@@ -49,6 +48,6 @@ public class ContextInitHandler extends AbstractContextInitHandler {
         super.onApplicationEvent(event);
 
         // show start success message
-        LOGGER.trace(CommonUtil.showJfigletMessage(tipMessage));
+        log.trace(CommonUtil.showJfigletMessage(tipMessage));
     }
 }

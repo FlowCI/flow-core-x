@@ -23,9 +23,8 @@ import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.user.ActionService;
 import com.flow.platform.api.service.user.PermissionService;
 import com.flow.platform.api.service.user.RoleService;
-import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.util.Logger;
 import java.util.List;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,12 +39,10 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author lhl
  */
-
+@Log4j2
 @RestController
 @RequestMapping(path = "/roles")
 public class RoleController {
-
-    private final static Logger LOGGER = new Logger(RoleController.class);
 
     @Autowired
     private RoleService roleService;

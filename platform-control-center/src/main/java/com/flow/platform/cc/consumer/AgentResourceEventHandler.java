@@ -22,7 +22,7 @@ import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.queue.PlatformQueue;
-import com.flow.platform.util.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
@@ -31,10 +31,9 @@ import org.springframework.stereotype.Component;
 /**
  * @author yang
  */
+@Log4j2
 @Component
 public class AgentResourceEventHandler implements ApplicationListener<AgentResourceEvent> {
-
-    private final static Logger LOGGER = new Logger(AgentResourceEventHandler.class);
 
     @Autowired
     private ZoneService zoneService;
@@ -48,7 +47,7 @@ public class AgentResourceEventHandler implements ApplicationListener<AgentResou
     @Override
     public void onApplicationEvent(AgentResourceEvent event) {
         String zone = event.getZone();
-        LOGGER.trace("AgentResourceEvent received for zone '%s' with '%s'", zone, event.getCategory());
+        log.trace("AgentResourceEvent received for zone '{}' with '{}'", zone, event.getCategory());
 
         // cleanup agent from zone
         zoneService.keepIdleAgentTask();
@@ -61,13 +60,13 @@ public class AgentResourceEventHandler implements ApplicationListener<AgentResou
 
         if (event.getCategory() == Category.FULL) {
             cmdQueue.pause();
-            LOGGER.trace("Pause cmd queue since no agent resources");
+            log.trace("Pause cmd queue since no agent resources");
             return;
         }
 
         if (event.getCategory() == Category.RELEASED) {
             cmdQueue.resume();
-            LOGGER.trace("Resume cmd queue since has agent resource released");
+            log.trace("Resume cmd queue since has agent resource released");
         }
     }
 }

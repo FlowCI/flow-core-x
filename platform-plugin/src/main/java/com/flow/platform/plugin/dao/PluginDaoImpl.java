@@ -19,7 +19,6 @@ package com.flow.platform.plugin.dao;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.exception.PluginException;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.google.common.base.Charsets;
@@ -46,19 +45,18 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author yh@firim
  */
-
+@Log4j2
 @Repository
 public class PluginDaoImpl implements PluginDao {
 
     private final static String PLUGIN_STORE_FILE = "plugin_cache.json";
-
-    private final static Logger LOGGER = new Logger(PluginDao.class);
 
     private final static Gson GSON = new GsonBuilder().create();
 
@@ -185,9 +183,9 @@ public class PluginDaoImpl implements PluginDao {
         try {
             String rawData = Files.toString(file, Charsets.UTF_8);
             pluginCache = GSON.fromJson(rawData, type);
-            LOGGER.trace("Plugin data been loaded from path: " + file);
+            log.trace("Plugin data been loaded from path: " + file);
         } catch (Throwable e) {
-            LOGGER.warn("Unable to load plugin data: " + e.getMessage());
+            log.warn("Unable to load plugin data: " + e.getMessage());
         }
     }
 
@@ -195,7 +193,7 @@ public class PluginDaoImpl implements PluginDao {
     public void dump() {
         try {
             Files.write(GSON.toJson(pluginCache).getBytes(), storePath.toFile());
-            LOGGER.trace("Plugin data been dumped to path: " + storePath);
+            log.trace("Plugin data been dumped to path: " + storePath);
         } catch (IOException e) {
             throw new PluginException(e.getMessage());
         }

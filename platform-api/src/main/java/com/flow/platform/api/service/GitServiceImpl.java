@@ -16,18 +16,17 @@
 
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.envs.EnvUtil;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.git.GitClientBuilder;
 import com.flow.platform.api.git.GitHttpClientBuilder;
 import com.flow.platform.api.git.GitLabClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
-import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.UnsupportedException;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.JGitUtil;
@@ -43,6 +42,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +52,7 @@ import org.springframework.stereotype.Service;
 /**
  * @author yang
  */
+@Log4j2
 @Service
 public class GitServiceImpl implements GitService {
 
@@ -77,8 +78,6 @@ public class GitServiceImpl implements GitService {
 
         }
     }
-
-    private final static Logger LOGGER = new Logger(GitService.class);
 
     private final Map<GitSource, Class<? extends GitClientBuilder>> clientBuilderType = new HashMap<>(6);
 
@@ -125,7 +124,7 @@ public class GitServiceImpl implements GitService {
                 try {
                     repos.add(JGitUtil.getRepo(file.toPath()));
                 } catch (GitException e) {
-                    LOGGER.warn("Unable to get git repo: " + e.getMessage());
+                    log.warn("Unable to get git repo: " + e.getMessage());
                 }
             }
         }
@@ -246,7 +245,7 @@ public class GitServiceImpl implements GitService {
 
         try {
             GitClient client = builder.build();
-            LOGGER.trace("Git client initialized: %s", client);
+            log.trace("Git client initialized: {}", client);
             return client;
         } catch (GitException e) {
             throw new IllegalStatusException("Unable to init git client for " + source);

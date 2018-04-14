@@ -18,19 +18,18 @@ package com.flow.platform.core.sysinfo;
 
 import com.flow.platform.core.sysinfo.SystemInfo.Status;
 import com.flow.platform.core.sysinfo.SystemInfo.Type;
-import com.flow.platform.util.Logger;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.HashMap;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * @author yang
  */
+@Log4j2
 public class DBInfoLoader implements SystemInfoLoader {
-
-    private final static Logger LOGGER = new Logger(DBInfoLoader.class);
 
     public enum DBGroupName implements GroupName {
         MYSQL
@@ -73,9 +72,9 @@ public class DBInfoLoader implements SystemInfoLoader {
                 return dbInfo;
             }
         } catch (SQLException e) {
-            LOGGER.error("Cannot load database info", e);
+            log.error("Cannot load database info", e);
         } catch (ClassNotFoundException e) {
-            LOGGER.error("Cannot find driver: " + driver, e);
+            log.error("Cannot find driver: " + driver, e);
         }
 
         return new SystemInfo(Status.OFFLINE, Type.DB);

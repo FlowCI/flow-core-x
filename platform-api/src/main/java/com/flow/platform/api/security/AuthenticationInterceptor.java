@@ -23,7 +23,6 @@ import com.flow.platform.api.exception.AuthenticationException;
 import com.flow.platform.api.exception.TokenExpiredException;
 import com.flow.platform.api.security.token.TokenGenerator;
 import com.flow.platform.api.service.user.UserService;
-import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import io.jsonwebtoken.Claims;
 import java.util.Date;
@@ -49,8 +48,6 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
     public final static String TOKEN_HEADER_PARAM = "X-Authorization";
 
     public final static String TOKEN_URL_PARAM = "token";
-
-    private final static Logger LOGGER = new Logger(AuthenticationInterceptor.class);
 
     @Autowired
     private UserSecurityService userSecurityService;

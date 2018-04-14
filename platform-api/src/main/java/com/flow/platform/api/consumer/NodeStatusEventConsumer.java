@@ -18,21 +18,22 @@ package com.flow.platform.api.consumer;
 
 import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.events.NodeStatusChangeEvent;
-import com.flow.platform.util.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.ApplicationListener;
 
 /**
  * @author yang
  */
+@Log4j2
 public class NodeStatusEventConsumer extends JobEventPushHandler implements ApplicationListener<NodeStatusChangeEvent> {
-
-    private final static Logger LOGGER = new Logger(NodeStatusEventConsumer.class);
 
     @Override
     public void onApplicationEvent(NodeStatusChangeEvent event) {
         NodeResultKey resultKey = event.getResultKey();
-        LOGGER.debug("Node result %s status change event from %s to %s",
-            resultKey.getPath(), event.getFrom(), event.getTo());
+        log.debug("Node result {} status change event from {} to {}",
+            resultKey.getPath(),
+            event.getFrom(),
+            event.getTo());
         push(resultKey.getJobId());
     }
 }

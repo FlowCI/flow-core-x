@@ -30,13 +30,13 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Instance;
 import com.flow.platform.domain.Zone;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
 import com.google.common.collect.Lists;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.extern.log4j.Log4j2;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
@@ -48,10 +48,9 @@ import org.springframework.stereotype.Service;
 /**
  * @author gy@fir.im
  */
+@Log4j2
 @Service
 public class ZoneServiceImpl implements ZoneService, ContextEvent {
-
-    private final static Logger LOGGER = new Logger(ZoneService.class);
 
     @Autowired
     private AgentService agentService;
@@ -83,12 +82,12 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
     public void start() {
         // init root node
         String path = createRoot();
-        LOGGER.trace("Root zookeeper node initialized: %s", path);
+        log.trace("Root zookeeper node initialized: {}", path);
 
         // init zone nodes
         for (Zone zone : defaultZones) {
             path = createZone(zone);
-            LOGGER.trace("Zone node initialized: %s", path);
+            log.trace("Zone node initialized: {}", path);
         }
     }
 
@@ -155,7 +154,7 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
     @Override
     public boolean keepIdleAgentMinSize(final Zone zone, final InstanceManager instanceManager) {
         int numOfIdle = agentService.findAvailable(zone.getName()).size();
-        LOGGER.traceMarker("keepIdleAgentMinSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
+        log.trace("Num of idle agent in zone {} = {}", zone, numOfIdle);
 
         if (numOfIdle < zone.getMinPoolSize()) {
             instanceManager.batchStartInstance(zone);
@@ -173,7 +172,7 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
     public boolean keepIdleAgentMaxSize(final Zone zone, final InstanceManager instanceManager) {
         List<Agent> agentList = agentService.findAvailable(zone.getName());
         int numOfIdle = agentList.size();
-        LOGGER.traceMarker("keepIdleAgentMaxSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
+        log.trace("Num of idle agent in zone {} = {}", zone, numOfIdle);
 
         if (numOfIdle > zone.getMaxPoolSize()) {
             int numOfRemove = numOfIdle - zone.getMaxPoolSize();
@@ -184,7 +183,7 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
                 // send shutdown cmd
                 Cmd shutdown = cmdService.create(new CmdInfo(idleAgent.getPath(), CmdType.SHUTDOWN, "flow.ci"));
                 cmdDispatchService.dispatch(shutdown);
-                LOGGER.traceMarker("keepIdleAgentMaxSize", "Send SHUTDOWN to idle agent: %s", idleAgent);
+                log.trace("Send SHUTDOWN to idle agent: {}", idleAgent);
 
                 // add instance to cleanup list
                 Instance instance = instanceManager.find(idleAgent.getPath());
@@ -206,8 +205,6 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
             return;
         }
 
-        LOGGER.traceMarker("keepIdleAgentTask", "start");
-
         // get num of idle agent
         for (Zone zone : getZones()) {
             InstanceManager instanceManager = findInstanceManager(zone);
@@ -221,8 +218,6 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
 
             keepIdleAgentMaxSize(zone, instanceManager);
         }
-
-        LOGGER.traceMarker("keepIdleAgentTask", "end");
     }
 
     private class ZoneEventListener implements PathChildrenCacheListener {
@@ -238,7 +233,7 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
             final Type eventType = event.getType();
             final String path = event.getData().getPath();
             final String name = ZKHelper.getNameFromPath(path);
-            LOGGER.debugMarker("ZoneEventListener", "Receive zookeeper event %s %s", eventType, path);
+            log.debug("Receive zookeeper event {} {}", eventType, path);
 
             if (eventType == Type.CHILD_ADDED || eventType == Type.CHILD_UPDATED) {
                 agentService.report(new AgentPath(zone.getName(), name), AgentStatus.IDLE);

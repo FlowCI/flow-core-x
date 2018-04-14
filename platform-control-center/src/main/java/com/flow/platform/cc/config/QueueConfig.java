@@ -23,6 +23,7 @@ import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.Logger;
 import com.google.common.collect.Range;
 import javax.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +35,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  *
  * @author gy@fir.im
  */
+@Log4j2
 @Configuration
 public class QueueConfig {
 
@@ -55,8 +57,6 @@ public class QueueConfig {
     public final static Range PRIORITY_RANGE = Range.closed(1, 10);
 
     public final static String PROP_CMD_QUEUE_RETRY = "queue.cmd.retry.enable";
-
-    private final static Logger LOGGER = new Logger(QueueConfig.class);
 
     /**
      * Rabbit mq host
@@ -98,22 +98,22 @@ public class QueueConfig {
 
     @PostConstruct
     public void init() {
-        LOGGER.trace("Host: %s", host);
-        LOGGER.trace("Management Host: %s", mgrHost);
+        log.trace("Host: {}", host);
+        log.trace("Management Host: {}", mgrHost);
 
-        LOGGER.trace("Cmd queue name: %s", cmdQueueName);
-        LOGGER.trace("Cmd RabbitMQ enabled: %s", cmdQueueRabbitEnable);
-        LOGGER.trace("Cmd queue retry enabled: %s", cmdQueueRetryEnable);
+        log.trace("Cmd queue name: {}", cmdQueueName);
+        log.trace("Cmd RabbitMQ enabled: {}", cmdQueueRabbitEnable);
+        log.trace("Cmd queue retry enabled: {}", cmdQueueRetryEnable);
     }
 
     @Bean
     public PlatformQueue<PriorityMessage> cmdQueue() {
         if (cmdQueueRabbitEnable) {
-            LOGGER.trace("Apply RabbitMQ for cmd queue");
+            log.trace("Apply RabbitMQ for cmd queue");
             return new RabbitQueue(taskExecutor, host, QUEUE_MAX_LENGTH, DEFAULT_PRIORITY, cmdQueueName);
         }
 
-        LOGGER.trace("Apply in memory queue for cmd queue");
+        log.trace("Apply in memory queue for cmd queue");
         return new MemoryQueue(taskExecutor, QUEUE_MAX_LENGTH, "CmdQueue");
     }
 

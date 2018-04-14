@@ -49,10 +49,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * @author gy@fir.im
  */
+@Log4j2
 public final class CmdExecutor {
 
     /**
@@ -96,8 +98,6 @@ public final class CmdExecutor {
         }
     }
 
-    private final static Logger LOGGER = new Logger(CmdExecutor.class);
-
     private final static File DEFAULT_WORKING_DIR = new File(
         System.getProperty("user.home", System.getProperty("user.dir")));
 
@@ -119,13 +119,10 @@ public final class CmdExecutor {
 
     private final ThreadPoolExecutor executor = new ThreadPoolExecutor(4, 4, 0L, TimeUnit.SECONDS,
         new LinkedBlockingQueue<>(),
-        new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread t = Executors.defaultThreadFactory().newThread(r);
-                t.setDaemon(true);
-                return t;
-            }
+        r -> {
+            Thread t = Executors.defaultThreadFactory().newThread(r);
+            t.setDaemon(true);
+            return t;
         }
     );
 
@@ -251,7 +248,7 @@ public final class CmdExecutor {
 
             outputResult.setExecutedTime(DateUtil.now());
             procListener.onExecuted(outputResult);
-            LOGGER.trace("====== 1. Process executed : %s ======", outputResult.getExitValue());
+            log.trace("====== 1. Process executed : {} ======", outputResult.getExitValue());
 
             // wait for log thread with max 30 seconds to continue upload log
             logThreadCountDown.await(DEFAULT_LOGGING_WAITING_SECONDS, TimeUnit.SECONDS);
@@ -264,17 +261,17 @@ public final class CmdExecutor {
 
             outputResult.setFinishTime(DateUtil.now());
             procListener.onLogged(outputResult);
-            LOGGER.trace("====== 2. Logging executed ======");
+            log.trace("====== 2. Logging executed ======");
 
         } catch (InterruptedException ignore) {
-            LOGGER.warn(ignore.getMessage());
+            log.warn(ignore.getMessage());
         } catch (Throwable e) {
             outputResult.getExceptions().add(e);
             outputResult.setFinishTime(DateUtil.now());
             procListener.onException(outputResult);
-            LOGGER.warn(e.getMessage());
+            log.warn(e.getMessage());
         } finally {
-            LOGGER.trace("====== 3. Process Done ======");
+            log.trace("====== 3. Process Done ======");
         }
 
         return outputResult;
@@ -330,7 +327,7 @@ public final class CmdExecutor {
                 }
 
             } catch (IOException e) {
-                LOGGER.warn("Exception on write cmd: " + e.getMessage());
+                log.warn("Exception on write cmd: " + e.getMessage());
             }
         };
     }
@@ -356,7 +353,7 @@ public final class CmdExecutor {
             } finally {
                 logListener.onFinish();
                 logThreadCountDown.countDown();
-                LOGGER.trace(" ===== Logging Reader Thread Finish =====");
+                log.trace(" ===== Logging Reader Thread Finish =====");
             }
         };
     }
@@ -380,7 +377,7 @@ public final class CmdExecutor {
 
             } finally {
                 stdThreadCountDown.countDown();
-                LOGGER.trace(" ===== %s Stream Reader Thread Finish =====", type);
+                log.trace(" ===== {} Stream Reader Thread Finish =====", type);
             }
         };
     }

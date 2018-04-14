@@ -16,19 +16,17 @@
 
 package com.flow.platform.cc.config;
 
-import com.flow.platform.util.Logger;
+import javax.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author gy@fir.im
  */
+@Log4j2
 @Configuration
 public class TaskConfig {
-
-    private final static Logger LOGGER = new Logger(TaskConfig.class);
 
     @Value("${task.zone.toggle.keep_idle_agent}")
     private boolean enableKeepIdleAgentTask;
@@ -44,10 +42,10 @@ public class TaskConfig {
 
     @PostConstruct
     public void init() {
-        LOGGER.trace("Zone.Toggle.KeepIdleAgent: %s", enableKeepIdleAgentTask);
-        LOGGER.trace("Agent.Toggle.SessionTimeout: %s", enableAgentSessionTimeoutTask);
-        LOGGER.trace("Cmd.Toggle.ExecutionTimeout: %s", enableCmdExecTimeoutTask);
-        LOGGER.trace("Mos.Toggle.Clean: %s", enableMosCleanTask);
+        log.trace("Zone.Toggle.KeepIdleAgent: {}", enableKeepIdleAgentTask);
+        log.trace("Agent.Toggle.SessionTimeout: {}", enableAgentSessionTimeoutTask);
+        log.trace("Cmd.Toggle.ExecutionTimeout: {}", enableCmdExecTimeoutTask);
+        log.trace("Mos.Toggle.Clean: {}", enableMosCleanTask);
     }
 
     public boolean isEnableKeepIdleAgentTask() {

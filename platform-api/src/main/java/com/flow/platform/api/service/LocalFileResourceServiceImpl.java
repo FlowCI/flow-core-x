@@ -21,7 +21,6 @@ import com.flow.platform.api.domain.LocalFileResource;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.util.CommandUtil.Unix;
-import com.flow.platform.util.Logger;
 import com.google.common.io.Files;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,6 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.Objects;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -41,6 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author yh@firim
  */
+@Log4j2
 @Service
 public class LocalFileResourceServiceImpl implements LocalFileResourceService {
 
@@ -48,8 +49,6 @@ public class LocalFileResourceServiceImpl implements LocalFileResourceService {
     private String local_file_resources_folder;
 
     private final static String DOT = ".";
-
-    private final static Logger LOGGER = new Logger(LocalFileResource.class);
 
     private final static String STORAGE = "local_file_resources";
 
@@ -128,7 +127,7 @@ public class LocalFileResourceServiceImpl implements LocalFileResourceService {
         try {
             file.transferTo(destPath.toFile());
         } catch (IOException e) {
-            LOGGER.error("Save storage exception", e);
+            log.error("Save storage exception", e);
         }
     }
 
@@ -138,7 +137,7 @@ public class LocalFileResourceServiceImpl implements LocalFileResourceService {
             try {
                 java.nio.file.Files.createDirectories(storageFolder);
             } catch (IOException e) {
-                LOGGER.error("Create storage folders exception", e);
+                log.error("Create storage folders exception", e);
             }
         }
 

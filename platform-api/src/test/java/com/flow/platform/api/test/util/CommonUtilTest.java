@@ -18,24 +18,21 @@ package com.flow.platform.api.test.util;
 
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
-import com.flow.platform.cmd.Log;
-import com.flow.platform.util.Logger;
 import java.math.BigInteger;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.log4j.Log4j2;
 import org.junit.Assert;
 import org.junit.Test;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 /**
  * @author yh@firim
  */
+@Log4j2
 public class CommonUtilTest extends TestBase {
 
     @Test
@@ -65,9 +62,7 @@ public class CommonUtilTest extends TestBase {
     @Test
     public void should_show_jfiglet_success() {
         String message = CommonUtil.showJfigletMessage("Hello World");
-        Logger logger = new Logger(CommonUtilTest.class);
-        logger.trace(message);
-
+        log.trace(message);
         Assert.assertNotNull(message);
     }
 }
