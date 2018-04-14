@@ -21,7 +21,6 @@ import com.flow.platform.cmd.LogListener;
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.CommandUtil.Unix;
-import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import java.io.FileOutputStream;
 import java.io.IOException;

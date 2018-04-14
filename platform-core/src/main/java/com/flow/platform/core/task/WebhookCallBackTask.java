@@ -17,7 +17,6 @@
 package com.flow.platform.core.task;
 
 import com.flow.platform.domain.Webhookable;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import java.io.UnsupportedEncodingException;

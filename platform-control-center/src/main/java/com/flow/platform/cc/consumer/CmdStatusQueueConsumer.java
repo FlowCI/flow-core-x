@@ -21,7 +21,6 @@ import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.queue.QueueListener;
-import com.flow.platform.util.Logger;
 import javax.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;

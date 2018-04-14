@@ -20,7 +20,6 @@ import com.flow.platform.core.queue.MemoryQueue;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.queue.RabbitQueue;
 import com.flow.platform.queue.PlatformQueue;
-import com.flow.platform.util.Logger;
 import com.google.common.collect.Range;
 import javax.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;

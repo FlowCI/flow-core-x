@@ -24,7 +24,6 @@ import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
-import com.flow.platform.util.Logger;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import java.util.List;
