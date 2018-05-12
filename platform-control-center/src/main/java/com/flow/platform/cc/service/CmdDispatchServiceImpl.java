@@ -248,7 +248,6 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         }
     }
 
-    @Log4j2
     private class CreateSessionCmdHandler extends CmdHandler {
 
         @Override
@@ -475,7 +474,6 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         }
     }
 
-    @Log4j2
     private class ShutdownCmdHandler extends CmdHandler {
 
         @Override

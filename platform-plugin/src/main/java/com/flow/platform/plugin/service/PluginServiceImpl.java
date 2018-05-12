@@ -283,7 +283,6 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         void clean(Plugin plugin);
     }
 
-    @Log4j2
     private class InitGitProcessor implements Processor {
 
         private final static String EMPTY_FILE = "empty.file";
@@ -360,7 +359,6 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         }
     }
 
-    @Log4j2
     private class FetchProcessor implements Processor {
 
         @Override
@@ -380,7 +378,6 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         }
     }
 
-    @Log4j2
     private class CompareCommitProcessor implements Processor {
 
         @Override
@@ -407,7 +404,6 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         }
     }
 
-    @Log4j2
     private class AnalysisYmlProcessor implements Processor {
 
         @Override
@@ -448,7 +444,6 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
     }
 
-    @Log4j2
     private class BuildProcessor implements Processor {
 
         @Override
@@ -582,7 +577,6 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         }
     }
 
-    @Log4j2
     private class PushProcessor implements Processor {
 
         @Override
@@ -614,7 +608,6 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         }
     }
 
-    @Log4j2
     private class InstallRunnable implements Runnable {
 
         private final Plugin plugin;
