@@ -16,20 +16,19 @@
 
 package com.flow.platform.cc.service;
 
-import com.flow.platform.util.zk.ZKServer;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
+import com.flow.platform.util.zk.ZKServer;
 import java.io.IOException;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * @author yang
  */
+@Log4j2
 @Service
 public class ZooKeeperServiceImpl implements ZooKeeperService {
-
-    private final static Logger LOGGER = new Logger(ZooKeeperService.class);
 
     @Autowired
     private ZKClient client;
@@ -50,7 +49,7 @@ public class ZooKeeperServiceImpl implements ZooKeeperService {
                 zkServer.stop();
             }
         } catch (IOException e) {
-            LOGGER.warn("Fail to close zk client connection: %s", e.getMessage());
+            log.warn("Fail to close zk client connection: {}", e.getMessage());
         }
     }
 }

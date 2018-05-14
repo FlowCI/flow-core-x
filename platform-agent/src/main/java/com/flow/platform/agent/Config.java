@@ -18,7 +18,6 @@ package com.flow.platform.agent;
 
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
@@ -27,14 +26,14 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
+import lombok.extern.log4j.Log4j2;
 import org.apache.curator.utils.ZKPaths;
 
 /**
  * @author gy@fir.im
  */
+@Log4j2
 public class Config {
-
-    private final static Logger LOGGER = new Logger(Config.class);
 
     public final static String ZK_ROOT = "flow-agents";
 
@@ -80,7 +79,7 @@ public class Config {
                 properties = new Properties();
                 properties.load(fileInputStream);
             } catch (Throwable e) {
-                LOGGER.error("Fail to load application.properties:", e);
+                log.error("Fail to load application.properties: ", e);
                 return StringUtil.EMPTY;
             }
         }

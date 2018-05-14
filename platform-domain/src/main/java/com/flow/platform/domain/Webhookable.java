@@ -17,6 +17,8 @@
 package com.flow.platform.domain;
 
 import com.google.gson.annotations.Expose;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * The domain entity support webhook
@@ -25,14 +27,9 @@ import com.google.gson.annotations.Expose;
  */
 public abstract class Webhookable extends Jsonable {
 
+    @Setter
+    @Getter
     @Expose
     protected String webhook;
 
-    public String getWebhook() {
-        return webhook;
-    }
-
-    public void setWebhook(String webhook) {
-        this.webhook = webhook;
-    }
 }

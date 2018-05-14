@@ -21,8 +21,8 @@ import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.queue.QueueListener;
-import com.flow.platform.util.Logger;
 import javax.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,10 +31,9 @@ import org.springframework.stereotype.Component;
  *
  * @author yang
  */
+@Log4j2
 @Component
 public class CmdStatusQueueConsumer implements QueueListener<PriorityMessage> {
-
-    private final static Logger LOGGER = new Logger(CmdStatusQueueConsumer.class);
 
     @Autowired
     private PlatformQueue<PriorityMessage> cmdStatusQueue;
@@ -56,10 +55,10 @@ public class CmdStatusQueueConsumer implements QueueListener<PriorityMessage> {
 
         try {
             CmdStatusItem statusItem = CmdStatusItem.parse(item.getBody(), CmdStatusItem.class);
-            LOGGER.debug(Thread.currentThread().getName() + " : " + item.toString());
+            log.debug(Thread.currentThread().getName() + " : " + item.toString());
             cmdService.updateStatus(statusItem, false);
         } catch (Throwable e) {
-            LOGGER.error("Update cmd error:", e);
+            log.error("Update cmd error:", e);
         }
     }
 }

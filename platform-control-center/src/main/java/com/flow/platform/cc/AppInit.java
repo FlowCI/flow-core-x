@@ -19,15 +19,14 @@ package com.flow.platform.cc;
 import com.flow.platform.cc.config.WebConfig;
 import com.flow.platform.cc.resource.CloudJarResourceLoader;
 import com.flow.platform.cc.resource.PropertyResourceLoader;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.resource.AppResourceLoader;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Set;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -36,12 +35,11 @@ import org.springframework.web.servlet.DispatcherServlet;
 /**
  * @author gy@fir.im
  */
+@Log4j2
 public class AppInit implements WebApplicationInitializer {
 
-    private final static Logger LOGGER = new Logger(AppInit.class);
-
-    public void onStartup(ServletContext servletContext) throws ServletException {
-        LOGGER.trace("Initializing Flow Control Center for %s", servletContext.getServerInfo());
+    public void onStartup(ServletContext servletContext) {
+        log.trace("Initializing Flow Control Center for {}", servletContext.getServerInfo());
 
         // get class loader
         ClassLoader appClassLoader = appClassLoader();

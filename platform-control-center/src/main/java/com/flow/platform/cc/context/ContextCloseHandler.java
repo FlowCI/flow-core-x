@@ -18,7 +18,6 @@ package com.flow.platform.cc.context;
 
 import com.flow.platform.core.context.AbstractContextCloseHandler;
 import com.flow.platform.core.context.SpringContext;
-import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;

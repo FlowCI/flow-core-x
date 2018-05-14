@@ -19,19 +19,29 @@ package com.flow.platform.api.domain;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 import java.math.BigInteger;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author yh@firim
  */
+
+@ToString(of = {"jobId", "cmd"})
 public class CmdCallbackQueueItem extends Jsonable {
 
+    @Getter
     private final BigInteger jobId;
 
+    @Getter
     private final String path; // node path
 
+    @Getter
     private final Cmd cmd;
 
     // default retry times 5
+    @Getter
+    @Setter
     private Integer retryTimes = 5;
 
     public CmdCallbackQueueItem(BigInteger jobId, Cmd cmd) {
@@ -40,38 +50,10 @@ public class CmdCallbackQueueItem extends Jsonable {
         this.path = cmd.getExtra();
     }
 
-    public void setRetryTimes(Integer retryTimes) {
-        this.retryTimes = retryTimes;
-    }
-
-    public BigInteger getJobId() {
-        return jobId;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public Cmd getCmd() {
-        return cmd;
-    }
-
-    public Integer getRetryTimes() {
-        return retryTimes;
-    }
-
     /**
      * self plus ++
      */
     public void plus() {
         retryTimes += 1;
-    }
-
-    @Override
-    public String toString() {
-        return "CmdQueueItem{" +
-            "jobId='" + jobId + '\'' +
-            ", cmd=" + cmd +
-            '}';
     }
 }

@@ -15,16 +15,23 @@
  */
 package com.flow.platform.api.domain.request;
 
-import com.flow.platform.api.envs.GitToggleEnvs;
+import static com.flow.platform.api.envs.GitToggleEnvs.FLOW_GIT_PR_ENABLED;
+import static com.flow.platform.api.envs.GitToggleEnvs.FLOW_GIT_PUSH_ENABLED;
+import static com.flow.platform.api.envs.GitToggleEnvs.FLOW_GIT_PUSH_FILTER;
+import static com.flow.platform.api.envs.GitToggleEnvs.FLOW_GIT_TAG_ENABLED;
+import static com.flow.platform.api.envs.GitToggleEnvs.FLOW_GIT_TAG_FILTER;
+
 import com.flow.platform.domain.Jsonable;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 /**
  * @author lhl
  */
+@Data
 public class TriggerParam {
 
     private List<String> branchFilter = new LinkedList<>();
@@ -37,54 +44,14 @@ public class TriggerParam {
 
     private boolean prEnable = true;
 
-    public List<String> getBranchFilter() {
-        return branchFilter;
-    }
-
-    public void setBranchFilter(List<String> branchFilter) {
-        this.branchFilter = branchFilter;
-    }
-
-    public List<String> getTagFilter() {
-        return tagFilter;
-    }
-
-    public void setTagFilter(List<String> tagFilter) {
-        this.tagFilter = tagFilter;
-    }
-
-    public boolean isTagEnable() {
-        return tagEnable;
-    }
-
-    public void setTagEnable(boolean tagEnable) {
-        this.tagEnable = tagEnable;
-    }
-
-    public boolean isPushEnable() {
-        return pushEnable;
-    }
-
-    public void setPushEnable(boolean pushEnable) {
-        this.pushEnable = pushEnable;
-    }
-
-    public boolean isPrEnable() {
-        return prEnable;
-    }
-
-    public void setPrEnable(boolean prEnable) {
-        this.prEnable = prEnable;
-    }
-
     public Map<String, String> toEnv() {
         HashMap<String, String> env = new HashMap<>();
-        env.put(GitToggleEnvs.FLOW_GIT_PUSH_ENABLED.name(), Boolean.toString(pushEnable));
-        env.put(GitToggleEnvs.FLOW_GIT_TAG_ENABLED.name(), Boolean.toString(tagEnable));
-        env.put(GitToggleEnvs.FLOW_GIT_PR_ENABLED.name(), Boolean.toString(prEnable));
+        env.put(FLOW_GIT_PUSH_ENABLED.name(), Boolean.toString(pushEnable));
+        env.put(FLOW_GIT_TAG_ENABLED.name(), Boolean.toString(tagEnable));
+        env.put(FLOW_GIT_PR_ENABLED.name(), Boolean.toString(prEnable));
 
-        env.put(GitToggleEnvs.FLOW_GIT_PUSH_FILTER.name(), Jsonable.GSON_CONFIG.toJson(branchFilter));
-        env.put(GitToggleEnvs.FLOW_GIT_TAG_FILTER.name(), Jsonable.GSON_CONFIG.toJson(tagFilter));
+        env.put(FLOW_GIT_PUSH_FILTER.name(), Jsonable.GSON_CONFIG.toJson(branchFilter));
+        env.put(FLOW_GIT_TAG_FILTER.name(), Jsonable.GSON_CONFIG.toJson(tagFilter));
         return env;
     }
 }

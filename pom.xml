@@ -65,6 +65,7 @@
     <java-gitlab-api.version>4.0.0-SNAPSHOT</java-gitlab-api.version>
     <groovy-all.version>2.4.12</groovy-all.version>
     <jfiglet.version>0.0.3</jfiglet.version>
+    <lombok.version>1.16.20</lombok.version>
   </properties>
 
   <build>
@@ -74,7 +75,6 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.6.1</version>
         <configuration>
-          <compilerId>javac-with-errorprone</compilerId>
           <forceJavacCompilerUse>true</forceJavacCompilerUse>
           <source>1.8</source>
           <target>1.8</target>
@@ -85,11 +85,6 @@
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-compiler-javac-errorprone</artifactId>
             <version>2.8</version>
-          </dependency>
-          <dependency>
-            <groupId>com.google.errorprone</groupId>
-            <artifactId>error_prone_core</artifactId>
-            <version>2.1.1</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -363,6 +358,11 @@
         <version>${jfiglet.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${lombok.version}</version>
+      </dependency>
 
       <!--library for testing-->
       <dependency>

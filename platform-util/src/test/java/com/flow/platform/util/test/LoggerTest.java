@@ -16,23 +16,22 @@
 
 package com.flow.platform.util.test;
 
-import com.flow.platform.util.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.junit.Test;
 
 /**
  * @author gy@fir.im
  */
+@Log4j2
 public class LoggerTest {
-
-    private final static Logger logger = new Logger(LoggerTest.class);
 
     @Test
     public void should_print_log() {
-        logger.traceMarker("should_print_log", "my formatter test %s", 123);
-        logger.infoMarker("should_print_log", "my formatter test %s", 123);
-        logger.warnMarker("should_print_log", "my formatter test %s", 123);
-        logger.errorMarker("should_print_log", "my formatter test", new Exception("test exception"));
-        logger.errorMarker("should_print_log", "my formatter test", null);
-        logger.debugMarker("should_print_log", "my formatter test %s", 123);
+        log.trace("my formatter test {}", 123);
+        log.info("my formatter test {}", 123);
+        log.warn("my formatter test {}", 123);
+        log.error("my formatter test", new Exception("test exception"));
+        log.error("my formatter test");
+        log.debug("my formatter test {}", 123);
     }
 }

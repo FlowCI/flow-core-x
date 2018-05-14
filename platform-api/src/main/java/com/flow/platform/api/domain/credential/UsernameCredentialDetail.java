@@ -16,6 +16,8 @@
 package com.flow.platform.api.domain.credential;
 
 import com.google.gson.annotations.Expose;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author lhl
@@ -23,9 +25,13 @@ import com.google.gson.annotations.Expose;
 public class UsernameCredentialDetail extends CredentialDetail {
 
     @Expose
+    @Getter
+    @Setter
     protected String username;
 
     @Expose
+    @Getter
+    @Setter
     protected String password;
 
     public UsernameCredentialDetail() {
@@ -37,21 +43,4 @@ public class UsernameCredentialDetail extends CredentialDetail {
         this.username = username;
         this.password = password;
     }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
 }

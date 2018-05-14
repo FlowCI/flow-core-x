@@ -22,9 +22,9 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.core.exception.NotFoundException;
-import com.flow.platform.util.Logger;
 import java.math.BigInteger;
 import java.util.List;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -33,11 +33,9 @@ import org.springframework.stereotype.Service;
 /**
  * @author lhl
  */
-
+@Log4j2
 @Service
 public class JobNodeServiceImpl implements JobNodeService {
-
-    private final Logger LOGGER = new Logger(JobYml.class);
 
     @Autowired
     private JobYmlDao jobYmlDao;

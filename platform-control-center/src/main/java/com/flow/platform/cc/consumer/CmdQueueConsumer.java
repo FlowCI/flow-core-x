@@ -28,9 +28,9 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.queue.QueueListener;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkException;
 import javax.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -40,10 +40,9 @@ import org.springframework.stereotype.Component;
  *
  * @author gy@fir.im
  */
+@Log4j2
 @Component
 public class CmdQueueConsumer implements QueueListener<PriorityMessage> {
-
-    private final static Logger LOGGER = new Logger(CmdQueueConsumer.class);
 
     private final static long RETRY_WAIT_TIME = 1000; // in millis
 
@@ -70,16 +69,16 @@ public class CmdQueueConsumer implements QueueListener<PriorityMessage> {
     @Override
     public void onQueueItem(PriorityMessage message) {
         String cmdId = new String(message.getBody());
-        LOGGER.trace("Receive a cmd queue item: %s", cmdId);
+        log.trace("Receive a cmd queue item: {}", cmdId);
 
         Cmd cmd = cmdService.find(cmdId);
 
         try {
             cmdDispatchService.dispatch(cmd);
         } catch (IllegalParameterException e) {
-            LOGGER.warn("Illegal cmd id: %s", e.getMessage());
+            log.warn("Illegal cmd id: {}", e.getMessage());
         } catch (IllegalStatusException e) {
-            LOGGER.warn("Illegal cmd status: %s", e.getMessage());
+            log.warn("Illegal cmd status: {}", e.getMessage());
         } catch (AgentErr.NotAvailableException | AgentErr.NotFoundException | ZkException.NotExitException e) {
             if (cmd.getRetry() <= 0) {
                 return;
@@ -107,7 +106,7 @@ public class CmdQueueConsumer implements QueueListener<PriorityMessage> {
             retry(message);
 
         } catch (Throwable e) {
-            LOGGER.error("Unexpected exception", e);
+            log.error("Unexpected exception", e);
         }
     }
 

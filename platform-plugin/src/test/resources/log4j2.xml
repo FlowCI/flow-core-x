@@ -15,37 +15,6 @@
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout pattern="${defaultPattern}"/>
     </Console>
-
-    <RollingFile name="RollingFileInfo" fileName="${baseDir}/app-info.log"
-      filePattern="${baseDir}/$${date:yyyy-MM}/app-info-%d{MM-dd-yyyy}-%i.log.gz">
-      <PatternLayout pattern="${defaultPatternForFile}"/>
-      <Policies>
-        <TimeBasedTriggeringPolicy/>
-        <SizeBasedTriggeringPolicy size="200 MB"/>
-      </Policies>
-      <DefaultRolloverStrategy max="100">
-        <Delete basePath="${baseDir}" maxDepth="2">
-          <IfFileName glob="*/app-*.log.gz">
-            <IfLastModified age="30d">
-              <IfAny>
-                <IfAccumulatedFileSize exceeds="5 GB"/>
-                <IfAccumulatedFileCount exceeds="10"/>
-              </IfAny>
-            </IfLastModified>
-          </IfFileName>
-        </Delete>
-      </DefaultRolloverStrategy>
-    </RollingFile>
-
-    <RollingFile name="RollingFileError" fileName="${baseDir}/app-error.log"
-      filePattern="${baseDir}/$${date:yyyy-MM}/app-err-%d{MM-dd-yyyy}-%i.log.gz">
-      <PatternLayout pattern="${defaultPatternForFile}"/>
-      <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
-      <Policies>
-        <TimeBasedTriggeringPolicy/>
-        <SizeBasedTriggeringPolicy size="200 MB"/>
-      </Policies>
-    </RollingFile>
   </Appenders>
 
   <Loggers>
@@ -55,8 +24,6 @@
 
     <Root level="all">
       <AppenderRef ref="Console"/>
-      <AppenderRef ref="RollingFileInfo"/>
-      <AppenderRef ref="RollingFileError"/>
     </Root>
   </Loggers>
 </Configuration>

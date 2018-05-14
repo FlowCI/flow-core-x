@@ -29,7 +29,6 @@ import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
@@ -43,6 +42,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
@@ -54,11 +54,10 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author yang
  */
+@Log4j2
 @RestController
 @RequestMapping("/hooks/git")
 public class GitWebHookController extends NodeController {
-
-    private final static Logger LOGGER = new Logger(GitWebHookController.class);
 
     private final static String SKIP_SIGNAL = "[skip]";
 
@@ -87,16 +86,16 @@ public class GitWebHookController extends NodeController {
             // extract git related env variables from event, and temporary set to node for git loading
             final Map<String, String> gitEnvs = GitEventEnvConverter.convert(hookEvent);
 
-            LOGGER.trace("Git Webhook received: %s", hookEvent.toString());
+            log.trace("Git Webhook received: {}", hookEvent.toString());
 
             final String changeLog = gitEnvs.get(GitEnvs.FLOW_GIT_CHANGELOG.toString());
             if (!Strings.isNullOrEmpty(changeLog) && changeLog.contains(SKIP_SIGNAL)) {
-                LOGGER.trace("Skipped");
+                log.trace("Skipped");
                 return;
             }
 
             if (!canExecuteGitEvent(flow, gitEnvs)) {
-                LOGGER.warn("The git event not match flow settings");
+                log.warn("The git event not match flow settings");
                 return;
             }
 
@@ -107,7 +106,7 @@ public class GitWebHookController extends NodeController {
             applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(newJob));
 
         } catch (GitException | FlowException e) {
-            LOGGER.warn("Cannot process web hook event: %s", e.getMessage());
+            log.warn("Cannot process web hook event: {}", e.getMessage());
         }
     }
 

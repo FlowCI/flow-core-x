@@ -16,6 +16,9 @@
 
 package com.flow.platform.domain;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Used for send cmd info
  *
@@ -26,6 +29,8 @@ public class CmdInfo extends CmdBase {
     /**
      * Customized id from invoker
      */
+    @Setter
+    @Getter
     private String customizedId;
 
     public CmdInfo() {
@@ -38,13 +43,5 @@ public class CmdInfo extends CmdBase {
 
     public CmdInfo(AgentPath agentPath, CmdType type, String cmd) {
         super(agentPath, type, cmd);
-    }
-
-    public String getCustomizedId() {
-        return customizedId;
-    }
-
-    public void setCustomizedId(String customizedId) {
-        this.customizedId = customizedId;
     }
 }

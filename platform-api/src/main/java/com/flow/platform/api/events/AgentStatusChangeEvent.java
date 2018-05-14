@@ -17,6 +17,7 @@
 package com.flow.platform.api.events;
 
 import com.flow.platform.domain.Agent;
+import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -24,14 +25,11 @@ import org.springframework.context.ApplicationEvent;
  */
 public class AgentStatusChangeEvent extends ApplicationEvent {
 
+    @Getter
     private final Agent agent;
 
     public AgentStatusChangeEvent(Object source, Agent agent) {
         super(source);
         this.agent = agent;
-    }
-
-    public Agent getAgent() {
-        return agent;
     }
 }

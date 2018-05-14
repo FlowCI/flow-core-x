@@ -21,10 +21,10 @@ import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.math.BigInteger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,11 +37,10 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author yh@firim
  */
+@Log4j2
 @RestController
 @RequestMapping("/hooks/cmd")
 public class CmdWebhookController {
-
-    private final Logger LOGGER = new Logger(CmdWebhookController.class);
 
     @Autowired
     private JobService jobService;
@@ -60,14 +59,14 @@ public class CmdWebhookController {
 
         try {
             BigInteger jobId = new BigInteger(jobIdStr);
-            LOGGER.trace("Cmd Webhook received: Cmd {%s : %s : %s : %s}",
+            log.trace("Cmd Webhook received: Cmd [{} : {} : {} : {}]",
                 cmd.getType(),
                 cmd.getStatus(),
                 cmd.getId(),
                 cmd.getCmdResult());
             jobService.enqueue(new CmdCallbackQueueItem(jobId, cmd), QueueConfig.DEFAULT_CMD_CALLBACK_QUEUE_PRIORITY);
         } catch (NumberFormatException warn) {
-            LOGGER.warn("Invalid job id format");
+            log.warn("Invalid job id format");
         }
     }
 }

@@ -16,19 +16,18 @@
 
 package com.flow.platform.queue;
 
-import com.flow.platform.util.Logger;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * @author yang
  */
+@Log4j2
 public class InMemoryQueue<T extends Comparable> extends PlatformQueue<T> {
-
-    private final Logger LOGGER = new Logger(InMemoryQueue.class);
 
     private final PriorityBlockingQueue<T> queue;
 
@@ -138,7 +137,7 @@ public class InMemoryQueue<T extends Comparable> extends PlatformQueue<T> {
                     }
 
                 } catch (InterruptedException ignore) {
-                    LOGGER.warn("InterruptedException occurred while queue processing: ", ignore.getMessage());
+                    log.warn("InterruptedException occurred while queue processing: ", ignore.getMessage());
                 }
             }
         }

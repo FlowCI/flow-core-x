@@ -18,11 +18,12 @@ package com.flow.platform.agent;
 
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
@@ -33,49 +34,32 @@ import org.apache.curator.utils.ZKPaths;
 /**
  * @author gy@fir.im
  */
+@Log4j2
 public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable {
-
-    private final static Logger LOGGER = new Logger(AgentManager.class);
 
     // Zk root path /flow-agents/{zone}/{name}
     private final static Object STATUS_LOCKER = new Object();
 
     private final static int ZK_RECONNECT_TIME = 1;
+
     private final static int ZK_RETRY_PERIOD = 500;
 
-    private String zkHost;
-    private int zkTimeout;
-    private ZKClient zkClient;
+    @Getter
+    private final ZKClient zkClient;
 
-    private String zone; // agent running zone
-    private String name; // agent name, can be machine name
+    @Getter
+    private final String zonePath;    // zone path, /flow-agents/{zone}
 
-    private String zonePath;    // zone path, /flow-agents/{zone}
-    private String nodePath;    // zk node path, /flow-agents/{zone}/{name}
+    @Getter
+    private final String nodePath;    // zk node path, /flow-agents/{zone}/{name}
 
-    private List<Cmd> cmdHistory = new LinkedList<>();
+    @Getter
+    private final List<Cmd> cmdHistory = new LinkedList<>();
 
-    public AgentManager(String zkHost, int zkTimeout, String zone, String name) throws IOException {
-        this.zkHost = zkHost;
-        this.zkTimeout = zkTimeout;
-
+    public AgentManager(String zkHost, int zkTimeout, String zone, String name) {
         this.zkClient = new ZKClient(zkHost, ZK_RETRY_PERIOD, ZK_RECONNECT_TIME);
-        this.zone = zone;
-        this.name = name;
-        this.zonePath = ZKPaths.makePath(Config.ZK_ROOT, this.zone);
-        this.nodePath = ZKPaths.makePath(this.zonePath, this.name);
-    }
-
-    public ZKClient getZkClient() {
-        return zkClient;
-    }
-
-    public String getNodePath() {
-        return nodePath;
-    }
-
-    public List<Cmd> getCmdHistory() {
-        return cmdHistory;
+        this.zonePath = ZKPaths.makePath(Config.ZK_ROOT, zone);
+        this.nodePath = ZKPaths.makePath(this.zonePath, name);
     }
 
     /**
@@ -98,56 +82,38 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
             try {
                 STATUS_LOCKER.wait();
             } catch (InterruptedException e) {
-                LOGGER.warn("InterruptedException : " + e.getMessage());
+                log.warn("InterruptedException : " + e.getMessage());
             }
         }
     }
 
     private void exit() {
-        LOGGER.info("One Agent is running in other place. Please first to stop another agent, thx!");
+        log.info("One Agent is running in other place. Please first to stop another agent, thx!");
         Runtime.getRuntime().exit(1);
     }
 
     @Override
-    public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+    public void childEvent(CuratorFramework client, TreeCacheEvent event) {
         ChildData eventData = event.getData();
+        log.trace("========= Event: {} =========", event.getType());
 
         if (event.getType() == Type.CONNECTION_RECONNECTED) {
-            LOGGER.traceMarker("ZK-Event", "========= Reconnect =========");
             registerZkNodeAndWatch();
             return;
         }
 
-        if (event.getType() == Type.CONNECTION_LOST) {
-            LOGGER.traceMarker("ZK-Event", "========= Lost =========");
-            return;
-        }
-
-        if (event.getType() == Type.INITIALIZED) {
-            LOGGER.traceMarker("ZK-Event", "========= Initialized =========");
-            return;
-        }
-
-        if (event.getType() == Type.NODE_ADDED) {
-            LOGGER.traceMarker("ZK-Event", "========= Node Added: %s =========", eventData.getPath());
-            return;
-        }
-
         if (event.getType() == Type.NODE_UPDATED) {
-            LOGGER.traceMarker("ZK-Event", "========= Node Updated: %s =========", eventData.getPath());
             onDataChanged(eventData.getPath());
             return;
         }
 
         if (event.getType() == Type.NODE_REMOVED) {
-            LOGGER.traceMarker("ZK-Event", "========= Node Removed: %s =========", eventData.getPath());
             close();
-            return;
         }
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         removeZkNode();
         stop();
     }
@@ -158,7 +124,7 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
     private void onDeleted() {
         try {
             CmdManager.getInstance().shutdown(null);
-            LOGGER.trace("========= Agent been deleted =========");
+            log.trace("========= Agent been deleted =========");
 
             stop();
         } finally {
@@ -172,22 +138,22 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
         try {
             final byte[] rawData = zkClient.getData(path);
             if (rawData == null) {
-                LOGGER.warn("Zookeeper node data is null");
+                log.warn("Zookeeper node data is null");
                 return;
             }
 
             cmd = Jsonable.parse(rawData, Cmd.class);
             if (cmd == null) {
-                LOGGER.warn("Unable to parse cmd from zk node: " + new String(rawData));
+                log.warn("Unable to parse cmd from zk node: " + new String(rawData));
                 return;
             }
 
             cmdHistory.add(cmd);
-            LOGGER.trace("Received command: " + cmd.toString());
+            log.trace("Received command: " + cmd.toString());
             CmdManager.getInstance().execute(cmd);
 
         } catch (Throwable e) {
-            LOGGER.error("Invalid cmd from server", e);
+            log.error("Invalid cmd from server", e);
             // TODO: should report agent status directly...
         }
     }

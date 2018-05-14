@@ -18,6 +18,7 @@ package com.flow.platform.api.events;
 
 import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeStatus;
+import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -27,10 +28,13 @@ import org.springframework.context.ApplicationEvent;
  */
 public class NodeStatusChangeEvent extends ApplicationEvent {
 
+    @Getter
     private final NodeResultKey resultKey;
 
+    @Getter
     private final NodeStatus from;
 
+    @Getter
     private final NodeStatus to;
 
     public NodeStatusChangeEvent(Object source, NodeResultKey resultKey, NodeStatus from, NodeStatus to) {
@@ -38,17 +42,5 @@ public class NodeStatusChangeEvent extends ApplicationEvent {
         this.resultKey = resultKey;
         this.from = from;
         this.to = to;
-    }
-
-    public NodeResultKey getResultKey() {
-        return resultKey;
-    }
-
-    public NodeStatus getFrom() {
-        return from;
-    }
-
-    public NodeStatus getTo() {
-        return to;
     }
 }

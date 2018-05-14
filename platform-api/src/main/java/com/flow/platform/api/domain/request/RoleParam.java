@@ -16,28 +16,15 @@
 
 package com.flow.platform.api.domain.request;
 
+import lombok.Data;
+
 /**
  * @author yang
  */
+@Data
 public class RoleParam {
 
     private String name;
 
     private String description;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 }

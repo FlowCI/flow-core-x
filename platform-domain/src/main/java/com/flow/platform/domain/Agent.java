@@ -18,84 +18,88 @@ package com.flow.platform.domain;
 
 import com.google.gson.annotations.Expose;
 import java.time.ZonedDateTime;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author gy@fir.im
  */
+@NoArgsConstructor
+@EqualsAndHashCode(of = "path", callSuper = false)
 public class Agent extends Webhookable {
 
     /**
      * Composite key
      */
+    @Setter
+    @Getter
     @Expose
     private AgentPath path;
 
     /**
      * Max concurrent proc number
      */
+    @Setter
+    @Getter
     @Expose
     private Integer concurrentProc = 1;
 
     /**
      * Agent busy or idle
      */
+    @Setter
+    @Getter
     @Expose
     private AgentStatus status = AgentStatus.OFFLINE;
 
     /**
      * Reserved for session id
      */
+    @Setter
+    @Getter
     @Expose
     private String sessionId;
 
     /**
      * The date to start session
      */
+    @Setter
+    @Getter
     @Expose
     private ZonedDateTime sessionDate;
 
     /**
      * agent token
      */
+    @Setter
+    @Getter
     @Expose
     private String token;
 
     /**
      * Created date
      */
+    @Setter
+    @Getter
     @Expose
     private ZonedDateTime createdDate;
 
     /**
      * Updated date
      */
+    @Setter
+    @Getter
     @Expose
     private ZonedDateTime updatedDate;
-
-    public Agent() {
-    }
 
     public Agent(String zone, String name) {
         this(new AgentPath(zone, name));
     }
 
     public Agent(AgentPath path) {
-        this.path = path;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public AgentPath getPath() {
-        return path;
-    }
-
-    public void setPath(AgentPath path) {
         this.path = path;
     }
 
@@ -107,74 +111,8 @@ public class Agent extends Webhookable {
         return this.path.getName();
     }
 
-    public Integer getConcurrentProc() {
-        return concurrentProc;
-    }
-
-    public void setConcurrentProc(Integer concurrentProc) {
-        this.concurrentProc = concurrentProc;
-    }
-
-    public AgentStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(AgentStatus status) {
-        this.status = status;
-    }
-
-    public String getSessionId() {
-        return sessionId;
-    }
-
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
-    }
-
-    public ZonedDateTime getSessionDate() {
-        return sessionDate;
-    }
-
-    public void setSessionDate(ZonedDateTime sessionDate) {
-        this.sessionDate = sessionDate;
-    }
-
-    public ZonedDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(ZonedDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public ZonedDateTime getUpdatedDate() {
-        return updatedDate;
-    }
-
-    public void setUpdatedDate(ZonedDateTime updatedDate) {
-        this.updatedDate = updatedDate;
-    }
-
     public boolean isAvailable() {
         return getStatus() == AgentStatus.IDLE;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Agent agent = (Agent) o;
-        return path.equals(agent.getPath());
-    }
-
-    @Override
-    public int hashCode() {
-        return this.getPath().hashCode();
     }
 
     @Override

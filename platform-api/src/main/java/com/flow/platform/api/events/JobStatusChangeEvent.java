@@ -18,6 +18,7 @@ package com.flow.platform.api.events;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
+import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -25,10 +26,13 @@ import org.springframework.context.ApplicationEvent;
  */
 public class JobStatusChangeEvent extends ApplicationEvent {
 
+    @Getter
     private final Job job;
 
+    @Getter
     private final JobStatus from;
 
+    @Getter
     private final JobStatus to;
 
     public JobStatusChangeEvent(Object sender, Job job, JobStatus from, JobStatus to) {
@@ -36,17 +40,5 @@ public class JobStatusChangeEvent extends ApplicationEvent {
         this.job = job;
         this.from = from;
         this.to = to;
-    }
-
-    public Job getJob() {
-        return job;
-    }
-
-    public JobStatus getFrom() {
-        return from;
-    }
-
-    public JobStatus getTo() {
-        return to;
     }
 }

@@ -29,7 +29,6 @@ import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.http.converter.RawGsonMessageConverter;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -43,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -61,12 +61,10 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author lhl
  */
-
+@Log4j2
 @RestController
 @RequestMapping(path = "/credentials")
 public class CredentialController {
-
-    private final static Logger LOGGER = new Logger(CredentialController.class);
 
     private final static Set<String> ANDROID_EXTENSIONS = Sets.newHashSet("jks");
 

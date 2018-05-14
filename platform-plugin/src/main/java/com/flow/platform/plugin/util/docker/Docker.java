@@ -17,7 +17,6 @@
 package com.flow.platform.plugin.util.docker;
 
 import com.flow.platform.plugin.exception.PluginException;
-import com.flow.platform.util.Logger;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.Bind;
@@ -40,13 +39,13 @@ import java.nio.file.Paths;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * @author yh@firim
  */
+@Log4j2
 public class Docker {
-
-    private static final Logger LOGGER = new Logger(Docker.class);
 
     private static final String DOCKER_MVN_CACHE_FOLDER = "/root/.m2/repository";
 
@@ -59,9 +58,9 @@ public class Docker {
     private final ThreadPoolExecutor executor = new ThreadPoolExecutor(5, 5, 60, TimeUnit.SECONDS,
         new LinkedBlockingQueue<>(1000));
 
-    DockerClientConfig config;
+    private DockerClientConfig config;
 
-    DockerClient docker;
+    private DockerClient docker;
 
     public Docker() {
         initClient();
@@ -71,34 +70,32 @@ public class Docker {
         try {
             docker.close();
         } catch (IOException e) {
-            LOGGER.error("Docker Close Error", e);
+            log.error("Docker Close Error", e);
         }
     }
 
     public void pull(String image) {
-        LOGGER.info("Pull Image " + image + " Start");
+        log.info("Pull Image " + image + " Start");
         try {
             docker
                 .pullImageCmd(image)
                 .exec(new PullImageProcess())
                 .awaitCompletion();
         } catch (InterruptedException e) {
-            LOGGER.error("Pull Image Error", e);
+            log.error("Pull Image Error", e);
             throw new PluginException("Pull Image Error");
         }
-        LOGGER.info("Pull Image " + image + " Success");
+        log.info("Pull Image " + image + " Success");
     }
 
     public void runBuild(String image, String cmd, Path repoPath) {
-
-        LOGGER.info("Run Build Start");
+        log.info("Run Build Start");
         String fileName = repoPath.getFileName().toString();
         Volume volume = new Volume(File.separator + fileName);
 
         // mvn cache
         Volume mvnVolume = new Volume(DOCKER_MVN_CACHE_FOLDER);
-
-        LOGGER.info("Run Build Start - " + Paths.get(repoPath.getParent().toString(), REPOSITORY).toString());
+        log.info("Run Build Start - " + Paths.get(repoPath.getParent().toString(), REPOSITORY).toString());
 
         CreateContainerResponse container = docker
             .createContainerCmd(image)
@@ -138,10 +135,10 @@ public class Docker {
 
         } catch (Throwable e) {
             docker.removeContainerCmd(container.getId());
-            LOGGER.error("Docker build error ", e);
+            log.error("Docker build error ", e);
             throw new PluginException("Docker build error " + e.getMessage());
         }
-        LOGGER.info("Run Build Finish");
+        log.info("Run Build Finish");
     }
 
     private void initClient() {
@@ -216,7 +213,7 @@ public class Docker {
                 DEFAULT_BUFFER_SIZE)) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    LOGGER.debug(line);
+                    log.debug(line);
                 }
             } catch (Throwable e) {
             }

@@ -18,19 +18,29 @@ package com.flow.platform.domain;
 
 import com.google.common.base.Strings;
 import com.google.gson.annotations.Expose;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Agent path in zookeeper
  *
  * @author gy@fir.im
  */
+@NoArgsConstructor
+@EqualsAndHashCode(of = {"zone", "name"}, callSuper = false)
 public class AgentPath extends Jsonable {
 
     private final static String RESERVED_CHAR = "#";
 
+    @Setter
+    @Getter
     @Expose
     private String zone;
 
+    @Setter
+    @Getter
     @Expose
     private String name;
 
@@ -48,25 +58,6 @@ public class AgentPath extends Jsonable {
         this.name = name;
     }
 
-    public AgentPath() {
-    }
-
-    public void setZone(String zone) {
-        this.zone = zone;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getZone() {
-        return zone;
-    }
-
-    public String getName() {
-        return name;
-    }
-
     /**
      * Is empty zone and name
      */
@@ -80,30 +71,6 @@ public class AgentPath extends Jsonable {
 
     public boolean hasName() {
         return !Strings.isNullOrEmpty(name);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        AgentPath agentPath = (AgentPath) o;
-
-        if (!zone.equals(agentPath.zone)) {
-            return false;
-        }
-        return name != null ? name.equals(agentPath.name) : agentPath.name == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = zone.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        return result;
     }
 
     @Override

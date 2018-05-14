@@ -17,41 +17,27 @@
 package com.flow.platform.api.domain.job;
 
 import java.math.BigInteger;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author yh@firim
  */
+@EqualsAndHashCode(of = {"jobId"})
 public class JobYml {
 
+    @Getter
+    @Setter
     private BigInteger jobId;
 
+    @Getter
+    @Setter
     private String file;
 
+    @Getter
+    @Setter
     private String createdBy;
-
-    public BigInteger getJobId() {
-        return jobId;
-    }
-
-    public void setJobId(BigInteger jobId) {
-        this.jobId = jobId;
-    }
-
-    public String getFile() {
-        return file;
-    }
-
-    public void setFile(String file) {
-        this.file = file;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
 
     public JobYml(BigInteger jobId, String file) {
         this.jobId = jobId;
@@ -59,26 +45,5 @@ public class JobYml {
     }
 
     public JobYml() {
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        JobYml that = (JobYml) o;
-
-        return jobId != null ? jobId.equals(that.jobId) : that.jobId == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = jobId != null ? jobId.hashCode() : 0;
-        result = 31 * result + (file != null ? file.hashCode() : 0);
-        return result;
     }
 }

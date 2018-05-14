@@ -16,10 +16,12 @@
 package com.flow.platform.api.domain.request;
 
 import com.flow.platform.api.domain.user.User;
+import lombok.Data;
 
 /**
  * @author lhl
  */
+@Data
 public class RegisterUserParam {
 
     private String email;
@@ -33,54 +35,6 @@ public class RegisterUserParam {
     private ListParam<String> flows;
 
     private ListParam<String> roles;
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public boolean isSendEmail() {
-        return isSendEmail;
-    }
-
-    public void setSendEmail(boolean sendEmail) {
-        isSendEmail = sendEmail;
-    }
-
-    public ListParam<String> getFlows() {
-        return flows;
-    }
-
-    public void setFlows(ListParam<String> flows) {
-        this.flows = flows;
-    }
-
-    public ListParam<String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(ListParam<String> roles) {
-        this.roles = roles;
-    }
 
     public User toUser() {
         return new User(email, username, password);

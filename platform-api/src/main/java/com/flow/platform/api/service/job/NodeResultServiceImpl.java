@@ -32,7 +32,6 @@ import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
-import com.flow.platform.util.Logger;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -40,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,10 +47,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author gyfirim
  */
+@Log4j2
 @Service
 public class NodeResultServiceImpl extends ApplicationEventService implements NodeResultService {
-
-    private final static Logger LOGGER = new Logger(NodeResultService.class);
 
     private final static char SPACE_REPLACE = '_';
 
@@ -290,7 +289,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         }
 
         nodeResultDao.update(parentResult);
-        LOGGER.debug("Update parent '%s' status to '%s' on job '%s'",
+        log.debug("Update parent '{}' status to '{}' on job '{}'",
             parentResult.getPath(),
             parentResult.getStatus(),
             job.getId()

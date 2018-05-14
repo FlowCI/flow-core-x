@@ -20,10 +20,14 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.StringUtil;
 import com.google.gson.annotations.Expose;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author yang
  */
+@ToString(of = {"gitUrl", "repo", "syncType"})
 public class SyncEvent extends Jsonable {
 
     /**
@@ -40,18 +44,22 @@ public class SyncEvent extends Jsonable {
     /**
      * Git source url
      */
+    @Getter
+    @Setter
     private String gitUrl;
 
     /**
      * Repo name and tag
      */
     @Expose
+    @Getter
     private SyncRepo repo;
 
     /**
      * Sync type
      */
     @Expose
+    @Getter
     private SyncType syncType;
 
     public SyncEvent(String gitUrl, String name, String tag, SyncType syncType) {
@@ -64,22 +72,6 @@ public class SyncEvent extends Jsonable {
         this.gitUrl = gitUrl;
         this.repo = repo;
         this.syncType = syncType;
-    }
-
-    public String getGitUrl() {
-        return gitUrl;
-    }
-
-    public void setGitUrl(String gitUrl) {
-        this.gitUrl = gitUrl;
-    }
-
-    public SyncRepo getRepo() {
-        return repo;
-    }
-
-    public SyncType getSyncType() {
-        return syncType;
     }
 
     public String toScript() {
@@ -106,13 +98,7 @@ public class SyncEvent extends Jsonable {
             Unix.LINE_SEPARATOR +
             "git checkout " + repo.getTag();
     }
-
-    @Override
-    public String toString() {
-        return "SyncEvent{" +
-            "gitUrl='" + gitUrl + '\'' +
-            ", repo='" + repo + '\'' +
-            ", syncType=" + syncType +
-            "} " + super.toString();
-    }
 }
+
+
+

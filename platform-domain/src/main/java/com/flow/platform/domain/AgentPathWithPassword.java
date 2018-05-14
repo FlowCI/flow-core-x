@@ -16,26 +16,22 @@
 
 package com.flow.platform.domain;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /**
  * @author yang
  */
+@NoArgsConstructor
 public class AgentPathWithPassword extends AgentPath {
 
+    @Setter
+    @Getter
     private String password;
-
-    public AgentPathWithPassword() {
-    }
 
     public AgentPathWithPassword(String zone, String name, String password) {
         super(zone, name);
-        this.password = password;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
         this.password = password;
     }
 }

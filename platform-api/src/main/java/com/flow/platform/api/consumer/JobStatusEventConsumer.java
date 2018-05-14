@@ -20,7 +20,7 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.service.MessageService;
-import com.flow.platform.util.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.task.TaskExecutor;
@@ -30,9 +30,8 @@ import org.springframework.core.task.TaskExecutor;
  *
  * @author yang
  */
+@Log4j2
 public class JobStatusEventConsumer extends JobEventPushHandler implements ApplicationListener<JobStatusChangeEvent> {
-
-    private final static Logger LOGGER = new Logger(JobStatusEventConsumer.class);
 
     @Autowired
     private TaskExecutor taskExecutor;
@@ -42,8 +41,7 @@ public class JobStatusEventConsumer extends JobEventPushHandler implements Appli
 
     @Override
     public void onApplicationEvent(JobStatusChangeEvent event) {
-        LOGGER
-            .debug("Job %s status change event from %s to %s", event.getJob().getId(), event.getFrom(), event.getTo());
+        log.debug("Job {} status change event from {} to {}", event.getJob().getId(), event.getFrom(), event.getTo());
 
         push(event.getJob());
 

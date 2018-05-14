@@ -16,52 +16,32 @@
 
 package com.flow.platform.domain;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /**
  * For report cmd status and result
  *
  * @author gy@fir.im
  */
+@NoArgsConstructor
+@AllArgsConstructor
 public class CmdReport extends Jsonable {
 
     // cmd id
+    @Setter
+    @Getter
     private String id;
 
     // reported status
+    @Setter
+    @Getter
     private CmdStatus status;
 
     // reported result
+    @Setter
+    @Getter
     private CmdResult result;
-
-    public CmdReport() {
-    }
-
-    public CmdReport(String id, CmdStatus status, CmdResult result) {
-        this.id = id;
-        this.status = status;
-        this.result = result;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public CmdStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(CmdStatus status) {
-        this.status = status;
-    }
-
-    public CmdResult getResult() {
-        return result;
-    }
-
-    public void setResult(CmdResult result) {
-        this.result = result;
-    }
 }

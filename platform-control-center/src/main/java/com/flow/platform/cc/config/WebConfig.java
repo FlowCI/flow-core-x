@@ -19,12 +19,12 @@ package com.flow.platform.cc.config;
 import com.flow.platform.cc.resource.PropertyResourceLoader;
 import com.flow.platform.core.http.converter.RawGsonMessageConverter;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.resource.AppResourceLoader;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.List;
 import javax.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +32,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -43,6 +42,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 /**
  * @author gy@fir.im
  */
+@Log4j2
 @Configuration
 @EnableWebMvc
 @EnableScheduling
@@ -57,13 +57,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
-    private final static Logger LOGGER = new Logger(WebConfig.class);
-
     private final static int MAX_UPLOAD_SIZE = 20 * 1024 * 1024;
 
     @PostConstruct
     public void init() {
-        LOGGER.trace("WebConfig init");
+        log.trace("WebConfig init");
     }
 
     @Bean

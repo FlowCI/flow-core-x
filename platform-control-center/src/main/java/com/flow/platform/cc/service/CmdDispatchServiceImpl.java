@@ -35,7 +35,6 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.DateUtil;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
 import com.flow.platform.util.zk.ZkException;
 import com.google.common.base.Strings;
@@ -46,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -55,11 +55,10 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author yang
  */
+@Log4j2
 @Service
 @Transactional
 public class CmdDispatchServiceImpl extends ApplicationEventService implements CmdDispatchService {
-
-    private final static Logger LOGGER = new Logger(CmdDispatchService.class);
 
     @Autowired
     private TaskConfig taskConfig;
@@ -152,8 +151,6 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         if (!taskConfig.isEnableCmdExecTimeoutTask()) {
             return;
         }
-        LOGGER.traceMarker("checkTimeoutTask", "start");
-
         // find all running status cmd
         List<Cmd> workingCmdList = cmdService.listWorkingCmd(null);
 
@@ -166,17 +163,15 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
                 try {
                     Cmd killCmd = cmdService.create(new CmdInfo(cmd.getAgentPath(), CmdType.KILL, null));
                     dispatch(killCmd);
-                    LOGGER.traceMarker("checkTimeoutTask", "Send KILL for timeout cmd %s", cmd);
+                    log.trace("Send KILL cmd {} by checkTimeoutTask", cmd);
 
                     CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.TIMEOUT_KILL, null, true, true);
                     cmdService.updateStatus(statusItem, false);
                 } catch (Throwable e) {
-                    LOGGER.warn(e.getMessage());
+                    log.warn(e.getMessage());
                 }
             }
         }
-
-        LOGGER.traceMarker("checkTimeoutTask", "end");
     }
 
     /**
@@ -255,8 +250,6 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
     private class CreateSessionCmdHandler extends CmdHandler {
 
-        private final Logger logger = new Logger(CreateSessionCmdHandler.class);
-
         @Override
         public CmdType handleType() {
             return CmdType.CREATE_SESSION;
@@ -297,8 +290,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             target.setSessionId(existSessionId);
             target.setSessionDate(ZonedDateTime.now());
             agentService.saveWithStatus(target, AgentStatus.BUSY);
-
-            logger.debug("Agent session been created: %s %s", target.getPath(), target.getSessionId());
+            log.debug("Agent session been created: {} {}", target.getPath(), target.getSessionId());
         }
     }
 
@@ -484,8 +476,6 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
     private class ShutdownCmdHandler extends CmdHandler {
 
-        private final Logger logger = new Logger(ShutdownCmdHandler.class);
-
         @Override
         public CmdType handleType() {
             return CmdType.SHUTDOWN;
@@ -513,7 +503,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             // delete session if session existed
             if (target.getSessionId() != null) {
                 handler.get(CmdType.DELETE_SESSION).exec(createDeleteSessionCmd(target));
-                logger.trace("Delete session before shutdown: %s %s", target.getPath(), target.getSessionId());
+                log.trace("Delete session before shutdown: {} {}", target.getPath(), target.getSessionId());
             }
 
             // otherwise kill cmd before shutdown
@@ -524,7 +514,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
             // set agent to offline
             agentService.saveWithStatus(target, AgentStatus.OFFLINE);
-            logger.trace("Agent been shutdown: %s", target.getPath());
+            log.trace("Agent been shutdown: {}", target.getPath());
         }
     }
 }

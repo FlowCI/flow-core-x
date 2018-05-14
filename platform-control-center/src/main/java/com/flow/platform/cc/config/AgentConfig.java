@@ -17,9 +17,9 @@
 package com.flow.platform.cc.config;
 
 import com.flow.platform.domain.AgentSettings;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
 import javax.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,10 +27,9 @@ import org.springframework.context.annotation.Configuration;
 /**
  * @author yang
  */
+@Log4j2
 @Configuration
 public class AgentConfig {
-
-    private final static Logger LOGGER = new Logger(AgentConfig.class);
 
     @Value("${agent.config.ws}")
     private String wsDomain; // web socket url
@@ -55,7 +54,7 @@ public class AgentConfig {
         settings.setCmdLogUrl(cmdLogUploadUrl);
 
         settings.setZookeeperUrl(zookeeperUrl);
-        LOGGER.trace(settings.toString());
+        log.trace(settings.toString());
     }
 
     @Bean

@@ -17,46 +17,59 @@
 package com.flow.platform.domain;
 
 import com.google.gson.annotations.Expose;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Config for agent
  *
  * @author gy@fir.im
  */
+@NoArgsConstructor
+@ToString(of = {"agentPath", "webSocketUrl", "cmdStatusUrl", "cmdLogUrl", "zookeeperUrl"})
 public class AgentSettings extends Jsonable {
 
     /**
      * Set agent zone and name
      */
+    @Getter
+    @Setter
     @Expose
     private AgentPath agentPath;
 
     /**
      * web socket url for upload real time logging
      */
+    @Getter
+    @Setter
     @Expose
     private String webSocketUrl;
 
     /**
      * Url for report cmd status
      */
+    @Getter
+    @Setter
     @Expose
     private String cmdStatusUrl;
 
     /**
      * Url for upload full zipped cmd log
      */
+    @Getter
+    @Setter
     @Expose
     private String cmdLogUrl;
 
     /**
      * Url for zookeeper
      */
+    @Getter
+    @Setter
     @Expose
     private String zookeeperUrl;
-
-    public AgentSettings() {
-    }
 
     public AgentSettings(String webSocketUrl, String cmdStatusUrl, String cmdLogUrl) {
         this.webSocketUrl = webSocketUrl;
@@ -69,56 +82,5 @@ public class AgentSettings extends Jsonable {
         this.cmdStatusUrl = cmdStatusUrl;
         this.cmdLogUrl = cmdLogUrl;
         this.zookeeperUrl = zookeeperUrl;
-    }
-
-    public AgentPath getAgentPath() {
-        return agentPath;
-    }
-
-    public void setAgentPath(AgentPath agentPath) {
-        this.agentPath = agentPath;
-    }
-
-    public String getZookeeperUrl() {
-        return zookeeperUrl;
-    }
-
-    public void setZookeeperUrl(String zookeeperUrl) {
-        this.zookeeperUrl = zookeeperUrl;
-    }
-
-    public String getWebSocketUrl() {
-        return webSocketUrl;
-    }
-
-    public void setWebSocketUrl(String webSocketUrl) {
-        this.webSocketUrl = webSocketUrl;
-    }
-
-    public String getCmdStatusUrl() {
-        return cmdStatusUrl;
-    }
-
-    public void setCmdStatusUrl(String cmdStatusUrl) {
-        this.cmdStatusUrl = cmdStatusUrl;
-    }
-
-    public String getCmdLogUrl() {
-        return cmdLogUrl;
-    }
-
-    public void setCmdLogUrl(String cmdLogUrl) {
-        this.cmdLogUrl = cmdLogUrl;
-    }
-
-    @Override
-    public String toString() {
-        return "AgentSettings{" +
-            "agentPath=" + agentPath +
-            ", webSocketUrl='" + webSocketUrl + '\'' +
-            ", cmdStatusUrl='" + cmdStatusUrl + '\'' +
-            ", cmdLogUrl='" + cmdLogUrl + '\'' +
-            ", zookeeperUrl='" + zookeeperUrl + '\'' +
-            "} " + super.toString();
     }
 }

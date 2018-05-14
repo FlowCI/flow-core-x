@@ -16,7 +16,7 @@
 
 package com.flow.platform.core.context;
 
-import com.flow.platform.util.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -24,9 +24,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author yh@firim
  */
+@Log4j2
 public abstract class AbstractContextCloseHandler implements ApplicationListener<ContextClosedEvent> {
-
-    private final static Logger LOGGER = new Logger(AbstractContextCloseHandler.class);
 
     public abstract ThreadPoolTaskExecutor getTaskExecutor();
 
@@ -41,7 +40,7 @@ public abstract class AbstractContextCloseHandler implements ApplicationListener
                 continue;
             }
             eventClass.stop();
-            LOGGER.trace("%s stopped", eventClassName);
+            log.trace("{} stopped", eventClassName);
         }
 
         getTaskExecutor().setWaitForTasksToCompleteOnShutdown(true);

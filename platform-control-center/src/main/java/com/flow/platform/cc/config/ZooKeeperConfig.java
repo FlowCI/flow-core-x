@@ -17,7 +17,6 @@
 package com.flow.platform.cc.config;
 
 import com.flow.platform.domain.Zone;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectUtil;
 import com.flow.platform.util.zk.ZKClient;
 import com.flow.platform.util.zk.ZKServer;
@@ -31,7 +30,7 @@ import java.util.List;
 import java.util.Properties;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import org.apache.zookeeper.ZooKeeper;
+import lombok.extern.log4j.Log4j2;
 import org.apache.zookeeper.server.ServerConfig;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,10 +43,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author yang
  */
+@Log4j2
 @Configuration
 public class ZooKeeperConfig {
-
-    private final static Logger LOGGER = new Logger(ZooKeeper.class);
 
     /**
      * Zone dynamic property naming rule
@@ -92,10 +90,10 @@ public class ZooKeeperConfig {
 
     @PostConstruct
     public void init() {
-        LOGGER.trace("Host: %s", host);
-        LOGGER.trace("Root node: %s", rootNodeName);
-        LOGGER.trace("Zones: %s", zonesDefinition);
-        LOGGER.trace("Embedded enabled: %s", enableEmbeddedServer);
+        log.trace("Host: {}", host);
+        log.trace("Root node: {}", rootNodeName);
+        log.trace("Zones: {}", zonesDefinition);
+        log.trace("Embedded enabled: {}", enableEmbeddedServer);
     }
 
     @Bean
@@ -106,7 +104,7 @@ public class ZooKeeperConfig {
                 ZKClient zkClient = new ZKClient(localZkHost, clientTimeout);
 
                 if (zkClient.start()) {
-                    LOGGER.info("Client been connected at: %s", localZkHost);
+                    log.info("Client been connected at: {}", localZkHost);
                     return zkClient;
                 }
 
@@ -118,7 +116,7 @@ public class ZooKeeperConfig {
 
         ZKClient zkClient = new ZKClient(host, clientTimeout);
         if (zkClient.start()) {
-            LOGGER.info("Zookeeper been connected at: %s", host);
+            log.info("Zookeeper been connected at: {}", host);
             return zkClient;
         }
 
@@ -182,19 +180,19 @@ public class ZooKeeperConfig {
             ServerConfig configuration = new ServerConfig();
             configuration.readFrom(quorumPeerConfig);
 
-            LOGGER.info("Starting internal zookeeper server.......");
+            log.info("Starting internal zookeeper server.......");
 
             taskExecutor.execute(() -> {
                 try {
                     zkServer.runFromConfig(configuration);
                 } catch (IOException e) {
-                    LOGGER.warn("Start internal zookeeper error: %s", e.getMessage());
+                    log.warn("Start internal zookeeper error: {}", e.getMessage());
                 }
             });
 
             return true;
         } catch (Exception e) {
-            LOGGER.warn("Start internal zookeeper error: %s", e.getMessage());
+            log.warn("Start internal zookeeper error: {}", e.getMessage());
             return false;
         }
     }

@@ -18,70 +18,28 @@ package com.flow.platform.api.domain.job;
 import com.google.gson.annotations.Expose;
 import java.io.Serializable;
 import java.math.BigInteger;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author lhl
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+@ToString
 public class NodeResultKey implements Serializable {
 
+    @Getter
+    @Setter
     private BigInteger jobId;
 
     @Expose
+    @Getter
+    @Setter
     private String path;
-
-    public BigInteger getJobId() {
-        return jobId;
-    }
-
-    public void setJobId(BigInteger jobId) {
-        this.jobId = jobId;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public NodeResultKey() {
-    }
-
-    public NodeResultKey(BigInteger jobId, String path) {
-        this.jobId = jobId;
-        this.path = path;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        NodeResultKey that = (NodeResultKey) o;
-
-        if (!jobId.equals(that.jobId)) {
-            return false;
-        }
-        return path.equals(that.path);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = jobId.hashCode();
-        result = 31 * result + (path != null ? path.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "NodeResultKey{" +
-            "jobId=" + jobId +
-            ", path='" + path + '\'' +
-            '}';
-    }
 }

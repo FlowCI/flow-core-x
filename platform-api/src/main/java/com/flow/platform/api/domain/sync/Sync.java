@@ -23,48 +23,44 @@ import com.google.gson.annotations.Expose;
 import java.time.ZonedDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author yang
  */
+@RequiredArgsConstructor
+@EqualsAndHashCode(of = {"path"})
 public class Sync {
 
     /**
      * Agent path
      */
     @Expose
-    private AgentPath path;
+    @Getter
+    private final AgentPath path;
 
     /**
      * Synced repo list for agent
      */
     @Expose
+    @Getter
     private Set<SyncRepo> repos = new LinkedHashSet<>();
 
     /**
      * Agent sync event queue
      */
-    private PlatformQueue<PriorityMessage> queue;
+    private final PlatformQueue<PriorityMessage> queue;
 
     /**
      * Latest sync time
      */
     @Expose
-    private ZonedDateTime syncTime;
-
-    public Sync(AgentPath path, PlatformQueue<PriorityMessage> queue) {
-        this.path = path;
-        this.queue = queue;
-        this.syncTime = ZonedDateTime.now();
-    }
-
-    public AgentPath getPath() {
-        return path;
-    }
-
-    public Set<SyncRepo> getRepos() {
-        return repos;
-    }
+    @Setter
+    @Getter
+    private ZonedDateTime syncTime = ZonedDateTime.now();
 
     public void enqueue(SyncEvent event, Integer priority) {
         this.queue.enqueue(PriorityMessage.create(event.toBytes(), priority));
@@ -85,32 +81,5 @@ public class Sync {
 
     public int queueSize() {
         return this.queue.size();
-    }
-
-    public ZonedDateTime getSyncTime() {
-        return syncTime;
-    }
-
-    public void setSyncTime(ZonedDateTime syncTime) {
-        this.syncTime = syncTime;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Sync sync = (Sync) o;
-
-        return path.equals(sync.path);
-    }
-
-    @Override
-    public int hashCode() {
-        return path.hashCode();
     }
 }

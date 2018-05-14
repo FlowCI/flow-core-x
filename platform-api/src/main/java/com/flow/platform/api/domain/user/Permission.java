@@ -17,22 +17,31 @@ package com.flow.platform.api.domain.user;
 
 import com.flow.platform.api.domain.CreateUpdateObject;
 import com.google.gson.annotations.Expose;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Permission between role and action
  *
  * @author lhl
  */
+@NoArgsConstructor
+@EqualsAndHashCode(of = {"key"}, callSuper = false)
+@ToString(of = {"key"})
 public class Permission extends CreateUpdateObject {
 
     @Expose
+    @Getter
+    @Setter
     private PermissionKey key;
 
     @Expose
+    @Getter
+    @Setter
     private String createdBy;
-
-    public Permission() {
-    }
 
     public Permission(PermissionKey key) {
         this.key = key;
@@ -42,53 +51,11 @@ public class Permission extends CreateUpdateObject {
         this(new PermissionKey(roleId, action));
     }
 
-    public PermissionKey getKey() {
-        return key;
-    }
-
-    public void setKey(PermissionKey key) {
-        this.key = key;
-    }
-
     public String getAction() {
         return key.getAction();
     }
 
     public Integer getRoleId() {
         return key.getRoleId();
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Permission that = (Permission) o;
-
-        return key.equals(that.key);
-    }
-
-    @Override
-    public int hashCode() {
-        return key.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "Permission{" +
-            "key=" + key +
-            "} ";
     }
 }

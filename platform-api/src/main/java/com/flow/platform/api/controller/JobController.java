@@ -33,7 +33,6 @@ import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.core.domain.Page;
 import com.flow.platform.core.domain.Pageable;
 import com.flow.platform.core.exception.NotFoundException;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.google.common.collect.Lists;
 import java.util.Collection;
@@ -41,6 +40,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,11 +55,10 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author yh@firim
  */
+@Log4j2
 @RestController
 @RequestMapping(path = "/jobs")
 public class JobController extends NodeController {
-
-    private final static Logger LOGGER = new Logger(JobController.class);
 
     @Autowired
     private JobService jobService;
@@ -302,7 +301,7 @@ public class JobController extends NodeController {
         try {
             return logService.findNodeLog(path, buildNumber, stepOrder);
         } catch (Throwable e) {
-            LOGGER.warn("log not found: %s", e.getMessage());
+            log.warn("Log not found: {}", e.getMessage());
             return StringUtil.EMPTY;
         }
     }

@@ -18,6 +18,8 @@ package com.flow.platform.api.domain.credential;
 
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author yang
@@ -25,24 +27,12 @@ import com.google.gson.annotations.Expose;
 public class RSAKeyPair extends Jsonable {
 
     @Expose
+    @Getter
+    @Setter
     private String publicKey;
 
     @Expose
+    @Getter
+    @Setter
     private String privateKey;
-
-    public String getPublicKey() {
-        return publicKey;
-    }
-
-    public void setPublicKey(String publicKey) {
-        this.publicKey = publicKey;
-    }
-
-    public String getPrivateKey() {
-        return privateKey;
-    }
-
-    public void setPrivateKey(String privateKey) {
-        this.privateKey = privateKey;
-    }
 }

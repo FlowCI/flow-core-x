@@ -25,7 +25,6 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.Logger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.time.ZonedDateTime;
@@ -39,6 +38,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * Singleton class to handle command
@@ -46,9 +46,8 @@ import java.util.concurrent.TimeUnit;
  *
  * @author gy@fir.im
  */
+@Log4j2
 public class CmdManager {
-
-    private final static Logger LOGGER = new Logger(CmdManager.class);
 
     private final static CmdManager INSTANCE = new CmdManager();
 
@@ -129,12 +128,12 @@ public class CmdManager {
             }
 
             if (password == null) {
-                LOGGER.trace("Shutdown cannot be executed since sudo password is null");
+                log.trace("Shutdown cannot be executed since sudo password is null");
                 return;
             }
 
             String shutdownCmd = String.format("echo %s | sudo -S shutdown -h now", password);
-            LOGGER.trace("Shutdown command: " + shutdownCmd);
+            log.trace("Shutdown command: " + shutdownCmd);
 
             // exec shutdown command
             CmdExecutor executor = new CmdExecutor(null, Lists.newArrayList(shutdownCmd));
@@ -155,7 +154,7 @@ public class CmdManager {
             // check max concurrent proc
             int max = cmdExecutor.getMaximumPoolSize();
             int cur = cmdExecutor.getActiveCount();
-            LOGGER.trace(" ===== CmdExecutor: max=%s, current=%s =====", max, cur);
+            log.trace(" ===== CmdExecutor: max={}, current={} =====", max, cur);
 
             // reach max proc number, reject this execute
             if (max == cur) {
@@ -166,7 +165,7 @@ public class CmdManager {
             cmdExecutor.execute(new TaskRunner(cmd) {
                 @Override
                 public void run() {
-                    LOGGER.debug("start cmd ...");
+                    log.debug("start cmd ...");
 
                     LogEventHandler logListener = new LogEventHandler(getCmd());
 
@@ -185,7 +184,7 @@ public class CmdManager {
 
                         executor.run();
                     } catch (Throwable e) {
-                        LOGGER.errorMarker("execute", "Cannot init CmdExecutor for cmd " + cmd, e);
+                        log.error("Cannot init CmdExecutor for cmd: " + cmd, e);
                         CmdResult result = new CmdResult();
                         result.getExceptions().add(e);
                         procEventHandler.onException(result);
@@ -268,7 +267,7 @@ public class CmdManager {
             r.getProcess().destroy();
 
             ReportManager.getInstance().cmdReportSync(cmd.getId(), CmdStatus.KILLED, r);
-            LOGGER.trace("Kill process : %s", r.toString());
+            log.trace("Kill process : {}", r.toString());
         }
 
         try {
@@ -277,7 +276,7 @@ public class CmdManager {
 
         } finally {
             cmdExecutor = createExecutor(); // reset cmd executor
-            LOGGER.trace("Cmd thread terminated");
+            log.trace("Cmd thread terminated");
         }
     }
 
@@ -292,7 +291,7 @@ public class CmdManager {
 
         rejected.put(cmd, rejectResult);
         ReportManager.getInstance().cmdReportSync(cmd.getId(), CmdStatus.REJECTED, null);
-        LOGGER.warn("Reject cmd '%s' since over the limit proc of agent", cmd.getId());
+        log.warn("Reject cmd '{}' since over the limit proc of agent", cmd.getId());
     }
 
     private ThreadPoolExecutor createExecutor() {
@@ -307,7 +306,7 @@ public class CmdManager {
                 if (r instanceof TaskRunner) {
                     TaskRunner task = (TaskRunner) r;
                     onReject(task.getCmd());
-                    LOGGER.warn("Reject cmd: %s", task.getCmd());
+                    log.warn("Reject cmd: {}", task.getCmd());
                 }
             });
     }

@@ -18,10 +18,12 @@ package com.flow.platform.api.domain.request;
 
 import com.flow.platform.plugin.domain.PluginStatus;
 import java.util.Set;
+import lombok.Data;
 
 /**
  * @author yang
  */
+@Data
 public class PluginListParam {
 
     private Set<PluginStatus> status;
@@ -29,37 +31,4 @@ public class PluginListParam {
     private String keyword;
 
     private Set<String> labels;
-
-    public PluginListParam() {
-    }
-
-    public PluginListParam(Set<PluginStatus> status, String keyword, Set<String> labels) {
-        this.status = status;
-        this.keyword = keyword;
-        this.labels = labels;
-    }
-
-    public Set<PluginStatus> getStatus() {
-        return status;
-    }
-
-    public void setStatus(Set<PluginStatus> status) {
-        this.status = status;
-    }
-
-    public String getKeyword() {
-        return keyword;
-    }
-
-    public void setKeyword(String keyword) {
-        this.keyword = keyword;
-    }
-
-    public Set<String> getLabels() {
-        return labels;
-    }
-
-    public void setLabels(Set<String> labels) {
-        this.labels = labels;
-    }
 }

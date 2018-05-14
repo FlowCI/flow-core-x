@@ -16,6 +16,8 @@
 package com.flow.platform.api.domain.credential;
 
 import com.google.gson.annotations.Expose;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author lhl
@@ -23,10 +25,14 @@ import com.google.gson.annotations.Expose;
 public class RSACredentialDetail extends CredentialDetail {
 
     @Expose
-    protected String publicKey;
+    @Getter
+    @Setter
+    private String publicKey;
 
     @Expose
-    protected String privateKey;
+    @Getter
+    @Setter
+    private String privateKey;
 
     public RSACredentialDetail() {
         this.type = CredentialType.RSA;
@@ -43,21 +49,4 @@ public class RSACredentialDetail extends CredentialDetail {
         publicKey = pair.getPublicKey();
         privateKey = pair.getPrivateKey();
     }
-
-    public String getPublicKey() {
-        return publicKey;
-    }
-
-    public void setPublicKey(String publicKey) {
-        this.publicKey = publicKey;
-    }
-
-    public String getPrivateKey() {
-        return privateKey;
-    }
-
-    public void setPrivateKey(String privateKey) {
-        this.privateKey = privateKey;
-    }
-
 }

@@ -16,19 +16,28 @@
 
 package com.flow.platform.api.domain.job;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @author yang
  */
+@EqualsAndHashCode(of = {"nodePath"})
 public class JobNumber {
 
     /**
      * Job node path
      */
+    @Getter
+    @Setter
     private String nodePath;
 
     /**
      * Job build number
      */
+    @Getter
+    @Setter
     private Long number = 0L;
 
     public JobNumber() {
@@ -41,40 +50,5 @@ public class JobNumber {
     public JobNumber(String nodePath, Long number) {
         this.nodePath = nodePath;
         this.number = number;
-    }
-
-    public String getNodePath() {
-        return nodePath;
-    }
-
-    public void setNodePath(String nodePath) {
-        this.nodePath = nodePath;
-    }
-
-    public Long getNumber() {
-        return number;
-    }
-
-    public void setNumber(Long number) {
-        this.number = number;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        JobNumber jobNumber = (JobNumber) o;
-
-        return nodePath.equals(jobNumber.nodePath);
-    }
-
-    @Override
-    public int hashCode() {
-        return nodePath.hashCode();
     }
 }

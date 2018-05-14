@@ -17,6 +17,8 @@ package com.flow.platform.api.domain.credential;
 
 import com.flow.platform.api.domain.file.FileResource;
 import com.google.gson.annotations.Expose;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author lhl
@@ -24,50 +26,26 @@ import com.google.gson.annotations.Expose;
 public class AndroidCredentialDetail extends CredentialDetail {
 
     @Expose
+    @Getter
+    @Setter
     private FileResource file;
 
     @Expose
+    @Getter
+    @Setter
     private String keyStorePassword;
 
     @Expose
+    @Getter
+    @Setter
     private String keyStoreAlias;
 
     @Expose
+    @Getter
+    @Setter
     private String keyStoreAliasPassword;
 
     public AndroidCredentialDetail() {
         this.type = CredentialType.ANDROID;
-    }
-
-    public FileResource getFile() {
-        return file;
-    }
-
-    public void setFile(FileResource file) {
-        this.file = file;
-    }
-
-    public String getKeyStorePassword() {
-        return keyStorePassword;
-    }
-
-    public void setKeyStorePassword(String keyStorePassword) {
-        this.keyStorePassword = keyStorePassword;
-    }
-
-    public String getKeyStoreAlias() {
-        return keyStoreAlias;
-    }
-
-    public void setKeyStoreAlias(String keyStoreAlias) {
-        this.keyStoreAlias = keyStoreAlias;
-    }
-
-    public String getKeyStoreAliasPassword() {
-        return keyStoreAliasPassword;
-    }
-
-    public void setKeyStoreAliasPassword(String keyStoreAliasPassword) {
-        this.keyStoreAliasPassword = keyStoreAliasPassword;
     }
 }

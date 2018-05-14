@@ -18,24 +18,22 @@ package com.flow.platform.api.domain.response;
 
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 
 /**
  * @author yang
  */
+@Data
+@EqualsAndHashCode(callSuper = false)
 public class BooleanValue extends Jsonable {
 
     @Expose
+    @NonNull
     private boolean value;
-
-    public BooleanValue(boolean existed) {
-        this.value = existed;
-    }
 
     public boolean getValue() {
         return value;
-    }
-
-    public void setValue(boolean value) {
-        this.value = value;
     }
 }

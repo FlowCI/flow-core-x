@@ -21,15 +21,8 @@ import com.flow.platform.agent.Config;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.zk.ZKClient;
-import com.flow.platform.util.zk.ZkException;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.curator.test.TestingServer;
 import org.apache.curator.utils.ZKPaths;
-import org.apache.zookeeper.ZKUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -89,13 +82,13 @@ public class AgentManagerTest extends TestBase {
     public void should_receive_command() throws Throwable {
         AgentManager agent = new AgentManager(server.getConnectString(), 20000, ZONE, MACHINE);
         new Thread(agent).start();
-        Thread.sleep(5000); // waitting for node created
+        Thread.sleep(5000); // waiting for node created
 
         // when: send command to agent
         Cmd cmd = new Cmd(ZONE, MACHINE, CmdType.RUN_SHELL, "echo hello");
         cmd.setId("mock-cmd-id");
         zkClient.setData(agent.getNodePath(), cmd.toBytes());
-        Thread.sleep(2000); // waitting for cmd recieved
+        Thread.sleep(2000); // waiting for cmd received
 
         // then: check agent status when command received
         Assert.assertEquals(1, agent.getCmdHistory().size());

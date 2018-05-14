@@ -17,21 +17,35 @@ package com.flow.platform.api.domain.user;
 
 import com.flow.platform.api.domain.CreateUpdateObject;
 import com.google.gson.annotations.Expose;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author lhl
  */
+@EqualsAndHashCode(of = {"id"}, callSuper = false)
+@ToString(of = {"id", "name"})
 public class Role extends CreateUpdateObject {
 
+    @Getter
+    @Setter
     private Integer id;
 
     @Expose
+    @Getter
+    @Setter
     private String name;
 
     @Expose
+    @Getter
+    @Setter
     private String description;
 
     @Expose
+    @Getter
+    @Setter
     private String createdBy;
 
     public Role() {
@@ -40,67 +54,5 @@ public class Role extends CreateUpdateObject {
     public Role(String name, String description) {
         this.name = name;
         this.description = description;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Role role = (Role) o;
-
-        return id.equals(role.id);
-    }
-
-
-    @Override
-    public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "Role{" +
-            "name='" + name + '\'' +
-            ", description='" + description + '\'' +
-            '}';
     }
 }

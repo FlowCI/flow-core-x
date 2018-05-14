@@ -24,12 +24,12 @@ import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
-import com.flow.platform.util.Logger;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.CronTrigger;
 import org.quartz.JobDataMap;
@@ -46,10 +46,9 @@ import org.springframework.stereotype.Service;
 /**
  * @author yang
  */
+@Log4j2
 @Service
 public class NodeCrontabServiceImpl implements NodeCrontabService {
-
-    private final static Logger LOGGER = new Logger(NodeCrontabService.class);
 
     private final static Set<EnvKey> CRONTAB_REQUIRED_ENVS = ImmutableSet.of(
         FlowEnvs.FLOW_TASK_CRONTAB_BRANCH, FlowEnvs.FLOW_TASK_CRONTAB_CONTENT);
@@ -90,7 +89,7 @@ public class NodeCrontabServiceImpl implements NodeCrontabService {
         try {
             quartzScheduler.start();
         } catch (SchedulerException e) {
-            LOGGER.warn("Fail to start quartz scheduler: " + e.getMessage());
+            log.warn("Fail to start quartz scheduler: " + e.getMessage());
         }
     }
 
@@ -99,7 +98,7 @@ public class NodeCrontabServiceImpl implements NodeCrontabService {
         try {
             quartzScheduler.shutdown(false);
         } catch (SchedulerException e) {
-            LOGGER.warn("Fail to shutdown quartz scheduler: " + e.getMessage());
+            log.warn("Fail to shutdown quartz scheduler: " + e.getMessage());
         }
     }
 

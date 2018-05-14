@@ -22,67 +22,101 @@ import com.google.gson.annotations.SerializedName;
 import java.time.ZonedDateTime;
 import java.util.LinkedList;
 import java.util.List;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Gson parse the yml file, @SerializedName("xxx")
  * find the super class, but abstract class cannot be instant,
  * so now modified to class
  */
+@EqualsAndHashCode(of = {"path"}, callSuper = false)
+@ToString(of = {"path"})
 public final class Node extends EnvObject {
 
     @Expose
+    @Getter
+    @Setter
     private String path;
 
     @Expose
+    @Getter
+    @Setter
     private String name;
 
     /**
      * Node body which is shell script
      */
     @Expose
+    @Getter
+    @Setter
     private String script;
 
     /**
      * Groovy script that to indicate the node can start or not
      */
     @Expose
+    @Getter
+    @Setter
     private String conditionScript;
 
     @Expose
     @SerializedName("steps")
+    @Getter
+    @Setter
     private List<Node> children = new LinkedList<>();
 
     @Expose
+    @Getter
+    @Setter
     private Boolean allowFailure = false;
 
     @Expose
+    @Getter
+    @Setter
     private Boolean isFinal = false;
 
     @Expose
+    @Getter
+    @Setter
     private String plugin;
 
     @Expose
+    @Getter
+    @Setter
     private String createdBy;
 
     @Expose
+    @Getter
+    @Setter
     private ZonedDateTime createdAt;
 
     @Expose
+    @Getter
+    @Setter
     private ZonedDateTime updatedAt;
 
     /**
      * The parent node reference
      */
+    @Getter
+    @Setter
     private Node parent;
 
     /**
      * The previous node reference
      */
+    @Getter
+    @Setter
     private Node prev;
 
     /**
      * The next node reference
      */
+    @Getter
+    @Setter
     private Node next;
 
     public Node() {
@@ -93,145 +127,7 @@ public final class Node extends EnvObject {
         this.name = name;
     }
 
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Node getParent() {
-        return parent;
-    }
-
-    public void setParent(Node parent) {
-        this.parent = parent;
-    }
-
-    public List<Node> getChildren() {
-        return children;
-    }
-
-    public void setChildren(List<Node> children) {
-        this.children = children;
-    }
-
-    public Node getPrev() {
-        return prev;
-    }
-
-    public void setPrev(Node prev) {
-        this.prev = prev;
-    }
-
-    public Node getNext() {
-        return next;
-    }
-
-    public void setNext(Node next) {
-        this.next = next;
-    }
-
-    public String getScript() {
-        return script;
-    }
-
-    public void setScript(String script) {
-        this.script = script;
-    }
-
-    public String getConditionScript() {
-        return conditionScript;
-    }
-
-    public void setConditionScript(String conditionScript) {
-        this.conditionScript = conditionScript;
-    }
-
-    public Boolean getAllowFailure() {
-        return allowFailure;
-    }
-
-    public void setAllowFailure(Boolean allowFailure) {
-        this.allowFailure = allowFailure;
-    }
-
-    public Boolean getIsFinal() {
-        return isFinal;
-    }
-
-    public void setIsFinal(Boolean isFinal) {
-        this.isFinal = isFinal;
-    }
-
-    public String getPlugin() {
-        return plugin;
-    }
-
-    public void setPlugin(String plugin) {
-        this.plugin = plugin;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     public boolean hasPlugin() {
         return this.plugin != null;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Node node = (Node) o;
-
-        return path.equals(node.path);
-    }
-
-    @Override
-    public int hashCode() {
-        return path.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "Node{" +
-            "path='" + path + '\'' +
-            '}';
     }
 }

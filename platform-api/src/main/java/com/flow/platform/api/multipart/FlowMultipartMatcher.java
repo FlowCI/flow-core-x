@@ -16,39 +16,27 @@
 
 package com.flow.platform.api.multipart;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @author yh@firim
  */
+@AllArgsConstructor
 public class FlowMultipartMatcher {
 
     /**
      * route pattern
      */
+    @Getter
+    @Setter
     private String routePattern;
 
     /**
      * max upload size
      */
+    @Getter
+    @Setter
     private long maxUploadSize;
-
-    public FlowMultipartMatcher(String routePattern, long maxUploadSize) {
-        this.routePattern = routePattern;
-        this.maxUploadSize = maxUploadSize;
-    }
-
-    public String getRoutePattern() {
-        return routePattern;
-    }
-
-    public void setRoutePattern(String routePattern) {
-        this.routePattern = routePattern;
-    }
-
-    public long getMaxUploadSize() {
-        return maxUploadSize;
-    }
-
-    public void setMaxUploadSize(long maxUploadSize) {
-        this.maxUploadSize = maxUploadSize;
-    }
 }

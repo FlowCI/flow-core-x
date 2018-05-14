@@ -19,7 +19,6 @@ package com.flow.platform.cc.config;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.core.util.ThreadUtil;
-import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,8 +45,6 @@ public class AppConfig extends AppConfigBase {
     private final static int ASYNC_POOL_SIZE = 100;
 
     private final static String THREAD_NAME_PREFIX = "async-task-";
-
-    private final static Logger LOGGER = new Logger(AppConfig.class);
 
     private final static ThreadPoolTaskExecutor executor =
         ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);

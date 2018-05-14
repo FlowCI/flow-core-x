@@ -20,17 +20,15 @@ import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
-
-import com.flow.platform.util.Logger;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * @author gy@fir.im
  */
+@Log4j2
 public class ProcEventHandler implements ProcListener {
-
-    private final static Logger LOGGER = new Logger(ProcEventHandler.class);
 
     private final Cmd cmd;
     private final Map<Cmd, CmdResult> running;
@@ -72,7 +70,7 @@ public class ProcEventHandler implements ProcListener {
 
     @Override
     public void onLogged(CmdResult result) {
-        LOGGER.debug("got result...");
+        log.debug("got result...");
 
         running.remove(cmd);
         finished.put(cmd, result);

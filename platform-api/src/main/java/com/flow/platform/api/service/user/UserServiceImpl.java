@@ -20,7 +20,6 @@ import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.api.util.StringEncodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.ExceptionUtil;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
 import java.io.StringWriter;
 import java.util.Collection;
@@ -29,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import lombok.extern.log4j.Log4j2;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -40,11 +40,10 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author liangpengyv
  */
+@Log4j2
 @Service
 @Transactional
 public class UserServiceImpl extends CurrentUser implements UserService {
-
-    private final static Logger LOGGER = new Logger(UserService.class);
 
     private final static String REGISTER_TEMPLATE_SUBJECT = "邀请您加入项目 [ flow.ci ]";
 
@@ -276,7 +275,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
         EmailSettingContent emailSettingContent = (EmailSettingContent) messageService.find(MessageType.EMAIl);
 
         if (emailSettingContent == null) {
-            LOGGER.warnMarker("sendMessage", "Email settings not found");
+            log.warn("Email settings not found");
             return;
         }
 
@@ -285,11 +284,10 @@ public class UserServiceImpl extends CurrentUser implements UserService {
         try {
             // send email to creator
             SmtpUtil.sendEmail(emailSettingContent, toUser.getEmail(), REGISTER_TEMPLATE_SUBJECT, text);
-            LOGGER.traceMarker("sendMessage", "send message to %s success", toUser.getEmail());
+            log.trace("Send message to {} success", toUser.getEmail());
 
         } catch (Throwable e) {
-            LOGGER.traceMarker("sendMessage", "send email to user error : %s",
-                ExceptionUtil.findRootCause(e).getMessage());
+            log.trace("Send email to user error: {}", ExceptionUtil.findRootCause(e).getMessage());
         }
     }
 
@@ -307,8 +305,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
             template.merge(velocityContext, stringWriter);
             return stringWriter.toString();
         } catch (Throwable e) {
-            LOGGER.warn("sendMessage", "send message to user error : %s",
-                ExceptionUtil.findRootCause(e).getMessage());
+            log.warn("Send message to user error: {}", ExceptionUtil.findRootCause(e).getMessage());
             return null;
         }
     }
@@ -357,16 +354,4 @@ public class UserServiceImpl extends CurrentUser implements UserService {
         }
 
     }
-
-    private void checkPasswordAndUpdatePassword(User existed, String newPassword) {
-        // Insert the user info into the database
-        String passwordForMD5 = StringEncodeUtil.encodeByMD5(newPassword, AppConfig.DEFAULT_CHARSET.name());
-        if (Objects.equals(existed.getPassword(), passwordForMD5)) {
-            return;
-        }
-
-        existed.setPassword(passwordForMD5);
-        userDao.update(existed);
-    }
-
 }

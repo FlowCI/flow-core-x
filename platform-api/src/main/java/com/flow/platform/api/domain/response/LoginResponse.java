@@ -17,10 +17,14 @@ package com.flow.platform.api.domain.response;
 
 import com.flow.platform.api.domain.user.User;
 import com.google.gson.annotations.Expose;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 /**
  * @author lhl
  */
+@Data
+@AllArgsConstructor
 public class LoginResponse {
 
     @Expose
@@ -28,25 +32,4 @@ public class LoginResponse {
 
     @Expose
     private User user;
-
-    public LoginResponse(String token, User user) {
-        this.token = token;
-        this.user = user;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
 }

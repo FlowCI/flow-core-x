@@ -17,24 +17,16 @@
 package com.flow.platform.api.domain.response;
 
 import com.google.gson.annotations.Expose;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 /**
  * @author yh@firim
  */
+@Data
+@AllArgsConstructor
 public class SmtpAuthResponse {
 
     @Expose
     private Boolean auth;
-
-    public SmtpAuthResponse(Boolean auth) {
-        this.auth = auth;
-    }
-
-    public Boolean getAuth() {
-        return auth;
-    }
-
-    public void setAuth(Boolean auth) {
-        this.auth = auth;
-    }
 }

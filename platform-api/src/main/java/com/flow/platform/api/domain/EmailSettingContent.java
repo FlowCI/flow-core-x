@@ -17,27 +17,44 @@
 package com.flow.platform.api.domain;
 
 import com.google.gson.annotations.Expose;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author yh@firim
  */
+@EqualsAndHashCode(of = {"smtpUrl"}, callSuper = false)
+@ToString
 public class EmailSettingContent extends SettingContent {
 
     @Expose
+    @Getter
     private String smtpUrl;
 
     @Expose
+    @Getter
+    @Setter
     private Integer smtpPort;
 
     @Expose
+    @Getter
+    @Setter
     private String sender;
 
     @Expose
+    @Getter
+    @Setter
     private String username;
 
+    @Getter
+    @Setter
     private String password;
 
     @Expose
+    @Getter
+    @Setter
     private boolean isAuthenticated = true;
 
     public EmailSettingContent(String smtpUrl, Integer smtpPort, String sender) {
@@ -45,86 +62,5 @@ public class EmailSettingContent extends SettingContent {
         this.smtpUrl = smtpUrl;
         this.smtpPort = smtpPort;
         this.sender = sender;
-    }
-
-
-
-    public String getSmtpUrl() {
-        return smtpUrl;
-    }
-
-    public void setSmtpUrl(String smtpUrl) {
-        this.smtpUrl = smtpUrl;
-    }
-
-    public Integer getSmtpPort() {
-        return smtpPort;
-    }
-
-    public void setSmtpPort(Integer smtpPort) {
-        this.smtpPort = smtpPort;
-    }
-
-    public String getSender() {
-        return sender;
-    }
-
-    public void setSender(String sender) {
-        this.sender = sender;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public boolean isAuthenticated() {
-        return isAuthenticated;
-    }
-
-    public void setAuthenticated(boolean authenticated) {
-        isAuthenticated = authenticated;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        EmailSettingContent that = (EmailSettingContent) o;
-
-        return smtpUrl != null ? smtpUrl.equals(that.smtpUrl) : that.smtpUrl == null;
-    }
-
-    @Override
-    public int hashCode() {
-        return smtpUrl != null ? smtpUrl.hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-        return "EmailSettingContent{" +
-            "smtpUrl='" + smtpUrl + '\'' +
-            ", smtpPort=" + smtpPort +
-            ", sender='" + sender + '\'' +
-            ", username='" + username + '\'' +
-            ", password='" + password + '\'' +
-            ", isAuthenticated=" + isAuthenticated +
-            '}';
     }
 }

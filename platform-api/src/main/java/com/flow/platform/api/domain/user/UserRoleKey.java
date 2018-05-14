@@ -17,10 +17,15 @@ package com.flow.platform.api.domain.user;
 
 import com.google.gson.annotations.Expose;
 import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 /**
  * @author lhl
  */
+
+@Data
+@AllArgsConstructor
 public class UserRoleKey implements Serializable {
 
     @Expose
@@ -28,60 +33,4 @@ public class UserRoleKey implements Serializable {
 
     @Expose
     private String email;
-
-    public Integer getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(Integer roleId) {
-        this.roleId = roleId;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public UserRoleKey(Integer roleId, String email) {
-        this.roleId = roleId;
-        this.email = email;
-    }
-
-    public UserRoleKey() {
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        UserRoleKey that = (UserRoleKey) o;
-
-        if (roleId != null ? !roleId.equals(that.roleId) : that.roleId != null) {
-            return false;
-        }
-        return email != null ? email.equals(that.email) : that.email == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = roleId != null ? roleId.hashCode() : 0;
-        result = 31 * result + (email != null ? email.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "UserRoleKey{" +
-            "roleId=" + roleId +
-            ", email='" + email + '\'' +
-            '}';
-    }
 }

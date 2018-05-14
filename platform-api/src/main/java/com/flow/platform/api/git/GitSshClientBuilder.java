@@ -17,9 +17,8 @@
 package com.flow.platform.api.git;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.util.Logger;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitSshClient;
 import com.google.common.base.Strings;
@@ -27,15 +26,15 @@ import com.google.common.io.Files;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * Build SSH git client with FLOW_GIT_SSH_PRIVATE_KEY and FLOW_GIT_SSH_PUBLIC_KEY
  *
  * @author yang
  */
+@Log4j2
 public class GitSshClientBuilder extends GitClientBuilder {
-
-    private final static Logger LOGGER = new Logger(GitSshClientBuilder.class);
 
     private final static String SSH_PRIVATE_KEY_NAME = "ssh_private_key";
 
@@ -61,7 +60,7 @@ public class GitSshClientBuilder extends GitClientBuilder {
                 Files.write(privateKey, privateKeyPath.toFile(), AppConfig.DEFAULT_CHARSET);
                 client.setPrivateKeyPath(privateKeyPath);
             } catch (IOException warn) {
-                LOGGER.warn("Fail to write ssh private key to: %s", privateKeyPath);
+                log.warn("Fail to write ssh private key to: {}", privateKeyPath);
             }
         }
         

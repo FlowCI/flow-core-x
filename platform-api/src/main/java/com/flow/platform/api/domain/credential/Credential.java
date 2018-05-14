@@ -17,90 +17,44 @@ package com.flow.platform.api.domain.credential;
 
 import com.flow.platform.api.domain.CreateUpdateObject;
 import com.google.gson.annotations.Expose;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author lhl
  */
+@NoArgsConstructor
+@RequiredArgsConstructor
+@EqualsAndHashCode(of = {"name"}, callSuper = false)
+@ToString(of = {"name", "type"})
 public class Credential extends CreateUpdateObject {
 
     @Expose
+    @Getter
+    @Setter
+    @NonNull
     protected String name;
 
     @Expose
+    @Getter
+    @Setter
     protected CredentialType type;
 
     @Expose
+    @Getter
+    @Setter
     protected String createdBy;
 
     /**
      * The credential detail will be saved as raw json
      */
     @Expose
+    @Getter
+    @Setter
     private CredentialDetail detail;
-
-    public Credential() {
-    }
-
-    public Credential(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public CredentialType getType() {
-        return type;
-    }
-
-    public void setType(CredentialType type) {
-        this.type = type;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public CredentialDetail getDetail() {
-        return detail;
-    }
-
-    public void setDetail(CredentialDetail detail) {
-        this.detail = detail;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Credential credential = (Credential) o;
-
-        return name.equals(credential.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "Credential{" +
-            "name='" + name + '\'' +
-            ", type=" + type +
-            '}';
-    }
 }

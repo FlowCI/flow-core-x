@@ -17,71 +17,29 @@ package com.flow.platform.api.domain.user;
 
 import com.google.gson.annotations.Expose;
 import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author lhl
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+@ToString
 public class PermissionKey implements Serializable {
 
     @Expose
+    @Getter
+    @Setter
     private Integer roleId;
 
     @Expose
+    @Getter
+    @Setter
     private String action;
-
-    public PermissionKey() {
-    }
-
-    public PermissionKey(Integer roleId, String action) {
-        this.roleId = roleId;
-        this.action = action;
-    }
-
-    public Integer getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(Integer roleId) {
-        this.roleId = roleId;
-    }
-
-    public String getAction() {
-        return action;
-    }
-
-    public void setAction(String action) {
-        this.action = action;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        PermissionKey that = (PermissionKey) o;
-
-        if (!roleId.equals(that.roleId)) {
-            return false;
-        }
-        return action.equals(that.action);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = roleId.hashCode();
-        result = 31 * result + action.hashCode();
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "PermissionKey{" +
-            "roleId=" + roleId +
-            ", action='" + action + '\'' +
-            '}';
-    }
 }

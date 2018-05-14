@@ -18,10 +18,14 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.util.StringUtil;
 import java.util.Objects;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author yh@firim
  */
+@Data
+@NoArgsConstructor
 public class SearchCondition {
 
     private String keyword;
@@ -45,84 +49,12 @@ public class SearchCondition {
         this.creator = creator;
     }
 
-    public SearchCondition() {
-    }
-
-    public String getKeyword() {
-        return keyword;
-    }
-
-    public void setKeyword(String keyword) {
-        this.keyword = keyword;
-    }
-
-    public String getBranch() {
-        return branch;
-    }
-
-    public void setBranch(String branch) {
-        this.branch = branch;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getCreator() {
-        return creator;
-    }
-
-    public void setCreator(String creator) {
-        this.creator = creator;
-    }
-
-    @Override
-    public String toString() {
-        return "SearchCondition{" +
-            "keyword='" + keyword + '\'' +
-            ", branch='" + branch + '\'' +
-            ", category=" + category +
-            '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        SearchCondition that = (SearchCondition) o;
-
-        if (keyword != null ? !keyword.equals(that.keyword) : that.keyword != null) {
-            return false;
-        }
-        if (branch != null ? !branch.equals(that.branch) : that.branch != null) {
-            return false;
-        }
-        return category == that.category;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = keyword != null ? keyword.hashCode() : 0;
-        result = 31 * result + (branch != null ? branch.hashCode() : 0);
-        result = 31 * result + (category != null ? category.hashCode() : 0);
-        return result;
-    }
-
     public boolean isEmpty() {
         return StringUtil
             .isNullOrEmptyForItems(getCategory(), getCreator(), getBranch(), getKeyword());
     }
 
-    public static boolean isEmpty(SearchCondition searchCondition){
+    public static boolean isEmpty(SearchCondition searchCondition) {
         return Objects.isNull(searchCondition) || searchCondition.isEmpty();
     }
 

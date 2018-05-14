@@ -17,19 +17,15 @@
 package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author yh@firim
  */
 public class SettingContent extends Jsonable {
 
+    @Getter
+    @Setter
     private MessageType type;
-
-    public MessageType getType() {
-        return type;
-    }
-
-    public void setType(MessageType type) {
-        this.type = type;
-    }
 }

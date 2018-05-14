@@ -22,7 +22,6 @@ import com.flow.platform.cc.event.AgentResourceEvent;
 import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.service.WebhookServiceImplBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -33,34 +32,27 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
-import com.flow.platform.util.ExceptionUtil;
-import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
-import com.google.gson.annotations.Expose;
-import java.sql.SQLDataException;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author gy@fir.im
  */
+@Log4j2
 @Service
 @Transactional
 public class AgentServiceImpl extends WebhookServiceImplBase implements AgentService {
-
-    private final static Logger LOGGER = new Logger(AgentService.class);
 
     @Autowired
     private ZoneService zoneService;
@@ -94,7 +86,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
         if (exist == null) {
             try {
                 exist = create(path, null);
-                LOGGER.trace("Create agent %s from report", path);
+                log.trace("Create agent {} from report", path);
             } catch (DataIntegrityViolationException ignore) {
                 // agent been created at some other threads
                 return;
@@ -160,7 +152,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
 
         agent.setStatus(status);
         agentDao.update(agent);
-        LOGGER.trace("Agent status been updated to '%s'", status);
+        log.trace("Agent status been updated to '{}'", status);
 
         // send webhook if status changed
         if (statusIsChanged) {
@@ -248,21 +240,17 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
             return;
         }
 
-        LOGGER.traceMarker("sessionTimeoutTask", "start");
         ZonedDateTime now = DateUtil.utcNow();
-
         for (Zone zone : zoneService.getZones()) {
             Collection<Agent> agents = listForOnline(zone.getName());
             for (Agent agent : agents) {
                 if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
                     Cmd delSessionCmd = cmdService.create(new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null));
                     cmdDispatchService.dispatch(delSessionCmd);
-                    LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
+                    log.trace("Send DELETE_SESSION to agent {} by sessionTimeoutTask", agent);
                 }
             }
         }
-
-        LOGGER.traceMarker("sessionTimeoutTask", "end");
     }
 
     @Override

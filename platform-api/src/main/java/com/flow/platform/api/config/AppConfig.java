@@ -22,12 +22,12 @@ import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.plugin.PluginConfig;
-import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import lombok.extern.log4j.Log4j2;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
@@ -43,6 +43,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author yang
  */
+@Log4j2
 @Configuration
 @Import({SchedulerConfig.class, CachingConfig.class, DatabaseConfig.class, QueueConfig.class, PluginConfig.class})
 public class AppConfig extends AppConfigBase {
@@ -56,8 +57,6 @@ public class AppConfig extends AppConfigBase {
     public final static Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
     public final static String DEFAULT_AGENT_REPO_DIR = Paths.get("${HOME}", ".flow-agent", "repos").toString();
-
-    private final static Logger LOGGER = new Logger(AppConfig.class);
 
     private final static int ASYNC_POOL_SIZE = 50;
 
@@ -151,7 +150,7 @@ public class AppConfig extends AppConfigBase {
     @Bean
     public PlatformURL platformURL() {
         PlatformURL platformURL = new PlatformURL(ccDomain);
-        LOGGER.trace(platformURL.toString());
+        log.trace(platformURL.toString());
         return platformURL;
     }
 
