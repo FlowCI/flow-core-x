@@ -19,11 +19,13 @@ package com.flow.platform.api.domain;
 import com.flow.platform.util.StringUtil;
 import java.util.Objects;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author yh@firim
  */
 @Data
+@NoArgsConstructor
 public class SearchCondition {
 
     private String keyword;
