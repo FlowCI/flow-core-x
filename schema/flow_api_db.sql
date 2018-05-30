@@ -46,7 +46,7 @@ CREATE TABLE `flow` (
 CREATE TABLE `job` (
   `id` decimal(25,0) NOT NULL,
   `node_path` varchar(255) NOT NULL,
-  `build_number` int(11) NOT NULL,
+  `build_number` bigint NOT NULL,
   `node_name` varchar(50) NOT NULL,
   `log_path` varchar(255) DEFAULT NULL,
   `job_status` varchar(20) NOT NULL,
