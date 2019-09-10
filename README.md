@@ -1,8 +1,6 @@
 flow-platform 
 ============
 
-[DEPRECATED] 
-
 The project has been moved to:
 
 - [flow-platform-x](https://github.com/FlowCI/flow-platform-x): core services 
