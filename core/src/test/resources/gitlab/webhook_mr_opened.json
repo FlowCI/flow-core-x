@@ -1,0 +1,121 @@
+{
+  "object_kind": "merge_request",
+  "event_type": "merge_request",
+  "user": {
+    "name": "yang.guo",
+    "username": "yang-guo-2016",
+    "avatar_url": "https://secure.gravatar.com/avatar/25fc63da4f632d2a2c10724cba3b9efc?s=80\u0026d=identicon"
+  },
+  "project": {
+    "id": 2048650,
+    "name": "kai-web",
+    "description": "",
+    "web_url": "https://gitlab.com/yang-guo-2016/kai-web",
+    "avatar_url": null,
+    "git_ssh_url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+    "git_http_url": "https://gitlab.com/yang-guo-2016/kai-web.git",
+    "namespace": "yang.guo",
+    "visibility_level": 0,
+    "path_with_namespace": "yang-guo-2016/kai-web",
+    "default_branch": "master",
+    "ci_config_path": null,
+    "homepage": "https://gitlab.com/yang-guo-2016/kai-web",
+    "url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+    "ssh_url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+    "http_url": "https://gitlab.com/yang-guo-2016/kai-web.git"
+  },
+  "object_attributes": {
+    "assignee_id": null,
+    "author_id": 859190,
+    "created_at": "2017-08-08T08:44:54.622Z",
+    "description": "pr message",
+    "head_pipeline_id": null,
+    "id": 4593698,
+    "iid": 1,
+    "last_edited_at": null,
+    "last_edited_by_id": null,
+    "merge_commit_sha": null,
+    "merge_error": null,
+    "merge_params": {
+      "force_remove_source_branch": "0"
+    },
+    "merge_status": "unchecked",
+    "merge_user_id": null,
+    "merge_when_pipeline_succeeds": false,
+    "milestone_id": null,
+    "source_branch": "developer",
+    "source_project_id": 2048650,
+    "state": "opened",
+    "target_branch": "master",
+    "target_project_id": 2048650,
+    "time_estimate": 0,
+    "title": "Update package.json title",
+    "updated_at": "2017-08-08T08:44:54.622Z",
+    "updated_by_id": null,
+    "url": "https://gitlab.com/yang-guo-2016/kai-web/merge_requests/1",
+    "source": {
+      "id": 2048650,
+      "name": "kai-web",
+      "description": "",
+      "web_url": "https://gitlab.com/yang-guo-2016/kai-web",
+      "avatar_url": null,
+      "git_ssh_url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+      "git_http_url": "https://gitlab.com/yang-guo-2016/kai-web.git",
+      "namespace": "yang.guo",
+      "visibility_level": 0,
+      "path_with_namespace": "yang-guo-2016/kai-web",
+      "default_branch": "master",
+      "ci_config_path": null,
+      "homepage": "https://gitlab.com/yang-guo-2016/kai-web",
+      "url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+      "ssh_url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+      "http_url": "https://gitlab.com/yang-guo-2016/kai-web.git"
+    },
+    "target": {
+      "id": 2048650,
+      "name": "kai-web",
+      "description": "",
+      "web_url": "https://gitlab.com/yang-guo-2016/kai-web",
+      "avatar_url": null,
+      "git_ssh_url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+      "git_http_url": "https://gitlab.com/yang-guo-2016/kai-web.git",
+      "namespace": "yang.guo",
+      "visibility_level": 0,
+      "path_with_namespace": "yang-guo-2016/kai-web",
+      "default_branch": "master",
+      "ci_config_path": null,
+      "homepage": "https://gitlab.com/yang-guo-2016/kai-web",
+      "url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+      "ssh_url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+      "http_url": "https://gitlab.com/yang-guo-2016/kai-web.git"
+    },
+    "last_commit": {
+      "id": "9e81037427cc1c50641c5ffc7b6c70a487886ed8",
+      "message": "Update package.json",
+      "timestamp": "2017-08-08T08:44:09Z",
+      "url": "https://gitlab.com/yang-guo-2016/kai-web/commit/9e81037427cc1c50641c5ffc7b6c70a487886ed8",
+      "author": {
+        "name": "yang.guo",
+        "email": "benqyang_2006@hotmail.com"
+      }
+    },
+    "work_in_progress": false,
+    "total_time_spent": 0,
+    "human_total_time_spent": null,
+    "human_time_estimate": null,
+    "assignee_ids": []
+  },
+  "labels": [],
+  "changes": {
+    "total_time_spent": {
+      "previous": null,
+      "current": 0
+    }
+  },
+  "repository": {
+    "name": "kai-web",
+    "url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+    "description": "",
+    "homepage": "https://gitlab.com/yang-guo-2016/kai-web"
+  }
+}

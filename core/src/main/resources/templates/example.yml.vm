@@ -1,0 +1,26 @@
+#
+# Example YAML for flow.ci
+#
+
+# Built-in environment variables
+#
+# FLOWCI_SERVER_URL:
+#
+# FLOWCI_FLOW_NAME:
+# FLOWCI_FLOW_WEBHOOK:
+#
+# FLOWCI_JOB_BUILD_NUM:
+# FLOWCI_JOB_STATUS:
+# FLOWCI_JOB_TRIGGER:
+
+envs:
+  # Define Flow level variables
+  EXAMPLE_VAR: "Hi, I'am an example YAML"
+
+steps:
+  - name: first_example
+    envs:
+      SAY_HELLO: "hello.flow.ci"
+    allow_failure: true
+    script: |
+      echo ${SAY_HELLO} ${EXAMPLE_VAR}

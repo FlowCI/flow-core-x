@@ -1,0 +1,23 @@
+name: gitclone
+version: 0.0.1
+icon: "src/icon.svg"
+
+inputs:
+  - name: GIT_URL
+    type: string
+    required: true
+  - name: GIT_BRANCH
+    type: string
+    required: true
+
+exports:
+  - "VAR_EXPORT_1"
+  - "VAR_EXPORT_2"
+
+parent:
+  name: hello
+  version: 0.1.0
+  envs:
+    GIT_URL_PARENT: "hello message"
+
+

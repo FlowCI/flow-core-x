@@ -1,0 +1,32 @@
+name: root
+envs:
+  FLOW_WORKSPACE: "echo hello"
+  FLOW_VERSION: "echo version"
+
+cron: "* * * * *"
+
+trigger:
+  branches:
+    - "develop"
+    - "master"
+    - "feature/*"
+  tags:
+    - "*"
+
+selector:
+  tags:
+  - ios
+  - local
+
+steps:
+ - before: |
+     println(FLOW_WORKSPACE)
+     true
+   envs:
+     FLOW_WORKSPACE: "echo step"
+     FLOW_VERSION: "echo step version"
+   allow_failure: true
+
+ - name: step2
+   allow_failure: false
+   script: "echo 2"

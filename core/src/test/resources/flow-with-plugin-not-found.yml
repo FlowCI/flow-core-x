@@ -1,0 +1,14 @@
+envs:
+  FLOW_WORKSPACE: "echo hello"
+  FLOW_VERSION: "echo version"
+
+steps:
+  - envs:
+      FLOW_WORKSPACE: "echo step"
+      FLOW_VERSION: "echo step version"
+    allow_failure: true
+    plugin: "not found.."
+
+  - name: step2
+    allow_failure: false
+    script: "echo 2"

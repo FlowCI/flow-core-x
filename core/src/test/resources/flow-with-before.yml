@@ -1,0 +1,20 @@
+envs:
+  FLOW_WORKSPACE: "echo hello"
+  FLOW_VERSION: "echo version"
+
+trigger:
+  branches:
+  - develop
+
+steps:
+- envs:
+    FLOW_WORKSPACE: "echo step"
+    FLOW_VERSION: "echo step version"
+  before: |
+    return false
+  script: |
+    echo hello
+
+- name: step2
+  allow_failure: false
+  script: "echo 2"

@@ -1,0 +1,9 @@
+[
+  {
+    "name": "default/ci_job_status",
+    "desc": "job status",
+    "fields": [
+      "TIMEOUT", "CANCELLED", "FAILURE", "SUCCESS"
+    ]
+  }
+]

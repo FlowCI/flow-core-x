@@ -1,0 +1,61 @@
+{
+  "object_kind": "tag_push",
+  "event_name": "tag_push",
+  "before": "0000000000000000000000000000000000000000",
+  "after": "ee31197fd0fab68d1e5ab56dabcfae150ab5d057",
+  "ref": "refs/tags/v2.0",
+  "checkout_sha": "1b4d99d54c29a31a92e990e6bac301eea0c1fc94",
+  "message": "test tag push",
+  "user_id": 856558,
+  "user_name": "yang.guo",
+  "user_username": "yang-guo-2016",
+  "user_email": "",
+  "user_avatar": "https://secure.gravatar.com/avatar/25fc63da4f632d2a2c10724cba3b9efc?s=80\u0026d=identicon",
+  "project_id": 2048650,
+  "project": {
+    "id": 2048650,
+    "name": "kai-web",
+    "description": "",
+    "web_url": "https://gitlab.com/yang-guo-2016/kai-web",
+    "avatar_url": null,
+    "git_ssh_url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+    "git_http_url": "https://gitlab.com/yang-guo-2016/kai-web.git",
+    "namespace": "yang.guo",
+    "visibility_level": 0,
+    "path_with_namespace": "yang-guo-2016/kai-web",
+    "default_branch": "master",
+    "ci_config_path": null,
+    "homepage": "https://gitlab.com/yang-guo-2016/kai-web",
+    "url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+    "ssh_url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+    "http_url": "https://gitlab.com/yang-guo-2016/kai-web.git"
+  },
+  "commits": [
+    {
+      "id": "1b4d99d54c29a31a92e990e6bac301eea0c1fc94",
+      "message": "Merge branch 'developer' into 'master'\n\nUpdate package.json title\n\nSee merge request yang-guo-2016/kai-web!1",
+      "timestamp": "2019-10-01T21:57:24Z",
+      "url": "https://gitlab.com/yang-guo-2016/kai-web/commit/1b4d99d54c29a31a92e990e6bac301eea0c1fc94",
+      "author": {
+        "name": "yang.guo",
+        "email": "gy@fir.im"
+      },
+      "added": [],
+      "modified": [
+        "package.json"
+      ],
+      "removed": []
+    }
+  ],
+  "total_commits_count": 1,
+  "push_options": {},
+  "repository": {
+    "name": "kai-web",
+    "url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+    "description": "",
+    "homepage": "https://gitlab.com/yang-guo-2016/kai-web",
+    "git_http_url": "https://gitlab.com/yang-guo-2016/kai-web.git",
+    "git_ssh_url": "git@gitlab.com:yang-guo-2016/kai-web.git",
+    "visibility_level": 0
+  }
+}

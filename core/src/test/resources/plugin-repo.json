@@ -1,0 +1,10 @@
+[
+  {
+    "name": "gitclone",
+    "source": "https://github.com/yang-guo-2016/flowci-plugin-gitclone",
+    "description": "git clone plugin",
+    "tags": ["git", "clone"],
+    "author": "gy@flow.ci",
+    "version": "0.0.1"
+  }
+]

@@ -1,0 +1,60 @@
+{
+  "action": "published",
+  "release": {
+    "id": 4,
+    "tag_name": "v4.0",
+    "target_commitish": "master",
+    "name": "title for v4.0",
+    "body": "4.0 content",
+    "draft": false,
+    "prerelease": false,
+    "author": {
+      "id": 1,
+      "username": "test",
+      "login": "test",
+      "full_name": "",
+      "email": "benqyang_2006@gogs.com",
+      "avatar_url": "https://secure.gravatar.com/avatar/0dce14d99e8295e36aca078f195fa0c3?d=identicon"
+    },
+    "created_at": "2019-10-03T12:46:57Z"
+  },
+  "repository": {
+    "id": 1,
+    "owner": {
+      "id": 1,
+      "username": "test",
+      "login": "test",
+      "full_name": "",
+      "email": "benqyang_2006@hotmail.com",
+      "avatar_url": "https://secure.gravatar.com/avatar/0dce14d99e8295e36aca078f195fa0c3?d=identicon"
+    },
+    "name": "my-first-repo",
+    "full_name": "test/my-first-repo",
+    "description": "tyu",
+    "private": false,
+    "fork": false,
+    "parent": null,
+    "empty": false,
+    "mirror": false,
+    "size": 77824,
+    "html_url": "http://localhost:3000/test/my-first-repo",
+    "ssh_url": "git@localhost:test/my-first-repo.git",
+    "clone_url": "http://localhost:3000/test/my-first-repo.git",
+    "website": "",
+    "stars_count": 0,
+    "forks_count": 0,
+    "watchers_count": 1,
+    "open_issues_count": 0,
+    "default_branch": "master",
+    "created_at": "2019-10-03T09:56:08Z",
+    "updated_at": "2019-10-03T12:40:04Z"
+  },
+  "sender": {
+    "id": 1,
+    "username": "test",
+    "login": "test",
+    "full_name": "",
+    "email": "benqyang_2006@hotmail.com",
+    "avatar_url": "https://secure.gravatar.com/avatar/0dce14d99e8295e36aca078f195fa0c3?d=identicon"
+  }
+}
