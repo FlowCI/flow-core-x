@@ -22,6 +22,7 @@ import com.flowci.core.job.dao.JobYmlDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobYml;
 import com.flowci.exception.NotFoundException;
+import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.YmlParser;
@@ -66,7 +67,7 @@ public class YmlManagerImpl implements YmlManager {
         return jobTreeCache.get(job.getId(), s -> {
             log.debug("Cache tree for job: {}", job.getId());
             JobYml yml = jobYmlDao.findById(job.getId()).get();
-            Node root = YmlParser.load(yml.getName(), yml.getRaw());
+            FlowNode root = YmlParser.load(yml.getName(), yml.getRaw());
             return NodeTree.create(root);
         });
     }

@@ -32,6 +32,7 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.tree.Node;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.NodeTree;
+import com.flowci.tree.StepNode;
 import com.github.benmanes.caffeine.cache.Cache;
 
 import java.util.LinkedList;
@@ -70,7 +71,7 @@ public class StepServiceImpl implements StepService {
         NodeTree tree = ymlManager.getTree(job);
         List<ExecutedCmd> steps = new LinkedList<>();
 
-        for (Node node : tree.getOrdered()) {
+        for (StepNode node : tree.getOrdered()) {
             CmdId cmdId = cmdManager.createId(job, node);
 
             ExecutedCmd cmd = new ExecutedCmd(cmdId, job.getFlowId(), node.isAllowFailure());
@@ -84,7 +85,7 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public ExecutedCmd get(Job job, Node node) {
+    public ExecutedCmd get(Job job, StepNode node) {
         CmdId id = cmdManager.createId(job, node);
         return get(id.toString());
     }
@@ -106,7 +107,7 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public String toVarString(Job job, Node current) {
+    public String toVarString(Job job, StepNode current) {
         StringBuilder builder = new StringBuilder();
         for (ExecutedCmd step : list(job)) {
             NodePath path = NodePath.create(step.getCmdId().getNodePath());
@@ -125,7 +126,7 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public void statusChange(Job job, Node node, ExecutedCmd.Status status, String err) {
+    public void statusChange(Job job, StepNode node, ExecutedCmd.Status status, String err) {
         ExecutedCmd entity = get(job, node);
         statusChange(entity, status, err);
     }

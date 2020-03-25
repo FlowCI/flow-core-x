@@ -47,10 +47,7 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
-import com.flowci.tree.Node;
-import com.flowci.tree.NodePath;
-import com.flowci.tree.TriggerFilter;
-import com.flowci.tree.YmlParser;
+import com.flowci.tree.*;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
@@ -345,7 +342,7 @@ public class FlowServiceImpl implements FlowService {
             }
 
             Yml yml = optional.get();
-            Node root = YmlParser.load(flow.getName(), yml.getRaw());
+            FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
 
             if (!canStartJob(root, event.getTrigger())) {
                 log.debug("Cannot start job since filter not matched on flow {}", flow.getName());
@@ -369,7 +366,7 @@ public class FlowServiceImpl implements FlowService {
         localVars.put(Variables.Flow.Webhook, VarValue.of(getWebhook(flow.getName()), VarType.HTTP_URL, false));
     }
 
-    private boolean canStartJob(Node root, GitTrigger trigger) {
+    private boolean canStartJob(FlowNode root, GitTrigger trigger) {
         TriggerFilter condition = root.getTrigger();
 
         if (trigger.getEvent() == GitEvent.PUSH) {

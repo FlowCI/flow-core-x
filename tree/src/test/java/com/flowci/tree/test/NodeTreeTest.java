@@ -57,7 +57,7 @@ public class NodeTreeTest {
     @Test
     public void should_get_next_final_node() {
         // then: should get next final from root
-        Node nextFinalNode = tree.nextFinal(tree.getRoot().getPath());
+        StepNode nextFinalNode = tree.nextFinal(tree.getRoot().getPath());
         Assert.assertNotNull(nextFinalNode);
         Assert.assertEquals("step3", nextFinalNode.getName());
 

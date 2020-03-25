@@ -39,10 +39,7 @@ import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.domain.*;
 import com.flowci.exception.NotAvailableException;
-import com.flowci.tree.GroovyRunner;
-import com.flowci.tree.Node;
-import com.flowci.tree.NodePath;
-import com.flowci.tree.NodeTree;
+import com.flowci.tree.*;
 import groovy.util.ScriptException;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -247,7 +244,7 @@ public class JobEventServiceImpl implements JobEventService {
         }
 
         NodeTree tree = ymlManager.getTree(job);
-        Node node = tree.get(currentPath);
+        StepNode node = tree.get(currentPath);
 
         // save executed cmd
         stepService.resultUpdate(execCmd);
@@ -258,7 +255,7 @@ public class JobEventServiceImpl implements JobEventService {
         setJobContext(job, node, execCmd);
 
         // find next node
-        Node next = findNext(job, tree, node, execCmd.isSuccess());
+        StepNode next = findNext(job, tree, node, execCmd.isSuccess());
         Agent current = agentService.get(job.getAgentId());
 
         // job finished
@@ -294,7 +291,7 @@ public class JobEventServiceImpl implements JobEventService {
         job.setFinishAt(cmd.getFinishAt());
     }
 
-    private void setJobContext(Job job, Node node, ExecutedCmd cmd) {
+    private void setJobContext(Job job, StepNode node, ExecutedCmd cmd) {
         // merge output to job context
         Vars<String> context = job.getContext();
         context.merge(cmd.getOutput());
@@ -308,9 +305,8 @@ public class JobEventServiceImpl implements JobEventService {
         }
     }
 
-    private Node findNext(Job job, NodeTree tree, Node current, boolean isSuccess) {
-        Node next = isSuccess ? tree.next(current.getPath()) : tree.nextFinal(current.getPath());
-
+    private StepNode findNext(Job job, NodeTree tree, Node current, boolean isSuccess) {
+        StepNode next = isSuccess ? tree.next(current.getPath()) : tree.nextFinal(current.getPath());
         if (Objects.isNull(next)) {
             return null;
         }
@@ -341,7 +337,7 @@ public class JobEventServiceImpl implements JobEventService {
      */
     private void dispatch(Job job, Agent available) {
         NodeTree tree = ymlManager.getTree(job);
-        Node next = tree.next(currentNodePath(job));
+        StepNode next = tree.next(currentNodePath(job));
 
         // do not accept job without regular steps
         if (Objects.isNull(next)) {
@@ -369,7 +365,7 @@ public class JobEventServiceImpl implements JobEventService {
         saveJobAndSendToAgent(job, next, available);
     }
 
-    private Boolean executeBeforeCondition(Job job, Node node) {
+    private Boolean executeBeforeCondition(Job job, StepNode node) {
         if (!node.hasBefore()) {
             return true;
         }
@@ -424,7 +420,7 @@ public class JobEventServiceImpl implements JobEventService {
     /**
      * Send step to agent
      */
-    private void saveJobAndSendToAgent(Job job, Node node, Agent agent) {
+    private void saveJobAndSendToAgent(Job job, StepNode node, Agent agent) {
         // set executed cmd step to running
         ExecutedCmd executedCmd = stepService.get(job, node);
 

@@ -50,6 +50,7 @@ import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
+import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
@@ -346,7 +347,7 @@ public class JobServiceImpl implements JobService {
     }
 
     private void setupYaml(Flow flow, String yml, Job job) {
-        Node root = YmlParser.load(flow.getName(), yml);
+        FlowNode root = YmlParser.load(flow.getName(), yml);
 
         job.setCurrentPath(root.getPathAsString());
         job.setAgentSelector(root.getSelector());

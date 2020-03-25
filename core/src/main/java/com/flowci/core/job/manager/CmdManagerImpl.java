@@ -23,6 +23,7 @@ import com.flowci.domain.*;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.tree.Node;
+import com.flowci.tree.StepNode;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -41,12 +42,12 @@ public class CmdManagerImpl implements CmdManager {
     private PluginService pluginService;
 
     @Override
-    public CmdId createId(Job job, Node node) {
+    public CmdId createId(Job job, StepNode node) {
         return new CmdId(job.getId(), node.getPath().getPathInStr());
     }
 
     @Override
-    public CmdIn createShellCmd(Job job, Node node) {
+    public CmdIn createShellCmd(Job job, StepNode node) {
         // node envs has top priority;
         Vars<String> inputs = new StringVars()
                 .merge(job.getContext())
