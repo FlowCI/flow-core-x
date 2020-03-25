@@ -18,17 +18,14 @@ package com.flowci.tree;
 
 import com.flowci.exception.YmlException;
 import com.flowci.tree.yml.FlowYml;
-import com.flowci.tree.yml.StepYml;
-import com.flowci.util.StringHelper;
 import com.flowci.util.YamlHelper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-
-import java.util.*;
-
 import org.yaml.snakeyaml.DumperOptions.LineBreak;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
+
+import java.util.Map;
 
 /**
  * @author yang
@@ -58,31 +55,10 @@ public class YmlParser {
 
         try {
             FlowYml root = yaml.load(yml);
+
             // set default flow name if not defined in yml
             if (Strings.isNullOrEmpty(root.getName())) {
                 root.setName(defaultName);
-            }
-
-            if (!NodePath.validate(root.getName())) {
-                throw new YmlException("Invalid name {0}", root.getName());
-            }
-
-            // steps must be provided
-            List<StepYml> steps = root.getSteps();
-            if (Objects.isNull(steps) || steps.isEmpty()) {
-                throw new YmlException("The 'steps' must be defined");
-            }
-
-            Set<String> stepNames = new HashSet<>(steps.size());
-
-            for (StepYml node : steps) {
-                if (StringHelper.hasValue(node.getName()) && !NodePath.validate(node.getName())) {
-                    throw new YmlException("Invalid name '{0}'", node.name);
-                }
-
-                if (!stepNames.add(node.name)) {
-                    throw new YmlException("Duplicate step name {0}", node.name);
-                }
             }
 
             return root.toNode(0);

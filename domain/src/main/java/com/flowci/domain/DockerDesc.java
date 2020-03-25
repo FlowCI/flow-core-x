@@ -16,6 +16,8 @@
 
 package com.flowci.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,4 +35,8 @@ public class DockerDesc {
      */
     private List<String> ports = new LinkedList<>();
 
+    @JsonIgnore
+    public boolean hasImage() {
+        return StringHelper.hasValue(image);
+    }
 }

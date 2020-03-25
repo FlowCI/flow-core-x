@@ -19,7 +19,6 @@ package com.flowci.tree.test;
 import com.flowci.tree.*;
 import com.google.common.io.Files;
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.List;

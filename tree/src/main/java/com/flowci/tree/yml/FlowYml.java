@@ -16,10 +16,11 @@
 
 package com.flowci.tree.yml;
 
+import com.flowci.exception.YmlException;
 import com.flowci.tree.*;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -54,20 +55,35 @@ public class FlowYml extends YmlBase<FlowNode> {
     }
 
     @Override
-    public FlowNode toNode(int index) {
+    public FlowNode toNode(int ignore) {
+        if (!NodePath.validate(name)) {
+            throw new YmlException("Invalid name {0}", name);
+        }
+
         FlowNode node = new FlowNode(name);
         node.setCron(cron);
         node.setSelector(selector);
         node.setTrigger(trigger);
         node.setEnvironments(getVariableMap());
-        setupChildren(node);
+
+        if (Objects.isNull(steps) || steps.isEmpty()) {
+            throw new YmlException("The 'steps' must be defined");
+        }
+
+        int index = 1;
+        Set<String> uniqueName = new HashSet<>(steps.size());
+
+        for (StepYml child : steps) {
+            StepNode step = child.toNode(index++);
+
+            if (!uniqueName.add(step.getName())) {
+                throw new YmlException("Duplicate step name {0}", step.getName());
+            }
+
+            node.getChildren().add(step);
+        }
+
         return node;
     }
 
-    private void setupChildren(FlowNode flow) {
-        int index = 1;
-        for (StepYml child : steps) {
-            flow.getChildren().add(child.toNode(index++));
-        }
-    }
 }
