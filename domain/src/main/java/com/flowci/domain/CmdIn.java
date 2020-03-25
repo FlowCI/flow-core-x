@@ -57,7 +57,7 @@ public class CmdIn extends CmdBase {
     @NonNull
     private Set<String> envFilters = new LinkedHashSet<>();
 
-    private DockerDesc dockerDesc;
+    private DockerDesc docker;
 
     public CmdIn(String id, CmdType type) {
         setId(id);
