@@ -33,10 +33,7 @@ import com.flowci.domain.CmdIn;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.VarType;
 import com.flowci.domain.Vars;
-import com.flowci.tree.Node;
-import com.flowci.tree.NodePath;
-import com.flowci.tree.NodeTree;
-import com.flowci.tree.YmlParser;
+import com.flowci.tree.*;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
@@ -88,7 +85,7 @@ public class CmdManagerTest extends SpringScenario {
         Assert.assertNotNull(job);
 
         // when: create shell cmd
-        Node root = YmlParser.load(flow.getName(), yml.getRaw());
+        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
         NodeTree tree = NodeTree.create(root);
         CmdIn cmdIn = cmdManager.createShellCmd(job, tree.get(NodePath.create(flow.getName(), "plugin-test")));
         Assert.assertNotNull(cmdIn);
