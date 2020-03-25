@@ -16,9 +16,8 @@
 
 package com.flowci.tree.yml;
 
-import com.flowci.tree.TriggerFilter;
-import com.flowci.tree.Node;
-import com.flowci.tree.Selector;
+import com.flowci.tree.*;
+
 import java.util.LinkedList;
 import java.util.List;
 import lombok.Getter;
@@ -32,7 +31,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class FlowNode extends YmlNode {
+public class FlowYml extends YmlBase<FlowNode> {
 
     private String cron;
 
@@ -43,20 +42,20 @@ public class FlowNode extends YmlNode {
     private TriggerFilter trigger = new TriggerFilter();
 
     @NonNull
-    private List<StepNode> steps = new LinkedList<>();
+    private List<StepYml> steps = new LinkedList<>();
 
-    public FlowNode(Node node) {
+    public FlowYml(FlowNode node) {
         setEnvs(node.getEnvironments());
 
         // set children
-        for (Node child : node.getChildren()) {
-            this.steps.add(new StepNode(child));
+        for (StepNode child : node.getChildren()) {
+            this.steps.add(new StepYml(child));
         }
     }
 
     @Override
-    public Node toNode(int index) {
-        Node node = new Node(getName());
+    public FlowNode toNode(int index) {
+        FlowNode node = new FlowNode(name);
         node.setCron(cron);
         node.setSelector(selector);
         node.setTrigger(trigger);
@@ -65,10 +64,10 @@ public class FlowNode extends YmlNode {
         return node;
     }
 
-    private void setupChildren(Node root) {
+    private void setupChildren(FlowNode flow) {
         int index = 1;
-        for (StepNode child : steps) {
-            root.getChildren().add(child.toNode(index++));
+        for (StepYml child : steps) {
+            flow.getChildren().add(child.toNode(index++));
         }
     }
 }

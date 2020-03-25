@@ -17,10 +17,7 @@
 package com.flowci.tree.test;
 
 import com.flowci.exception.YmlException;
-import com.flowci.tree.Node;
-import com.flowci.tree.NodePath;
-import com.flowci.tree.NodeTree;
-import com.flowci.tree.YmlParser;
+import com.flowci.tree.*;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +48,7 @@ public class YmlParserTest {
 
     @Test
     public void should_get_node_from_yml() {
-        Node root = YmlParser.load("root", content);
+        FlowNode root = YmlParser.load("root", content);
 
         // verify flow
         Assert.assertEquals("* * * * *", root.getCron());
@@ -66,10 +63,10 @@ public class YmlParserTest {
         Assert.assertEquals(1, root.getTrigger().getTags().size());
 
         // verify steps
-        List<Node> steps = root.getChildren();
+        List<StepNode> steps = root.getChildren();
         Assert.assertEquals(2, steps.size());
 
-        Node step1 = steps.get(0);
+        StepNode step1 = steps.get(0);
         Assert.assertEquals("step-1", step1.getName()); // step-1 is default name
         Assert.assertEquals("echo step", step1.getEnv("FLOW_WORKSPACE"));
         Assert.assertEquals("echo step version", step1.getEnv("FLOW_VERSION"));
@@ -78,13 +75,13 @@ public class YmlParserTest {
         Assert.assertFalse(step1.isTail());
         Assert.assertEquals("println(FLOW_WORKSPACE)\ntrue\n", step1.getBefore());
 
-        Node step2 = steps.get(1);
+        StepNode step2 = steps.get(1);
         Assert.assertEquals("step2", step2.getName());
     }
 
     @Test
     public void should_get_correct_relationship_on_node_tree() {
-        Node root = YmlParser.load("hello", content);
+        FlowNode root = YmlParser.load("hello", content);
         NodeTree tree = NodeTree.create(root);
         Assert.assertEquals(root, tree.getRoot());
 
@@ -105,7 +102,7 @@ public class YmlParserTest {
 
     @Test
     public void should_parse_to_yml_from_node() {
-        Node root = YmlParser.load("default", content);
+        FlowNode root = YmlParser.load("default", content);
         String parsed = YmlParser.parse(root);
         Assert.assertNotNull(parsed);
     }
@@ -113,10 +110,10 @@ public class YmlParserTest {
     @Test
     public void should_parse_yml_with_exports_filter() throws IOException {
         content = loadContent("flow-with-exports.yml");
-        Node root = YmlParser.load("default", content);
+        FlowNode root = YmlParser.load("default", content);
         NodeTree tree = NodeTree.create(root);
 
-        Node first = tree.next(tree.getRoot().getPath());
+        StepNode first = tree.next(tree.getRoot().getPath());
         Assert.assertEquals("step-1", first.getPath().name());
 
         Assert.assertEquals(2, first.getExports().size());

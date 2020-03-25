@@ -16,7 +16,6 @@
 
 package com.flowci.tree;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,25 +33,23 @@ public class NodeTree {
     private final static int DEFAULT_SIZE = 20;
 
     /**
-     * Create node tree from Node object
+     * Create node tree from FlowNode object
      */
-    public static NodeTree create(Node root) {
+    public static NodeTree create(FlowNode root) {
         return new NodeTree(root);
     }
 
-    private final Map<NodePath, NodeWithIndex> cached = new HashMap<>(DEFAULT_SIZE);
+    private final Map<NodePath, StepNode> cached = new HashMap<>(DEFAULT_SIZE);
 
     @Getter
-    private final List<Node> ordered = new ArrayList<>(DEFAULT_SIZE);
+    private final List<StepNode> ordered = new ArrayList<>(DEFAULT_SIZE);
 
     @Getter
-    private Node root;
+    private FlowNode root;
 
-    public NodeTree(Node root) {
+    public NodeTree(FlowNode root) {
         this.root = root;
-
         buildTree(root);
-        ordered.remove(root);
 
         moveFinalNodes();
         buildCacheWithIndex();
@@ -69,33 +66,15 @@ public class NodeTree {
     }
 
     /**
-     * Get previous Node instance from path
-     */
-    public Node prev(NodePath path) {
-        NodeWithIndex nodeWithIndex = getWithIndex(path);
-
-        if (nodeWithIndex.node.equals(root)) {
-            return null;
-        }
-
-        int prevIndex = nodeWithIndex.index - 1;
-
-        if (prevIndex < 0) {
-            return null;
-        }
-
-        return ordered.get(prevIndex);
-    }
-
-    /**
      * Get next Node instance from path
      */
-    public Node next(NodePath path) {
-        NodeWithIndex nodeWithIndex = getWithIndex(path);
+    public StepNode next(NodePath path) {
+        if (path.equals(root.getPath())) {
+            return ordered.get(0);
+        }
 
-        int nextIndex = nodeWithIndex.index + 1;
-
-        // next is out of range
+        StepNode step = get(path);
+        int nextIndex = step.getOrder() + 1;
         if (nextIndex > (ordered.size() - 1)) {
             return null;
         }
@@ -106,20 +85,23 @@ public class NodeTree {
     /**
      * Get next final node instance from path
      */
-    public Node nextFinal(NodePath path) {
-        NodeWithIndex nodeWithIndex = getWithIndex(path);
+    public StepNode nextFinal(NodePath path) {
+        if (path.equals(root.getPath())) {
+            return nextFinal(ordered.get(0).getPath());
+        }
 
-        if (nodeWithIndex.node.isTail()) {
+        StepNode nodeWithIndex = get(path);
+        if (nodeWithIndex.isTail()) {
             return next(path);
         }
 
-        int nextIndex = nodeWithIndex.index + 1;
+        int nextIndex = nodeWithIndex.getOrder() + 1;
         if (nextIndex > (ordered.size() - 1)) {
             return null;
         }
 
         for (int i = nextIndex; i < ordered.size(); i++) {
-            Node node = ordered.get(i);
+            StepNode node = ordered.get(i);
             if (node.isTail()) {
                 return node;
             }
@@ -132,37 +114,29 @@ public class NodeTree {
      * Get parent Node instance from path
      */
     public Node parent(NodePath path) {
-        return getWithIndex(path).node.getParent();
+        return get(path).getParent();
     }
 
-    public Node get(NodePath path) {
-        return getWithIndex(path).node;
-    }
+    public StepNode get(NodePath path) {
+        StepNode step = cached.get(path);
 
-    public String toYml() {
-        return YmlParser.parse(this.root);
-    }
-
-    private NodeWithIndex getWithIndex(NodePath path) {
-        NodeWithIndex nodeWithIndex = cached.get(path);
-
-        if (Objects.isNull(nodeWithIndex)) {
+        if (Objects.isNull(step)) {
             throw new IllegalArgumentException("The node path doesn't existed");
         }
 
-        return nodeWithIndex;
+        return step;
     }
 
     /**
      * Move all final nodes to the tail
      */
     private void moveFinalNodes() {
-        Iterator<Node> iterator = ordered.iterator();
-
-        List<Node> finals = new LinkedList<>();
+        Iterator<StepNode> iterator = ordered.iterator();
+        List<StepNode> finals = new LinkedList<>();
 
         while (iterator.hasNext()) {
-            Node node = iterator.next();
+            StepNode node = iterator.next();
+
             if (node.isTail()) {
                 finals.add(node);
                 iterator.remove();
@@ -176,36 +150,25 @@ public class NodeTree {
 
     private void buildCacheWithIndex() {
         for (int i = 0; i < ordered.size(); i++) {
-            Node node = ordered.get(i);
-            cached.put(node.getPath(), new NodeWithIndex(node, i));
+            StepNode step = ordered.get(i);
+            step.setOrder(i);
+            cached.put(step.getPath(), step);
         }
-
-        // set root index to -1
-        cached.put(root.getPath(), new NodeWithIndex(root, -1));
     }
 
     /**
      * Reset node path and parent reference and put to cache
      */
     private void buildTree(Node root) {
-        for (Node child : root.getChildren()) {
-            child.setPath(NodePath.create(root.getPath(), child.getName()));
-            child.setParent(root);
-            buildTree(child);
+        for (StepNode step : root.getChildren()) {
+            step.setPath(NodePath.create(root.getPath(), step.getName()));
+            step.setParent(root);
+
+            buildTree(step);
         }
 
-        ordered.add(root);
-    }
-
-    private class NodeWithIndex implements Serializable {
-
-        Node node;
-
-        int index;
-
-        NodeWithIndex(Node node, int index) {
-            this.node = node;
-            this.index = index;
+        if (root instanceof StepNode) {
+            ordered.add((StepNode) root);
         }
     }
 }

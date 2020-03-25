@@ -17,8 +17,8 @@
 package com.flowci.tree;
 
 import com.flowci.exception.YmlException;
-import com.flowci.tree.yml.FlowNode;
-import com.flowci.tree.yml.StepNode;
+import com.flowci.tree.yml.FlowYml;
+import com.flowci.tree.yml.StepYml;
 import com.flowci.util.StringHelper;
 import com.flowci.util.YamlHelper;
 import com.google.common.base.Strings;
@@ -53,11 +53,11 @@ public class YmlParser {
     /**
      * Create Node instance from yml
      */
-    public static synchronized Node load(String defaultName, String yml) {
-        Yaml yaml = YamlHelper.create(FlowNode.class);
+    public static synchronized FlowNode load(String defaultName, String yml) {
+        Yaml yaml = YamlHelper.create(FlowYml.class);
 
         try {
-            FlowNode root = yaml.load(yml);
+            FlowYml root = yaml.load(yml);
             // set default flow name if not defined in yml
             if (Strings.isNullOrEmpty(root.getName())) {
                 root.setName(defaultName);
@@ -68,14 +68,14 @@ public class YmlParser {
             }
 
             // steps must be provided
-            List<StepNode> steps = root.getSteps();
+            List<StepYml> steps = root.getSteps();
             if (Objects.isNull(steps) || steps.isEmpty()) {
                 throw new YmlException("The 'steps' must be defined");
             }
 
             Set<String> stepNames = new HashSet<>(steps.size());
 
-            for (StepNode node : steps) {
+            for (StepYml node : steps) {
                 if (StringHelper.hasValue(node.getName()) && !NodePath.validate(node.getName())) {
                     throw new YmlException("Invalid name '{0}'", node.name);
                 }
@@ -91,9 +91,9 @@ public class YmlParser {
         }
     }
 
-    public static synchronized String parse(Node root) {
-        FlowNode flow = new FlowNode(root);
-        Yaml yaml = YamlHelper.create(FieldsOrder, FlowNode.class);
+    public static synchronized String parse(FlowNode root) {
+        FlowYml flow = new FlowYml(root);
+        Yaml yaml = YamlHelper.create(FieldsOrder, FlowYml.class);
         String dump = yaml.dump(flow);
         dump = dump.substring(dump.indexOf(LINE_BREAK.getString()) + 1);
         return dump;

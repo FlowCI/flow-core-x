@@ -16,14 +16,15 @@
 
 package com.flowci.tree.yml;
 
-import com.flowci.tree.Node;
+import com.flowci.tree.StepNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import java.util.LinkedList;
-import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author yang
@@ -31,7 +32,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @NoArgsConstructor
-public class StepNode extends YmlNode {
+public class StepYml extends YmlBase<StepNode> {
 
     private final static String DEFAULT_NAME_PREFIX = "step-";
 
@@ -43,23 +44,22 @@ public class StepNode extends YmlNode {
 
     private List<String> exports = new LinkedList<>();
 
-    private Boolean allow_failure = false;
+    private boolean allow_failure = false;
 
-    private Boolean tail = false;
+    private boolean tail = false;
 
-    StepNode(Node node) {
+    StepYml(StepNode node) {
         setName(node.getName());
         setEnvs(node.getEnvironments());
         setScript(node.getScript());
         setPlugin(node.getPlugin());
-        setAllow_failure(node.isAllowFailure() == Node.ALLOW_FAILURE_DEFAULT ? null : node.isAllowFailure());
-        setTail(node.isTail() == Node.IS_TAIL_DEFAULT ? null : node.isTail());
+        setAllow_failure(node.isAllowFailure());
+        setTail(node.isTail());
     }
 
     @Override
-    public Node toNode(int index) {
-        String name = getName();
-        Node node = new Node(Strings.isNullOrEmpty(name) ? DEFAULT_NAME_PREFIX + index : name);
+    public StepNode toNode(int index) {
+        StepNode node = new StepNode(Strings.isNullOrEmpty(name) ? DEFAULT_NAME_PREFIX + index : name);
         node.setBefore(before);
         node.setScript(script);
         node.setPlugin(plugin);
