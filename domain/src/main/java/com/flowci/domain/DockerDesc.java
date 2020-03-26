@@ -18,6 +18,7 @@ package com.flowci.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.util.StringHelper;
+import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,6 +30,8 @@ import java.util.List;
 public class DockerDesc {
 
     private String image;
+
+    private List<String> entrypoint = Lists.newArrayList("/bin/bash");
 
     /**
      * List of port like "HOST:CONTAINER 5672:5672"
