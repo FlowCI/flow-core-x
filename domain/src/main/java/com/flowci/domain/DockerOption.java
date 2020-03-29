@@ -16,8 +16,7 @@
 
 package com.flowci.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.flowci.util.StringHelper;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,12 +39,9 @@ public class DockerOption {
      */
     private List<String> ports = new LinkedList<>();
 
+    @JsonProperty("isStopContainer")
     private boolean stopContainer = true;
 
+    @JsonProperty("isDeleteContainer")
     private boolean deleteContainer = true;
-
-    @JsonIgnore
-    public boolean hasImage() {
-        return StringHelper.hasValue(image);
-    }
 }

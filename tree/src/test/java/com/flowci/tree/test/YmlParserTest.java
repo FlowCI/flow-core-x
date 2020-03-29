@@ -16,6 +16,7 @@
 
 package com.flowci.tree.test;
 
+import com.flowci.domain.DockerOption;
 import com.flowci.exception.YmlException;
 import com.flowci.tree.*;
 import com.google.common.io.Files;
@@ -79,10 +80,13 @@ public class YmlParserTest {
         Assert.assertEquals("step2", step2.getName());
         Assert.assertEquals("echo 2", step2.getScript());
 
-        Assert.assertNotNull(step2.getDocker());
-        Assert.assertEquals("ubuntu:18.04", step2.getDocker().getImage());
-        Assert.assertEquals("6400:6400", step2.getDocker().getPorts().get(0));
-        Assert.assertEquals("2700:2700", step2.getDocker().getPorts().get(1));
+        DockerOption dockerOption = step2.getDocker();
+        Assert.assertNotNull(dockerOption);
+        Assert.assertEquals("ubuntu:18.04", dockerOption.getImage());
+        Assert.assertEquals("6400:6400", dockerOption.getPorts().get(0));
+        Assert.assertEquals("2700:2700", dockerOption.getPorts().get(1));
+        Assert.assertEquals("/bin/sh", dockerOption.getEntrypoint().get(0));
+        Assert.assertEquals("host", dockerOption.getNetworkMode());
     }
 
     @Test

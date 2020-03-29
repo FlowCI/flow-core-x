@@ -39,4 +39,6 @@ public abstract class CmdBase implements Serializable {
      * Cmd related plugin name
      */
     private String plugin;
+
+    private DockerOption docker;
 }

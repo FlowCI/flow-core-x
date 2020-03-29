@@ -16,10 +16,10 @@
 
 package com.flowci.tree.yml;
 
-import com.flowci.domain.DockerOption;
 import com.flowci.exception.YmlException;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.StepNode;
+import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -40,7 +40,7 @@ public class StepYml extends YmlBase<StepNode> {
 
     private final static String DEFAULT_NAME_PREFIX = "step-";
 
-    private DockerOption docker;
+    private DockerYml docker;
 
     private String before;
 
@@ -66,7 +66,6 @@ public class StepYml extends YmlBase<StepNode> {
     @Override
     public StepNode toNode(int index) {
         StepNode node = new StepNode(Strings.isNullOrEmpty(name) ? DEFAULT_NAME_PREFIX + index : name);
-        node.setDocker(docker);
         node.setBefore(before);
         node.setScript(script);
         node.setPlugin(plugin);
@@ -75,12 +74,10 @@ public class StepYml extends YmlBase<StepNode> {
         node.setTail(tail);
         node.setEnvironments(getVariableMap());
 
+        ObjectsHelper.ifNotNull(docker, (val) -> node.setDocker(docker.toDockerOption()));
+
         if (StringHelper.hasValue(node.getName()) && !NodePath.validate(node.getName())) {
             throw new YmlException("Invalid name '{0}'", node.getName());
-        }
-
-        if (node.hasDocker() && !node.getDocker().hasImage()) {
-            throw new YmlException("Docker image must be specified");
         }
 
         return node;
