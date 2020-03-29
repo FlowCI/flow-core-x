@@ -16,7 +16,7 @@
 
 package com.flowci.tree.yml;
 
-import com.flowci.domain.DockerDesc;
+import com.flowci.domain.DockerOption;
 import com.flowci.exception.YmlException;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.StepNode;
@@ -40,7 +40,7 @@ public class StepYml extends YmlBase<StepNode> {
 
     private final static String DEFAULT_NAME_PREFIX = "step-";
 
-    private DockerDesc docker;
+    private DockerOption docker;
 
     private String before;
 

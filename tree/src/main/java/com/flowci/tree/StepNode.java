@@ -1,7 +1,7 @@
 package com.flowci.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.flowci.domain.DockerDesc;
+import com.flowci.domain.DockerOption;
 import com.google.common.base.Strings;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -19,7 +19,7 @@ public class StepNode extends Node {
 
     public final static boolean IS_TAIL_DEFAULT = false;
 
-    private DockerDesc docker;
+    private DockerOption docker;
 
     /**
      * Node before groovy script;

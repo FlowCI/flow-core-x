@@ -57,7 +57,7 @@ public class CmdManagerImpl implements CmdManager {
         CmdIn cmd = new CmdIn(createId(job, node).toString(), CmdType.SHELL);
         cmd.setInputs(inputs);
         cmd.setDocker(node.getDocker());
-        cmd.setWorkDir(job.getFlowId()); // default work dir is {agent dir}/{flow id}
+        cmd.setFlowId(job.getFlowId()); // default work dir is {agent dir}/{flow id}
 
         cmd.addScript(node.getScript());
         cmd.addEnvFilters(node.getExports());

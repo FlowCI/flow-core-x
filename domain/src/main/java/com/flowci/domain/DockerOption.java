@@ -27,16 +27,22 @@ import java.util.List;
 
 @Getter
 @Setter
-public class DockerDesc {
+public class DockerOption {
 
     private String image;
 
     private List<String> entrypoint = Lists.newArrayList("/bin/bash");
 
+    private String networkMode = "host";
+
     /**
      * List of port like "HOST:CONTAINER 5672:5672"
      */
     private List<String> ports = new LinkedList<>();
+
+    private boolean stopContainer = true;
+
+    private boolean deleteContainer = true;
 
     @JsonIgnore
     public boolean hasImage() {
