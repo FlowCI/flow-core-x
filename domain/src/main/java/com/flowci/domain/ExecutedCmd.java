@@ -100,6 +100,11 @@ public class ExecutedCmd extends CmdBase {
     private Integer processId;
 
     /**
+     * Container id if ran from docker
+     */
+    private String containerId;
+
+    /**
      * Cmd execution status
      */
     private Status status = Status.PENDING;
