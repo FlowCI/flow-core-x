@@ -22,12 +22,8 @@ import com.flowci.core.plugin.service.PluginService;
 import com.flowci.domain.*;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotAvailableException;
-import com.flowci.tree.Node;
 import com.flowci.tree.StepNode;
-import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -87,6 +83,7 @@ public class CmdManagerImpl implements CmdManager {
         cmd.setPlugin(name);
         cmd.setAllowFailure(plugin.isAllowFailure());
         cmd.addEnvFilters(plugin.getExports());
+        cmd.setDocker(plugin.getDocker());
 
         PluginBody body = plugin.getBody();
 
