@@ -41,4 +41,8 @@ public abstract class CmdBase implements Serializable {
     private String plugin;
 
     private DockerOption docker;
+
+    public boolean hasDockerOption() {
+        return docker != null;
+    }
 }

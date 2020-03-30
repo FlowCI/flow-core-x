@@ -29,10 +29,7 @@ import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.domain.ScriptBody;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.domain.CmdIn;
-import com.flowci.domain.StringVars;
-import com.flowci.domain.VarType;
-import com.flowci.domain.Vars;
+import com.flowci.domain.*;
 import com.flowci.tree.*;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Lists;
@@ -104,6 +101,11 @@ public class CmdManagerTest extends SpringScenario {
         Assert.assertEquals("echo ${P_VAR_1} ${P_VAR_2}", scripts.get(1));
         Assert.assertEquals("hello", inputs.get("P_VAR_1"));
         Assert.assertEquals("world", inputs.get("P_VAR_2"));
+
+        // then: docker option should from step
+        DockerOption docker = plugin.getDocker();
+        Assert.assertNotNull(docker);
+        Assert.assertEquals("ubuntu:19.04", docker.getImage());
     }
 
     private Plugin createDummyPlugin() {
@@ -127,10 +129,14 @@ public class CmdManagerTest extends SpringScenario {
         parent.setName("parent");
         parent.setEnvs(varsForParent);
 
+        DockerOption option = new DockerOption();
+        option.setImage("ubuntu:19.04");
+
         Plugin plugin = new Plugin();
         plugin.setName("gittest");
         plugin.setInputs(Lists.newArrayList(intInput, strInput));
         plugin.setBody(parent);
+        plugin.setDocker(option);
 
         return plugin;
     }
@@ -146,10 +152,14 @@ public class CmdManagerTest extends SpringScenario {
         input2.setType(VarType.STRING);
         input2.setRequired(true);
 
+        DockerOption option = new DockerOption();
+        option.setImage("ubuntu:latest");
+
         Plugin plugin = new Plugin();
         plugin.setName("parent");
         plugin.setInputs(Lists.newArrayList(input1, input2));
         plugin.setBody(new ScriptBody("echo ${P_VAR_1} ${P_VAR_2}"));
+        plugin.setDocker(option);
 
         return plugin;
     }

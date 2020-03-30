@@ -17,6 +17,7 @@
 package com.flowci.core.plugin.domain;
 
 import com.flowci.core.flow.domain.StatsType;
+import com.flowci.domain.DockerOption;
 import com.flowci.domain.Version;
 
 import java.util.HashSet;
@@ -54,6 +55,8 @@ public class Plugin extends PluginRepoInfo implements PluginBody {
 
     private boolean allowFailure;
 
+    private DockerOption docker;
+
     private PluginBody body;
 
     private String icon;
@@ -64,11 +67,12 @@ public class Plugin extends PluginRepoInfo implements PluginBody {
     }
 
     public void update(Plugin src) {
-        this.setIcon(src.getIcon());
         this.setVersion(src.getVersion());
-        this.setInputs(src.getInputs());
-        this.setStatsTypes(src.getStatsTypes());
-        this.setAllowFailure(src.isAllowFailure());
-        this.setBody(src.getBody());
+        this.setIcon(src.icon);
+        this.setInputs(src.inputs);
+        this.setStatsTypes(src.statsTypes);
+        this.setAllowFailure(src.allowFailure);
+        this.setBody(src.body);
+        this.setDocker(src.docker);
     }
 }

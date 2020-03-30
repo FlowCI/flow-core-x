@@ -24,6 +24,7 @@ import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.tree.Node;
 import com.flowci.tree.StepNode;
+import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -106,6 +107,11 @@ public class CmdManagerImpl implements CmdManager {
             String scriptFromParent = ((ScriptBody) parent.getBody()).getScript();
             cmd.addInputs(parentData.getEnvs());
             cmd.addScript(scriptFromParent);
+
+            // apply docker option from parent if not specified
+            if (!cmd.hasDockerOption()) {
+                cmd.setDocker(parent.getDocker());
+            }
 
             verifyPluginInput(cmd.getInputs(), parent);
         }
