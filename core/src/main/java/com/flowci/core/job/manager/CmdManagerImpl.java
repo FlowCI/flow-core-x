@@ -16,6 +16,7 @@
 
 package com.flowci.core.job.manager;
 
+import com.flowci.core.common.domain.Variables;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.plugin.domain.*;
 import com.flowci.core.plugin.service.PluginService;
@@ -53,8 +54,8 @@ public class CmdManagerImpl implements CmdManager {
         // create cmd based on plugin
         CmdIn cmd = new CmdIn(createId(job, node).toString(), CmdType.SHELL);
         cmd.setInputs(inputs);
-        cmd.setDocker(node.getDocker());
         cmd.setFlowId(job.getFlowId()); // default work dir is {agent dir}/{flow id}
+        cmd.setDocker(node.getDocker());
 
         cmd.addScript(node.getScript());
         cmd.addEnvFilters(node.getExports());
@@ -66,6 +67,10 @@ public class CmdManagerImpl implements CmdManager {
         // set node allow failure as top priority
         if (node.isAllowFailure() != cmd.isAllowFailure()) {
             cmd.setAllowFailure(node.isAllowFailure());
+        }
+
+        if (!isDockerEnabled(inputs)) {
+            cmd.setDocker(null);
         }
 
         return cmd;
@@ -112,6 +117,11 @@ public class CmdManagerImpl implements CmdManager {
 
             verifyPluginInput(cmd.getInputs(), parent);
         }
+    }
+
+    private static boolean isDockerEnabled(Vars<String> input) {
+        String val = input.get(Variables.Step.DockerEnabled, "true");
+        return Boolean.parseBoolean(val);
     }
 
     private static void verifyPluginInput(Vars<String> context, Plugin plugin) {
