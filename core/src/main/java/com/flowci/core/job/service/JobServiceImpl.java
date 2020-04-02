@@ -24,8 +24,6 @@ import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitQueueOperation;
-import com.flowci.core.secret.domain.Secret;
-import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.dao.JobItemDao;
@@ -42,6 +40,8 @@ import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.manager.FlowJobQueueManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.JobKeyBuilder;
+import com.flowci.core.secret.domain.Secret;
+import com.flowci.core.secret.service.SecretService;
 import com.flowci.domain.Agent;
 import com.flowci.domain.CmdIn;
 import com.flowci.domain.SimpleSecret;
@@ -51,7 +51,6 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
-import com.flowci.tree.Node;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;
@@ -233,6 +232,10 @@ public class JobServiceImpl implements JobService {
             return job;
         }
 
+        if (job.isCancelling()) {
+            return job;
+        }
+
         // send stop cmd when is running
         if (!job.isRunning()) {
             return job;
@@ -245,14 +248,13 @@ public class JobServiceImpl implements JobService {
                 CmdIn killCmd = cmdManager.createKillCmd();
                 agentService.dispatch(killCmd, agent);
                 logInfo(job, " cancel cmd been send to {}", agent.getName());
-            } else {
-                setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while agent offline");
+                return setJobStatusAndSave(job, Job.Status.CANCELLING, null);
             }
-        } catch (NotFoundException e) {
-            setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while agent deleted");
-        }
 
-        return job;
+            return setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while agent offline");
+        } catch (NotFoundException e) {
+            return setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while agent deleted");
+        }
     }
 
     @Override
