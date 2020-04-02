@@ -237,13 +237,7 @@ public class JobEventServiceImpl implements JobEventService {
             return;
         }
 
-        // verify job status
-        if (job.isCancelling()) {
-            log.warn("Do not send cmd since job will be canceled");
-            return;
-        }
-
-        if (!job.isRunning()) {
+        if (!job.isRunning() && !job.isCancelling()) {
             log.error("Cannot handle cmd callback since job is not running: {}", job.getStatus());
             return;
         }
