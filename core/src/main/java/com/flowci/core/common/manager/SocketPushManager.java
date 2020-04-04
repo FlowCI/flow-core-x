@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.PushBody;
 import com.flowci.core.common.domain.PushEvent;
 import java.io.IOException;
+
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -46,5 +47,11 @@ public class SocketPushManager {
         } catch (IOException e) {
             log.warn(e.getMessage());
         }
+    }
+
+    public void push(String topic, byte[] obj) {
+//        Message<?> message = new ByteArrayMessageConverter().toMessage(obj, null);
+//        simpMessagingTemplate.send(topic, message);
+        simpMessagingTemplate.convertAndSend(topic, new String(obj));
     }
 }

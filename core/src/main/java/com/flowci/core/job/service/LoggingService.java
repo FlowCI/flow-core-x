@@ -16,6 +16,7 @@
 
 package com.flowci.core.job.service;
 
+import com.flowci.core.job.domain.JobProto;
 import com.flowci.domain.ExecutedCmd;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +33,7 @@ public interface LoggingService {
     /**
      * To receive the message from amqp
      */
-    void handleLoggingItem(String message);
+    void handleLoggingItem(JobProto.LogItem item);
 
     /**
      * To read logs from file store
