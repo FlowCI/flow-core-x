@@ -90,6 +90,11 @@ public class ExecutedCmd extends CmdBase {
     private String flowId;
 
     /**
+     * Container id if ran from docker
+     */
+    private String containerId;
+
+    /**
      * Job build number
      */
     private Long buildNumber;
@@ -98,11 +103,6 @@ public class ExecutedCmd extends CmdBase {
      * Process id
      */
     private Integer processId;
-
-    /**
-     * Container id if ran from docker
-     */
-    private String containerId;
 
     /**
      * Cmd execution status

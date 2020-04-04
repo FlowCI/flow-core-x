@@ -44,6 +44,11 @@ public class CmdIn extends CmdBase {
     private String flowId;
 
     /**
+     * Container id that prefer to reuse
+     */
+    private String containerId;
+
+    /**
      * Cmd timeout in seconds
      */
     @NonNull
