@@ -19,12 +19,13 @@ package com.flowci.core.common.manager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.PushBody;
 import com.flowci.core.common.domain.PushEvent;
-import java.io.IOException;
-
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.Base64;
 
 /**
  * @author yang
@@ -49,9 +50,9 @@ public class SocketPushManager {
         }
     }
 
-    public void push(String topic, byte[] obj) {
-//        Message<?> message = new ByteArrayMessageConverter().toMessage(obj, null);
-//        simpMessagingTemplate.send(topic, message);
-        simpMessagingTemplate.convertAndSend(topic, new String(obj));
+    public void push(String topic, byte[] bytes) {
+        // TODO: performance?
+        String b64 = Base64.getEncoder().encodeToString(bytes);
+        simpMessagingTemplate.convertAndSend(topic, b64);
     }
 }
