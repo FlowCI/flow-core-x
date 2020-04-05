@@ -25,7 +25,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Base64;
 
 /**
  * @author yang
@@ -51,8 +50,6 @@ public class SocketPushManager {
     }
 
     public void push(String topic, byte[] bytes) {
-        // TODO: performance?
-        String b64 = Base64.getEncoder().encodeToString(bytes);
-        simpMessagingTemplate.convertAndSend(topic, b64);
+        simpMessagingTemplate.convertAndSend(topic, bytes);
     }
 }
