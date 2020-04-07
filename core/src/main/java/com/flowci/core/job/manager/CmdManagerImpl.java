@@ -46,14 +46,8 @@ public class CmdManagerImpl implements CmdManager {
 
     @Override
     public CmdIn createShellCmd(Job job, StepNode node) {
-        // node envs has top priority;
-        Vars<String> inputs = new StringVars()
-                .merge(job.getContext())
-                .merge(node.getEnvironments());
-
-        // create cmd based on plugin
         CmdIn cmd = new CmdIn(createId(job, node).toString(), CmdType.SHELL);
-        cmd.setInputs(inputs);
+        cmd.setInputs(job.getContext()); // yml env was in the job context
         cmd.setFlowId(job.getFlowId()); // default work dir is {agent dir}/{flow id}
         cmd.setDocker(node.getDocker());
 
@@ -69,7 +63,7 @@ public class CmdManagerImpl implements CmdManager {
             cmd.setAllowFailure(node.isAllowFailure());
         }
 
-        if (!isDockerEnabled(inputs)) {
+        if (!isDockerEnabled(job.getContext())) {
             cmd.setDocker(null);
         }
 

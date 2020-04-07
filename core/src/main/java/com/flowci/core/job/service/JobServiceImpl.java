@@ -353,7 +353,7 @@ public class JobServiceImpl implements JobService {
 
         job.setCurrentPath(root.getPathAsString());
         job.setAgentSelector(root.getSelector());
-        job.getContext().merge(root.getEnvironments());
+        job.getContext().merge(root.getEnvironments(), false);
 
         ymlManager.create(flow, job, yml);
         jobDao.save(job);
