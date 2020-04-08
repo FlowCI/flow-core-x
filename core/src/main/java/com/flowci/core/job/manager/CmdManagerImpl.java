@@ -47,9 +47,11 @@ public class CmdManagerImpl implements CmdManager {
     @Override
     public CmdIn createShellCmd(Job job, StepNode node) {
         CmdIn cmd = new CmdIn(createId(job, node).toString(), CmdType.SHELL);
-        cmd.setInputs(job.getContext()); // yml env was in the job context
         cmd.setFlowId(job.getFlowId()); // default work dir is {agent dir}/{flow id}
         cmd.setDocker(node.getDocker());
+
+        // set inputs from step yaml env and job context, step yaml env has top priority
+        cmd.getInputs().merge(job.getContext()).merge(node.getEnvironments());
 
         cmd.addScript(node.getScript());
         cmd.addEnvFilters(node.getExports());
