@@ -197,7 +197,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job create(Flow flow, String yml, Trigger trigger, StringVars input) {
+    public synchronized Job create(Flow flow, String yml, Trigger trigger, StringVars input) {
         Job job = createJob(flow, trigger, input);
         eventManager.publish(new JobCreatedEvent(this, job));
 
@@ -280,7 +280,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job setJobStatusAndSave(Job job, Job.Status newStatus, String message) {
+    public synchronized Job setJobStatusAndSave(Job job, Job.Status newStatus, String message) {
         if (job.getStatus() == newStatus) {
             return jobDao.save(job);
         }
@@ -296,6 +296,8 @@ public class JobServiceImpl implements JobService {
         job.getContext().put(Variables.Job.Status, newStatus.name());
         jobDao.save(job);
         eventManager.publish(new JobStatusChangeEvent(this, job));
+
+        log.debug("Job status {} = {}", job.getId(), job.getStatus());
         return job;
     }
 
