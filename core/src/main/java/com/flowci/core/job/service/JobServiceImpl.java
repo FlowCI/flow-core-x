@@ -253,7 +253,7 @@ public class JobServiceImpl implements JobService {
 
             return setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while agent offline");
         } catch (NotFoundException e) {
-            return setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while agent deleted");
+            return setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while not agent assigned");
         }
     }
 
