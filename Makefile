@@ -1,9 +1,9 @@
 
 
 MVN_CLEAN    	:= mvn clean
-MVN_BUILD    	:= mvn clean compile
-MVN_PKG	    	:= mvn clean package -Dmaven.test.skip=true
-MVN_TEST		:= mvn clean test
+MVN_BUILD    	:= mvn compile -T 4C
+MVN_PKG	    	:= mvn package -T 4C -Dmaven.test.skip=true
+MVN_TEST		:= mvn test -T 4C
 
 
 CURRENT_DIR 	:= $(shell pwd)

@@ -103,12 +103,12 @@ public class JobController {
         Flow flow = flowService.get(name);
 
         if (ParameterLatest.equals(buildNumberOrLatest)) {
-            return jobService.getLatest(flow);
+            return jobService.getLatest(flow.getId());
         }
 
         try {
             long buildNumber = Long.parseLong(buildNumberOrLatest);
-            return jobService.get(flow, buildNumber);
+            return jobService.get(flow.getId(), buildNumber);
         } catch (NumberFormatException e) {
             throw new ArgumentException("Build number must be a integer");
         }

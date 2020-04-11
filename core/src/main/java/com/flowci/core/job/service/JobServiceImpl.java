@@ -161,8 +161,8 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job get(Flow flow, Long buildNumber) {
-        String key = JobKeyBuilder.build(flow, buildNumber);
+    public Job get(String flowId, Long buildNumber) {
+        String key = JobKeyBuilder.build(flowId, buildNumber);
         Optional<Job> optional = jobDao.findByKey(key);
 
         if (optional.isPresent()) {
@@ -170,7 +170,7 @@ public class JobServiceImpl implements JobService {
         }
 
         throw new NotFoundException(
-                "The job {0} for build number {1} cannot found", flow.getName(), Long.toString(buildNumber));
+                "The flow {0} for build number {1} cannot found", flowId, Long.toString(buildNumber));
     }
 
     @Override
@@ -179,15 +179,15 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job getLatest(Flow flow) {
-        Optional<JobNumber> optional = jobNumberDao.findById(flow.getId());
+    public Job getLatest(String flowId) {
+        Optional<JobNumber> optional = jobNumberDao.findById(flowId);
 
         if (optional.isPresent()) {
             JobNumber latest = optional.get();
-            return get(flow, latest.getNumber());
+            return get(flowId, latest.getNumber());
         }
 
-        throw new NotFoundException("No jobs for flow {0}", flow.getName());
+        throw new NotFoundException("No jobs for flow {0}", flowId);
     }
 
     @Override
@@ -311,7 +311,7 @@ public class JobServiceImpl implements JobService {
 
         // create job
         Job job = new Job();
-        job.setKey(JobKeyBuilder.build(flow, jobNumber.getNumber()));
+        job.setKey(JobKeyBuilder.build(flow.getId(), jobNumber.getNumber()));
         job.setFlowId(flow.getId());
         job.setTrigger(trigger);
         job.setBuildNumber(jobNumber.getNumber());

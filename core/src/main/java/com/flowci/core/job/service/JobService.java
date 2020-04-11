@@ -37,7 +37,7 @@ public interface JobService {
     /**
      * Get job by flow and build number
      */
-    Job get(Flow flow, Long buildNumber);
+    Job get(String flowId, Long buildNumber);
 
     /**
      * Get job yml by job
@@ -47,7 +47,7 @@ public interface JobService {
     /**
      * Get latest job
      */
-    Job getLatest(Flow flow);
+    Job getLatest(String flowId);
 
     /**
      * List job with fields only shown on the list
