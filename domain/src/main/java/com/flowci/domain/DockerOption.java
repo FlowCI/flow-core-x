@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 flow.ci
+ * Copyright 2020 flow.ci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,32 @@
 
 package com.flowci.domain;
 
-import java.io.Serializable;
-import lombok.EqualsAndHashCode;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 
-/**
- * @author yang
- */
+import java.util.LinkedList;
+import java.util.List;
+
 @Getter
 @Setter
-@EqualsAndHashCode(of = {"id"})
-public abstract class CmdBase implements Serializable {
+public class DockerOption {
 
-    @NonNull
-    private String id;
+    private String image;
 
-    private boolean allowFailure;
+    private List<String> entrypoint = Lists.newArrayList("/bin/bash");
+
+    private String networkMode = "host";
 
     /**
-     * Cmd related plugin name
+     * List of port like "HOST:CONTAINER 5672:5672"
      */
-    private String plugin;
+    private List<String> ports = new LinkedList<>();
 
-    private DockerOption docker;
+    @JsonProperty("isStopContainer")
+    private boolean stopContainer = true;
 
-    public boolean hasDockerOption() {
-        return docker != null;
-    }
+    @JsonProperty("isDeleteContainer")
+    private boolean deleteContainer = true;
 }

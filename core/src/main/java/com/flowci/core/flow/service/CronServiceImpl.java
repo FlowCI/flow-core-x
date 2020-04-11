@@ -29,7 +29,7 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.CreateNewJobEvent;
-import com.flowci.tree.Node;
+import com.flowci.tree.FlowNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.flowci.zookeeper.ZookeeperException;
@@ -81,7 +81,7 @@ public class CronServiceImpl implements CronService {
     }
 
     @Override
-    public void update(Flow flow, Node root, Yml yml) {
+    public void update(Flow flow, FlowNode root, Yml yml) {
         if (!root.hasCron()) {
             return;
         }
@@ -127,7 +127,7 @@ public class CronServiceImpl implements CronService {
                 return;
             }
 
-            Node node = YmlParser.load(flow.getName(), yml.getRaw());
+            FlowNode node = YmlParser.load(flow.getName(), yml.getRaw());
             update(flow, node, optional.get());
         }
 

@@ -16,16 +16,15 @@
 
 package com.flowci.core.job.manager;
 
+import com.flowci.core.common.domain.Variables;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.plugin.domain.*;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.domain.*;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotAvailableException;
-import com.flowci.tree.Node;
+import com.flowci.tree.StepNode;
 import com.flowci.util.StringHelper;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -41,21 +40,18 @@ public class CmdManagerImpl implements CmdManager {
     private PluginService pluginService;
 
     @Override
-    public CmdId createId(Job job, Node node) {
+    public CmdId createId(Job job, StepNode node) {
         return new CmdId(job.getId(), node.getPath().getPathInStr());
     }
 
     @Override
-    public CmdIn createShellCmd(Job job, Node node) {
-        // node envs has top priority;
-        Vars<String> inputs = new StringVars()
-                .merge(job.getContext())
-                .merge(node.getEnvironments());
-
-        // create cmd based on plugin
+    public CmdIn createShellCmd(Job job, StepNode node) {
         CmdIn cmd = new CmdIn(createId(job, node).toString(), CmdType.SHELL);
-        cmd.setInputs(inputs);
-        cmd.setWorkDir(job.getFlowId()); // default work dir is {agent dir}/{flow id}
+        cmd.setFlowId(job.getFlowId()); // default work dir is {agent dir}/{flow id}
+        cmd.setDocker(node.getDocker());
+
+        // set inputs from step yaml env and job context, step yaml env has top priority
+        cmd.getInputs().merge(job.getContext()).merge(node.getEnvironments());
 
         cmd.addScript(node.getScript());
         cmd.addEnvFilters(node.getExports());
@@ -67,6 +63,10 @@ public class CmdManagerImpl implements CmdManager {
         // set node allow failure as top priority
         if (node.isAllowFailure() != cmd.isAllowFailure()) {
             cmd.setAllowFailure(node.isAllowFailure());
+        }
+
+        if (!isDockerEnabled(job.getContext())) {
+            cmd.setDocker(null);
         }
 
         return cmd;
@@ -84,6 +84,7 @@ public class CmdManagerImpl implements CmdManager {
         cmd.setPlugin(name);
         cmd.setAllowFailure(plugin.isAllowFailure());
         cmd.addEnvFilters(plugin.getExports());
+        cmd.setDocker(plugin.getDocker());
 
         PluginBody body = plugin.getBody();
 
@@ -105,8 +106,18 @@ public class CmdManagerImpl implements CmdManager {
             cmd.addInputs(parentData.getEnvs());
             cmd.addScript(scriptFromParent);
 
+            // apply docker option from parent if not specified
+            if (!cmd.hasDockerOption()) {
+                cmd.setDocker(parent.getDocker());
+            }
+
             verifyPluginInput(cmd.getInputs(), parent);
         }
+    }
+
+    private static boolean isDockerEnabled(Vars<String> input) {
+        String val = input.get(Variables.Step.DockerEnabled, "true");
+        return Boolean.parseBoolean(val);
     }
 
     private static void verifyPluginInput(Vars<String> context, Plugin plugin) {

@@ -24,8 +24,6 @@ import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitQueueOperation;
-import com.flowci.core.secret.domain.Secret;
-import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.dao.JobItemDao;
@@ -42,6 +40,8 @@ import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.manager.FlowJobQueueManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.JobKeyBuilder;
+import com.flowci.core.secret.domain.Secret;
+import com.flowci.core.secret.service.SecretService;
 import com.flowci.domain.Agent;
 import com.flowci.domain.CmdIn;
 import com.flowci.domain.SimpleSecret;
@@ -50,7 +50,7 @@ import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
-import com.flowci.tree.Node;
+import com.flowci.tree.FlowNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;
@@ -161,8 +161,8 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job get(Flow flow, Long buildNumber) {
-        String key = JobKeyBuilder.build(flow, buildNumber);
+    public Job get(String flowId, Long buildNumber) {
+        String key = JobKeyBuilder.build(flowId, buildNumber);
         Optional<Job> optional = jobDao.findByKey(key);
 
         if (optional.isPresent()) {
@@ -170,7 +170,7 @@ public class JobServiceImpl implements JobService {
         }
 
         throw new NotFoundException(
-                "The job {0} for build number {1} cannot found", flow.getName(), Long.toString(buildNumber));
+                "The flow {0} for build number {1} cannot found", flowId, Long.toString(buildNumber));
     }
 
     @Override
@@ -179,15 +179,15 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job getLatest(Flow flow) {
-        Optional<JobNumber> optional = jobNumberDao.findById(flow.getId());
+    public Job getLatest(String flowId) {
+        Optional<JobNumber> optional = jobNumberDao.findById(flowId);
 
         if (optional.isPresent()) {
             JobNumber latest = optional.get();
-            return get(flow, latest.getNumber());
+            return get(flowId, latest.getNumber());
         }
 
-        throw new NotFoundException("No jobs for flow {0}", flow.getName());
+        throw new NotFoundException("No jobs for flow {0}", flowId);
     }
 
     @Override
@@ -197,7 +197,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job create(Flow flow, String yml, Trigger trigger, StringVars input) {
+    public synchronized Job create(Flow flow, String yml, Trigger trigger, StringVars input) {
         Job job = createJob(flow, trigger, input);
         eventManager.publish(new JobCreatedEvent(this, job));
 
@@ -232,6 +232,10 @@ public class JobServiceImpl implements JobService {
             return job;
         }
 
+        if (job.isCancelling()) {
+            return job;
+        }
+
         // send stop cmd when is running
         if (!job.isRunning()) {
             return job;
@@ -244,14 +248,13 @@ public class JobServiceImpl implements JobService {
                 CmdIn killCmd = cmdManager.createKillCmd();
                 agentService.dispatch(killCmd, agent);
                 logInfo(job, " cancel cmd been send to {}", agent.getName());
-            } else {
-                setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while agent offline");
+                return setJobStatusAndSave(job, Job.Status.CANCELLING, null);
             }
-        } catch (NotFoundException e) {
-            setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while agent deleted");
-        }
 
-        return job;
+            return setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while agent offline");
+        } catch (NotFoundException e) {
+            return setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while not agent assigned");
+        }
     }
 
     @Override
@@ -277,7 +280,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job setJobStatusAndSave(Job job, Job.Status newStatus, String message) {
+    public synchronized Job setJobStatusAndSave(Job job, Job.Status newStatus, String message) {
         if (job.getStatus() == newStatus) {
             return jobDao.save(job);
         }
@@ -293,6 +296,8 @@ public class JobServiceImpl implements JobService {
         job.getContext().put(Variables.Job.Status, newStatus.name());
         jobDao.save(job);
         eventManager.publish(new JobStatusChangeEvent(this, job));
+
+        log.debug("Job status {} = {}", job.getId(), job.getStatus());
         return job;
     }
 
@@ -306,7 +311,7 @@ public class JobServiceImpl implements JobService {
 
         // create job
         Job job = new Job();
-        job.setKey(JobKeyBuilder.build(flow, jobNumber.getNumber()));
+        job.setKey(JobKeyBuilder.build(flow.getId(), jobNumber.getNumber()));
         job.setFlowId(flow.getId());
         job.setTrigger(trigger);
         job.setBuildNumber(jobNumber.getNumber());
@@ -346,11 +351,11 @@ public class JobServiceImpl implements JobService {
     }
 
     private void setupYaml(Flow flow, String yml, Job job) {
-        Node root = YmlParser.load(flow.getName(), yml);
+        FlowNode root = YmlParser.load(flow.getName(), yml);
 
         job.setCurrentPath(root.getPathAsString());
         job.setAgentSelector(root.getSelector());
-        job.getContext().merge(root.getEnvironments());
+        job.getContext().merge(root.getEnvironments(), false);
 
         ymlManager.create(flow, job, yml);
         jobDao.save(job);

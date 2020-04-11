@@ -30,13 +30,13 @@ import java.util.Map;
  */
 @Setter
 @Getter
-public abstract class YmlNode implements Serializable {
+public abstract class YmlBase<T extends Node> implements Serializable {
 
     public String name;
 
     public Map<String, String> envs = new LinkedHashMap<>();
 
-    public abstract Node toNode(int index);
+    public abstract T toNode(int index);
 
     StringVars getVariableMap() {
         StringVars variables = new StringVars(envs.size());

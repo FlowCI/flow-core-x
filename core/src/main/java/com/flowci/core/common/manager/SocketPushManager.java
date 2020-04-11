@@ -19,11 +19,12 @@ package com.flowci.core.common.manager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.PushBody;
 import com.flowci.core.common.domain.PushEvent;
-import java.io.IOException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
 
 /**
  * @author yang
@@ -46,5 +47,9 @@ public class SocketPushManager {
         } catch (IOException e) {
             log.warn(e.getMessage());
         }
+    }
+
+    public void push(String topic, byte[] bytes) {
+        simpMessagingTemplate.convertAndSend(topic, bytes);
     }
 }

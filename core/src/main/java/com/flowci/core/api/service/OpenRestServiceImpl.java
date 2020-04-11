@@ -111,7 +111,7 @@ public class OpenRestServiceImpl implements OpenRestService {
 
     private Job getJob(String name, long number) {
         Flow flow = flowService.get(name);
-        String key = JobKeyBuilder.build(flow, number);
+        String key = JobKeyBuilder.build(flow.getId(), number);
         Optional<Job> optional = jobDao.findByKey(key);
 
         if (optional.isPresent()) {

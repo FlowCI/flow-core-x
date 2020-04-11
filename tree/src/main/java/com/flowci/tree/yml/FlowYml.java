@@ -16,11 +16,11 @@
 
 package com.flowci.tree.yml;
 
-import com.flowci.tree.TriggerFilter;
-import com.flowci.tree.Node;
-import com.flowci.tree.Selector;
-import java.util.LinkedList;
-import java.util.List;
+import com.flowci.exception.YmlException;
+import com.flowci.tree.*;
+
+import java.util.*;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -32,7 +32,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class FlowNode extends YmlNode {
+public class FlowYml extends YmlBase<FlowNode> {
 
     private String cron;
 
@@ -43,32 +43,47 @@ public class FlowNode extends YmlNode {
     private TriggerFilter trigger = new TriggerFilter();
 
     @NonNull
-    private List<StepNode> steps = new LinkedList<>();
+    private List<StepYml> steps = new LinkedList<>();
 
-    public FlowNode(Node node) {
+    public FlowYml(FlowNode node) {
         setEnvs(node.getEnvironments());
 
         // set children
-        for (Node child : node.getChildren()) {
-            this.steps.add(new StepNode(child));
+        for (StepNode child : node.getChildren()) {
+            this.steps.add(new StepYml(child));
         }
     }
 
     @Override
-    public Node toNode(int index) {
-        Node node = new Node(getName());
+    public FlowNode toNode(int ignore) {
+        if (!NodePath.validate(name)) {
+            throw new YmlException("Invalid name {0}", name);
+        }
+
+        FlowNode node = new FlowNode(name);
         node.setCron(cron);
         node.setSelector(selector);
         node.setTrigger(trigger);
         node.setEnvironments(getVariableMap());
-        setupChildren(node);
+
+        if (Objects.isNull(steps) || steps.isEmpty()) {
+            throw new YmlException("The 'steps' must be defined");
+        }
+
+        int index = 1;
+        Set<String> uniqueName = new HashSet<>(steps.size());
+
+        for (StepYml child : steps) {
+            StepNode step = child.toNode(index++);
+
+            if (!uniqueName.add(step.getName())) {
+                throw new YmlException("Duplicate step name {0}", step.getName());
+            }
+
+            node.getChildren().add(step);
+        }
+
         return node;
     }
 
-    private void setupChildren(Node root) {
-        int index = 1;
-        for (StepNode child : steps) {
-            root.getChildren().add(child.toNode(index++));
-        }
-    }
 }

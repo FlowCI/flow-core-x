@@ -16,15 +16,16 @@
 
 package com.flowci.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
-
-import java.util.*;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author yang
@@ -40,7 +41,12 @@ public class CmdIn extends CmdBase {
     @NonNull
     private List<String> scripts = new LinkedList<>();
 
-    private String workDir;
+    private String flowId;
+
+    /**
+     * Container id that prefer to reuse
+     */
+    private String containerId;
 
     /**
      * Cmd timeout in seconds

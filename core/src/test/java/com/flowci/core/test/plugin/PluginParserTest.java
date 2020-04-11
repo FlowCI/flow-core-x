@@ -17,6 +17,7 @@
 package com.flowci.core.test.plugin;
 
 import com.flowci.core.plugin.domain.*;
+import com.flowci.domain.DockerOption;
 import com.flowci.domain.VarType;
 import com.flowci.domain.Version;
 import java.io.InputStream;
@@ -72,6 +73,11 @@ public class PluginParserTest {
         Assert.assertEquals("0.1.0", parent.getVersion());
         Assert.assertEquals(1, parent.getEnvs().size());
         Assert.assertEquals("hello message", parent.getEnvs().get("GIT_URL_PARENT"));
+
+        DockerOption dockerOption = plugin.getDocker();
+        Assert.assertNotNull(dockerOption);
+        Assert.assertEquals("ubuntu:18.04", dockerOption.getImage());
+        Assert.assertEquals("none", dockerOption.getNetworkMode());
     }
 
 }

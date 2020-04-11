@@ -39,10 +39,7 @@ import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
 import com.flowci.core.test.ZookeeperScenario;
 import com.flowci.domain.*;
-import com.flowci.tree.Node;
-import com.flowci.tree.NodePath;
-import com.flowci.tree.NodeTree;
-import com.flowci.tree.YmlParser;
+import com.flowci.tree.*;
 import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.junit.Assert;
@@ -225,9 +222,9 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals(Status.RUNNING, jobDao.findById(job.getId()).get().getStatus());
 
         // then: verify cmd content
-        Node root = YmlParser.load(flow.getName(), yml.getRaw());
+        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
         NodeTree tree = NodeTree.create(root);
-        Node first = tree.next(tree.getRoot().getPath());
+        StepNode first = tree.next(tree.getRoot().getPath());
 
         CmdIn cmd = targetCmd.getValue();
         Assert.assertEquals(cmdManager.createId(job, first).toString(), cmd.getId());
@@ -243,7 +240,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Job job = prepareJobForRunningStatus(agent);
 
         NodeTree tree = ymlManager.getTree(job);
-        Node firstNode = tree.next(tree.getRoot().getPath());
+        StepNode firstNode = tree.next(tree.getRoot().getPath());
 
         // when: cmd of first node been executed
         StringVars output = new StringVars();
@@ -270,7 +267,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals("hello.world", job.getContext().get("HELLO_WORLD"));
 
         // then: job current context should be updated
-        Node secondNode = tree.next(firstNode.getPath());
+        StepNode secondNode = tree.next(firstNode.getPath());
         Assert.assertEquals(secondNode.getPath(), NodePath.create(job.getCurrentPath()));
 
         // when: cmd of second node been executed
@@ -308,7 +305,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Job job = prepareJobForRunningStatus(agent);
 
         NodeTree tree = ymlManager.getTree(job);
-        Node firstNode = tree.next(tree.getRoot().getPath());
+        StepNode firstNode = tree.next(tree.getRoot().getPath());
 
         // when: cmd of first node with failure
         StringVars output = new StringVars();
@@ -329,7 +326,7 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // then: job status should be running and current path should be change to second node
         job = jobDao.findById(job.getId()).get();
-        Node secondNode = tree.next(firstNode.getPath());
+        StepNode secondNode = tree.next(firstNode.getPath());
 
         Assert.assertEquals(Status.RUNNING, job.getStatus());
         Assert.assertEquals(secondNode.getPathAsString(), job.getCurrentPath());
@@ -365,7 +362,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Job job = prepareJobForRunningStatus(agent);
 
         NodeTree tree = ymlManager.getTree(job);
-        Node firstNode = tree.next(tree.getRoot().getPath());
+        StepNode firstNode = tree.next(tree.getRoot().getPath());
 
         // when: set first step as failure status
         CmdId cmdId = cmdManager.createId(job, firstNode);
@@ -374,7 +371,7 @@ public class JobServiceTest extends ZookeeperScenario {
         jobEventService.handleCallback(executedCmd);
 
         // when: set final node as success status
-        Node secondNode = tree.next(firstNode.getPath());
+        StepNode secondNode = tree.next(firstNode.getPath());
         cmdId = cmdManager.createId(job, secondNode);
         executedCmd = new ExecutedCmd(cmdId, job.getFlowId(), secondNode.isAllowFailure());
         executedCmd.setStatus(ExecutedCmd.Status.SUCCESS);

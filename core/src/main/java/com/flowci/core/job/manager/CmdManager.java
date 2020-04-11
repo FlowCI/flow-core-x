@@ -20,15 +20,16 @@ import com.flowci.domain.CmdId;
 import com.flowci.core.job.domain.Job;
 import com.flowci.domain.CmdIn;
 import com.flowci.tree.Node;
+import com.flowci.tree.StepNode;
 
 /**
  * @author yang
  */
 public interface CmdManager {
 
-    CmdId createId(Job job, Node node);
+    CmdId createId(Job job, StepNode node);
 
-    CmdIn createShellCmd(Job job, Node node);
+    CmdIn createShellCmd(Job job, StepNode node);
 
     CmdIn createKillCmd();
 }

@@ -37,6 +37,10 @@ public class StartContext implements Serializable {
 
         public static final String AGENT_LOG_LEVEL = "FLOWCI_AGENT_LOG_LEVEL";
 
+        public static final String AGENT_VOLUMES = "FLOWCI_AGENT_VOLUMES";
+
+        public static final String AGENT_WORKSPACE = "FLOWCI_AGENT_WORKSPACE";
+
     }
 
     @NonNull
