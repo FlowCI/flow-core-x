@@ -25,5 +25,8 @@ package:
 test:
 	$(DOCKER_RUN) $(MVN_TEST)
 
+docker: package
+	$(DOCKER_BUILD) $(tag)
+
 clean:
 	$(DOCKER_RUN) $(MVN_CLEAN)
