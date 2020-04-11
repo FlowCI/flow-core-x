@@ -22,18 +22,13 @@ import com.flowci.core.flow.domain.FlowAction;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.domain.http.RequestMessage;
-import java.util.Base64;
-import java.util.List;
-
-import com.flowci.tree.Node;
+import com.flowci.tree.StepNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Base64;
+import java.util.List;
 
 /**
  * @author yang
@@ -49,7 +44,7 @@ public class YmlController {
     private YmlService ymlService;
 
     @GetMapping("/{name}/yml/steps")
-    public List<Node> listSteps(@PathVariable String name) {
+    public List<StepNode> listSteps(@PathVariable String name) {
         Flow flow = flowService.get(name);
         return ymlService.ListChildren(flow);
     }

@@ -16,24 +16,18 @@
 
 package com.flowci.domain;
 
-import static com.flowci.domain.ExecutedCmd.Status.EXCEPTION;
-import static com.flowci.domain.ExecutedCmd.Status.KILLED;
-import static com.flowci.domain.ExecutedCmd.Status.PENDING;
-import static com.flowci.domain.ExecutedCmd.Status.RUNNING;
-import static com.flowci.domain.ExecutedCmd.Status.SKIPPED;
-import static com.flowci.domain.ExecutedCmd.Status.SUCCESS;
-import static com.flowci.domain.ExecutedCmd.Status.TIMEOUT;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableSet;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.Date;
+import java.util.Set;
+
+import static com.flowci.domain.ExecutedCmd.Status.*;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * ExecutedCmd == Step node with executed status and data
@@ -50,14 +44,14 @@ public class ExecutedCmd extends CmdBase {
     public final static Integer CODE_SUCCESS = 0;
 
     private final static Set<Status> FailureStatus = ImmutableSet.of(
-        EXCEPTION,
-        KILLED,
-        TIMEOUT
+            EXCEPTION,
+            KILLED,
+            TIMEOUT
     );
 
     private final static Set<Status> SuccessStatus = ImmutableSet.of(
-        SUCCESS,
-        SKIPPED
+            SUCCESS,
+            SKIPPED
     );
 
     public enum Status {
@@ -88,6 +82,11 @@ public class ExecutedCmd extends CmdBase {
      * Flow id
      */
     private String flowId;
+
+    /**
+     * Container id if ran from docker
+     */
+    private String containerId;
 
     /**
      * Job build number

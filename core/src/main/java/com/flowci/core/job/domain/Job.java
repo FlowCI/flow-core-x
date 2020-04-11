@@ -120,6 +120,11 @@ public class Job extends Mongoable implements Pathable {
         FAILURE,
 
         /**
+         * Job will be cancelled, but waiting for response from agent
+         */
+        CANCELLING,
+
+        /**
          * Job been cancelled by user
          */
         CANCELLED,
@@ -232,6 +237,11 @@ public class Job extends Mongoable implements Pathable {
     @JsonIgnore
     public boolean isRunning() {
         return status == Status.RUNNING;
+    }
+
+    @JsonIgnore
+    public boolean isCancelling() {
+        return status == Status.CANCELLING;
     }
 
     @JsonIgnore

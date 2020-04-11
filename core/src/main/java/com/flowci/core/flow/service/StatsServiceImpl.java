@@ -28,7 +28,9 @@ import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.exception.NotFoundException;
+import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
+import com.flowci.tree.StepNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
@@ -115,14 +117,13 @@ public class StatsServiceImpl implements StatsService {
     @Override
     public List<StatsType> getStatsType(Flow flow) {
         Optional<Yml> optional = ymlDao.findById(flow.getId());
-
         List<StatsType> list = new LinkedList<>(defaultTypes.values());
         if (!optional.isPresent()) {
             return list;
         }
 
-        Node root = YmlParser.load(flow.getName(), optional.get().getRaw());
-        for (Node child : root.getChildren()) {
+        FlowNode root = YmlParser.load(flow.getName(), optional.get().getRaw());
+        for (StepNode child : root.getChildren()) {
             if (!child.hasPlugin()) {
                 continue;
             }

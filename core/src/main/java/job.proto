@@ -1,0 +1,9 @@
+syntax = "proto3";
+package job.domain;
+option java_package = "com.flowci.core.job.domain";
+option java_outer_classname = "JobProto";
+
+message LogItem {
+  string cmdId = 1;
+  bytes  content = 2;
+}

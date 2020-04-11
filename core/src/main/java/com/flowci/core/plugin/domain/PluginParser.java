@@ -19,10 +19,12 @@ package com.flowci.core.plugin.domain;
 import com.flowci.core.flow.domain.StatsType;
 import com.flowci.domain.VarType;
 import com.flowci.domain.Version;
+import com.flowci.tree.yml.DockerYml;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.YamlHelper;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import org.omg.CORBA.ObjectHelper;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
@@ -62,6 +64,8 @@ public class PluginParser {
 
         public ParentWrapper parent;
 
+        public DockerYml docker;
+
         public Plugin toPlugin() {
             Plugin plugin = new Plugin(name, Version.parse(version));
             plugin.setIcon(icon);
@@ -72,6 +76,7 @@ public class PluginParser {
                 plugin.setBody(parent.toParentBody());
             }
 
+            ObjectsHelper.ifNotNull(docker, val -> plugin.setDocker(val.toDockerOption()));
             ObjectsHelper.ifNotNull(exports, plugin::setExports);
             ObjectsHelper.ifNotNull(allow_failure, plugin::setAllowFailure);
             ObjectsHelper.ifNotNull(stats, list -> {

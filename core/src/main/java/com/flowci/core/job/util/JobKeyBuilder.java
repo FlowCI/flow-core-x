@@ -16,8 +16,6 @@
 
 package com.flowci.core.job.util;
 
-import com.flowci.core.flow.domain.Flow;
-
 /**
  * @author yang
  */
@@ -25,7 +23,7 @@ public abstract class JobKeyBuilder {
 
     private final static char Splitter = '-';
 
-    public static String build(Flow flow, Long buildNumber) {
-        return flow.getId() + Splitter + buildNumber;
+    public static String build(String flowId, Long buildNumber) {
+        return flowId + Splitter + buildNumber;
     }
 }

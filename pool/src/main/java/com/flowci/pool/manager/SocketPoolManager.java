@@ -96,9 +96,11 @@ public class SocketPoolManager implements PoolManager<SocketInitContext> {
             CreateContainerResponse container = client.createContainerCmd(AgentContainer.Image).withName(name)
                     .withEnv(String.format("%s=%s", SERVER_URL, context.getServerUrl()),
                             String.format("%s=%s", AGENT_TOKEN, context.getToken()),
-                            String.format("%s=%s", AGENT_LOG_LEVEL, context.getLogLevel()))
+                            String.format("%s=%s", AGENT_LOG_LEVEL, context.getLogLevel()),
+                            String.format("%s=%s", AGENT_WORKSPACE, "/ws"),
+                            String.format("%s=%s", AGENT_VOLUMES, System.getenv(AGENT_VOLUMES)))
                     .withBinds(
-                            new Bind(srcDirOnHost.toString(), new Volume("/root/.flow.ci.agent")),
+                            new Bind(srcDirOnHost.toString(), new Volume("/ws")),
                             new Bind("/var/run/docker.sock", new Volume("/var/run/docker.sock")))
                     .exec();
 

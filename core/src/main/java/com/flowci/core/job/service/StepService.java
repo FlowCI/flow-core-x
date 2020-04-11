@@ -19,6 +19,7 @@ package com.flowci.core.job.service;
 import com.flowci.core.job.domain.Job;
 import com.flowci.domain.ExecutedCmd;
 import com.flowci.tree.Node;
+import com.flowci.tree.StepNode;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ public interface StepService {
     /**
      * Get executed cmd for job and node
      */
-    ExecutedCmd get(Job job, Node node);
+    ExecutedCmd get(Job job, StepNode node);
 
     /**
      * Get executed cmd from cmd id
@@ -48,12 +49,12 @@ public interface StepService {
      * Get step list in string, {name}={stats};{name}={stats}
      * No steps after current node
      */
-    String toVarString(Job job, Node current);
+    String toVarString(Job job, StepNode current);
 
     /**
      * Change step status, and put steps string to job context
      */
-    void statusChange(Job job, Node node, ExecutedCmd.Status status, String err);
+    void statusChange(Job job, StepNode node, ExecutedCmd.Status status, String err);
 
     void statusChange(ExecutedCmd entity, ExecutedCmd.Status status, String err);
 

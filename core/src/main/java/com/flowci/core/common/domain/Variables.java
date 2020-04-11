@@ -63,4 +63,10 @@ public abstract class Variables {
         // {step name}={status};{step name}={status}
         public static final String Steps = "FLOWCI_JOB_STEPS";
     }
+
+    public abstract static class Step {
+
+        // to control run step from docker defined in step or plugin, default is true
+        public static final String DockerEnabled = "FLOWCI_STEP_DOCKER_ENABLED";
+    }
 }

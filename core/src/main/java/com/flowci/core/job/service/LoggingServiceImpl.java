@@ -17,13 +17,14 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.common.helper.CacheHelper;
+import com.flowci.core.common.manager.SocketPushManager;
 import com.flowci.core.common.rabbit.RabbitChannelOperation;
 import com.flowci.core.common.rabbit.RabbitOperation;
 import com.flowci.core.common.rabbit.RabbitQueueOperation;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.JobProto;
 import com.flowci.domain.ExecutedCmd;
-import com.flowci.domain.LogItem;
 import com.flowci.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
@@ -32,15 +33,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.RemovalListener;
 import com.google.common.collect.ImmutableList;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -51,8 +44,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author yang
@@ -62,9 +63,9 @@ import org.springframework.stereotype.Service;
 public class LoggingServiceImpl implements LoggingService {
 
     private static final Page<String> LogNotFound = new PageImpl<>(
-        ImmutableList.of("Log not available"),
-        PageRequest.of(0, 1),
-        1L
+            ImmutableList.of("Log not available"),
+            PageRequest.of(0, 1),
+            1L
     );
 
     private static final int FileBufferSize = 8000; // ~8k
@@ -72,13 +73,13 @@ public class LoggingServiceImpl implements LoggingService {
     private static final Pathable LogPath = () -> "logs";
 
     private Cache<String, BufferedReader> logReaderCache =
-        CacheHelper.createLocalCache(10, 60, new ReaderCleanUp());
+            CacheHelper.createLocalCache(10, 60, new ReaderCleanUp());
 
     @Autowired
     private String topicForLogs;
 
     @Autowired
-    private SimpMessagingTemplate simpMessagingTemplate;
+    private SocketPushManager socketPushManager;
 
     @Autowired
     private FileManager fileManager;
@@ -96,8 +97,13 @@ public class LoggingServiceImpl implements LoggingService {
                 return true;
             }
 
-            final String msg = new String(message.getBody(), StandardCharsets.UTF_8);
-            handleLoggingItem(msg);
+            try {
+                JobProto.LogItem item = JobProto.LogItem.parseFrom(message.getBody());
+                handleLoggingItem(item);
+            } catch (InvalidProtocolBufferException e) {
+                log.warn("Unable to decode log item from agent");
+            }
+
             return true;
         });
 
@@ -105,17 +111,12 @@ public class LoggingServiceImpl implements LoggingService {
     }
 
     @Override
-    public void handleLoggingItem(String message) {
-        log.debug("[LOG]: {}", message);
+    public void handleLoggingItem(JobProto.LogItem item) {
+        String content = item.getContent().toString();
+        log.debug("[LOG]: {}", content);
 
-        // find cmd id from log item string
-        int firstIndex = message.indexOf(LogItem.SPLITTER);
-        String cmdId = message.substring(0, firstIndex);
-        String destination = topicForLogs + "/" + cmdId;
-
-        // send string message without cmd id
-        String body = message.substring(firstIndex + 1);
-        simpMessagingTemplate.convertAndSend(destination, body);
+        String destination = topicForLogs + "/" + item.getCmdId();
+        socketPushManager.push(destination, item.getContent().toByteArray());
     }
 
     @Override
@@ -130,8 +131,8 @@ public class LoggingServiceImpl implements LoggingService {
             int i = pageable.getPageNumber() * pageable.getPageSize();
 
             List<String> logs = lines.skip(i)
-                .limit(pageable.getPageSize())
-                .collect(Collectors.toList());
+                    .limit(pageable.getPageSize())
+                    .collect(Collectors.toList());
 
             return new PageImpl<>(logs, pageable, cmd.getLogSize());
         } finally {
@@ -181,9 +182,9 @@ public class LoggingServiceImpl implements LoggingService {
         ExecutedCmd cmd = stepService.get(cmdId);
 
         return new Pathable[]{
-            Flow.path(cmd.getFlowId()),
-            Job.path(cmd.getBuildNumber()),
-            LogPath
+                Flow.path(cmd.getFlowId()),
+                Job.path(cmd.getBuildNumber()),
+                LogPath
         };
     }
 

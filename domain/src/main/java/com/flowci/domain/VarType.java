@@ -19,6 +19,8 @@ package com.flowci.domain;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.PatternHelper;
 
+import java.util.Objects;
+
 /**
  * @author yang
  */
@@ -42,7 +44,7 @@ public enum VarType {
                 return ObjectsHelper.tryParseInt(value);
 
             case BOOL:
-                return Boolean.parseBoolean(value);
+                return Objects.equals(value, "true") || Objects.equals(value, "false");
 
             case HTTP_URL:
                 return PatternHelper.isWebURL(value);

@@ -41,6 +41,7 @@
     <amqp-client.version>5.7.2</amqp-client.version>
     <java-jwt.version>3.8.1</java-jwt.version>
     <minio.version>6.0.11</minio.version>
+    <protobuf-java.version>3.11.4</protobuf-java.version>
   </properties>
 
   <build>
@@ -144,6 +145,12 @@
         <groupId>com.auth0</groupId>
         <artifactId>java-jwt</artifactId>
         <version>${java-jwt.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>${protobuf-java.version}</version>
       </dependency>
 
       <dependency>

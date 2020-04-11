@@ -16,13 +16,9 @@
 
 package com.flowci.tree.test;
 
-import com.flowci.tree.Node;
-import com.flowci.tree.NodePath;
-import com.flowci.tree.NodeTree;
-import com.flowci.tree.YmlParser;
+import com.flowci.tree.*;
 import com.google.common.io.Files;
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -41,7 +37,7 @@ public class NodeTreeTest {
     public void init() throws Exception {
         URL resource = getClass().getClassLoader().getResource("flow-with-final.yml");
         String content = Files.toString(new File(resource.getFile()), Charset.forName("UTF-8"));
-        Node root = YmlParser.load("default", content);
+        FlowNode root = YmlParser.load("default", content);
         tree = NodeTree.create(root);
     }
 
@@ -53,14 +49,14 @@ public class NodeTreeTest {
 
     @Test
     public void should_move_all_final_nodes_to_the_tail() {
-        List<Node> ordered = tree.getOrdered();
+        List<StepNode> ordered = tree.getOrdered();
         Assert.assertEquals("step3", ordered.get(ordered.size() - 1).getName());
     }
 
     @Test
     public void should_get_next_final_node() {
         // then: should get next final from root
-        Node nextFinalNode = tree.nextFinal(tree.getRoot().getPath());
+        StepNode nextFinalNode = tree.nextFinal(tree.getRoot().getPath());
         Assert.assertNotNull(nextFinalNode);
         Assert.assertEquals("step3", nextFinalNode.getName());
 

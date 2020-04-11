@@ -27,7 +27,9 @@ import com.flowci.core.plugin.service.PluginService;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
+import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
+import com.flowci.tree.StepNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;
@@ -71,13 +73,13 @@ public class YmlServiceImpl implements YmlService {
     //====================================================================
 
     @Override
-    public List<Node> ListChildren(Flow flow) {
+    public List<StepNode> ListChildren(Flow flow) {
         Optional<Yml> optional = ymlDao.findById(flow.getId());
         if (!optional.isPresent()) {
             return Collections.emptyList();
         }
 
-        Node root = YmlParser.load(flow.getName(), optional.get().getRaw());
+        FlowNode root = YmlParser.load(flow.getName(), optional.get().getRaw());
         return root.getChildren();
     }
 
@@ -96,10 +98,10 @@ public class YmlServiceImpl implements YmlService {
             throw new ArgumentException("Yml content cannot be null or empty");
         }
 
-        Node root = YmlParser.load(flow.getName(), yml);
+        FlowNode root = YmlParser.load(flow.getName(), yml);
 
         // verify plugin and throw NotFoundException if not exist
-        for (Node child : root.getChildren()) {
+        for (StepNode child : root.getChildren()) {
             if (child.hasPlugin()) {
                 pluginService.get(child.getPlugin());
             }

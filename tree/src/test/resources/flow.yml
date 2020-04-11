@@ -29,4 +29,11 @@ steps:
 
  - name: step2
    allow_failure: false
+   docker:
+     image: "ubuntu:18.04"
+     ports:
+       - "6400:6400"
+       - "2700:2700"
+     entrypoint: ["/bin/sh"]
+     network_mode: host
    script: "echo 2"
