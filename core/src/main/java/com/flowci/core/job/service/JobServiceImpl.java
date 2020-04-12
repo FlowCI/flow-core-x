@@ -16,7 +16,6 @@
 
 package com.flowci.core.job.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.config.ConfigProperties;
 import com.flowci.core.common.domain.Variables;
@@ -95,9 +94,6 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private ConfigProperties.Job jobProperties;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private Path repoDir;
@@ -441,13 +437,9 @@ public class JobServiceImpl implements JobService {
 
         try {
             RabbitQueueOperation manager = flowJobQueueManager.get(job.getQueueName());
-
             setJobStatusAndSave(job, Job.Status.QUEUED, null);
-            byte[] body = objectMapper.writeValueAsBytes(job);
-
-            manager.send(body, job.getPriority(), job.getExpire());
+            manager.send(job.getId().getBytes(), job.getPriority(), job.getExpire());
             logInfo(job, "enqueue");
-
             return job;
         } catch (Throwable e) {
             throw new StatusException("Unable to enqueue the job {0} since {1}", job.getId(), e.getMessage());
