@@ -138,12 +138,15 @@ public class JobEventServiceImpl implements JobEventService {
                 return true;
             }
 
-            Optional<Job> optional = convert(objectMapper, message);
-            if (!optional.isPresent()) {
+            String jobId = new String(message.getBody());
+            Job job = jobService.get(jobId);
+
+            // not set to timeout if finished or cancelling
+            if (Job.FINISH_STATUS.contains(job.getStatus()) || job.isCancelling()) {
                 return true;
             }
 
-            jobService.setJobStatusAndSave(optional.get(), Job.Status.TIMEOUT, "expired while queued up");
+            jobService.setJobStatusAndSave(job, Job.Status.TIMEOUT, "expired while queued up");
             return true;
         });
 
@@ -331,10 +334,15 @@ public class JobEventServiceImpl implements JobEventService {
         consumer.start(false);
     }
 
-    /**
-     * Find available agent and dispatch job
-     */
     private void dispatch(Job job, Agent available) {
+        // reload the job to get latest status before dispatch
+        job = jobService.get(job.getId());
+
+        if (!job.isQueuing()) {
+            logInfo(job, "don't dispatch since status is not queuing");
+            return;
+        }
+
         NodeTree tree = ymlManager.getTree(job);
         StepNode next = tree.next(currentNodePath(job));
 
@@ -492,17 +500,13 @@ public class JobEventServiceImpl implements JobEventService {
                 return true;
             }
 
-            Optional<Job> optional = convert(objectMapper, message);
-            if (!optional.isPresent()) {
-                return true;
-            }
-
-            Job job = optional.get();
+            String jobId = new String(message.getBody());
+            Job job = jobService.get(jobId);
             logInfo(job, "received from queue");
             eventManager.publish(new JobReceivedEvent(this, job));
 
             if (!job.isQueuing()) {
-                logInfo(job, "can't handle it since status is not in queuing");
+                logInfo(job, "can't handle since status is not in queuing");
                 return false;
             }
 
@@ -535,14 +539,6 @@ public class JobEventServiceImpl implements JobEventService {
             synchronized (lock) {
                 lock.notifyAll();
             }
-        }
-    }
-
-    private static Optional<Job> convert(ObjectMapper mapper, RabbitChannelOperation.Message message) {
-        try {
-            return Optional.of(mapper.readValue(message.getBody(), Job.class));
-        } catch (IOException e) {
-            return Optional.empty();
         }
     }
 }
