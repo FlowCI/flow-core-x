@@ -35,16 +35,12 @@ public class YmlParser {
     private final static LineBreak LINE_BREAK = LineBreak.getPlatformLineBreak();
 
     private final static Map<String, Integer> FieldsOrder = ImmutableMap.<String, Integer>builder()
-        .put("name", 1)
-        .put("envs", 2)
-        .put("trigger", 3)
-        .put("selector", 4)
-        .put("allow_failure", 5)
-        .put("tail", 6)
-        .put("plugin", 7)
-        .put("before", 8)
-        .put("script", 9)
-        .put("steps", 11)
+        .put("envs", 1)
+        .put("trigger", 2)
+        .put("selector", 3)
+        .put("cron", 4)
+        .put("steps", 5)
+        .put("after", 6)
         .build();
 
     /**

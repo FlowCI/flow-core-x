@@ -45,6 +45,9 @@ public class FlowYml extends YmlBase<FlowNode> {
     @NonNull
     private List<StepYml> steps = new LinkedList<>();
 
+    @NonNull
+    private List<StepYml> after = new LinkedList<>();
+
     public FlowYml(FlowNode node) {
         setEnvs(node.getEnvironments());
 
@@ -66,6 +69,23 @@ public class FlowYml extends YmlBase<FlowNode> {
         node.setTrigger(trigger);
         node.setEnvironments(getVariableMap());
 
+        setupSteps(node);
+        setupAfter(node);
+        return node;
+    }
+
+    private void setupAfter(FlowNode node) {
+        if (Objects.isNull(after) || after.isEmpty()) {
+            return;
+        }
+
+        int index = 1;
+        for (StepYml child : after) {
+            node.getAfter().add(child.toNode(index));
+        }
+    }
+
+    private void setupSteps(FlowNode node) {
         if (Objects.isNull(steps) || steps.isEmpty()) {
             throw new YmlException("The 'steps' must be defined");
         }
@@ -82,8 +102,5 @@ public class FlowYml extends YmlBase<FlowNode> {
 
             node.getChildren().add(step);
         }
-
-        return node;
     }
-
 }

@@ -16,14 +16,9 @@
 
 package com.flowci.tree;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import lombok.Getter;
+
+import java.util.*;
 
 /**
  * @author yang
@@ -45,23 +40,19 @@ public class NodeTree {
     private final List<StepNode> ordered = new ArrayList<>(DEFAULT_SIZE);
 
     @Getter
-    private FlowNode root;
+    private final List<StepNode> after = new ArrayList<>(DEFAULT_SIZE);
+
+    @Getter
+    private final FlowNode root;
 
     public NodeTree(FlowNode root) {
         this.root = root;
         buildTree(root);
-
-        moveFinalNodes();
         buildCacheWithIndex();
     }
 
     public boolean isFirst(NodePath path) {
         Node node = ordered.get(0);
-        return node.getPath().equals(path);
-    }
-
-    public boolean isLast(NodePath path) {
-        Node node = ordered.get(ordered.size() - 1);
         return node.getPath().equals(path);
     }
 
@@ -74,40 +65,16 @@ public class NodeTree {
         }
 
         StepNode step = get(path);
-        int nextIndex = step.getOrder() + 1;
-        if (nextIndex > (ordered.size() - 1)) {
-            return null;
+        if (step.isAfter()) {
+            return findNext(step, after);
         }
 
-        return ordered.get(nextIndex);
-    }
-
-    /**
-     * Get next final node instance from path
-     */
-    public StepNode nextFinal(NodePath path) {
-        if (path.equals(root.getPath())) {
-            return nextFinal(ordered.get(0).getPath());
+        StepNode next = findNext(step, ordered);
+        if (next != null) {
+            return next;
         }
 
-        StepNode nodeWithIndex = get(path);
-        if (nodeWithIndex.isTail()) {
-            return next(path);
-        }
-
-        int nextIndex = nodeWithIndex.getOrder() + 1;
-        if (nextIndex > (ordered.size() - 1)) {
-            return null;
-        }
-
-        for (int i = nextIndex; i < ordered.size(); i++) {
-            StepNode node = ordered.get(i);
-            if (node.isTail()) {
-                return node;
-            }
-        }
-
-        return null;
+        return findNext(null, after);
     }
 
     /**
@@ -119,39 +86,40 @@ public class NodeTree {
 
     public StepNode get(NodePath path) {
         StepNode step = cached.get(path);
-
         if (Objects.isNull(step)) {
             throw new IllegalArgumentException("The node path doesn't existed");
         }
-
         return step;
     }
 
-    /**
-     * Move all final nodes to the tail
-     */
-    private void moveFinalNodes() {
-        Iterator<StepNode> iterator = ordered.iterator();
-        List<StepNode> finals = new LinkedList<>();
-
-        while (iterator.hasNext()) {
-            StepNode node = iterator.next();
-
-            if (node.isTail()) {
-                finals.add(node);
-                iterator.remove();
-            }
+    private StepNode findNext(StepNode current, List<StepNode> steps) {
+        if (steps.isEmpty()) {
+            return null;
         }
 
-        if (!finals.isEmpty()) {
-            ordered.addAll(finals);
+        if (Objects.isNull(current)) {
+            return steps.get(0);
         }
+
+        int next = current.getOrder() + 1;
+        if (next > steps.size() - 1) {
+            return null;
+        }
+        return steps.get(next);
     }
 
     private void buildCacheWithIndex() {
         for (int i = 0; i < ordered.size(); i++) {
             StepNode step = ordered.get(i);
             step.setOrder(i);
+            step.setAfter(false);
+            cached.put(step.getPath(), step);
+        }
+
+        for (int i = 0; i < after.size(); i++) {
+            StepNode step = after.get(i);
+            step.setOrder(i);
+            step.setAfter(true);
             cached.put(step.getPath(), step);
         }
     }
@@ -160,6 +128,10 @@ public class NodeTree {
      * Reset node path and parent reference and put to cache
      */
     private void buildTree(Node root) {
+        if (root instanceof FlowNode) {
+            after.addAll(((FlowNode) root).getAfter());
+        }
+
         for (StepNode step : root.getChildren()) {
             step.setPath(NodePath.create(root.getPath(), step.getName()));
             step.setParent(root);

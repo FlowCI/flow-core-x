@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
@@ -73,7 +74,6 @@ public class YmlParserTest {
         Assert.assertEquals("echo step version", step1.getEnv("FLOW_VERSION"));
 
         Assert.assertTrue(step1.isAllowFailure());
-        Assert.assertFalse(step1.isTail());
         Assert.assertEquals("println(FLOW_WORKSPACE)\ntrue\n", step1.getBefore());
 
         StepNode step2 = steps.get(1);
@@ -132,6 +132,6 @@ public class YmlParserTest {
     private String loadContent(String resource) throws IOException {
         ClassLoader classLoader = YmlParserTest.class.getClassLoader();
         URL url = classLoader.getResource(resource);
-        return Files.toString(new File(url.getFile()), Charset.forName("UTF-8"));
+        return Files.toString(new File(url.getFile()), StandardCharsets.UTF_8);
     }
 }

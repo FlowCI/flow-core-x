@@ -52,15 +52,12 @@ public class StepYml extends YmlBase<StepNode> {
 
     private boolean allow_failure = false;
 
-    private boolean tail = false;
-
     StepYml(StepNode node) {
         setName(node.getName());
         setEnvs(node.getEnvironments());
         setScript(node.getScript());
         setPlugin(node.getPlugin());
         setAllow_failure(node.isAllowFailure());
-        setTail(node.isTail());
     }
 
     @Override
@@ -71,7 +68,6 @@ public class StepYml extends YmlBase<StepNode> {
         node.setPlugin(plugin);
         node.setExports(Sets.newHashSet(exports));
         node.setAllowFailure(allow_failure);
-        node.setTail(tail);
         node.setEnvironments(getVariableMap());
 
         ObjectsHelper.ifNotNull(docker, (val) -> node.setDocker(docker.toDockerOption()));

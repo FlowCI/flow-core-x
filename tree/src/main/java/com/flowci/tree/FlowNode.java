@@ -6,6 +6,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.LinkedList;
+import java.util.List;
+
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
@@ -25,6 +28,11 @@ public class FlowNode extends Node {
      * Unix cron expression
      */
     private String cron;
+
+    /**
+     * The final step that will be executed anyway
+     */
+    private List<StepNode> after = new LinkedList<>();
 
     public FlowNode(String name) {
         super(name);

@@ -18,13 +18,13 @@ package com.flowci.tree.test;
 
 import com.flowci.tree.*;
 import com.google.common.io.Files;
-import java.io.File;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.File;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author yang
@@ -35,38 +35,33 @@ public class NodeTreeTest {
 
     @Before
     public void init() throws Exception {
-        URL resource = getClass().getClassLoader().getResource("flow-with-final.yml");
-        String content = Files.toString(new File(resource.getFile()), Charset.forName("UTF-8"));
+        URL resource = getClass().getClassLoader().getResource("flow-with-after.yml");
+        String content = Files.toString(new File(resource.getFile()), StandardCharsets.UTF_8);
         FlowNode root = YmlParser.load("default", content);
         tree = NodeTree.create(root);
     }
 
     @Test
-    public void should_check_first_or_last_node() {
+    public void should_check_is_first_node() {
         Assert.assertTrue(tree.isFirst(NodePath.create("root/step-1")));
-        Assert.assertTrue(tree.isLast(NodePath.create("root/step3")));
     }
 
     @Test
-    public void should_move_all_final_nodes_to_the_tail() {
-        List<StepNode> ordered = tree.getOrdered();
-        Assert.assertEquals("step3", ordered.get(ordered.size() - 1).getName());
-    }
+    public void should_get_after_node() {
+        StepNode step = tree.next(tree.getRoot().getPath());
+        Assert.assertNotNull(step);
+        Assert.assertFalse(step.isAfter());
+        Assert.assertEquals("step-1", step.getName());
 
-    @Test
-    public void should_get_next_final_node() {
-        // then: should get next final from root
-        StepNode nextFinalNode = tree.nextFinal(tree.getRoot().getPath());
-        Assert.assertNotNull(nextFinalNode);
-        Assert.assertEquals("step3", nextFinalNode.getName());
-
-        // then: should get next final from step
-        nextFinalNode = tree.nextFinal(NodePath.create("root/step-1"));
-        Assert.assertNotNull(nextFinalNode);
-        Assert.assertEquals("step3", nextFinalNode.getName());
+        step = tree.next(NodePath.create("root/step-1"));
+        Assert.assertNotNull(step);
+        Assert.assertFalse(step.isAfter());
+        Assert.assertEquals("step2", step.getName());
 
         // then: should get next final as null from last node
-        nextFinalNode = tree.nextFinal(NodePath.create("root/step3"));
-        Assert.assertNull(nextFinalNode);
+        step = tree.next(NodePath.create("root/step2"));
+        Assert.assertNotNull(step);
+        Assert.assertTrue(step.isAfter());
+        Assert.assertEquals("step3", step.getName());
     }
 }

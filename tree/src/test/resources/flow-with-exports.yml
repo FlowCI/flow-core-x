@@ -25,11 +25,6 @@ steps:
   - "PLUGIN_"
   - "HELLO_"
 
-- name: step3
-  allow_failure: false
-  tail: true
-  script: "echo 3"
-
 - name: step2
   allow_failure: false
   script: "echo 2"
