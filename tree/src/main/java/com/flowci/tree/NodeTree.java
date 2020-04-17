@@ -131,6 +131,7 @@ public class NodeTree {
             for (StepNode step : flow.getAfter()) {
                 step.setPath(NodePath.create(root.getPath(), step.getName()));
                 step.setParent(root);
+                step.setAllowFailure(true);
                 after.add(step);
             }
         }

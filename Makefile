@@ -8,13 +8,13 @@ MVN_TEST		:= mvn test -T 4C
 
 CURRENT_DIR 	:= $(shell pwd)
 
-DOCKER_VOLUME	:= -v $(HOME)/.m2:/root/.m2
+DOCKER_VOLUME	:= -v $(HOME)/.m2:/root/.m2 -v $(CURRENT_DIR):/ws
 DOCKER_IMG		:= flowci/javasdk:1.0
-DOCKER_RUN 		:= docker run -it --rm -v $(CURRENT_DIR):/ws -w /ws $(DOCKER_VOLUME) --network host $(DOCKER_IMG)
+DOCKER_RUN 		:= docker run -it --rm -w /ws $(DOCKER_VOLUME) --network host $(DOCKER_IMG)
 
 DOCKER_BUILD 	:= ./build.sh
 
-.PHONY: build test clean package
+.PHONY: build test clean package docker
 
 build:
 	$(DOCKER_RUN) $(MVN_BUILD)

@@ -58,16 +58,16 @@ public class NodeTreeTest {
         Assert.assertFalse(step.isAfter());
         Assert.assertEquals("step2", step.getName());
 
-        // then: should get next final as null from last node
         step = tree.next(NodePath.create("root/step2"));
         Assert.assertNotNull(step);
         Assert.assertTrue(step.isAfter());
+        Assert.assertTrue(step.isAllowFailure()); // step in after always allow failure
         Assert.assertEquals("step3", step.getName());
 
-        // then: should get next final as null from last node
         step = tree.next(NodePath.create("root/step3"));
         Assert.assertNotNull(step);
         Assert.assertTrue(step.isAfter());
+        Assert.assertTrue(step.isAllowFailure()); // step in after always allow failure
         Assert.assertEquals("after-2", step.getName());
     }
 }

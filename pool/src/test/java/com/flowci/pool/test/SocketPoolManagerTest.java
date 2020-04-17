@@ -45,6 +45,7 @@ public class SocketPoolManagerTest extends PoolScenario {
         }
     }
 
+    @Ignore("since run from make file")
     @Test
     public void should_start_agent_and_stop() throws Exception {
         final String name = StringHelper.randomString(5);
