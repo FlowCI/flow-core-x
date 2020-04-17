@@ -57,8 +57,7 @@ public class FlowYml extends YmlBase<FlowNode> {
         }
     }
 
-    @Override
-    public FlowNode toNode(int ignore) {
+    public FlowNode toNode() {
         if (!NodePath.validate(name)) {
             throw new YmlException("Invalid name {0}", name);
         }
@@ -80,8 +79,14 @@ public class FlowYml extends YmlBase<FlowNode> {
         }
 
         int index = 1;
+        Set<String> uniqueName = new HashSet<>(after.size());
+
         for (StepYml child : after) {
-            node.getAfter().add(child.toNode(index));
+            StepNode step = child.toNode(index++, StepNode.Type.After);
+            if (!uniqueName.add(step.getName())) {
+                throw new YmlException("Duplicate name {0} in after", step.getName());
+            }
+            node.getAfter().add(step);
         }
     }
 
@@ -94,12 +99,10 @@ public class FlowYml extends YmlBase<FlowNode> {
         Set<String> uniqueName = new HashSet<>(steps.size());
 
         for (StepYml child : steps) {
-            StepNode step = child.toNode(index++);
-
+            StepNode step = child.toNode(index++, StepNode.Type.Step);
             if (!uniqueName.add(step.getName())) {
-                throw new YmlException("Duplicate step name {0}", step.getName());
+                throw new YmlException("Duplicate name {0} in step", step.getName());
             }
-
             node.getChildren().add(step);
         }
     }

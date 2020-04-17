@@ -257,7 +257,7 @@ public class JobEventServiceImpl implements JobEventService {
         setJobContext(job, node, execCmd);
 
         // find next node
-        StepNode next = findNext(job, tree, node, execCmd.isSuccess());
+        StepNode next = findNext(job, tree, node);
         Agent current = agentService.get(job.getAgentId());
 
         // job finished
@@ -302,13 +302,13 @@ public class JobEventServiceImpl implements JobEventService {
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
         context.put(Variables.Job.Steps, stepService.toVarString(job, node));
 
-        if (!node.isTail()) {
+        if (!node.isAfter()) {
             context.put(Variables.Job.Status, StatusHelper.convert(cmd).name());
         }
     }
 
-    private StepNode findNext(Job job, NodeTree tree, Node current, boolean isSuccess) {
-        StepNode next = isSuccess ? tree.next(current.getPath()) : tree.nextFinal(current.getPath());
+    private StepNode findNext(Job job, NodeTree tree, Node current) {
+        StepNode next = tree.next(current.getPath());
         if (Objects.isNull(next)) {
             return null;
         }
@@ -318,7 +318,7 @@ public class JobEventServiceImpl implements JobEventService {
             return next;
         }
 
-        return findNext(job, tree, next, true);
+        return findNext(job, tree, next);
     }
 
     private void startJobConsumer(Flow flow) {

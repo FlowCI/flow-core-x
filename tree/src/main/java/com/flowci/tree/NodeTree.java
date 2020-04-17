@@ -37,7 +37,7 @@ public class NodeTree {
     private final Map<NodePath, StepNode> cached = new HashMap<>(DEFAULT_SIZE);
 
     @Getter
-    private final List<StepNode> ordered = new ArrayList<>(DEFAULT_SIZE);
+    private final List<StepNode> steps = new ArrayList<>(DEFAULT_SIZE);
 
     @Getter
     private final List<StepNode> after = new ArrayList<>(DEFAULT_SIZE);
@@ -52,7 +52,7 @@ public class NodeTree {
     }
 
     public boolean isFirst(NodePath path) {
-        Node node = ordered.get(0);
+        Node node = steps.get(0);
         return node.getPath().equals(path);
     }
 
@@ -61,7 +61,7 @@ public class NodeTree {
      */
     public StepNode next(NodePath path) {
         if (path.equals(root.getPath())) {
-            return ordered.get(0);
+            return steps.get(0);
         }
 
         StepNode step = get(path);
@@ -69,7 +69,7 @@ public class NodeTree {
             return findNext(step, after);
         }
 
-        StepNode next = findNext(step, ordered);
+        StepNode next = findNext(step, steps);
         if (next != null) {
             return next;
         }
@@ -109,17 +109,15 @@ public class NodeTree {
     }
 
     private void buildCacheWithIndex() {
-        for (int i = 0; i < ordered.size(); i++) {
-            StepNode step = ordered.get(i);
+        for (int i = 0; i < steps.size(); i++) {
+            StepNode step = steps.get(i);
             step.setOrder(i);
-            step.setAfter(false);
             cached.put(step.getPath(), step);
         }
 
         for (int i = 0; i < after.size(); i++) {
             StepNode step = after.get(i);
             step.setOrder(i);
-            step.setAfter(true);
             cached.put(step.getPath(), step);
         }
     }
@@ -129,18 +127,19 @@ public class NodeTree {
      */
     private void buildTree(Node root) {
         if (root instanceof FlowNode) {
-            after.addAll(((FlowNode) root).getAfter());
+            FlowNode flow = (FlowNode) root;
+            for (StepNode step : flow.getAfter()) {
+                step.setPath(NodePath.create(root.getPath(), step.getName()));
+                step.setParent(root);
+                after.add(step);
+            }
         }
 
         for (StepNode step : root.getChildren()) {
             step.setPath(NodePath.create(root.getPath(), step.getName()));
             step.setParent(root);
-
+            steps.add(step);
             buildTree(step);
-        }
-
-        if (root instanceof StepNode) {
-            ordered.add((StepNode) root);
         }
     }
 }

@@ -57,7 +57,7 @@ public class YmlParser {
                 root.setName(defaultName);
             }
 
-            return root.toNode(0);
+            return root.toNode();
         } catch (YAMLException e) {
             throw new YmlException(e.getMessage());
         }

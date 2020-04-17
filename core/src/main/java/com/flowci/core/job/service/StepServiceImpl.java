@@ -29,7 +29,6 @@ import com.flowci.domain.CmdId;
 import com.flowci.domain.ExecutedCmd;
 import com.flowci.domain.ExecutedCmd.Status;
 import com.flowci.exception.NotFoundException;
-import com.flowci.tree.Node;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.StepNode;
@@ -71,11 +70,19 @@ public class StepServiceImpl implements StepService {
         NodeTree tree = ymlManager.getTree(job);
         List<ExecutedCmd> steps = new LinkedList<>();
 
-        for (StepNode node : tree.getOrdered()) {
+        for (StepNode node : tree.getSteps()) {
             CmdId cmdId = cmdManager.createId(job, node);
-
             ExecutedCmd cmd = new ExecutedCmd(cmdId, job.getFlowId(), node.isAllowFailure());
             cmd.setBuildNumber(job.getBuildNumber());
+            cmd.setAfter(false);
+            steps.add(cmd);
+        }
+
+        for (StepNode node : tree.getAfter()) {
+            CmdId cmdId = cmdManager.createId(job, node);
+            ExecutedCmd cmd = new ExecutedCmd(cmdId, job.getFlowId(), node.isAllowFailure());
+            cmd.setBuildNumber(job.getBuildNumber());
+            cmd.setAfter(true);
             steps.add(cmd);
         }
 

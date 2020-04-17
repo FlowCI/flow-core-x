@@ -38,7 +38,9 @@ import java.util.List;
 @NoArgsConstructor
 public class StepYml extends YmlBase<StepNode> {
 
-    private final static String DEFAULT_NAME_PREFIX = "step-";
+    private final static String DefaultStepPrefix = "step-";
+
+    private final static String DefaultAfterPrefix = "after-";
 
     private DockerYml docker;
 
@@ -60,12 +62,12 @@ public class StepYml extends YmlBase<StepNode> {
         setAllow_failure(node.isAllowFailure());
     }
 
-    @Override
-    public StepNode toNode(int index) {
-        StepNode node = new StepNode(Strings.isNullOrEmpty(name) ? DEFAULT_NAME_PREFIX + index : name);
+    public StepNode toNode(int index, StepNode.Type t) {
+        StepNode node = new StepNode(buildName(index, t));
         node.setBefore(before);
         node.setScript(script);
         node.setPlugin(plugin);
+        node.setType(t);
         node.setExports(Sets.newHashSet(exports));
         node.setAllowFailure(allow_failure);
         node.setEnvironments(getVariableMap());
@@ -77,5 +79,17 @@ public class StepYml extends YmlBase<StepNode> {
         }
 
         return node;
+    }
+
+    private String buildName(int index, StepNode.Type t) {
+        if (StringHelper.hasValue(name)) {
+            return name;
+        }
+
+        if (t == StepNode.Type.After) {
+            return DefaultAfterPrefix + index;
+        }
+
+        return DefaultStepPrefix + index;
     }
 }

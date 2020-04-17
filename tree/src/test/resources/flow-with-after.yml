@@ -36,3 +36,6 @@ after:
   - name: step3
     allow_failure: false
     script: "echo 3"
+
+  - allow_failure: false
+    script: "echo 4"
