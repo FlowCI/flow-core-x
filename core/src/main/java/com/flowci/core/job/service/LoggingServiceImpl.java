@@ -23,7 +23,6 @@ import com.flowci.core.common.rabbit.RabbitOperation;
 import com.flowci.core.common.rabbit.RabbitQueueOperation;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.job.domain.JobProto;
 import com.flowci.domain.ExecutedCmd;
 import com.flowci.exception.NotFoundException;
 import com.flowci.store.FileManager;
@@ -33,7 +32,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.RemovalListener;
 import com.google.common.collect.ImmutableList;
-import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -72,7 +70,7 @@ public class LoggingServiceImpl implements LoggingService {
 
     private static final Pathable LogPath = () -> "logs";
 
-    private Cache<String, BufferedReader> logReaderCache =
+    private final Cache<String, BufferedReader> logReaderCache =
             CacheHelper.createLocalCache(10, 60, new ReaderCleanUp());
 
     @Autowired
@@ -97,26 +95,12 @@ public class LoggingServiceImpl implements LoggingService {
                 return true;
             }
 
-            try {
-                JobProto.LogItem item = JobProto.LogItem.parseFrom(message.getBody());
-                handleLoggingItem(item);
-            } catch (InvalidProtocolBufferException e) {
-                log.warn("Unable to decode log item from agent");
-            }
-
+            // send JobProto.LogItem byte array to web directly
+            socketPushManager.push(topicForLogs, message.getBody());
             return true;
         });
 
         consumer.start(true);
-    }
-
-    @Override
-    public void handleLoggingItem(JobProto.LogItem item) {
-        String content = item.getContent().toString();
-        log.debug("[LOG]: {}", content);
-
-        String destination = topicForLogs + "/" + item.getCmdId();
-        socketPushManager.push(destination, item.getContent().toByteArray());
     }
 
     @Override
