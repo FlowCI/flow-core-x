@@ -31,16 +31,30 @@ import lombok.Setter;
 public abstract class CmdBase implements Serializable {
 
     @NonNull
-    private String id;
+    protected String id;
 
-    private boolean allowFailure;
+    @NonNull
+    protected String flowId;
+
+    @NonNull
+    protected String jobId;
+
+    @NonNull
+    protected String nodePath;
+
+    /**
+     * Container id if ran from docker
+     */
+    private String containerId;
+
+    protected boolean allowFailure;
 
     /**
      * Cmd related plugin name
      */
-    private String plugin;
+    protected String plugin;
 
-    private DockerOption docker;
+    protected DockerOption docker;
 
     public boolean hasDockerOption() {
         return docker != null;

@@ -26,7 +26,6 @@ import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.service.*;
 import com.flowci.core.user.domain.User;
-import com.flowci.domain.CmdId;
 import com.flowci.domain.ExecutedCmd;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotAvailableException;
@@ -139,22 +138,15 @@ public class JobController {
         return loggingService.read(stepService.get(executedCmdId), PageRequest.of(page, size));
     }
 
-    @GetMapping("/logs/{executedCmdId}/download")
+    @GetMapping("/logs/{cmdId}/download")
     @Action(JobAction.DOWNLOAD_STEP_LOG)
-    public ResponseEntity<Resource> downloadStepLog(@PathVariable String executedCmdId) {
-        CmdId cmdId = CmdId.parse(executedCmdId);
+    public ResponseEntity<Resource> downloadStepLog(@PathVariable String cmdId) {
+        ExecutedCmd cmd = stepService.get(cmdId);
+        Resource resource = loggingService.get(cmdId);
+        Flow flow = flowService.getById(cmd.getFlowId());
 
-        if (Objects.isNull(cmdId)) {
-            throw new ArgumentException("Illegal cmd id");
-        }
-
-        Resource resource = loggingService.get(executedCmdId);
-
-        Job job = jobService.get(cmdId.getJobId());
-        Flow flow = flowService.getById(job.getFlowId());
-        NodePath path = NodePath.create(cmdId.getNodePath());
-
-        String fileName = String.format("%s-#%s-%s.log", flow.getName(), job.getBuildNumber(), path.name());
+        NodePath path = NodePath.create(cmd.getNodePath());
+        String fileName = String.format("%s-#%s-%s.log", flow.getName(), cmd.getBuildNumber(), path.name());
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))

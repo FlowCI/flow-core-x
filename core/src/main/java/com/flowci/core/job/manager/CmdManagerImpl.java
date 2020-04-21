@@ -41,36 +41,33 @@ public class CmdManagerImpl implements CmdManager {
     private PluginService pluginService;
 
     @Override
-    public CmdId createId(Job job, StepNode node) {
-        return new CmdId(job.getId(), node.getPath().getPathInStr());
-    }
-
-    @Override
-    public CmdIn createShellCmd(Job job, StepNode node) {
-        CmdIn cmd = new CmdIn(createId(job, node).toString(), CmdType.SHELL);
-        cmd.setFlowId(job.getFlowId()); // default work dir is {agent dir}/{flow id}
-        cmd.setDocker(node.getDocker());
+    public CmdIn createShellCmd(Job job, StepNode node, ExecutedCmd cmd) {
+        CmdIn in = new CmdIn(cmd.getId(), CmdType.SHELL);
+        in.setFlowId(cmd.getFlowId()); // default work dir is {agent dir}/{flow id}
+        in.setJobId(cmd.getJobId());
+        in.setNodePath(cmd.getNodePath());
+        in.setDocker(cmd.getDocker());
 
         // set inputs from step yaml env and job context, step yaml env has top priority
-        cmd.getInputs().merge(job.getContext()).merge(node.getEnvironments());
+        in.getInputs().merge(job.getContext()).merge(node.getEnvironments());
 
-        cmd.addScript(node.getScript());
-        cmd.addEnvFilters(node.getExports());
+        in.addScript(node.getScript());
+        in.addEnvFilters(node.getExports());
 
         if (node.hasPlugin()) {
-            setPlugin(node.getPlugin(), cmd);
+            setPlugin(node.getPlugin(), in);
         }
 
         // set node allow failure as top priority
-        if (node.isAllowFailure() != cmd.isAllowFailure()) {
-            cmd.setAllowFailure(node.isAllowFailure());
+        if (node.isAllowFailure() != in.isAllowFailure()) {
+            in.setAllowFailure(node.isAllowFailure());
         }
 
         if (!isDockerEnabled(job.getContext())) {
-            cmd.setDocker(null);
+            in.setDocker(null);
         }
 
-        return cmd;
+        return in;
     }
 
     @Override

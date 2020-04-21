@@ -115,11 +115,10 @@ public class JobEventServiceImpl implements JobEventService {
             }
 
             try {
-                ExecutedCmd executedCmd = objectMapper.readValue(message.getBody(), ExecutedCmd.class);
-                CmdId cmdId = CmdId.parse(executedCmd.getId());
-                log.info("[Callback]: {}-{} = {}", cmdId.getJobId(), cmdId.getNodePath(), executedCmd.getStatus());
+                ExecutedCmd cmd = objectMapper.readValue(message.getBody(), ExecutedCmd.class);
+                log.info("[Callback]: {}-{} = {}", cmd.getJobId(), cmd.getNodePath(), cmd.getStatus());
 
-                handleCallback(executedCmd);
+                handleCallback(cmd);
                 return message.sendAck();
             } catch (IOException e) {
                 log.error(e.getMessage());
@@ -224,15 +223,9 @@ public class JobEventServiceImpl implements JobEventService {
 
     @Override
     public void handleCallback(ExecutedCmd execCmd) {
-        CmdId cmdId = CmdId.parse(execCmd.getId());
-        if (Objects.isNull(cmdId)) {
-            log.debug("Illegal cmd callback: {}", execCmd.getId());
-            return;
-        }
-
         // get cmd related job
-        Job job = jobService.get(cmdId.getJobId());
-        NodePath currentPath = NodePath.create(cmdId.getNodePath());
+        Job job = jobService.get(execCmd.getJobId());
+        NodePath currentPath = NodePath.create(execCmd.getNodePath());
 
         // verify job node path is match cmd node path
         if (!currentPath.equals(currentNodePath(job))) {
@@ -444,7 +437,7 @@ public class JobEventServiceImpl implements JobEventService {
 
             jobService.setJobStatusAndSave(job, job.getStatus(), null);
 
-            CmdIn cmd = cmdManager.createShellCmd(job, node);
+            CmdIn cmd = cmdManager.createShellCmd(job, node, executedCmd);
             agentService.dispatch(cmd, agent);
             logInfo(job, "send to agent: step={}, agent={}", node.getName(), agent.getName());
         } catch (Throwable e) {

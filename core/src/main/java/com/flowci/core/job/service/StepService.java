@@ -38,7 +38,7 @@ public interface StepService {
     /**
      * Get executed cmd from cmd id
      */
-    ExecutedCmd get(String cmdId);
+    ExecutedCmd get(String id);
 
     /**
      * List step of executed cmd for job

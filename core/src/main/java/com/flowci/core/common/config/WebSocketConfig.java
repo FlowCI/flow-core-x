@@ -48,8 +48,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final String stepsTopic = "/topic/steps";
 
     /**
-     * To subscribe real time logging for cmd
-     * Ex: /topic/logs/{cmd id}
+     * To subscribe real time logging for job
+     * Ex: /topic/logs/{job id}
      */
     private final String logsTopic = "/topic/logs";
 

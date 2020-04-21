@@ -16,8 +16,6 @@
 
 package com.flowci.core.job.service;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.job.dao.ExecutedCmdDao;
 import com.flowci.core.job.domain.Job;
@@ -25,7 +23,6 @@ import com.flowci.core.job.event.StepInitializedEvent;
 import com.flowci.core.job.event.StepStatusChangeEvent;
 import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.manager.YmlManager;
-import com.flowci.domain.CmdId;
 import com.flowci.domain.ExecutedCmd;
 import com.flowci.domain.ExecutedCmd.Status;
 import com.flowci.exception.NotFoundException;
@@ -33,13 +30,15 @@ import com.flowci.tree.NodePath;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.StepNode;
 import com.github.benmanes.caffeine.cache.Cache;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * ExecutedCmd == Step
@@ -71,17 +70,13 @@ public class StepServiceImpl implements StepService {
         List<ExecutedCmd> steps = new LinkedList<>();
 
         for (StepNode node : tree.getSteps()) {
-            CmdId cmdId = cmdManager.createId(job, node);
-            ExecutedCmd cmd = new ExecutedCmd(cmdId, job.getFlowId(), node.isAllowFailure());
-            cmd.setBuildNumber(job.getBuildNumber());
+            ExecutedCmd cmd = newInstance(job, node);
             cmd.setAfter(false);
             steps.add(cmd);
         }
 
         for (StepNode node : tree.getAfter()) {
-            CmdId cmdId = cmdManager.createId(job, node);
-            ExecutedCmd cmd = new ExecutedCmd(cmdId, job.getFlowId(), node.isAllowFailure());
-            cmd.setBuildNumber(job.getBuildNumber());
+            ExecutedCmd cmd = newInstance(job, node);
             cmd.setAfter(true);
             steps.add(cmd);
         }
@@ -93,19 +88,24 @@ public class StepServiceImpl implements StepService {
 
     @Override
     public ExecutedCmd get(Job job, StepNode node) {
-        CmdId id = cmdManager.createId(job, node);
-        return get(id.toString());
-    }
-
-    @Override
-    public ExecutedCmd get(String cmdId) {
-        Optional<ExecutedCmd> optional = executedCmdDao.findById(cmdId);
+        Optional<ExecutedCmd> optional = executedCmdDao.findByJobIdAndNodePath(job.getId(), node.getPathAsString());
 
         if (optional.isPresent()) {
             return optional.get();
         }
 
-        throw new NotFoundException("Executed cmd {0} not found", cmdId);
+        throw new NotFoundException("Executed cmd for job {0} - {1} not found", job.getId(), node.getPathAsString());
+    }
+
+    @Override
+    public ExecutedCmd get(String id) {
+        Optional<ExecutedCmd> optional = executedCmdDao.findById(id);
+
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+
+        throw new NotFoundException("Executed cmd {0} not found", id);
     }
 
     @Override
@@ -117,7 +117,7 @@ public class StepServiceImpl implements StepService {
     public String toVarString(Job job, StepNode current) {
         StringBuilder builder = new StringBuilder();
         for (ExecutedCmd step : list(job)) {
-            NodePath path = NodePath.create(step.getCmdId().getNodePath());
+            NodePath path = NodePath.create(step.getNodePath());
             builder.append(path.name())
                     .append("=")
                     .append(step.getStatus().name());
@@ -180,5 +180,11 @@ public class StepServiceImpl implements StepService {
     private List<ExecutedCmd> list(String jobId, String flowId, long buildNumber) {
         return jobStepCache.get(jobId,
                 s -> executedCmdDao.findByFlowIdAndBuildNumber(flowId, buildNumber));
+    }
+
+    private static ExecutedCmd newInstance(Job job, StepNode node) {
+        ExecutedCmd cmd = new ExecutedCmd(job.getFlowId(), job.getId(), node.getPathAsString(), node.isAllowFailure());
+        cmd.setBuildNumber(job.getBuildNumber());
+        return cmd;
     }
 }

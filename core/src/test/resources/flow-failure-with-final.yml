@@ -10,6 +10,5 @@ steps:
     echo hello
 
 - name: step2
-  tail: true
   allow_failure: true
   script: "echo 2"

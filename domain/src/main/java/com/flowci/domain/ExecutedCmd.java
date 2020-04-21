@@ -27,7 +27,6 @@ import java.util.Date;
 import java.util.Set;
 
 import static com.flowci.domain.ExecutedCmd.Status.*;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * ExecutedCmd == Step node with executed status and data
@@ -79,16 +78,6 @@ public class ExecutedCmd extends CmdBase {
     }
 
     /**
-     * Flow id
-     */
-    private String flowId;
-
-    /**
-     * Container id if ran from docker
-     */
-    private String containerId;
-
-    /**
      * Job build number
      */
     private Long buildNumber;
@@ -135,26 +124,11 @@ public class ExecutedCmd extends CmdBase {
      */
     private Long logSize = -1L;
 
-    private CmdId cmdId;
-
-    public ExecutedCmd(CmdId cmdId, String flowId, boolean allowFailure) {
-        checkNotNull(cmdId);
-
-        setId(cmdId.toString());
+    public ExecutedCmd(String flowId, String jobId, String nodePath, boolean allowFailure) {
         setFlowId(flowId);
+        setJobId(jobId);
+        setNodePath(nodePath);
         setAllowFailure(allowFailure);
-
-        this.cmdId = cmdId;
-    }
-
-    @JsonIgnore
-    public String getJobId() {
-        return cmdId.getJobId();
-    }
-
-    @JsonIgnore
-    public String getNodePath() {
-        return cmdId.getNodePath();
     }
 
     @JsonIgnore
