@@ -14,10 +14,7 @@ import com.flowci.pool.domain.AgentContainer;
 import com.flowci.pool.domain.DockerStatus;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.Date;
@@ -49,6 +46,7 @@ public class AgentHostServiceTest extends ZookeeperScenario {
         }
     }
 
+    @Ignore
     @Test(expected = NotAvailableException.class)
     public void should_create_unix_local_host() {
         // when: create host
@@ -70,6 +68,7 @@ public class AgentHostServiceTest extends ZookeeperScenario {
         agentHostService.createOrUpdate(another);
     }
 
+    @Ignore
     @Test
     public void should_start_agents_on_host() {
         AgentHost host = new LocalUnixAgentHost();
@@ -91,6 +90,7 @@ public class AgentHostServiceTest extends ZookeeperScenario {
         Assert.assertEquals(0, agentService.list().size());
     }
 
+    @Ignore
     @Test
     public void should_should_over_time_limit() {
         AgentHost host = new LocalUnixAgentHost();
@@ -118,6 +118,7 @@ public class AgentHostServiceTest extends ZookeeperScenario {
         Assert.assertFalse(host.isOverMaxOfflineSeconds(Date.from(updatedAt)));
     }
 
+    @Ignore
     @Test
     public void should_collect_container() throws InterruptedException {
         // init: create host
@@ -158,6 +159,7 @@ public class AgentHostServiceTest extends ZookeeperScenario {
         Assert.assertEquals(0, agentService.list().size());
     }
 
+    @Ignore
     @Test
     public void should_get_containers_that_not_in_agent_list() {
         Set<AgentItemWrapper> agentSet = AgentItemWrapper.toSet(Lists.newArrayList(
@@ -174,6 +176,7 @@ public class AgentHostServiceTest extends ZookeeperScenario {
         Assert.assertEquals(1, containerSet.size());
     }
 
+    @Ignore
     @Test
     public void should_sync_agents() {
         AgentHost host = new LocalUnixAgentHost();

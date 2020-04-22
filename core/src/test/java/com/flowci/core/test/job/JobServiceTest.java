@@ -88,9 +88,6 @@ public class JobServiceTest extends ZookeeperScenario {
     private AgentService agentService;
 
     @Autowired
-    private CmdManager cmdManager;
-
-    @Autowired
     private YmlManager ymlManager;
 
     @Autowired
@@ -153,7 +150,9 @@ public class JobServiceTest extends ZookeeperScenario {
 
         for (ExecutedCmd step : steps) {
             Assert.assertNotNull(step.getFlowId());
-            Assert.assertNotNull(step.getCmdId());
+            Assert.assertNotNull(step.getJobId());
+            Assert.assertNotNull(step.getNodePath());
+            Assert.assertNotNull(step.getBuildNumber());
         }
     }
 
@@ -224,10 +223,11 @@ public class JobServiceTest extends ZookeeperScenario {
         // then: verify cmd content
         FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
         NodeTree tree = NodeTree.create(root);
-        StepNode first = tree.next(tree.getRoot().getPath());
+        StepNode firstNode = tree.next(tree.getRoot().getPath());
+        ExecutedCmd firstCmd = stepService.get(job, firstNode);
 
         CmdIn cmd = targetCmd.getValue();
-        Assert.assertEquals(cmdManager.createId(job, first).toString(), cmd.getId());
+        Assert.assertEquals(firstCmd.getId(), cmd.getId());
         Assert.assertEquals("echo step version", cmd.getInputs().get("FLOW_VERSION"));
         Assert.assertEquals("echo step", cmd.getInputs().get("FLOW_WORKSPACE"));
         Assert.assertEquals("echo hello\n", cmd.getScripts().get(0));
@@ -247,13 +247,15 @@ public class JobServiceTest extends ZookeeperScenario {
         output.put("HELLO_WORLD", "hello.world");
 
         ExecutedCmd executedCmd = new ExecutedCmd(
-                cmdManager.createId(job, firstNode),
                 job.getFlowId(),
+                job.getId(),
+                firstNode.getPathAsString(),
                 firstNode.isAllowFailure()
         );
         executedCmd.setStatus(ExecutedCmd.Status.SUCCESS);
         executedCmd.setOutput(output);
         executedCmd.setBuildNumber(1L);
+        executedCmdDao.save(executedCmd);
 
         jobEventService.handleCallback(executedCmd);
 
@@ -275,13 +277,15 @@ public class JobServiceTest extends ZookeeperScenario {
         output.put("HELLO_JAVA", "hello.java");
 
         executedCmd = new ExecutedCmd(
-                cmdManager.createId(job, secondNode),
                 job.getFlowId(),
+                job.getId(),
+                secondNode.getPathAsString(),
                 secondNode.isAllowFailure()
         );
         executedCmd.setStatus(ExecutedCmd.Status.SUCCESS);
         executedCmd.setOutput(output);
         executedCmd.setBuildNumber(1L);
+        executedCmdDao.save(executedCmd);
 
         jobEventService.handleCallback(executedCmd);
 
@@ -312,12 +316,14 @@ public class JobServiceTest extends ZookeeperScenario {
         output.put("HELLO_WORLD", "hello.world");
 
         ExecutedCmd executedCmd = new ExecutedCmd(
-                cmdManager.createId(job, firstNode),
                 job.getFlowId(),
+                job.getId(),
+                firstNode.getPathAsString(),
                 firstNode.isAllowFailure()
         );
         executedCmd.setStatus(ExecutedCmd.Status.EXCEPTION);
         executedCmd.setOutput(output);
+        executedCmdDao.save(executedCmd);
 
         jobEventService.handleCallback(executedCmd);
 
@@ -337,12 +343,14 @@ public class JobServiceTest extends ZookeeperScenario {
         output.put("HELLO_TIMEOUT", "hello.timeout");
 
         executedCmd = new ExecutedCmd(
-                cmdManager.createId(job, secondNode),
                 job.getFlowId(),
+                job.getId(),
+                secondNode.getPathAsString(),
                 secondNode.isAllowFailure()
         );
         executedCmd.setStatus(ExecutedCmd.Status.TIMEOUT);
         executedCmd.setOutput(output);
+        executedCmdDao.save(executedCmd);
 
         jobEventService.handleCallback(executedCmd);
 
@@ -365,15 +373,25 @@ public class JobServiceTest extends ZookeeperScenario {
         StepNode firstNode = tree.next(tree.getRoot().getPath());
 
         // when: set first step as failure status
-        CmdId cmdId = cmdManager.createId(job, firstNode);
-        ExecutedCmd executedCmd = new ExecutedCmd(cmdId, job.getFlowId(), firstNode.isAllowFailure());
+        ExecutedCmd executedCmd = new ExecutedCmd(
+                job.getFlowId(),
+                job.getId(),
+                firstNode.getPathAsString(),
+                firstNode.isAllowFailure()
+        );
         executedCmd.setStatus(ExecutedCmd.Status.EXCEPTION);
+        executedCmdDao.save(executedCmd);
+
         jobEventService.handleCallback(executedCmd);
 
         // when: set final node as success status
         StepNode secondNode = tree.next(firstNode.getPath());
-        cmdId = cmdManager.createId(job, secondNode);
-        executedCmd = new ExecutedCmd(cmdId, job.getFlowId(), secondNode.isAllowFailure());
+        executedCmd = new ExecutedCmd(
+                job.getFlowId(),
+                job.getId(),
+                secondNode.getPathAsString(),
+                secondNode.isAllowFailure()
+        );
         executedCmd.setStatus(ExecutedCmd.Status.SUCCESS);
         jobEventService.handleCallback(executedCmd);
 

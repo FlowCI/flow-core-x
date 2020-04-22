@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author yang
@@ -29,6 +30,8 @@ import java.util.List;
 public interface ExecutedCmdDao extends MongoRepository<ExecutedCmd, String> {
 
     Long deleteByFlowId(String flowId);
+
+    Optional<ExecutedCmd> findByJobIdAndNodePath(String jobId, String nodePath);
 
     List<ExecutedCmd> findByFlowIdAndBuildNumber(String flowId, long buildNumber);
 }

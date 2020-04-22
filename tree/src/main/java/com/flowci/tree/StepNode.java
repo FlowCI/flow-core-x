@@ -17,7 +17,11 @@ public class StepNode extends Node {
 
     public final static boolean ALLOW_FAILURE_DEFAULT = false;
 
-    public final static boolean IS_TAIL_DEFAULT = false;
+    public enum Type {
+        Step,
+
+        After
+    }
 
     private DockerOption docker;
 
@@ -45,7 +49,7 @@ public class StepNode extends Node {
      */
     private boolean allowFailure = ALLOW_FAILURE_DEFAULT;
 
-    private boolean tail = IS_TAIL_DEFAULT;
+    private Type type;
 
     public StepNode(String name) {
         super(name);
@@ -66,4 +70,8 @@ public class StepNode extends Node {
         return docker != null;
     }
 
+    @JsonIgnore
+    public boolean isAfter() {
+        return type == Type.After;
+    }
 }

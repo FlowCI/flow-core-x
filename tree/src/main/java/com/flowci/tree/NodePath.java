@@ -26,6 +26,7 @@ import com.google.common.collect.Sets;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.yaml.snakeyaml.error.YAMLException;
 
 /**
  * @author yang
@@ -81,7 +82,7 @@ public final class NodePath implements Serializable {
                     }
 
                     if (!validate(name)) {
-                        throw new IllegalArgumentException("Illegal node name: " + name);
+                        throw new YAMLException("Illegal node name: " + name);
                     }
 
                     paths.add(name);
@@ -95,18 +96,18 @@ public final class NodePath implements Serializable {
             }
 
             if (!validate(name)) {
-                throw new IllegalArgumentException("Illegal node name: " + name);
+                throw new YAMLException("Illegal node name: " + name);
             }
 
             paths.add(name);
         }
 
         if (paths.isEmpty()) {
-            throw new IllegalArgumentException("Empty node path is not allowed");
+            throw new YAMLException("Empty node path is not allowed");
         }
 
         if (paths.size() > MaxDepth) {
-            throw new IllegalArgumentException("Node path over the depth limit");
+            throw new YAMLException("Node path over the depth limit");
         }
 
         StringBuilder builder = new StringBuilder();

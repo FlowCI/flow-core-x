@@ -115,11 +115,10 @@ public class JobEventServiceImpl implements JobEventService {
             }
 
             try {
-                ExecutedCmd executedCmd = objectMapper.readValue(message.getBody(), ExecutedCmd.class);
-                CmdId cmdId = CmdId.parse(executedCmd.getId());
-                log.info("[Callback]: {}-{} = {}", cmdId.getJobId(), cmdId.getNodePath(), executedCmd.getStatus());
+                ExecutedCmd cmd = objectMapper.readValue(message.getBody(), ExecutedCmd.class);
+                log.info("[Callback]: {}-{} = {}", cmd.getJobId(), cmd.getNodePath(), cmd.getStatus());
 
-                handleCallback(executedCmd);
+                handleCallback(cmd);
                 return message.sendAck();
             } catch (IOException e) {
                 log.error(e.getMessage());
@@ -224,15 +223,9 @@ public class JobEventServiceImpl implements JobEventService {
 
     @Override
     public void handleCallback(ExecutedCmd execCmd) {
-        CmdId cmdId = CmdId.parse(execCmd.getId());
-        if (Objects.isNull(cmdId)) {
-            log.debug("Illegal cmd callback: {}", execCmd.getId());
-            return;
-        }
-
         // get cmd related job
-        Job job = jobService.get(cmdId.getJobId());
-        NodePath currentPath = NodePath.create(cmdId.getNodePath());
+        Job job = jobService.get(execCmd.getJobId());
+        NodePath currentPath = NodePath.create(execCmd.getNodePath());
 
         // verify job node path is match cmd node path
         if (!currentPath.equals(currentNodePath(job))) {
@@ -302,15 +295,21 @@ public class JobEventServiceImpl implements JobEventService {
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
         context.put(Variables.Job.Steps, stepService.toVarString(job, node));
 
-        if (!node.isTail()) {
+        // after status not apart of job status
+        if (!node.isAfter()) {
             context.put(Variables.Job.Status, StatusHelper.convert(cmd).name());
         }
     }
 
     private StepNode findNext(Job job, NodeTree tree, Node current, boolean isSuccess) {
-        StepNode next = isSuccess ? tree.next(current.getPath()) : tree.nextFinal(current.getPath());
+        StepNode next = tree.next(current.getPath());
         if (Objects.isNull(next)) {
             return null;
+        }
+
+        // find step from after
+        if (!isSuccess && !next.isAfter()) {
+            return findNext(job, tree, next, false);
         }
 
         // Execute before condition to check the next node should be skipped or not
@@ -318,7 +317,7 @@ public class JobEventServiceImpl implements JobEventService {
             return next;
         }
 
-        return findNext(job, tree, next, true);
+        return findNext(job, tree, next, isSuccess);
     }
 
     private void startJobConsumer(Flow flow) {
@@ -438,7 +437,7 @@ public class JobEventServiceImpl implements JobEventService {
 
             jobService.setJobStatusAndSave(job, job.getStatus(), null);
 
-            CmdIn cmd = cmdManager.createShellCmd(job, node);
+            CmdIn cmd = cmdManager.createShellCmd(job, node, executedCmd);
             agentService.dispatch(cmd, agent);
             logInfo(job, "send to agent: step={}, agent={}", node.getName(), agent.getName());
         } catch (Throwable e) {

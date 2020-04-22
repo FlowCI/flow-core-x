@@ -16,24 +16,18 @@
 
 package com.flowci.core.job.service;
 
-import com.flowci.core.job.domain.JobProto;
 import com.flowci.domain.ExecutedCmd;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author yang
  */
 public interface LoggingService {
-
-    /**
-     * To receive the message from amqp
-     */
-    void handleLoggingItem(JobProto.LogItem item);
 
     /**
      * To read logs from file store
@@ -44,7 +38,7 @@ public interface LoggingService {
      * Save log into file system, return the id of file
      *
      * @param fileName {cmd id}.log
-     * @param stream file stream
+     * @param stream   file stream
      */
     String save(String fileName, InputStream stream) throws IOException;
 
