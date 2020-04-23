@@ -164,20 +164,29 @@ public class JobController {
 
     @PostMapping("/run")
     @Action(JobAction.RUN)
-    public void createAndRun(@Validated @RequestBody CreateJob data) {
+    public void createAndRun(@Validated @RequestBody CreateJob body) {
         final User current = sessionManager.get();
         jobRunExecutor.execute(() -> {
             try {
                 sessionManager.set(current);
-                Flow flow = flowService.get(data.getFlow());
+                Flow flow = flowService.get(body.getFlow());
                 Yml yml = ymlService.getYml(flow);
-                Job job = jobService.create(flow, yml.getRaw(), Trigger.API, data.getInputs());
+                Job job = jobService.create(flow, yml.getRaw(), Trigger.API, body.getInputs());
                 jobService.start(job);
             } catch (NotAvailableException e) {
                 Job job = (Job) e.getExtra();
                 jobService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
             }
         });
+    }
+
+    @PostMapping("/rerun")
+    @Action(JobAction.RUN)
+    public void reRun(@Validated @RequestBody RerunJob body) {
+        Job job = jobService.get(body.getJobId());
+        Flow flow = flowService.getById(job.getFlowId());
+
+
     }
 
     @PostMapping("/{flow}/{buildNumber}/cancel")

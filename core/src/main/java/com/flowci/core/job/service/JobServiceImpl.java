@@ -41,10 +41,7 @@ import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.JobKeyBuilder;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.domain.Agent;
-import com.flowci.domain.CmdIn;
-import com.flowci.domain.SimpleSecret;
-import com.flowci.domain.StringVars;
+import com.flowci.domain.*;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
@@ -75,6 +72,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.flowci.core.trigger.domain.Variables.GIT_AUTHOR;
+import static com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID;
 
 /**
  * @author yang
@@ -222,6 +220,37 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    public Job rerun(Flow flow, Job job) {
+        if (!Job.FINISH_STATUS.contains(job.getStatus())) {
+            throw new StatusException("Job not finished, cannot re-start");
+        }
+
+        String lastCommitId = job.getContext().get(GIT_COMMIT_ID);
+        if (!StringHelper.hasValue(lastCommitId)) {
+            throw new StatusException("Cannot find git commit info");
+        }
+
+        // cleanup context
+        for (String jobVar : Variables.Job.Vars) {
+            job.getContext().remove(jobVar);
+        }
+
+        // create new job
+        Job newJob = createJob(flow, Trigger.MANUAL, job.getContext());
+        eventManager.publish(new JobCreatedEvent(this, job));
+
+        // setup yaml from old job
+        JobYml yml = ymlManager.get(job);
+        setupYaml(flow, yml.getRaw(), newJob);
+
+        stepService.init(newJob);
+        setJobStatusAndSave(newJob, Job.Status.CREATED, StringHelper.EMPTY);
+
+        start(newJob);
+        return newJob;
+    }
+
+    @Override
     public Job cancel(Job job) {
         if (job.isQueuing()) {
             setJobStatusAndSave(job, Job.Status.CANCELLED, "canceled while queued up");
@@ -301,7 +330,7 @@ public class JobServiceImpl implements JobService {
     //        %% Utils
     //====================================================================
 
-    private Job createJob(Flow flow, Trigger trigger, StringVars input) {
+    private Job createJob(Flow flow, Trigger trigger, Vars<String> input) {
         // create job number
         JobNumber jobNumber = jobNumberDao.increaseBuildNumber(flow.getId());
 
@@ -338,7 +367,6 @@ public class JobServiceImpl implements JobService {
         try {
             fileManager.create(flow, job);
         } catch (IOException e) {
-            jobDao.delete(job);
             throw new StatusException("Cannot create workspace for job");
         }
 
@@ -406,7 +434,7 @@ public class JobServiceImpl implements JobService {
         return secret.toSimpleSecret();
     }
 
-    private void initJobContext(Job job, Flow flow, StringVars... inputs) {
+    private void initJobContext(Job job, Flow flow, Vars<String> inputs) {
         StringVars context = new StringVars();
         context.mergeFromTypedVars(flow.getLocally());
 
@@ -420,9 +448,7 @@ public class JobServiceImpl implements JobService {
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
 
         if (!Objects.isNull(inputs)) {
-            for (StringVars vars : inputs) {
-                context.merge(vars);
-            }
+            context.merge(inputs);
         }
 
         job.getContext().merge(context);

@@ -29,6 +29,7 @@ import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Job.Status;
 import com.flowci.core.job.domain.Job.Trigger;
+import com.flowci.core.job.domain.JobYml;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.manager.CmdManager;
@@ -488,6 +489,32 @@ public class JobServiceTest extends ZookeeperScenario {
         for (ExecutedCmd cmd : stepService.list(job)) {
             Assert.assertEquals(ExecutedCmd.Status.SKIPPED, cmd.getStatus());
         }
+    }
+
+    @Test
+    public void should_rerun_job() {
+        // init: create old job wit success status
+        Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
+        job.getContext().put(com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID, "111222333");
+        jobService.setJobStatusAndSave(job, Status.SUCCESS, null);
+
+        // when: rerun
+        Job newJob = jobService.rerun(flow, job);
+        Assert.assertNotNull(newJob);
+
+        JobYml newJobYml = ymlManager.get(newJob);
+        Assert.assertNotNull(newJobYml);
+
+        // then: verify context
+        Vars<String> context = newJob.getContext();
+        Assert.assertEquals(Status.QUEUED.toString(), context.get(Variables.Job.Status));
+        Assert.assertEquals("2", context.get(Variables.Job.BuildNumber));
+        Assert.assertEquals("111222333", context.get(com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID));
+        Assert.assertNotNull(context.get(Variables.Job.Trigger));
+        Assert.assertNotNull(context.get(Variables.Job.TriggerBy));
+
+        // then: yaml should be the same
+        Assert.assertEquals(ymlManager.get(job).getRaw(), newJobYml.getRaw());
     }
 
     private Job prepareJobForRunningStatus(Agent agent) {

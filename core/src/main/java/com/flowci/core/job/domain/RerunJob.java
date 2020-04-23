@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 flow.ci
+ * Copyright 2020 flow.ci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,13 @@
 
 package com.flowci.core.job.domain;
 
-import com.flowci.domain.StringVars;
-
-import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 
-/**
- * @author yang
- */
+import javax.validation.constraints.NotEmpty;
+
 @Data
-public class CreateJob {
+public class RerunJob {
 
     @NotEmpty
-    private String flow;
-
-    private StringVars inputs = StringVars.EMPTY;
-
-    public CreateJob() {
-    }
-
-    public CreateJob(@NotEmpty String flow) {
-        this.flow = flow;
-    }
+    private String jobId;
 }

@@ -16,6 +16,10 @@
 
 package com.flowci.core.common.domain;
 
+import com.google.common.collect.Lists;
+
+import java.util.List;
+
 /**
  * @author yang
  */
@@ -62,6 +66,16 @@ public abstract class Variables {
 
         // {step name}={status};{step name}={status}
         public static final String Steps = "FLOWCI_JOB_STEPS";
+
+        public static final List<String> Vars = Lists.newArrayList(
+                BuildNumber,
+                Status,
+                Trigger,
+                TriggerBy,
+                StartAt,
+                FinishAt,
+                Steps
+        );
     }
 
     public abstract static class Step {
