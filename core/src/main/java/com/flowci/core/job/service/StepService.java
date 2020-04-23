@@ -16,6 +16,7 @@
 
 package com.flowci.core.job.service;
 
+import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Job;
 import com.flowci.domain.ExecutedCmd;
 import com.flowci.tree.Node;
@@ -66,5 +67,10 @@ public interface StepService {
     /**
      * Delete steps by flow id
      */
-    Long delete(String flowId);
+    Long delete(Flow flow);
+
+    /**
+     * Delete steps by job
+     */
+    Long delete(Job job);
 }

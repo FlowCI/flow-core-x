@@ -231,23 +231,24 @@ public class JobServiceImpl implements JobService {
         }
 
         // cleanup context
-        for (String jobVar : Variables.Job.Vars) {
-            job.getContext().remove(jobVar);
-        }
+        Vars<String> context = job.getContext();
+        context.remove(Variables.Job.Status);
+        context.remove(Variables.Job.StartAt);
+        context.remove(Variables.Job.FinishAt);
+        context.remove(Variables.Job.Steps);
 
-        // create new job
-        Job newJob = createJob(flow, Trigger.MANUAL, job.getContext());
-        eventManager.publish(new JobCreatedEvent(this, job));
+        context.put(Variables.Job.Trigger, Trigger.MANUAL.name());
+        context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
+        job.setCreatedBy(sessionManager.getUserId());
 
-        // setup yaml from old job
-        JobYml yml = ymlManager.get(job);
-        setupYaml(flow, yml.getRaw(), newJob);
+        setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
 
-        stepService.init(newJob);
-        setJobStatusAndSave(newJob, Job.Status.CREATED, StringHelper.EMPTY);
+        // init steps
+        stepService.delete(job);
+        stepService.init(job);
 
-        start(newJob);
-        return newJob;
+        start(job);
+        return job;
     }
 
     @Override
@@ -291,7 +292,7 @@ public class JobServiceImpl implements JobService {
             Long numOfJobDeleted = jobDao.deleteByFlowId(flow.getId());
             log.info("Deleted: {} jobs of flow {}", numOfJobDeleted, flow.getName());
 
-            Long numOfStepDeleted = stepService.delete(flow.getId());
+            Long numOfStepDeleted = stepService.delete(flow);
             log.info("Deleted: {} steps of flow {}", numOfStepDeleted, flow.getName());
 
             eventManager.publish(new JobDeletedEvent(this, flow, numOfJobDeleted));

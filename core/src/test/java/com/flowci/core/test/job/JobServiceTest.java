@@ -499,22 +499,16 @@ public class JobServiceTest extends ZookeeperScenario {
         jobService.setJobStatusAndSave(job, Status.SUCCESS, null);
 
         // when: rerun
-        Job newJob = jobService.rerun(flow, job);
-        Assert.assertNotNull(newJob);
-
-        JobYml newJobYml = ymlManager.get(newJob);
-        Assert.assertNotNull(newJobYml);
+        job = jobService.rerun(flow, job);
+        Assert.assertNotNull(job);
 
         // then: verify context
-        Vars<String> context = newJob.getContext();
+        Vars<String> context = job.getContext();
         Assert.assertEquals(Status.QUEUED.toString(), context.get(Variables.Job.Status));
-        Assert.assertEquals("2", context.get(Variables.Job.BuildNumber));
+        Assert.assertEquals("1", context.get(Variables.Job.BuildNumber));
         Assert.assertEquals("111222333", context.get(com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID));
         Assert.assertNotNull(context.get(Variables.Job.Trigger));
         Assert.assertNotNull(context.get(Variables.Job.TriggerBy));
-
-        // then: yaml should be the same
-        Assert.assertEquals(ymlManager.get(job).getRaw(), newJobYml.getRaw());
     }
 
     private Job prepareJobForRunningStatus(Agent agent) {

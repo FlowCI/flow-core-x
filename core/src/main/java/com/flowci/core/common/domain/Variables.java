@@ -66,16 +66,6 @@ public abstract class Variables {
 
         // {step name}={status};{step name}={status}
         public static final String Steps = "FLOWCI_JOB_STEPS";
-
-        public static final List<String> Vars = Lists.newArrayList(
-                BuildNumber,
-                Status,
-                Trigger,
-                TriggerBy,
-                StartAt,
-                FinishAt,
-                Steps
-        );
     }
 
     public abstract static class Step {

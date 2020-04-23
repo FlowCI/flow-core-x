@@ -182,10 +182,19 @@ public class JobController {
 
     @PostMapping("/rerun")
     @Action(JobAction.RUN)
-    public void reRun(@Validated @RequestBody RerunJob body) {
-        Job job = jobService.get(body.getJobId());
-        Flow flow = flowService.getById(job.getFlowId());
-
+    public void rerun(@Validated @RequestBody RerunJob body) {
+        final User current = sessionManager.get();
+        jobRunExecutor.execute(() -> {
+            try {
+                sessionManager.set(current);
+                Job job = jobService.get(body.getJobId());
+                Flow flow = flowService.getById(job.getFlowId());
+                jobService.rerun(flow, job);
+            } catch (NotAvailableException e) {
+                Job job = (Job) e.getExtra();
+                jobService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
+            }
+        });
 
     }
 

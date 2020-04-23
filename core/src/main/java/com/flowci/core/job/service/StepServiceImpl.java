@@ -17,11 +17,11 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.ExecutedCmdDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.StepInitializedEvent;
 import com.flowci.core.job.event.StepStatusChangeEvent;
-import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.domain.ExecutedCmd;
 import com.flowci.domain.ExecutedCmd.Status;
@@ -57,9 +57,6 @@ public class StepServiceImpl implements StepService {
 
     @Autowired
     private YmlManager ymlManager;
-
-    @Autowired
-    private CmdManager cmdManager;
 
     @Autowired
     private SpringEventManager eventManager;
@@ -173,8 +170,13 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public Long delete(String flowId) {
-        return executedCmdDao.deleteByFlowId(flowId);
+    public Long delete(Flow flow) {
+        return executedCmdDao.deleteByFlowId(flow.getId());
+    }
+
+    @Override
+    public Long delete(Job job) {
+        return executedCmdDao.deleteByJobId(job.getId());
     }
 
     private List<ExecutedCmd> list(String jobId, String flowId, long buildNumber) {
