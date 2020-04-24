@@ -509,6 +509,10 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals("111222333", context.get(com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID));
         Assert.assertNotNull(context.get(Variables.Job.Trigger));
         Assert.assertNotNull(context.get(Variables.Job.TriggerBy));
+
+        // then: verify job properties
+        Assert.assertEquals(flow.getName(), job.getCurrentPath());
+        Assert.assertFalse(jobService.isExpired(job));
     }
 
     private Job prepareJobForRunningStatus(Agent agent) {

@@ -239,6 +239,12 @@ public class JobServiceImpl implements JobService {
 
         context.put(Variables.Job.Trigger, Trigger.MANUAL.name());
         context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
+
+        // reset
+        setExpireTime(job);
+        JobYml yml = ymlManager.get(job);
+        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+        job.setCurrentPath(root.getPathAsString());
         job.setCreatedBy(sessionManager.getUserId());
 
         setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
@@ -346,6 +352,7 @@ public class JobServiceImpl implements JobService {
         job.setExpire(jobProperties.getExpireInSeconds());
         job.setYamlFromRepo(flow.isYamlFromRepo());
         job.setYamlRepoBranch(flow.getYamlRepoBranch());
+        setExpireTime(job);
 
         // init job context
         initJobContext(job, flow, input);
@@ -360,10 +367,6 @@ public class JobServiceImpl implements JobService {
             job.getContext().put(Variables.Job.TriggerBy, createdBy);
         }
 
-        long totalExpire = job.getExpire() + job.getTimeout();
-        Instant expireAt = Instant.now().plus(totalExpire, ChronoUnit.SECONDS);
-        job.setExpireAt(Date.from(expireAt));
-
         // create job file space
         try {
             fileManager.create(flow, job);
@@ -373,6 +376,12 @@ public class JobServiceImpl implements JobService {
 
         // save
         return jobDao.insert(job);
+    }
+
+    private void setExpireTime(Job job) {
+        long totalExpire = job.getExpire() + job.getTimeout();
+        Instant expireAt = Instant.now().plus(totalExpire, ChronoUnit.SECONDS);
+        job.setExpireAt(Date.from(expireAt));
     }
 
     private void setupYaml(Flow flow, String yml, Job job) {
