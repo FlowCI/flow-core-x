@@ -513,6 +513,14 @@ public class JobServiceTest extends ZookeeperScenario {
         // then: verify job properties
         Assert.assertEquals(flow.getName(), job.getCurrentPath());
         Assert.assertFalse(jobService.isExpired(job));
+        Assert.assertNotNull(job.getCreatedAt());
+        Assert.assertNotNull(job.getCreatedBy());
+        Assert.assertEquals(Trigger.MANUAL, job.getTrigger());
+
+        Assert.assertNull(job.getFinishAt());
+        Assert.assertNull(job.getStartAt());
+        Assert.assertNull(job.getAgentId());
+        Assert.assertNull(job.getAgentInfo());
     }
 
     private Job prepareJobForRunningStatus(Agent agent) {

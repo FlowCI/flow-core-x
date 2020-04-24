@@ -225,13 +225,6 @@ public class JobServiceImpl implements JobService {
             throw new StatusException("Job not finished, cannot re-start");
         }
 
-        Vars<String> context = job.getContext();
-        String lastCommitId = context.get(GIT_COMMIT_ID);
-
-        if (!StringHelper.hasValue(lastCommitId)) {
-            throw new StatusException("Cannot find git commit info");
-        }
-
         // load yaml
         JobYml yml = ymlManager.get(job);
         FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
@@ -243,13 +236,18 @@ public class JobServiceImpl implements JobService {
         job.setStartAt(null);
         job.setAgentId(null);
         job.setAgentInfo(null);
+        job.setTrigger(Trigger.MANUAL);
         job.setCurrentPath(root.getPathAsString());
         job.setCreatedBy(sessionManager.getUserId());
 
         // re-init job context
+        Vars<String> context = job.getContext();
+        String lastCommitId = context.get(GIT_COMMIT_ID);
         context.clear();
+
         initJobContext(job, flow, null);
         context.put(GIT_COMMIT_ID, lastCommitId);
+        context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         context.merge(root.getEnvironments(), false);
 
         setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
