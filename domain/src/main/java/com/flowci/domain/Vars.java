@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -46,13 +47,6 @@ public abstract class Vars<V> extends LinkedHashMap<String, V> implements Serial
 
     Vars(int size) {
         super(size);
-    }
-
-    public Vars<V> putIfNotNull(String key, V value) {
-        if (!Objects.isNull(value)) {
-            put(key, value);
-        }
-        return this;
     }
 
     public V get(String key, V defaultValue) {

@@ -225,27 +225,32 @@ public class JobServiceImpl implements JobService {
             throw new StatusException("Job not finished, cannot re-start");
         }
 
-        String lastCommitId = job.getContext().get(GIT_COMMIT_ID);
+        Vars<String> context = job.getContext();
+        String lastCommitId = context.get(GIT_COMMIT_ID);
+
         if (!StringHelper.hasValue(lastCommitId)) {
             throw new StatusException("Cannot find git commit info");
         }
 
-        // cleanup context
-        Vars<String> context = job.getContext();
-        context.remove(Variables.Job.Status);
-        context.remove(Variables.Job.StartAt);
-        context.remove(Variables.Job.FinishAt);
-        context.remove(Variables.Job.Steps);
-
-        context.put(Variables.Job.Trigger, Trigger.MANUAL.name());
-        context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
+        // load yaml
+        JobYml yml = ymlManager.get(job);
+        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
 
         // reset
         setExpireTime(job);
-        JobYml yml = ymlManager.get(job);
-        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+        job.setCreatedAt(Date.from(Instant.now()));
+        job.setFinishAt(null);
+        job.setStartAt(null);
+        job.setAgentId(null);
+        job.setAgentInfo(null);
         job.setCurrentPath(root.getPathAsString());
         job.setCreatedBy(sessionManager.getUserId());
+
+        // re-init job context
+        context.clear();
+        initJobContext(job, flow, null);
+        context.put(GIT_COMMIT_ID, lastCommitId);
+        context.merge(root.getEnvironments(), false);
 
         setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
 
