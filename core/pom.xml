@@ -173,29 +173,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.6.0</version>
-        <executions>
-          <execution>
-            <phase>
-              generate-sources
-            </phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <workingDirectory>${project.build.sourceDirectory}</workingDirectory>
-          <executable>protoc</executable>
-          <commandlineArgs>
-            -I=./ --java_out=./ job.proto
-          </commandlineArgs>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 
