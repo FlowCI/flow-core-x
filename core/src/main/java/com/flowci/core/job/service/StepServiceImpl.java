@@ -34,6 +34,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -185,7 +186,10 @@ public class StepServiceImpl implements StepService {
     }
 
     private static ExecutedCmd newInstance(Job job, StepNode node) {
+        String cmdId = job.getId() + node.getPathAsString();
+
         ExecutedCmd cmd = new ExecutedCmd(job.getFlowId(), job.getId(), node.getPathAsString(), node.isAllowFailure());
+        cmd.setId(Base64.getEncoder().encodeToString(cmdId.getBytes()));
         cmd.setBuildNumber(job.getBuildNumber());
         return cmd;
     }
