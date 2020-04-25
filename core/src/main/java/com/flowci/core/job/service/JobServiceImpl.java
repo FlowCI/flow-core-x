@@ -41,10 +41,7 @@ import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.JobKeyBuilder;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.domain.Agent;
-import com.flowci.domain.CmdIn;
-import com.flowci.domain.SimpleSecret;
-import com.flowci.domain.StringVars;
+import com.flowci.domain.*;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
@@ -75,6 +72,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.flowci.core.trigger.domain.Variables.GIT_AUTHOR;
+import static com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID;
 
 /**
  * @author yang
@@ -222,6 +220,47 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    public Job rerun(Flow flow, Job job) {
+        if (!Job.FINISH_STATUS.contains(job.getStatus())) {
+            throw new StatusException("Job not finished, cannot re-start");
+        }
+
+        // load yaml
+        JobYml yml = ymlManager.get(job);
+        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+
+        // reset
+        setExpireTime(job);
+        job.setCreatedAt(Date.from(Instant.now()));
+        job.setFinishAt(null);
+        job.setStartAt(null);
+        job.setAgentId(null);
+        job.setAgentInfo(null);
+        job.setTrigger(Trigger.MANUAL);
+        job.setCurrentPath(root.getPathAsString());
+        job.setCreatedBy(sessionManager.getUserId());
+
+        // re-init job context
+        Vars<String> context = job.getContext();
+        String lastCommitId = context.get(GIT_COMMIT_ID);
+        context.clear();
+
+        initJobContext(job, flow, null);
+        context.put(GIT_COMMIT_ID, lastCommitId);
+        context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
+        context.merge(root.getEnvironments(), false);
+
+        setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
+
+        // init steps
+        stepService.delete(job);
+        stepService.init(job);
+
+        start(job);
+        return job;
+    }
+
+    @Override
     public Job cancel(Job job) {
         if (job.isQueuing()) {
             setJobStatusAndSave(job, Job.Status.CANCELLED, "canceled while queued up");
@@ -262,7 +301,7 @@ public class JobServiceImpl implements JobService {
             Long numOfJobDeleted = jobDao.deleteByFlowId(flow.getId());
             log.info("Deleted: {} jobs of flow {}", numOfJobDeleted, flow.getName());
 
-            Long numOfStepDeleted = stepService.delete(flow.getId());
+            Long numOfStepDeleted = stepService.delete(flow);
             log.info("Deleted: {} steps of flow {}", numOfStepDeleted, flow.getName());
 
             eventManager.publish(new JobDeletedEvent(this, flow, numOfJobDeleted));
@@ -301,7 +340,7 @@ public class JobServiceImpl implements JobService {
     //        %% Utils
     //====================================================================
 
-    private Job createJob(Flow flow, Trigger trigger, StringVars input) {
+    private Job createJob(Flow flow, Trigger trigger, Vars<String> input) {
         // create job number
         JobNumber jobNumber = jobNumberDao.increaseBuildNumber(flow.getId());
 
@@ -316,6 +355,7 @@ public class JobServiceImpl implements JobService {
         job.setExpire(jobProperties.getExpireInSeconds());
         job.setYamlFromRepo(flow.isYamlFromRepo());
         job.setYamlRepoBranch(flow.getYamlRepoBranch());
+        setExpireTime(job);
 
         // init job context
         initJobContext(job, flow, input);
@@ -330,20 +370,21 @@ public class JobServiceImpl implements JobService {
             job.getContext().put(Variables.Job.TriggerBy, createdBy);
         }
 
-        long totalExpire = job.getExpire() + job.getTimeout();
-        Instant expireAt = Instant.now().plus(totalExpire, ChronoUnit.SECONDS);
-        job.setExpireAt(Date.from(expireAt));
-
         // create job file space
         try {
             fileManager.create(flow, job);
         } catch (IOException e) {
-            jobDao.delete(job);
             throw new StatusException("Cannot create workspace for job");
         }
 
         // save
         return jobDao.insert(job);
+    }
+
+    private void setExpireTime(Job job) {
+        long totalExpire = job.getExpire() + job.getTimeout();
+        Instant expireAt = Instant.now().plus(totalExpire, ChronoUnit.SECONDS);
+        job.setExpireAt(Date.from(expireAt));
     }
 
     private void setupYaml(Flow flow, String yml, Job job) {
@@ -406,7 +447,7 @@ public class JobServiceImpl implements JobService {
         return secret.toSimpleSecret();
     }
 
-    private void initJobContext(Job job, Flow flow, StringVars... inputs) {
+    private void initJobContext(Job job, Flow flow, Vars<String> inputs) {
         StringVars context = new StringVars();
         context.mergeFromTypedVars(flow.getLocally());
 
@@ -420,9 +461,7 @@ public class JobServiceImpl implements JobService {
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
 
         if (!Objects.isNull(inputs)) {
-            for (StringVars vars : inputs) {
-                context.merge(vars);
-            }
+            context.merge(inputs);
         }
 
         job.getContext().merge(context);

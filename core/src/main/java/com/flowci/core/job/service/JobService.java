@@ -67,6 +67,11 @@ public interface JobService {
     Job start(Job job);
 
     /**
+     * Restart job
+     */
+    Job rerun(Flow flow, Job job);
+
+    /**
      * Force to stop the job if it's running
      */
     Job cancel(Job job);

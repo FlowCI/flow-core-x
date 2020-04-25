@@ -16,6 +16,10 @@
 
 package com.flowci.core.common.domain;
 
+import com.google.common.collect.Lists;
+
+import java.util.List;
+
 /**
  * @author yang
  */

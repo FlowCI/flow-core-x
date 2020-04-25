@@ -31,6 +31,8 @@ public interface ExecutedCmdDao extends MongoRepository<ExecutedCmd, String> {
 
     Long deleteByFlowId(String flowId);
 
+    Long deleteByJobId(String jobId);
+
     Optional<ExecutedCmd> findByJobIdAndNodePath(String jobId, String nodePath);
 
     List<ExecutedCmd> findByFlowIdAndBuildNumber(String flowId, long buildNumber);
