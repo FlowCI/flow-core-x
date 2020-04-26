@@ -43,6 +43,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -52,7 +53,10 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @Log4j2
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = Config.class)
+@SpringBootTest(
+        classes = Config.class,
+        properties = {"spring.main.allow-bean-definition-overriding=true"}
+)
 @AutoConfigureMockMvc
 public abstract class SpringScenario {
 
