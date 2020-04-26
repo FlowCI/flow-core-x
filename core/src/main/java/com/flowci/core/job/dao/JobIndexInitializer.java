@@ -16,7 +16,7 @@
 
 package com.flowci.core.job.dao;
 
-import com.flowci.domain.ExecutedCmd;
+import com.flowci.core.job.domain.ExecutedCmd;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.index.CompoundIndexDefinition;

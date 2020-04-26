@@ -16,7 +16,7 @@
 
 package com.flowci.core.api.domain;
 
-import com.flowci.domain.ExecutedCmd;
+import com.flowci.core.job.domain.ExecutedCmd;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

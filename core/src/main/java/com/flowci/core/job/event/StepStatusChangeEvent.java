@@ -16,7 +16,7 @@
 
 package com.flowci.core.job.event;
 
-import com.flowci.domain.ExecutedCmd;
+import com.flowci.core.job.domain.ExecutedCmd;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

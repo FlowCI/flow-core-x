@@ -23,7 +23,7 @@ import com.flowci.core.common.rabbit.RabbitOperation;
 import com.flowci.core.common.rabbit.RabbitQueueOperation;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Job;
-import com.flowci.domain.ExecutedCmd;
+import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;

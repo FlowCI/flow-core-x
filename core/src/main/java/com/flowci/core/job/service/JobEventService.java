@@ -16,7 +16,7 @@
 
 package com.flowci.core.job.service;
 
-import com.flowci.domain.ExecutedCmd;
+import com.flowci.core.job.domain.ExecutedCmd;
 
 public interface JobEventService {
 

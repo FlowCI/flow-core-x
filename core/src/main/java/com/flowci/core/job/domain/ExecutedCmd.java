@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package com.flowci.domain;
+package com.flowci.core.job.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.domain.CmdBase;
+import com.flowci.domain.StringVars;
+import com.flowci.domain.Vars;
 import com.google.common.collect.ImmutableSet;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 import java.util.Set;
 
-import static com.flowci.domain.ExecutedCmd.Status.*;
+import static com.flowci.core.job.domain.ExecutedCmd.Status.*;
 
 /**
  * ExecutedCmd == Step node with executed status and data
@@ -36,6 +40,7 @@ import static com.flowci.domain.ExecutedCmd.Status.*;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@Document(collection = "executed_cmd")
 public class ExecutedCmd extends CmdBase {
 
     public final static Integer CODE_TIMEOUT = -100;

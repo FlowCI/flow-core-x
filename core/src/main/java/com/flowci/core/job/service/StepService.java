@@ -18,8 +18,7 @@ package com.flowci.core.job.service;
 
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Job;
-import com.flowci.domain.ExecutedCmd;
-import com.flowci.tree.Node;
+import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.tree.StepNode;
 
 import java.util.List;

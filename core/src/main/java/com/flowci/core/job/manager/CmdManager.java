@@ -18,7 +18,7 @@ package com.flowci.core.job.manager;
 
 import com.flowci.core.job.domain.Job;
 import com.flowci.domain.CmdIn;
-import com.flowci.domain.ExecutedCmd;
+import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.tree.StepNode;
 
 /**

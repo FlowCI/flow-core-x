@@ -25,8 +25,7 @@ import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.service.*;
-import com.flowci.core.user.domain.User;
-import com.flowci.domain.ExecutedCmd;
+import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.tree.NodePath;
@@ -44,7 +43,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author yang
