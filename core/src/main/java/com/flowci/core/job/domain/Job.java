@@ -32,6 +32,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
@@ -297,6 +298,11 @@ public class Job extends Mongoable implements Pathable {
         agentInfo.setFreeMemory(agent.getResource().getFreeMemory());
         agentInfo.setTotalDisk(agent.getResource().getTotalDisk());
         agentInfo.setFreeDisk(agent.getResource().getFreeDisk());
+    }
+
+    public boolean isExpired() {
+        Instant expireAt = getExpireAt().toInstant();
+        return Instant.now().compareTo(expireAt) > 0;
     }
 
     @Override

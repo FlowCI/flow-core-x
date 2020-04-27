@@ -37,7 +37,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -70,7 +69,7 @@ public class JobController {
     private JobService jobService;
 
     @Autowired
-    private JobStateService jobStateService;
+    private JobActionService jobActionService;
 
     @Autowired
     private StepService stepService;
@@ -167,10 +166,10 @@ public class JobController {
             Flow flow = flowService.get(body.getFlow());
             Yml yml = ymlService.getYml(flow);
             Job job = jobService.create(flow, yml.getRaw(), Trigger.API, body.getInputs());
-            jobService.start(job);
+            jobActionService.start(job);
         } catch (NotAvailableException e) {
             Job job = (Job) e.getExtra();
-            jobStateService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
+            jobActionService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
         }
     }
 
@@ -183,7 +182,7 @@ public class JobController {
             jobService.rerun(flow, job);
         } catch (NotAvailableException e) {
             Job job = (Job) e.getExtra();
-            jobStateService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
+            jobActionService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
         }
     }
 
@@ -191,7 +190,7 @@ public class JobController {
     @Action(JobAction.CANCEL)
     public Job cancel(@PathVariable String flow, @PathVariable String buildNumber) {
         Job job = get(flow, buildNumber);
-        jobStateService.update(job, Job.Status.CANCELLED);
+        jobActionService.cancel(job);
         return job;
     }
 

@@ -87,7 +87,7 @@ public class JobEventServiceImpl implements JobEventService {
     private JobService jobService;
 
     @Autowired
-    private JobStateService jobStateService;
+    private JobActionService jobStateService;
 
     @Autowired
     private AgentService agentService;
@@ -172,7 +172,7 @@ public class JobEventServiceImpl implements JobEventService {
         jobRunExecutor.execute(() -> {
             try {
                 Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
-                jobService.start(job);
+                jobStateService.start(job);
             } catch (NotAvailableException e) {
                 Job job = (Job) e.getExtra();
                 jobStateService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
@@ -527,7 +527,7 @@ public class JobEventServiceImpl implements JobEventService {
                     return false;
                 }
 
-                if (jobService.isExpired(job)) {
+                if (job.isExpired()) {
                     jobStateService.setJobStatusAndSave(job, Job.Status.TIMEOUT, "expired while waiting for agent");
                     logInfo(job, "expired");
                     return false;

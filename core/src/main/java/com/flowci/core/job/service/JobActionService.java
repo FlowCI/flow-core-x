@@ -2,11 +2,11 @@ package com.flowci.core.job.service;
 
 import com.flowci.core.job.domain.Job;
 
-public interface JobStateService {
+public interface JobActionService {
 
-    void onCancel();
+    void start(Job job);
 
-    void update(Job job, Job.Status target);
+    void cancel(Job job);
 
     Job setJobStatusAndSave(Job job, Job.Status newStatus, String message);
 }

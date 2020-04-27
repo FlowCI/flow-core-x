@@ -16,13 +16,11 @@
 
 package com.flowci.core.job.service;
 
-import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.config.ConfigProperties;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.common.rabbit.RabbitQueueOperation;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.dao.JobItemDao;
@@ -34,21 +32,16 @@ import com.flowci.core.job.domain.JobNumber;
 import com.flowci.core.job.domain.JobYml;
 import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.job.event.JobDeletedEvent;
-import com.flowci.core.job.event.JobStatusChangeEvent;
-import com.flowci.core.job.manager.CmdManager;
-import com.flowci.core.job.manager.FlowJobQueueManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.JobKeyBuilder;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.domain.*;
+import com.flowci.domain.SimpleSecret;
+import com.flowci.domain.StringVars;
+import com.flowci.domain.Vars;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
-import com.flowci.sm.Context;
-import com.flowci.sm.StateMachine;
-import com.flowci.sm.Status;
-import com.flowci.sm.Transition;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.YmlParser;
@@ -64,7 +57,6 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -117,9 +109,6 @@ public class JobServiceImpl implements JobService {
     private ThreadPoolTaskExecutor jobDeleteExecutor;
 
     @Autowired
-    private CmdManager cmdManager;
-
-    @Autowired
     private YmlManager ymlManager;
 
     @Autowired
@@ -133,17 +122,13 @@ public class JobServiceImpl implements JobService {
     private FileManager fileManager;
 
     @Autowired
-    private JobStateService jobStateService;
+    private JobActionService jobStateService;
 
     @Autowired
     private StepService stepService;
 
     @Autowired
     private SecretService secretService;
-
-    @Autowired
-    private FlowJobQueueManager flowJobQueueManager;
-
 
     //====================================================================
     //        %% Public functions
@@ -213,19 +198,6 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job start(Job job) {
-        if (job.getStatus() != Job.Status.CREATED) {
-            throw new StatusException("Job not in pending status");
-        }
-
-        try {
-            return enqueue(job);
-        } catch (StatusException e) {
-            return jobStateService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
-        }
-    }
-
-    @Override
     public Job rerun(Flow flow, Job job) {
         if (!Job.FINISH_STATUS.contains(job.getStatus())) {
             throw new StatusException("Job not finished, cannot re-start");
@@ -262,7 +234,7 @@ public class JobServiceImpl implements JobService {
         stepService.delete(job);
         stepService.init(job);
 
-        start(job);
+        jobStateService.start(job);
         return job;
     }
 
@@ -281,13 +253,6 @@ public class JobServiceImpl implements JobService {
             eventManager.publish(new JobDeletedEvent(this, flow, numOfJobDeleted));
         });
     }
-
-    @Override
-    public boolean isExpired(Job job) {
-        Instant expireAt = job.getExpireAt().toInstant();
-        return Instant.now().compareTo(expireAt) > 0;
-    }
-
 
     //====================================================================
     //        %% Utils
@@ -418,24 +383,6 @@ public class JobServiceImpl implements JobService {
         }
 
         job.getContext().merge(context);
-    }
-
-    private Job enqueue(Job job) {
-        if (isExpired(job)) {
-            jobStateService.setJobStatusAndSave(job, Job.Status.TIMEOUT, "expired before enqueue");
-            log.debug("[Job: Timeout] {} has expired", job.getKey());
-            return job;
-        }
-
-        try {
-            RabbitQueueOperation manager = flowJobQueueManager.get(job.getQueueName());
-            jobStateService.setJobStatusAndSave(job, Job.Status.QUEUED, null);
-            manager.send(job.getId().getBytes(), job.getPriority(), job.getExpire());
-            logInfo(job, "enqueue");
-            return job;
-        } catch (Throwable e) {
-            throw new StatusException("Unable to enqueue the job {0} since {1}", job.getId(), e.getMessage());
-        }
     }
 
     private void logInfo(Job job, String message, Object... params) {

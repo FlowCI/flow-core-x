@@ -36,7 +36,7 @@ import com.flowci.core.job.manager.FlowJobQueueManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.service.JobEventService;
 import com.flowci.core.job.service.JobService;
-import com.flowci.core.job.service.JobStateService;
+import com.flowci.core.job.service.JobActionService;
 import com.flowci.core.job.service.StepService;
 import com.flowci.core.test.ZookeeperScenario;
 import com.flowci.domain.*;
@@ -89,7 +89,7 @@ public class JobServiceTest extends ZookeeperScenario {
     private AgentService agentService;
 
     @Autowired
-    private JobStateService jobStateService;
+    private JobActionService jobActionService;
 
     @Autowired
     private YmlManager ymlManager;
@@ -178,7 +178,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals(Status.CREATED, job.getStatus());
         Assert.assertEquals(tree.getRoot().getPath(), NodePath.create(job.getCurrentPath()));
 
-        job = jobService.start(job);
+        jobActionService.start(job);
         Assert.assertEquals(Status.QUEUED, job.getStatus());
 
         Assert.assertNotNull(job);
@@ -193,7 +193,7 @@ public class JobServiceTest extends ZookeeperScenario {
     @Test
     public void should_get_job_expire() {
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
-        Assert.assertFalse(jobService.isExpired(job));
+        Assert.assertFalse(job.isExpired());
     }
 
     @Test
@@ -215,7 +215,7 @@ public class JobServiceTest extends ZookeeperScenario {
             counter.countDown();
         });
 
-        jobService.start(job);
+        jobActionService.start(job);
 
         // then: verify cmd been sent
         Assert.assertTrue(counter.await(10, TimeUnit.SECONDS));
@@ -432,7 +432,7 @@ public class JobServiceTest extends ZookeeperScenario {
         });
 
         // when:
-        jobService.start(job);
+        jobActionService.start(job);
         Assert.assertTrue(waitForJobQueued.await(10, TimeUnit.SECONDS));
         Assert.assertTrue(waitForStep2Sent.await(10, TimeUnit.SECONDS));
 
@@ -458,7 +458,7 @@ public class JobServiceTest extends ZookeeperScenario {
         mockAgentOnline(agentService.getPath(agent));
 
         // given: start job and wait for running
-        jobService.start(job);
+        jobActionService.start(job);
 
         CountDownLatch waitForRunning = new CountDownLatch(1);
         addEventListener((ApplicationListener<JobStatusChangeEvent>) event -> {
@@ -499,7 +499,7 @@ public class JobServiceTest extends ZookeeperScenario {
         // init: create old job wit success status
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
         job.getContext().put(com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID, "111222333");
-        jobStateService.setJobStatusAndSave(job, Status.SUCCESS, null);
+        jobActionService.setJobStatusAndSave(job, Status.SUCCESS, null);
 
         // when: rerun
         job = jobService.rerun(flow, job);
@@ -515,7 +515,7 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // then: verify job properties
         Assert.assertEquals(flow.getName(), job.getCurrentPath());
-        Assert.assertFalse(jobService.isExpired(job));
+        Assert.assertFalse(job.isExpired());
         Assert.assertNotNull(job.getCreatedAt());
         Assert.assertNotNull(job.getCreatedBy());
         Assert.assertEquals(Trigger.MANUAL, job.getTrigger());
