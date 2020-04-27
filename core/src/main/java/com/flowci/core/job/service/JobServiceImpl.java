@@ -45,6 +45,10 @@ import com.flowci.domain.*;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
+import com.flowci.sm.Context;
+import com.flowci.sm.StateMachine;
+import com.flowci.sm.Status;
+import com.flowci.sm.Transition;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.YmlParser;
@@ -60,6 +64,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -128,7 +133,7 @@ public class JobServiceImpl implements JobService {
     private FileManager fileManager;
 
     @Autowired
-    private AgentService agentService;
+    private JobStateService jobStateService;
 
     @Autowired
     private StepService stepService;
@@ -138,6 +143,7 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private FlowJobQueueManager flowJobQueueManager;
+
 
     //====================================================================
     //        %% Public functions
@@ -196,13 +202,13 @@ public class JobServiceImpl implements JobService {
         eventManager.publish(new JobCreatedEvent(this, job));
 
         if (job.isYamlFromRepo()) {
-            setJobStatusAndSave(job, Job.Status.LOADING, StringHelper.EMPTY);
+            jobStateService.setJobStatusAndSave(job, Job.Status.LOADING, StringHelper.EMPTY);
             yml = fetchYamlFromGit(flow.getName(), job);
         }
 
         setupYaml(flow, yml, job);
         stepService.init(job);
-        setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
+        jobStateService.setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
         return job;
     }
 
@@ -215,7 +221,7 @@ public class JobServiceImpl implements JobService {
         try {
             return enqueue(job);
         } catch (StatusException e) {
-            return setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
+            return jobStateService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
         }
     }
 
@@ -250,7 +256,7 @@ public class JobServiceImpl implements JobService {
         context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         context.merge(root.getEnvironments(), false);
 
-        setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
+        jobStateService.setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
 
         // init steps
         stepService.delete(job);
@@ -258,38 +264,6 @@ public class JobServiceImpl implements JobService {
 
         start(job);
         return job;
-    }
-
-    @Override
-    public Job cancel(Job job) {
-        if (job.isQueuing()) {
-            setJobStatusAndSave(job, Job.Status.CANCELLED, "canceled while queued up");
-            return job;
-        }
-
-        if (job.isCancelling()) {
-            return job;
-        }
-
-        // send stop cmd when is running
-        if (!job.isRunning()) {
-            return job;
-        }
-
-        try {
-            Agent agent = agentService.get(job.getAgentId());
-
-            if (agent.isOnline()) {
-                CmdIn killCmd = cmdManager.createKillCmd();
-                agentService.dispatch(killCmd, agent);
-                logInfo(job, " cancel cmd been send to {}", agent.getName());
-                return setJobStatusAndSave(job, Job.Status.CANCELLING, null);
-            }
-
-            return setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while agent offline");
-        } catch (NotFoundException e) {
-            return setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while not agent assigned");
-        }
     }
 
     @Override
@@ -314,27 +288,6 @@ public class JobServiceImpl implements JobService {
         return Instant.now().compareTo(expireAt) > 0;
     }
 
-    @Override
-    public synchronized Job setJobStatusAndSave(Job job, Job.Status newStatus, String message) {
-        if (job.getStatus() == newStatus) {
-            return jobDao.save(job);
-        }
-
-        if (Job.FINISH_STATUS.contains(newStatus)) {
-            if (Objects.isNull(job.getFinishAt())) {
-                job.setFinishAt(new Date());
-            }
-        }
-
-        job.setStatus(newStatus);
-        job.setMessage(message);
-        job.getContext().put(Variables.Job.Status, newStatus.name());
-        jobDao.save(job);
-        eventManager.publish(new JobStatusChangeEvent(this, job));
-
-        log.debug("Job status {} = {}", job.getId(), job.getStatus());
-        return job;
-    }
 
     //====================================================================
     //        %% Utils
@@ -469,14 +422,14 @@ public class JobServiceImpl implements JobService {
 
     private Job enqueue(Job job) {
         if (isExpired(job)) {
-            setJobStatusAndSave(job, Job.Status.TIMEOUT, "expired before enqueue");
+            jobStateService.setJobStatusAndSave(job, Job.Status.TIMEOUT, "expired before enqueue");
             log.debug("[Job: Timeout] {} has expired", job.getKey());
             return job;
         }
 
         try {
             RabbitQueueOperation manager = flowJobQueueManager.get(job.getQueueName());
-            setJobStatusAndSave(job, Job.Status.QUEUED, null);
+            jobStateService.setJobStatusAndSave(job, Job.Status.QUEUED, null);
             manager.send(job.getId().getBytes(), job.getPriority(), job.getExpire());
             logInfo(job, "enqueue");
             return job;

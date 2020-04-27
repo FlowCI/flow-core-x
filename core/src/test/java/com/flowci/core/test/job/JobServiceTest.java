@@ -36,6 +36,7 @@ import com.flowci.core.job.manager.FlowJobQueueManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.service.JobEventService;
 import com.flowci.core.job.service.JobService;
+import com.flowci.core.job.service.JobStateService;
 import com.flowci.core.job.service.StepService;
 import com.flowci.core.test.ZookeeperScenario;
 import com.flowci.domain.*;
@@ -86,6 +87,9 @@ public class JobServiceTest extends ZookeeperScenario {
 
     @Autowired
     private AgentService agentService;
+
+    @Autowired
+    private JobStateService jobStateService;
 
     @Autowired
     private YmlManager ymlManager;
@@ -495,7 +499,7 @@ public class JobServiceTest extends ZookeeperScenario {
         // init: create old job wit success status
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
         job.getContext().put(com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID, "111222333");
-        jobService.setJobStatusAndSave(job, Status.SUCCESS, null);
+        jobStateService.setJobStatusAndSave(job, Status.SUCCESS, null);
 
         // when: rerun
         job = jobService.rerun(flow, job);

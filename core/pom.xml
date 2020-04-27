@@ -21,6 +21,11 @@
 
     <dependency>
       <groupId>com.flowci</groupId>
+      <artifactId>sm</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.flowci</groupId>
       <artifactId>util</artifactId>
     </dependency>
 

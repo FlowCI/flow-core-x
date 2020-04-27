@@ -346,6 +346,10 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @EventListener
     public void onNoIdleAgent(NoIdleAgentEvent event) {
+        if (!appProperties.isAutoLocalAgentHost()) {
+            return;
+        }
+
         Job job = event.getJob();
         Set<String> agentTags = job.getAgentSelector().getTags();
 

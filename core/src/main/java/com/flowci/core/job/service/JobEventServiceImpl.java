@@ -87,6 +87,9 @@ public class JobEventServiceImpl implements JobEventService {
     private JobService jobService;
 
     @Autowired
+    private JobStateService jobStateService;
+
+    @Autowired
     private AgentService agentService;
 
     @Autowired
@@ -146,7 +149,7 @@ public class JobEventServiceImpl implements JobEventService {
                 return true;
             }
 
-            jobService.setJobStatusAndSave(job, Job.Status.TIMEOUT, "expired while queued up");
+            jobStateService.setJobStatusAndSave(job, Job.Status.TIMEOUT, "expired while queued up");
             return true;
         });
 
@@ -172,7 +175,7 @@ public class JobEventServiceImpl implements JobEventService {
                 jobService.start(job);
             } catch (NotAvailableException e) {
                 Job job = (Job) e.getExtra();
-                jobService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
+                jobStateService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
             }
         });
     }
@@ -215,7 +218,7 @@ public class JobEventServiceImpl implements JobEventService {
         }
 
         // update job status
-        jobService.setJobStatusAndSave(job, Job.Status.CANCELLED, "Agent unexpected offline");
+        jobStateService.setJobStatusAndSave(job, Job.Status.CANCELLED, "Agent unexpected offline");
     }
 
     //====================================================================
@@ -257,7 +260,7 @@ public class JobEventServiceImpl implements JobEventService {
         // job finished
         if (Objects.isNull(next)) {
             Job.Status statusFromContext = Job.Status.valueOf(job.getContext().get(Variables.Job.Status));
-            jobService.setJobStatusAndSave(job, statusFromContext, execCmd.getError());
+            jobStateService.setJobStatusAndSave(job, statusFromContext, execCmd.getError());
 
             agentService.tryRelease(current);
             logInfo(job, "finished with status {}", statusFromContext);
@@ -358,7 +361,7 @@ public class JobEventServiceImpl implements JobEventService {
         job.setCurrentPath(next.getPathAsString());
         job.setAgentId(available.getId());
         job.setAgentSnapshot(available);
-        jobService.setJobStatusAndSave(job, Job.Status.RUNNING, null);
+        jobStateService.setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
         // execute condition script
         Boolean executed = executeBeforeCondition(job, next);
@@ -436,7 +439,7 @@ public class JobEventServiceImpl implements JobEventService {
                 stepService.statusChange(job, node, ExecutedCmd.Status.RUNNING, null);
             }
 
-            jobService.setJobStatusAndSave(job, job.getStatus(), null);
+            jobStateService.setJobStatusAndSave(job, job.getStatus(), null);
 
             CmdIn cmd = cmdManager.createShellCmd(job, node, executedCmd);
             agentService.dispatch(cmd, agent);
@@ -448,7 +451,7 @@ public class JobEventServiceImpl implements JobEventService {
             stepService.statusChange(job, node, ExecutedCmd.Status.EXCEPTION, null);
 
             // set current job failure
-            jobService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
+            jobStateService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
             agentService.tryRelease(agent);
         }
     }
@@ -525,7 +528,7 @@ public class JobEventServiceImpl implements JobEventService {
                 }
 
                 if (jobService.isExpired(job)) {
-                    jobService.setJobStatusAndSave(job, Job.Status.TIMEOUT, "expired while waiting for agent");
+                    jobStateService.setJobStatusAndSave(job, Job.Status.TIMEOUT, "expired while waiting for agent");
                     logInfo(job, "expired");
                     return false;
                 }

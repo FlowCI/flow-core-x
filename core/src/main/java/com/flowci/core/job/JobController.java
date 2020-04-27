@@ -70,6 +70,9 @@ public class JobController {
     private JobService jobService;
 
     @Autowired
+    private JobStateService jobStateService;
+
+    @Autowired
     private StepService stepService;
 
     @Autowired
@@ -80,9 +83,6 @@ public class JobController {
 
     @Autowired
     private ArtifactService artifactService;
-
-    @Autowired
-    private ThreadPoolTaskExecutor jobRunExecutor;
 
     @GetMapping("/{flow}")
     @Action(JobAction.LIST)
@@ -170,7 +170,7 @@ public class JobController {
             jobService.start(job);
         } catch (NotAvailableException e) {
             Job job = (Job) e.getExtra();
-            jobService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
+            jobStateService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
         }
     }
 
@@ -183,7 +183,7 @@ public class JobController {
             jobService.rerun(flow, job);
         } catch (NotAvailableException e) {
             Job job = (Job) e.getExtra();
-            jobService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
+            jobStateService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
         }
     }
 
@@ -191,7 +191,8 @@ public class JobController {
     @Action(JobAction.CANCEL)
     public Job cancel(@PathVariable String flow, @PathVariable String buildNumber) {
         Job job = get(flow, buildNumber);
-        return jobService.cancel(job);
+        jobStateService.update(job, Job.Status.CANCELLED);
+        return job;
     }
 
     @GetMapping("/{flow}/{buildNumber}/reports")
