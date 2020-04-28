@@ -384,8 +384,4 @@ public class JobServiceImpl implements JobService {
 
         job.getContext().merge(context);
     }
-
-    private void logInfo(Job job, String message, Object... params) {
-        log.info("[Job] " + job.getKey() + " " + message, params);
-    }
 }

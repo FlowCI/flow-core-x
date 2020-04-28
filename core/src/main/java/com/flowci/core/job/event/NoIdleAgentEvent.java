@@ -16,17 +16,20 @@
 
 package com.flowci.core.job.event;
 
-import com.flowci.core.job.domain.Job;
+import com.flowci.tree.Selector;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 @Getter
 public class NoIdleAgentEvent extends ApplicationEvent {
 
-    private final Job job;
+    private final String jobId;
 
-    public NoIdleAgentEvent(Object source, Job job) {
+    private final Selector selector;
+
+    public NoIdleAgentEvent(Object source, String jobId, Selector selector) {
         super(source);
-        this.job = job;
+        this.jobId = jobId;
+        this.selector = selector;
     }
 }

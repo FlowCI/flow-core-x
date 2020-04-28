@@ -350,8 +350,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             return;
         }
 
-        Job job = event.getJob();
-        Set<String> agentTags = job.getAgentSelector().getTags();
+        Set<String> agentTags = event.getSelector().getTags();
 
         List<AgentHost> hosts;
         if (agentTags.isEmpty()) {
@@ -361,7 +360,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
 
         if (hosts.isEmpty()) {
-            log.warn("Unable to find matched agent host for job {}", job.getId());
+            log.warn("Unable to find matched agent host for job {}", event.getJobId());
             return;
         }
 

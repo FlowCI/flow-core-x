@@ -33,7 +33,7 @@ public interface StepService {
     /**
      * Get executed cmd for job and node
      */
-    ExecutedCmd get(Job job, StepNode node);
+    ExecutedCmd get(String jobId, String nodePath);
 
     /**
      * Get executed cmd from cmd id
@@ -54,7 +54,7 @@ public interface StepService {
     /**
      * Change step status, and put steps string to job context
      */
-    void statusChange(Job job, StepNode node, ExecutedCmd.Status status, String err);
+    void statusChange(String jobId, String nodePath, ExecutedCmd.Status status, String err);
 
     void statusChange(ExecutedCmd entity, ExecutedCmd.Status status, String err);
 

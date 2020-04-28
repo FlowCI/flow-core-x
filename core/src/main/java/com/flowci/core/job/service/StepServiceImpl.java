@@ -19,12 +19,12 @@ package com.flowci.core.job.service;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.ExecutedCmdDao;
+import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.ExecutedCmd.Status;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.StepInitializedEvent;
 import com.flowci.core.job.event.StepStatusChangeEvent;
 import com.flowci.core.job.manager.YmlManager;
-import com.flowci.core.job.domain.ExecutedCmd;
-import com.flowci.core.job.domain.ExecutedCmd.Status;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.NodeTree;
@@ -85,14 +85,14 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public ExecutedCmd get(Job job, StepNode node) {
-        Optional<ExecutedCmd> optional = executedCmdDao.findByJobIdAndNodePath(job.getId(), node.getPathAsString());
+    public ExecutedCmd get(String jobId, String nodePath) {
+        Optional<ExecutedCmd> optional = executedCmdDao.findByJobIdAndNodePath(jobId, nodePath);
 
         if (optional.isPresent()) {
             return optional.get();
         }
 
-        throw new NotFoundException("Executed cmd for job {0} - {1} not found", job.getId(), node.getPathAsString());
+        throw new NotFoundException("Executed cmd for job {0} - {1} not found", jobId, nodePath);
     }
 
     @Override
@@ -131,8 +131,8 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public void statusChange(Job job, StepNode node, ExecutedCmd.Status status, String err) {
-        ExecutedCmd entity = get(job, node);
+    public void statusChange(String jobId, String nodePath, ExecutedCmd.Status status, String err) {
+        ExecutedCmd entity = get(jobId, nodePath);
         statusChange(entity, status, err);
     }
 

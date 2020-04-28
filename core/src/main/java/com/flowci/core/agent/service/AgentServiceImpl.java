@@ -25,14 +25,19 @@ import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.event.CreateAgentEvent;
 import com.flowci.core.common.config.ConfigProperties;
 import com.flowci.core.common.helper.CipherHelper;
+import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitChannelOperation;
+import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.event.NoIdleAgentEvent;
+import com.flowci.core.job.event.StopJobConsumerEvent;
 import com.flowci.domain.Agent;
 import com.flowci.domain.Agent.Status;
 import com.flowci.domain.CmdIn;
 import com.flowci.domain.Settings;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
+import com.flowci.tree.Selector;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.flowci.zookeeper.ZookeeperException;
@@ -52,6 +57,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * Manage agent from zookeeper nodes
@@ -65,6 +72,8 @@ import java.util.*;
 public class AgentServiceImpl implements AgentService {
 
     private static final String LockPathSuffix = "-lock";
+
+    private static final long RetryIntervalOnNotFound = 30 * 1000; // 30 seconds
 
     @Autowired
     private ConfigProperties.Zookeeper zkProperties;
@@ -87,11 +96,18 @@ public class AgentServiceImpl implements AgentService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    // key is flow id,
+    private final Map<String, AcquireLock> acquireLocks = new ConcurrentHashMap<>();
+
     @PostConstruct
     private void init() {
         initRootNode();
         initAgentsFromZk();
     }
+
+    //====================================================================
+    //        %% Public Methods
+    //====================================================================
 
     @Override
     public Settings connect(AgentInit init) {
@@ -179,10 +195,42 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Boolean tryLock(Agent agent) {
+    public Optional<Agent> acquire(Job job, Function<String, Boolean> canContinue) {
+        String jobId = job.getId();
+        Selector selector = job.getAgentSelector();
+
+        for (; ; ) {
+            Optional<Agent> optional = acquire(jobId, selector);
+            if (optional.isPresent()) {
+                acquireLocks.remove(job.getFlowId());
+                return optional;
+            }
+
+            if (!canContinue.apply(jobId)) {
+                acquireLocks.remove(job.getFlowId());
+                return Optional.empty();
+            }
+
+            eventManager.publish(new NoIdleAgentEvent(this, jobId, selector));
+
+            AcquireLock lock = acquireLocks.computeIfAbsent(job.getFlowId(), s -> new AcquireLock());
+            if (lock.stop) {
+                acquireLocks.remove(job.getFlowId());
+                return Optional.empty();
+            }
+
+            synchronized (lock) {
+                log.debug("Job {} is waiting for agent", jobId);
+                ThreadHelper.wait(lock, RetryIntervalOnNotFound);
+            }
+        }
+    }
+
+    @Override
+    public Boolean tryLock(String jobId, String agentId) {
         // check agent is available form db
-        Agent reload = get(agent.getId());
-        if (reload.isBusy()) {
+        Agent agent = get(agentId);
+        if (agent.isBusy()) {
             return false;
         }
 
@@ -194,6 +242,7 @@ public class AgentServiceImpl implements AgentService {
             }
 
             // lock and set status to busy
+            agent.setJobId(jobId);
             String zkLockPath = getLockPath(agent);
             zk.lock(zkLockPath, path -> updateAgentStatus(agent, Status.BUSY));
             return true;
@@ -204,12 +253,13 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public void tryRelease(Agent agent) {
-        Agent reload = get(agent.getId());
-        if (reload.isIdle()) {
+    public void tryRelease(String agentId) {
+        Agent agent = get(agentId);
+        if (agent.isIdle()) {
             return;
         }
 
+        agent.setJobId(null);
         updateAgentStatus(agent, Status.IDLE);
     }
 
@@ -271,11 +321,53 @@ public class AgentServiceImpl implements AgentService {
         }
     }
 
+    //====================================================================
+    //        %% Spring Event Listener
+    //====================================================================
+
     @EventListener
     public void onCreateAgentEvent(CreateAgentEvent event) {
         Agent agent = this.create(event.getName(), event.getTags(), Optional.of(event.getHostId()));
         event.setCreated(agent);
     }
+
+    @EventListener
+    public void notifyToFindAvailableAgent(AgentStatusEvent event) {
+        Agent agent = event.getAgent();
+
+        if (agent.getStatus() != Agent.Status.IDLE) {
+            return;
+        }
+
+        if (!agent.hasJob()) {
+            return;
+        }
+
+        // notify all consumer to find agent
+        acquireLocks.computeIfPresent(agent.getJobId(), (s, lock) -> {
+            synchronized (lock) {
+                lock.notifyAll();
+            }
+            return lock;
+        });
+    }
+
+    @EventListener
+    public void stopJobsThatWaitingForAgent(StopJobConsumerEvent event) {
+        AcquireLock lock = acquireLocks.get(event.getFlowId());
+        if (Objects.isNull(lock)) {
+            return;
+        }
+
+        lock.stop = true;
+        synchronized (lock) {
+            lock.notifyAll();
+        }
+    }
+
+    //====================================================================
+    //        %% Private methods
+    //====================================================================
 
     /**
      * Get agent id from zookeeper path
@@ -382,6 +474,39 @@ public class AgentServiceImpl implements AgentService {
     private Status getStatusFromZk(Agent agent) {
         byte[] statusInBytes = zk.get(getPath(agent));
         return Status.fromBytes(statusInBytes);
+    }
+
+    private Optional<Agent> acquire(String jobId, Selector selector) {
+        List<Agent> agents = find(Agent.Status.IDLE, selector.getTags());
+
+        if (agents.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Iterator<Agent> availableList = agents.iterator();
+
+        // try to lock it
+        while (availableList.hasNext()) {
+            Agent agent = availableList.next();
+
+            if (tryLock(jobId, agent.getId())) {
+                return Optional.of(agent);
+            }
+
+            availableList.remove();
+        }
+
+        return Optional.empty();
+    }
+
+    //====================================================================
+    //        %% Inner classes
+    //====================================================================
+
+    private class AcquireLock {
+
+        private boolean stop = false;
+
     }
 
     private class RootNodeListener implements PathChildrenCacheListener {

@@ -228,7 +228,7 @@ public class JobServiceTest extends ZookeeperScenario {
         FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
         NodeTree tree = NodeTree.create(root);
         StepNode firstNode = tree.next(tree.getRoot().getPath());
-        ExecutedCmd firstCmd = stepService.get(job, firstNode);
+        ExecutedCmd firstCmd = stepService.get(job.getId(), firstNode.getPathAsString());
 
         CmdIn cmd = targetCmd.getValue();
         Assert.assertEquals(firstCmd.getId(), cmd.getId());

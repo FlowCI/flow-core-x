@@ -17,12 +17,16 @@
 package com.flowci.core.agent.service;
 
 import com.flowci.core.agent.domain.AgentInit;
+import com.flowci.core.job.domain.Job;
 import com.flowci.domain.Agent;
 import com.flowci.domain.CmdIn;
 import com.flowci.domain.Settings;
+import com.flowci.tree.Selector;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * @author yang
@@ -81,14 +85,19 @@ public interface AgentService {
     Agent setTags(String token, Set<String> tags);
 
     /**
+     * Find available agent and lock
+     */
+    Optional<Agent> acquire(Job job, Function<String, Boolean> canContinue);
+
+    /**
      * Try to lock agent resource, and set agent status to BUSY
      */
-    Boolean tryLock(Agent agent);
+    Boolean tryLock(String jobId, String agentId);
 
     /**
      * Release agent, send 'stop' cmd to agent
      */
-    void tryRelease(Agent agent);
+    void tryRelease(String agentId);
 
     /**
      * Create agent by name and tags

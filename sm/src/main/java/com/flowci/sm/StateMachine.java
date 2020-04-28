@@ -3,11 +3,16 @@ package com.flowci.sm;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.flowci.sm.Context.STATUS_CURRENT;
+import static com.flowci.sm.Context.STATUS_TO;
+
+@Log4j2
 @Setter
 @Getter
 @RequiredArgsConstructor
@@ -32,7 +37,20 @@ public class StateMachine {
     }
 
     public void execute(Status current, Status target, Context context) {
-        Action action = actions.get(current).get(target);
+        context.put(STATUS_CURRENT, current);
+        context.put(STATUS_TO, target);
+
+        Map<Status, Action> actionMap = actions.get(current);
+        if (Objects.isNull(actionMap)) {
+            log.warn("No status from {}", current.getName());
+            return;
+        }
+
+        Action action = actionMap.get(target);
+        if (Objects.isNull(action)) {
+            log.warn("No status from {} to {}", current.getName(), target.getName());
+            return;
+        }
 
         if (isSync) {
             Objects.requireNonNull(lockable, "Lockable instance is null");
