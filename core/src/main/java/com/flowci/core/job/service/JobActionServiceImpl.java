@@ -12,13 +12,16 @@ import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.manager.FlowJobQueueManager;
 import com.flowci.core.job.manager.YmlManager;
+import com.flowci.core.job.util.StatusHelper;
 import com.flowci.domain.Agent;
 import com.flowci.domain.CmdIn;
+import com.flowci.domain.Vars;
 import com.flowci.exception.NotFoundException;
 import com.flowci.sm.Context;
 import com.flowci.sm.StateMachine;
 import com.flowci.sm.Status;
 import com.flowci.sm.Transition;
+import com.flowci.tree.Node;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.StepNode;
@@ -31,6 +34,7 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Log4j2
@@ -39,10 +43,12 @@ public class JobActionServiceImpl implements JobActionService {
 
     private static final Status Created = new Status(Job.Status.CREATED.name());
     private static final Status Canceled = new Status(Job.Status.CANCELLED.name());
+    private static final Status Cancelling = new Status(Job.Status.CANCELLING.name());
     private static final Status Queued = new Status(Job.Status.QUEUED.name());
     private static final Status Running = new Status(Job.Status.RUNNING.name());
     private static final Status Timeout = new Status(Job.Status.TIMEOUT.name());
     private static final Status Failure = new Status(Job.Status.FAILURE.name());
+    private static final Status Success = new Status(Job.Status.SUCCESS.name());
 
     // start
     private static final Transition CreatedToQueued = new Transition(Created, Queued);
@@ -56,7 +62,12 @@ public class JobActionServiceImpl implements JobActionService {
     private static final Transition QueuedToFailure = new Transition(Queued, Failure);
 
     // running
-    private static final Transition RunningToCancel = new Transition(Running, Canceled);
+    private static final Transition RunningToRunning = new Transition(Running, Running);
+    private static final Transition RunningToSuccess = new Transition(Running, Success);
+    private static final Transition RunningToCancelling = new Transition(Running, Cancelling);
+    private static final Transition RunningToCanceled = new Transition(Running, Canceled);
+    private static final Transition RunningToTimeout = new Transition(Running, Timeout);
+    private static final Transition RunningToFailure = new Transition(Running, Failure);
 
     private static final StateMachine Sm = new StateMachine("JOB_STATUS");
 
@@ -89,18 +100,25 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     @Override
-    public void start(Job job) {
-        on(job, Job.Status.QUEUED);
+    public void toStart(Job job) {
+        on(job, Job.Status.QUEUED, null);
     }
 
     @Override
-    public void run(Job job) {
-        on(job, Job.Status.RUNNING);
+    public void toRun(Job job) {
+        on(job, Job.Status.RUNNING, null);
     }
 
     @Override
-    public void cancel(Job job) {
-        on(job, Job.Status.CANCELLED);
+    public void toContinue(Job job, ExecutedCmd step) {
+        on(job, Job.Status.RUNNING, (context) -> {
+            context.put("step", step);
+        });
+    }
+
+    @Override
+    public void toCancel(Job job) {
+        on(job, Job.Status.CANCELLED, null);
     }
 
     @Override
@@ -117,10 +135,10 @@ public class JobActionServiceImpl implements JobActionService {
 
         job.setStatus(newStatus);
         job.setMessage(message);
-        job.getContext().put(Variables.Job.Status, newStatus.name());
+        job.setStatusToContext(newStatus);
+
         jobDao.save(job);
         eventManager.publish(new JobStatusChangeEvent(this, job));
-
         log.debug("Job status {} = {}", job.getId(), job.getStatus());
         return job;
     }
@@ -148,9 +166,10 @@ public class JobActionServiceImpl implements JobActionService {
 
             try {
                 RabbitQueueOperation manager = flowJobQueueManager.get(job.getQueueName());
+                setJobStatusAndSave(job, Job.Status.QUEUED, null);
+
                 manager.send(job.getId().getBytes(), job.getPriority(), job.getExpire());
                 logInfo(job, "enqueue");
-                setJobStatusAndSave(job, Job.Status.QUEUED, null);
             } catch (Throwable e) {
                 context.put(Context.ERROR, "Unable to enqueue");
                 Sm.execute(getCurrent(context), Failure, context);
@@ -197,7 +216,6 @@ public class JobActionServiceImpl implements JobActionService {
             available.ifPresent(agent -> {
                 try {
                     dispatch(job, agent);
-                    setJobStatusAndSave(job, Job.Status.RUNNING, null);
                 } catch (Throwable e) {
                     context.put("agentId", agent.getId());
                     context.put("exception", e);
@@ -224,17 +242,105 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     private void onRunning() {
-        Sm.add(RunningToCancel, (context) -> {
+        Sm.add(RunningToRunning, (context) -> {
+            Job job = getJob(context);
+            ExecutedCmd execCmd = (ExecutedCmd) context.get("step");
+
+            // save executed cmd
+            stepService.resultUpdate(execCmd);
+            log.debug("Executed cmd {} been recorded", execCmd);
+
+            NodePath currentPath = NodePath.create(execCmd.getNodePath());
+
+            // verify job node path is match cmd node path
+            if (!currentPath.equals(NodePath.create(job.getCurrentPath()))) {
+                log.error("Invalid executed cmd callback: does not match job agent node path");
+                return;
+            }
+
+            NodeTree tree = ymlManager.getTree(job);
+            StepNode node = tree.get(currentPath);
+            updateJobTime(job, execCmd, tree, node);
+            updateJobStatusAndContext(job, node, execCmd);
+
+            Agent agent = agentService.get(job.getAgentId());
+            context.put("agent", agent);
+
+            Optional<StepNode> next = findNext(tree, node, execCmd.isSuccess());
+
+            if (next.isPresent()) {
+                String nextPath = next.get().getPathAsString();
+                job.setCurrentPath(nextPath);
+                ExecutedCmd nextCmd = stepService.statusChange(job.getId(), nextPath, ExecutedCmd.Status.RUNNING, null);
+
+                try {
+                    CmdIn cmd = cmdManager.createShellCmd(job, node, nextCmd);
+                    setJobStatusAndSave(job, Job.Status.RUNNING, null);
+
+                    agentService.dispatch(cmd, agent);
+                    logInfo(job, "send to agent: step={}, agent={}", node.getName(), agent.getName());
+                    return;
+                } catch (Throwable e) {
+                    log.debug("Fail to dispatch job {} to agent {}", job.getId(), agent.getId(), e);
+
+                    context.put("error", e.getMessage());
+                    context.put("step", nextCmd);
+                    Sm.execute(getCurrent(context), Failure, context);
+                }
+            }
+
+            // to finish status
+            Job.Status statusFromContext = job.getStatusFromContext();
+            Sm.execute(getCurrent(context), new Status(statusFromContext.name()), context);
+        });
+
+        Sm.add(RunningToSuccess, (context) -> {
+            Job job = getJob(context);
+            Agent agent = (Agent) context.get("agent");
+
+            agentService.tryRelease(agent.getId());
+            logInfo(job, "finished with status {}", Success);
+
+            setJobStatusAndSave(job, Job.Status.SUCCESS, null);
+        });
+
+        // failure from job end or exception
+        Sm.add(RunningToFailure, (context) -> {
+            Job job = getJob(context);
+            Agent agent = (Agent) context.get("agent");
+            ExecutedCmd step = (ExecutedCmd) context.get("step");
+            String error = (String) context.get("error");
+
+            if (Objects.isNull(error)) {
+                error = step.getError();
+            }
+
+            stepService.statusChange(job.getId(), step.getNodePath(), ExecutedCmd.Status.EXCEPTION, null);
+            agentService.tryRelease(agent.getId());
+            logInfo(job, "finished with status {}", Failure);
+
+            setJobStatusAndSave(job, Job.Status.FAILURE, error);
+        });
+
+        Sm.add(RunningToCancelling, (context) -> {
+            Job job = getJob(context);
+            Agent agent = (Agent) context.get("agent");
+
+            CmdIn killCmd = cmdManager.createKillCmd();
+            agentService.dispatch(killCmd, agent);
+            logInfo(job, " cancel cmd been send to {}", agent.getName());
+            setJobStatusAndSave(job, Job.Status.CANCELLING, null);
+        });
+
+        Sm.add(RunningToCanceled, (context) -> {
             Job job = getJob(context);
 
             try {
                 Agent agent = agentService.get(job.getAgentId());
+                context.put("agent", agent);
 
                 if (agent.isOnline()) {
-                    CmdIn killCmd = cmdManager.createKillCmd();
-                    agentService.dispatch(killCmd, agent);
-                    logInfo(job, " cancel cmd been send to {}", agent.getName());
-                    setJobStatusAndSave(job, Job.Status.CANCELLING, null);
+                    Sm.execute(getCurrent(context), Cancelling, context);
                     return;
                 }
 
@@ -245,16 +351,23 @@ public class JobActionServiceImpl implements JobActionService {
         });
     }
 
-    private void on(Job job, Job.Status target) {
+    private void on(Job job, Job.Status target, Consumer<Context> configContext) {
         Status current = new Status(job.getStatus().name());
         Status to = new Status(target.name());
 
         Context context = new Context();
         context.put("job", job);
 
+        if (configContext != null) {
+            configContext.accept(context);
+        }
+
         Sm.execute(current, to, context);
     }
 
+    /**
+     * Dispatch job to agent when Queue to Running
+     */
     private void dispatch(Job job, Agent agent) {
         NodeTree tree = ymlManager.getTree(job);
         StepNode next = tree.next(NodePath.create(job.getCurrentPath()));
@@ -265,23 +378,59 @@ public class JobActionServiceImpl implements JobActionService {
             return;
         }
 
+        String nextPath = next.getPathAsString();
         log.debug("Next step of job {} is {}", job.getId(), next.getName());
 
         // set path, agent id, agent name and status to job
-        job.setCurrentPath(next.getPathAsString());
+        job.setCurrentPath(nextPath);
         job.setAgentId(agent.getId());
         job.setAgentSnapshot(agent);
 
         // set executed cmd step to running
-        ExecutedCmd executedCmd = stepService.get(job.getId(), next.getPathAsString());
-        if (!executedCmd.isRunning()) {
-            stepService.statusChange(job.getId(), next.getPathAsString(), ExecutedCmd.Status.RUNNING, null);
-        }
+        ExecutedCmd nextCmd = stepService.statusChange(job.getId(), nextPath, ExecutedCmd.Status.RUNNING, null);
 
         // dispatch job to agent queue
-        CmdIn cmd = cmdManager.createShellCmd(job, next, executedCmd);
+        CmdIn cmd = cmdManager.createShellCmd(job, next, nextCmd);
+        setJobStatusAndSave(job, Job.Status.RUNNING, null);
+
         agentService.dispatch(cmd, agent);
         logInfo(job, "send to agent: step={}, agent={}", next.getName(), agent.getName());
+    }
+
+    private void updateJobTime(Job job, ExecutedCmd execCmd, NodeTree tree, StepNode node) {
+        if (tree.isFirst(node.getPath())) {
+            job.setStartAt(execCmd.getStartAt());
+        }
+        job.setFinishAt(execCmd.getFinishAt());
+    }
+
+    private void updateJobStatusAndContext(Job job, StepNode node, ExecutedCmd cmd) {
+        // merge output to job context
+        Vars<String> context = job.getContext();
+        context.merge(cmd.getOutput());
+
+        context.put(Variables.Job.StartAt, job.startAtInStr());
+        context.put(Variables.Job.FinishAt, job.finishAtInStr());
+        context.put(Variables.Job.Steps, stepService.toVarString(job, node));
+
+        // after status not apart of job status
+        if (!node.isAfter()) {
+            job.setStatusToContext(StatusHelper.convert(cmd));
+        }
+    }
+
+    private Optional<StepNode> findNext(NodeTree tree, Node current, boolean isSuccess) {
+        StepNode next = tree.next(current.getPath());
+        if (Objects.isNull(next)) {
+            return Optional.empty();
+        }
+
+        // find step from after
+        if (!isSuccess && !next.isAfter()) {
+            return findNext(tree, next, false);
+        }
+
+        return Optional.of(next);
     }
 
     private void logInfo(Job job, String message, Object... params) {

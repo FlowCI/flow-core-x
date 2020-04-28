@@ -18,8 +18,6 @@ package com.flowci.core.job.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.event.AgentStatusEvent;
-import com.flowci.core.agent.service.AgentService;
-import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitChannelOperation;
 import com.flowci.core.common.rabbit.RabbitOperation;
@@ -32,13 +30,12 @@ import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
-import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.manager.FlowJobQueueManager;
-import com.flowci.core.job.manager.YmlManager;
-import com.flowci.core.job.util.StatusHelper;
-import com.flowci.domain.*;
+import com.flowci.domain.Agent;
 import com.flowci.exception.NotAvailableException;
-import com.flowci.tree.*;
+import com.flowci.tree.Node;
+import com.flowci.tree.NodeTree;
+import com.flowci.tree.StepNode;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +45,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -61,12 +60,6 @@ public class JobEventServiceImpl implements JobEventService {
 
     @Autowired
     private SpringEventManager eventManager;
-
-    @Autowired
-    private YmlManager ymlManager;
-
-    @Autowired
-    private CmdManager cmdManager;
 
     @Autowired
     private FlowJobQueueManager flowJobQueueManager;
@@ -82,9 +75,6 @@ public class JobEventServiceImpl implements JobEventService {
 
     @Autowired
     private JobActionService jobActionService;
-
-    @Autowired
-    private AgentService agentService;
 
     @Autowired
     private StepService stepService;
@@ -166,7 +156,7 @@ public class JobEventServiceImpl implements JobEventService {
         jobRunExecutor.execute(() -> {
             try {
                 Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
-                jobActionService.start(job);
+                jobActionService.toStart(job);
             } catch (NotAvailableException e) {
                 Job job = (Job) e.getExtra();
                 jobActionService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
@@ -204,81 +194,9 @@ public class JobEventServiceImpl implements JobEventService {
     //====================================================================
 
     @Override
-    public void handleCallback(ExecutedCmd execCmd) {
-        // get cmd related job
-        Job job = jobService.get(execCmd.getJobId());
-        NodePath currentPath = NodePath.create(execCmd.getNodePath());
-
-        // verify job node path is match cmd node path
-        if (!currentPath.equals(NodePath.create(job.getCurrentPath()))) {
-            log.error("Invalid executed cmd callback: does not match job current node path");
-            return;
-        }
-
-        if (!job.isRunning() && !job.isCancelling()) {
-            log.error("Cannot handle cmd callback since job is not running: {}", job.getStatus());
-            return;
-        }
-
-        NodeTree tree = ymlManager.getTree(job);
-        StepNode node = tree.get(currentPath);
-
-        // save executed cmd
-        stepService.resultUpdate(execCmd);
-        log.debug("Executed cmd {} been recorded", execCmd);
-
-        updateJobTime(job, tree, node, execCmd);
-
-        setJobContext(job, node, execCmd);
-
-        // find next node
-        StepNode next = findNext(job, tree, node, execCmd.isSuccess());
-        Agent current = agentService.get(job.getAgentId());
-
-        // job finished
-        if (Objects.isNull(next)) {
-            Job.Status statusFromContext = Job.Status.valueOf(job.getContext().get(Variables.Job.Status));
-            jobActionService.setJobStatusAndSave(job, statusFromContext, execCmd.getError());
-
-            agentService.tryRelease(current.getId());
-            logInfo(job, "finished with status {}", statusFromContext);
-            return;
-        }
-
-        // continue to run next node
-        job.setCurrentPath(next.getPathAsString());
-
-        log.debug("Send job {} step {} to agent", job.getKey(), node.getName());
-        saveJobAndSendToAgent(job, next, current);
-    }
-
-    /**
-     * Send step to agent
-     */
-    private void saveJobAndSendToAgent(Job job, StepNode node, Agent agent) {
-        // set executed cmd step to running
-        ExecutedCmd executedCmd = stepService.get(job.getId(), node.getPathAsString());
-
-        try {
-            if (!executedCmd.isRunning()) {
-                stepService.statusChange(job.getId(), node.getPathAsString(), ExecutedCmd.Status.RUNNING, null);
-            }
-
-            jobActionService.setJobStatusAndSave(job, job.getStatus(), null);
-
-            CmdIn cmd = cmdManager.createShellCmd(job, node, executedCmd);
-            agentService.dispatch(cmd, agent);
-            logInfo(job, "send to agent: step={}, agent={}", node.getName(), agent.getName());
-        } catch (Throwable e) {
-            log.debug("Fail to dispatch job {} to agent {}", job.getId(), agent.getId(), e);
-
-            // set current step to exception
-            stepService.statusChange(job.getId(), node.getPathAsString(), ExecutedCmd.Status.EXCEPTION, null);
-
-            // set current job failure
-            jobActionService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
-            agentService.tryRelease(agent.getId());
-        }
+    public void handleCallback(ExecutedCmd step) {
+        Job job = jobService.get(step.getJobId());
+        jobActionService.toContinue(job, step);
     }
 
     //====================================================================
@@ -287,29 +205,6 @@ public class JobEventServiceImpl implements JobEventService {
 
     private void logInfo(Job job, String message, Object... params) {
         log.info("[Job] " + job.getKey() + " " + message, params);
-    }
-
-    private void updateJobTime(Job job, NodeTree tree, Node node, ExecutedCmd cmd) {
-        if (tree.isFirst(node.getPath())) {
-            job.setStartAt(cmd.getStartAt());
-        }
-
-        job.setFinishAt(cmd.getFinishAt());
-    }
-
-    private void setJobContext(Job job, StepNode node, ExecutedCmd cmd) {
-        // merge output to job context
-        Vars<String> context = job.getContext();
-        context.merge(cmd.getOutput());
-
-        context.put(Variables.Job.StartAt, job.startAtInStr());
-        context.put(Variables.Job.FinishAt, job.finishAtInStr());
-        context.put(Variables.Job.Steps, stepService.toVarString(job, node));
-
-        // after status not apart of job status
-        if (!node.isAfter()) {
-            context.put(Variables.Job.Status, StatusHelper.convert(cmd).name());
-        }
     }
 
     private StepNode findNext(Job job, NodeTree tree, Node current, boolean isSuccess) {
@@ -377,7 +272,7 @@ public class JobEventServiceImpl implements JobEventService {
             Job job = jobService.get(jobId);
             logInfo(job, "received from queue");
 
-            jobActionService.run(job);
+            jobActionService.toRun(job);
             return message.sendAck();
         }
     }

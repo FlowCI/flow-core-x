@@ -234,7 +234,7 @@ public class JobServiceImpl implements JobService {
         stepService.delete(job);
         stepService.init(job);
 
-        jobStateService.start(job);
+        jobStateService.toStart(job);
         return job;
     }
 

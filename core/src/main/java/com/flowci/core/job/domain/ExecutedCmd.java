@@ -25,6 +25,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
@@ -41,6 +42,11 @@ import static com.flowci.core.job.domain.ExecutedCmd.Status.*;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Document(collection = "executed_cmd")
+@CompoundIndex(
+        name = "index_job_id_and_node_path",
+        def = "{'jobId': 1, 'nodePath': 1}",
+        unique = true
+)
 public class ExecutedCmd extends CmdBase {
 
     public final static Integer CODE_TIMEOUT = -100;

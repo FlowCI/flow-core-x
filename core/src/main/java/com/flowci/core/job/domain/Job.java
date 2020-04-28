@@ -236,11 +236,6 @@ public class Job extends Mongoable implements Pathable {
     private Date finishAt;
 
     @JsonIgnore
-    public boolean isRunning() {
-        return status == Status.RUNNING;
-    }
-
-    @JsonIgnore
     public boolean isCancelled() {
         return status == Status.CANCELLED;
     }
@@ -248,11 +243,6 @@ public class Job extends Mongoable implements Pathable {
     @JsonIgnore
     public boolean isCancelling() {
         return status == Status.CANCELLING;
-    }
-
-    @JsonIgnore
-    public boolean isQueued() {
-        return status == Status.QUEUED;
     }
 
     @JsonIgnore
@@ -295,6 +285,20 @@ public class Job extends Mongoable implements Pathable {
         return context.get(Variables.Flow.GitUrl);
     }
 
+    public boolean isExpired() {
+        Instant expireAt = getExpireAt().toInstant();
+        return Instant.now().compareTo(expireAt) > 0;
+    }
+
+    @JsonIgnore
+    public Status getStatusFromContext() {
+        return Job.Status.valueOf(context.get(Variables.Job.Status));
+    }
+
+    public void setStatusToContext(Status status) {
+        context.put(Variables.Job.Status, status.name());
+    }
+
     public void setAgentSnapshot(Agent agent) {
         agentInfo.setName(agent.getName());
         agentInfo.setOs(agent.getOs().name());
@@ -303,11 +307,6 @@ public class Job extends Mongoable implements Pathable {
         agentInfo.setFreeMemory(agent.getResource().getFreeMemory());
         agentInfo.setTotalDisk(agent.getResource().getTotalDisk());
         agentInfo.setFreeDisk(agent.getResource().getFreeDisk());
-    }
-
-    public boolean isExpired() {
-        Instant expireAt = getExpireAt().toInstant();
-        return Instant.now().compareTo(expireAt) > 0;
     }
 
     @Override

@@ -170,7 +170,7 @@ public abstract class RabbitOperation implements AutoCloseable {
 
         public void consume(byte[] body, Envelope envelope) {
             executor.execute(() -> {
-                Boolean ingoreForNow = consume.apply(new Message(getChannel(), body, envelope));
+                Boolean ignoreForNow = consume.apply(new Message(getChannel(), body, envelope));
             });
         }
 

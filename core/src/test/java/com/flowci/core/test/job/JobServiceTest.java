@@ -34,9 +34,9 @@ import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.manager.FlowJobQueueManager;
 import com.flowci.core.job.manager.YmlManager;
+import com.flowci.core.job.service.JobActionService;
 import com.flowci.core.job.service.JobEventService;
 import com.flowci.core.job.service.JobService;
-import com.flowci.core.job.service.JobActionService;
 import com.flowci.core.job.service.StepService;
 import com.flowci.core.test.ZookeeperScenario;
 import com.flowci.domain.*;
@@ -178,7 +178,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals(Status.CREATED, job.getStatus());
         Assert.assertEquals(tree.getRoot().getPath(), NodePath.create(job.getCurrentPath()));
 
-        jobActionService.start(job);
+        jobActionService.toStart(job);
         Assert.assertEquals(Status.QUEUED, job.getStatus());
 
         Assert.assertNotNull(job);
@@ -215,7 +215,7 @@ public class JobServiceTest extends ZookeeperScenario {
             counter.countDown();
         });
 
-        jobActionService.start(job);
+        jobActionService.toStart(job);
 
         // then: verify cmd been sent
         Assert.assertTrue(counter.await(10, TimeUnit.SECONDS));
@@ -368,8 +368,8 @@ public class JobServiceTest extends ZookeeperScenario {
     }
 
     @Test
-    public void should_job_failure_with_final_node() throws Exception {
-        yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-failure-with-final.yml")));
+    public void should_job_failure_with_after() throws Exception {
+        yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-failure-with-after.yml")));
         Agent agent = agentService.create("hello.agent.0", null, Optional.empty());
         Job job = prepareJobForRunningStatus(agent);
 
@@ -377,74 +377,21 @@ public class JobServiceTest extends ZookeeperScenario {
         StepNode firstNode = tree.next(tree.getRoot().getPath());
 
         // when: set first step as failure status
-        ExecutedCmd executedCmd = new ExecutedCmd(
-                job.getFlowId(),
-                job.getId(),
-                firstNode.getPathAsString(),
-                firstNode.isAllowFailure()
-        );
-        executedCmd.setStatus(ExecutedCmd.Status.EXCEPTION);
-        executedCmdDao.save(executedCmd);
-
-        jobEventService.handleCallback(executedCmd);
+        ExecutedCmd firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
+        firstStep.setStatus(ExecutedCmd.Status.EXCEPTION);
+        executedCmdDao.save(firstStep);
+        jobEventService.handleCallback(firstStep);
 
         // when: set final node as success status
         StepNode secondNode = tree.next(firstNode.getPath());
-        executedCmd = new ExecutedCmd(
-                job.getFlowId(),
-                job.getId(),
-                secondNode.getPathAsString(),
-                secondNode.isAllowFailure()
-        );
-        executedCmd.setStatus(ExecutedCmd.Status.SUCCESS);
-        jobEventService.handleCallback(executedCmd);
+        ExecutedCmd secondStep = stepService.get(job.getId(), secondNode.getPathAsString());
+        secondStep.setStatus(ExecutedCmd.Status.SUCCESS);
+        executedCmdDao.save(secondStep);
+        jobEventService.handleCallback(secondStep);
 
         // then: job status should be failure since final node does not count to step
         job = jobDao.findById(job.getId()).get();
         Assert.assertEquals(Status.FAILURE, job.getStatus());
-    }
-
-    @Test
-    public void should_run_before_condition() throws IOException, InterruptedException {
-        // init: save yml, make agent online and create job
-        yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-before.yml")));
-
-        Agent agent = agentService.create("hello.agent.1", null, Optional.empty());
-        mockAgentOnline(agentService.getPath(agent));
-
-        Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
-
-        // init: wait counter
-        CountDownLatch waitForJobQueued = new CountDownLatch(2);
-        addEventListener((ApplicationListener<JobStatusChangeEvent>) event -> {
-            if (event.getJob().getStatus() == Status.QUEUED) {
-                waitForJobQueued.countDown();
-            }
-
-            if (event.getJob().getStatus() == Status.RUNNING) {
-                waitForJobQueued.countDown();
-            }
-        });
-
-        CountDownLatch waitForStep2Sent = new CountDownLatch(1);
-        addEventListener((ApplicationListener<CmdSentEvent>) event -> {
-            waitForStep2Sent.countDown();
-        });
-
-        // when:
-        jobActionService.start(job);
-        Assert.assertTrue(waitForJobQueued.await(10, TimeUnit.SECONDS));
-        Assert.assertTrue(waitForStep2Sent.await(10, TimeUnit.SECONDS));
-
-        // then: job should failure since script return false
-        Job executed = jobDao.findById(job.getId()).get();
-        List<ExecutedCmd> steps = stepService.list(executed);
-
-        Assert.assertEquals(Status.RUNNING, executed.getStatus());
-        Assert.assertEquals("hello/step2", executed.getCurrentPath());
-
-        ExecutedCmd executedCmd = steps.get(0);
-        Assert.assertEquals(ExecutedCmd.Status.SKIPPED, executedCmd.getStatus());
     }
 
     @Test
@@ -458,7 +405,7 @@ public class JobServiceTest extends ZookeeperScenario {
         mockAgentOnline(agentService.getPath(agent));
 
         // given: start job and wait for running
-        jobActionService.start(job);
+        jobActionService.toStart(job);
 
         CountDownLatch waitForRunning = new CountDownLatch(1);
         addEventListener((ApplicationListener<JobStatusChangeEvent>) event -> {
@@ -534,8 +481,12 @@ public class JobServiceTest extends ZookeeperScenario {
         Node firstNode = tree.next(tree.getRoot().getPath());
 
         job.setAgentId(agent.getId());
-        job.setCurrentPath(firstNode.getPath().getPathInStr());
+        job.setCurrentPath(firstNode.getPathAsString());
         job.setStatus(Status.RUNNING);
+        job.setStatusToContext(Status.RUNNING);
+
+        Assert.assertEquals(Status.RUNNING, job.getStatus());
+        Assert.assertEquals(Status.RUNNING, job.getStatusFromContext());
 
         return jobDao.save(job);
     }

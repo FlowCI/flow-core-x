@@ -166,7 +166,7 @@ public class JobController {
             Flow flow = flowService.get(body.getFlow());
             Yml yml = ymlService.getYml(flow);
             Job job = jobService.create(flow, yml.getRaw(), Trigger.API, body.getInputs());
-            jobActionService.start(job);
+            jobActionService.toStart(job);
         } catch (NotAvailableException e) {
             Job job = (Job) e.getExtra();
             jobActionService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
@@ -190,7 +190,7 @@ public class JobController {
     @Action(JobAction.CANCEL)
     public Job cancel(@PathVariable String flow, @PathVariable String buildNumber) {
         Job job = get(flow, buildNumber);
-        jobActionService.cancel(job);
+        jobActionService.toCancel(job);
         return job;
     }
 

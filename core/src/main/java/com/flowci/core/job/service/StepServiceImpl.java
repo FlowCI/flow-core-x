@@ -131,15 +131,15 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public void statusChange(String jobId, String nodePath, ExecutedCmd.Status status, String err) {
+    public ExecutedCmd statusChange(String jobId, String nodePath, ExecutedCmd.Status status, String err) {
         ExecutedCmd entity = get(jobId, nodePath);
-        statusChange(entity, status, err);
+        return statusChange(entity, status, err);
     }
 
     @Override
-    public void statusChange(ExecutedCmd entity, Status status, String err) {
+    public ExecutedCmd statusChange(ExecutedCmd entity, Status status, String err) {
         if (entity.getStatus() == status) {
-            return;
+            return entity;
         }
 
         entity.setStatus(status);
@@ -151,6 +151,7 @@ public class StepServiceImpl implements StepService {
 
         List<ExecutedCmd> steps = list(jobId, entity.getFlowId(), entity.getBuildNumber());
         eventManager.publish(new StepStatusChangeEvent(this, jobId, steps));
+        return entity;
     }
 
     @Override
