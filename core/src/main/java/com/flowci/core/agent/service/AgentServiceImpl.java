@@ -73,7 +73,7 @@ public class AgentServiceImpl implements AgentService {
 
     private static final String LockPathSuffix = "-lock";
 
-    private static final long RetryIntervalOnNotFound = 30 * 1000; // 30 seconds
+    private static final long RetryIntervalOnNotFound = 10 * 1000; // 10 seconds
 
     @Autowired
     private ConfigProperties.Zookeeper zkProperties;

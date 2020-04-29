@@ -472,6 +472,7 @@ public class JobActionServiceImpl implements JobActionService {
                 return;
             }
 
+            agentService.tryRelease(agent.getId());
             setRestStepsToSkipped(job);
             setJobStatusAndSave(job, Job.Status.CANCELLED, reason);
         });
@@ -480,6 +481,10 @@ public class JobActionServiceImpl implements JobActionService {
     private void fromCancelling() {
         Sm.add(CancellingToCancel, context -> {
             Job job = context.job;
+
+            Agent agent = agentService.get(job.getAgentId());
+            agentService.tryRelease(agent.getId());
+
             setRestStepsToSkipped(job);
             setJobStatusAndSave(job, Job.Status.CANCELLED, null);
         });
