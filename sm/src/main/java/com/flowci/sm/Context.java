@@ -1,10 +1,16 @@
 package com.flowci.sm;
 
-import java.util.HashMap;
+import lombok.Getter;
+import lombok.Setter;
 
-public class Context extends HashMap<String, Object> {
+@Getter
+@Setter
+public abstract class Context {
 
-    public final static String STATUS_CURRENT = "context_current";
-    public final static String STATUS_TO = "context_to";
-    public final static String ERROR = "context_error";
+    private Status current;
+
+    private Status to;
+
+    private Throwable error;
+
 }

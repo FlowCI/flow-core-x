@@ -122,7 +122,7 @@ public class JobServiceImpl implements JobService {
     private FileManager fileManager;
 
     @Autowired
-    private JobActionService jobStateService;
+    private JobActionService jobActionService;
 
     @Autowired
     private StepService stepService;
@@ -187,13 +187,13 @@ public class JobServiceImpl implements JobService {
         eventManager.publish(new JobCreatedEvent(this, job));
 
         if (job.isYamlFromRepo()) {
-            jobStateService.setJobStatusAndSave(job, Job.Status.LOADING, StringHelper.EMPTY);
+            jobActionService.setJobStatusAndSave(job, Job.Status.LOADING, StringHelper.EMPTY);
             yml = fetchYamlFromGit(flow.getName(), job);
         }
 
         setupYaml(flow, yml, job);
         stepService.init(job);
-        jobStateService.setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
+        jobActionService.setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
         return job;
     }
 
@@ -228,13 +228,13 @@ public class JobServiceImpl implements JobService {
         context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         context.merge(root.getEnvironments(), false);
 
-        jobStateService.setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
+        jobActionService.setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
 
         // init steps
         stepService.delete(job);
         stepService.init(job);
 
-        jobStateService.toStart(job);
+        jobActionService.toStart(job);
         return job;
     }
 

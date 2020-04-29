@@ -9,16 +9,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.flowci.sm.Context.STATUS_CURRENT;
-import static com.flowci.sm.Context.STATUS_TO;
-
 @Log4j2
 @Setter
 @Getter
 @RequiredArgsConstructor
-public class StateMachine {
+public class StateMachine<T extends Context> {
 
-    public final static Map<Status, Map<Status, Action>> actions = new HashMap<>();
+    private final Map<Status, Map<Status, Action<T>>> actions = new HashMap<>();
 
     private final String name;
 
@@ -26,8 +23,8 @@ public class StateMachine {
 
     private boolean isSync;
 
-    public void add(Transition t, Action action) {
-        Map<Status, Action> map = actions.computeIfAbsent(t.getFrom(), k -> new HashMap<>());
+    public void add(Transition t, Action<T> action) {
+        Map<Status, Action<T>> map = actions.computeIfAbsent(t.getFrom(), k -> new HashMap<>());
 
         if (map.containsKey(t.getTo())) {
             throw new IllegalStateException("Transition already existed");
@@ -36,17 +33,17 @@ public class StateMachine {
         map.put(t.getTo(), action);
     }
 
-    public void execute(Status current, Status target, Context context) {
-        context.put(STATUS_CURRENT, current);
-        context.put(STATUS_TO, target);
+    public void execute(Status current, Status target, T context) {
+        context.setCurrent(current);
+        context.setTo(target);
 
-        Map<Status, Action> actionMap = actions.get(current);
+        Map<Status, Action<T>> actionMap = actions.get(current);
         if (Objects.isNull(actionMap)) {
             log.warn("No status from {}", current.getName());
             return;
         }
 
-        Action action = actionMap.get(target);
+        Action<T> action = actionMap.get(target);
         if (Objects.isNull(action)) {
             log.warn("No status from {} to {}", current.getName(), target.getName());
             return;
