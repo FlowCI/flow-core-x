@@ -25,8 +25,8 @@ import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.service.*;
+import com.flowci.core.user.domain.User;
 import com.flowci.exception.ArgumentException;
-import com.flowci.exception.NotAvailableException;
 import com.flowci.tree.NodePath;
 import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +37,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -82,6 +83,9 @@ public class JobController {
 
     @Autowired
     private ArtifactService artifactService;
+
+    @Autowired
+    private ThreadPoolTaskExecutor jobRunExecutor;
 
     @GetMapping("/{flow}")
     @Action(JobAction.LIST)
@@ -162,23 +166,24 @@ public class JobController {
     @PostMapping("/run")
     @Action(JobAction.RUN)
     public void createAndRun(@Validated @RequestBody CreateJob body) {
-        Flow flow = flowService.get(body.getFlow());
-        Yml yml = ymlService.getYml(flow);
-        Job job = jobService.create(flow, yml.getRaw(), Trigger.API, body.getInputs());
-        jobActionService.toStart(job);
+        final User current = sessionManager.get();
+
+        // start from thread since will be loading status
+        jobRunExecutor.execute(() -> {
+            sessionManager.set(current);
+            Flow flow = flowService.get(body.getFlow());
+            Yml yml = ymlService.getYml(flow);
+            Job job = jobService.create(flow, yml.getRaw(), Trigger.API, body.getInputs());
+            jobActionService.toStart(job);
+        });
     }
 
     @PostMapping("/rerun")
     @Action(JobAction.RUN)
     public void rerun(@Validated @RequestBody RerunJob body) {
-        try {
-            Job job = jobService.get(body.getJobId());
-            Flow flow = flowService.getById(job.getFlowId());
-            jobService.rerun(flow, job);
-        } catch (NotAvailableException e) {
-            Job job = (Job) e.getExtra();
-            jobActionService.toFailure(job, e);
-        }
+        Job job = jobService.get(body.getJobId());
+        Flow flow = flowService.getById(job.getFlowId());
+        jobService.rerun(flow, job);
     }
 
     @PostMapping("/{flow}/{buildNumber}/cancel")
