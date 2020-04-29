@@ -16,6 +16,7 @@
 
 package com.flowci.core.test.job;
 
+import com.flowci.core.agent.dao.AgentDao;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.service.AgentService;
@@ -66,6 +67,9 @@ public class JobServiceTest extends ZookeeperScenario {
 
     @Autowired
     private JobDao jobDao;
+
+    @Autowired
+    private AgentDao agentDao;
 
     @Autowired
     private ExecutedCmdDao executedCmdDao;
@@ -372,8 +376,9 @@ public class JobServiceTest extends ZookeeperScenario {
         });
 
         waitForRunning.await(10, TimeUnit.SECONDS);
-        job = jobDao.findByKey(job.getKey()).get();
+        job = jobService.get(job.getId());
         Assert.assertEquals(Status.RUNNING, job.getStatus());
+        Assert.assertEquals(agent.getId(), job.getAgentId());
 
         // when: agent status change to offline
         CountDownLatch waitForCancelled = new CountDownLatch(1);
@@ -385,11 +390,13 @@ public class JobServiceTest extends ZookeeperScenario {
 
         agent.setJobId(job.getId());
         agent.setStatus(Agent.Status.OFFLINE);
+        agentDao.save(agent); // persistent agent status to db
+
         multicastEvent(new AgentStatusEvent(this, agent));
 
         // then: job should be cancelled
         waitForCancelled.await();
-        job = jobDao.findByKey(job.getKey()).get();
+        job = jobService.get(job.getId());
         Assert.assertEquals(Status.CANCELLED, job.getStatus());
 
         // then: step should be skipped

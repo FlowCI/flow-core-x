@@ -142,7 +142,7 @@ public class JobServiceImpl implements JobService {
             return job.get();
         }
 
-        throw new NotFoundException("Job '{}' not found", jobId);
+        throw new NotFoundException("Job {0} not found", jobId);
     }
 
     @Override

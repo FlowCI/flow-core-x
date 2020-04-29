@@ -79,6 +79,9 @@ public class JobActionServiceImpl implements JobActionService {
     private static final Transition RunningToTimeout = new Transition(Running, Timeout);
     private static final Transition RunningToFailure = new Transition(Running, Failure);
 
+    // cancelling
+    private static final Transition CancellingToCancel = new Transition(Cancelling, Canceled);
+
     private static final StateMachine Sm = new StateMachine("JOB_STATUS");
 
     @Autowired
@@ -332,14 +335,8 @@ public class JobActionServiceImpl implements JobActionService {
             try {
                 Agent agent = agentService.get(job.getAgentId());
 
-                List<ExecutedCmd> steps = stepService.list(job);
-                for (ExecutedCmd step : steps) {
-                    if (step.isRunning() || step.isPending()) {
-                        stepService.statusChange(step, ExecutedCmd.Status.SKIPPED, null);
-                    }
-                }
+                setRestStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
-
 
                 if (agent.isOnline()) {
                     CmdIn killCmd = cmdManager.createKillCmd();
@@ -388,18 +385,26 @@ public class JobActionServiceImpl implements JobActionService {
                 Agent agent = agentService.get(job.getAgentId());
                 context.put("agent", agent);
 
-                // TODO: set steps status to skipped
-
                 if (agent.isOnline()) {
                     Sm.execute(getCurrent(context), Cancelling, context);
                     return;
                 }
-
+                setRestStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.CANCELLED, reason);
             } catch (NotFoundException e) {
+                setRestStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.CANCELLED, "agent not found");
             }
         });
+    }
+
+    private void setRestStepsToSkipped(Job job) {
+        List<ExecutedCmd> steps = stepService.list(job);
+        for (ExecutedCmd step : steps) {
+            if (step.isRunning() || step.isPending()) {
+                stepService.statusChange(step, ExecutedCmd.Status.SKIPPED, null);
+            }
+        }
     }
 
     private void on(Job job, Job.Status target, Consumer<Context> configContext) {

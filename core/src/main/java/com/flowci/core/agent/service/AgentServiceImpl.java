@@ -335,11 +335,11 @@ public class AgentServiceImpl implements AgentService {
     public void notifyToFindAvailableAgent(AgentStatusEvent event) {
         Agent agent = event.getAgent();
 
-        if (agent.getStatus() != Agent.Status.IDLE) {
+        if (!agent.hasJob()) {
             return;
         }
 
-        if (!agent.hasJob()) {
+        if (!agent.isIdle()) {
             return;
         }
 

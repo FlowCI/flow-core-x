@@ -45,7 +45,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -159,10 +158,14 @@ public class JobEventServiceImpl implements JobEventService {
     }
 
     @EventListener(value = AgentStatusEvent.class)
-    public void updateJobAndStep(AgentStatusEvent event) {
+    public void updateJobAndStepWhenOffline(AgentStatusEvent event) {
         Agent agent = event.getAgent();
 
-        if (agent.getStatus() != Agent.Status.OFFLINE || Objects.isNull(agent.getJobId())) {
+        if (!agent.hasJob()) {
+            return;
+        }
+
+        if (!agent.isOffline()) {
             return;
         }
 
