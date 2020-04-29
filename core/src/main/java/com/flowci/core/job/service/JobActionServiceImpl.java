@@ -110,6 +110,7 @@ public class JobActionServiceImpl implements JobActionService {
         onCreated();
         onQueued();
         onRunning();
+        onCancelling();
     }
 
     @Override
@@ -124,6 +125,11 @@ public class JobActionServiceImpl implements JobActionService {
 
     @Override
     public void toContinue(Job job, ExecutedCmd step) {
+        if (job.isCancelling()) {
+            on(job, Job.Status.CANCELLED, null);
+            return;
+        }
+
         on(job, Job.Status.RUNNING, (context) -> {
             context.put("step", step);
         });
@@ -380,21 +386,32 @@ public class JobActionServiceImpl implements JobActionService {
         Sm.add(RunningToCancel, (context) -> {
             Job job = getJob(context);
             String reason = (String) context.get("reason");
+            Agent agent = null;
 
             try {
-                Agent agent = agentService.get(job.getAgentId());
+                agent = agentService.get(job.getAgentId());
                 context.put("agent", agent);
-
-                if (agent.isOnline()) {
-                    Sm.execute(getCurrent(context), Cancelling, context);
-                    return;
-                }
-                setRestStepsToSkipped(job);
-                setJobStatusAndSave(job, Job.Status.CANCELLED, reason);
             } catch (NotFoundException e) {
                 setRestStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.CANCELLED, "agent not found");
+                return;
             }
+
+            if (agent.isOnline()) {
+                Sm.execute(getCurrent(context), Cancelling, context);
+                return;
+            }
+
+            setRestStepsToSkipped(job);
+            setJobStatusAndSave(job, Job.Status.CANCELLED, reason);
+        });
+    }
+
+    private void onCancelling() {
+        Sm.add(CancellingToCancel, context -> {
+            Job job = getJob(context);
+            setRestStepsToSkipped(job);
+            setJobStatusAndSave(job, Job.Status.CANCELLED, null);
         });
     }
 
