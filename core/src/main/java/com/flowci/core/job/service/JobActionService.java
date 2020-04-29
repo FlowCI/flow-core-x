@@ -5,6 +5,10 @@ import com.flowci.core.job.domain.Job;
 
 public interface JobActionService {
 
+    void toLoading(Job job);
+
+    void toCreated(Job job, String yml);
+
     void toStart(Job job);
 
     void toRun(Job job);

@@ -18,7 +18,6 @@ package com.flowci.core.job.service;
 
 import com.flowci.core.common.config.ConfigProperties;
 import com.flowci.core.common.domain.Variables;
-import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
@@ -34,19 +33,14 @@ import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.job.event.JobDeletedEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.JobKeyBuilder;
-import com.flowci.core.secret.domain.Secret;
-import com.flowci.core.secret.service.SecretService;
-import com.flowci.domain.SimpleSecret;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
-import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
-import com.google.common.base.Strings;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -58,12 +52,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
@@ -89,12 +79,6 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private ConfigProperties.Job jobProperties;
-
-    @Autowired
-    private Path repoDir;
-
-    @Autowired
-    private Path tmpDir;
 
     @Autowired
     private JobDao jobDao;
@@ -126,9 +110,6 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private StepService stepService;
-
-    @Autowired
-    private SecretService secretService;
 
     //====================================================================
     //        %% Public functions
@@ -187,13 +168,11 @@ public class JobServiceImpl implements JobService {
         eventManager.publish(new JobCreatedEvent(this, job));
 
         if (job.isYamlFromRepo()) {
-            jobActionService.setJobStatusAndSave(job, Job.Status.LOADING, StringHelper.EMPTY);
-            yml = fetchYamlFromGit(flow.getName(), job);
+            jobActionService.toLoading(job);
+            return job;
         }
 
-        setupYaml(flow, yml, job);
-        stepService.init(job);
-        jobActionService.setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
+        jobActionService.toCreated(job, yml);
         return job;
     }
 
@@ -214,6 +193,7 @@ public class JobServiceImpl implements JobService {
         job.setStartAt(null);
         job.setAgentId(null);
         job.setAgentInfo(null);
+        job.setStatus(Job.Status.PENDING);
         job.setTrigger(Trigger.MANUAL);
         job.setCurrentPath(root.getPathAsString());
         job.setCreatedBy(sessionManager.getUserId());
@@ -228,12 +208,11 @@ public class JobServiceImpl implements JobService {
         context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         context.merge(root.getEnvironments(), false);
 
-        jobActionService.setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
-
-        // init steps
+        // cleanup
         stepService.delete(job);
-        stepService.init(job);
+        ymlManager.delete(job);
 
+        jobActionService.toCreated(job, yml.getRaw());
         jobActionService.toStart(job);
         return job;
     }
@@ -266,6 +245,7 @@ public class JobServiceImpl implements JobService {
         Job job = new Job();
         job.setKey(JobKeyBuilder.build(flow.getId(), jobNumber.getNumber()));
         job.setFlowId(flow.getId());
+        job.setFlowName(flow.getName());
         job.setTrigger(trigger);
         job.setBuildNumber(jobNumber.getNumber());
         job.setCreatedAt(Date.from(Instant.now()));
@@ -303,66 +283,6 @@ public class JobServiceImpl implements JobService {
         long totalExpire = job.getExpire() + job.getTimeout();
         Instant expireAt = Instant.now().plus(totalExpire, ChronoUnit.SECONDS);
         job.setExpireAt(Date.from(expireAt));
-    }
-
-    private void setupYaml(Flow flow, String yml, Job job) {
-        FlowNode root = YmlParser.load(flow.getName(), yml);
-
-        job.setCurrentPath(root.getPathAsString());
-        job.setAgentSelector(root.getSelector());
-        job.getContext().merge(root.getEnvironments(), false);
-
-        ymlManager.create(flow, job, yml);
-        jobDao.save(job);
-    }
-
-    private String fetchYamlFromGit(String flowName, Job job) {
-        final String gitUrl = job.getGitUrl();
-
-        if (!StringHelper.hasValue(gitUrl)) {
-            throw new NotAvailableException("Git url is missing").setExtra(job);
-        }
-
-        final Path dir = getFlowRepoDir(gitUrl, job.getYamlRepoBranch());
-
-        try {
-            GitClient client = new GitClient(gitUrl, tmpDir, getSimpleSecret(job.getCredentialName()));
-            client.klone(dir, job.getYamlRepoBranch());
-        } catch (Exception e) {
-            log.warn("Unable to fetch yaml config for flow {}", flowName, e);
-            throw new NotAvailableException("Unable to fetch yaml config for flow {0}", flowName).setExtra(job);
-        }
-
-        String[] files = dir.toFile().list((currentDir, fileName) ->
-                (fileName.endsWith(".yaml") || fileName.endsWith(".yml")) && fileName.startsWith(".flowci"));
-
-        if (files == null || files.length == 0) {
-            throw new NotAvailableException("Unable to find yaml file in repo").setExtra(job);
-        }
-
-        try {
-            byte[] ymlInBytes = Files.readAllBytes(Paths.get(dir.toString(), files[0]));
-            return new String(ymlInBytes);
-        } catch (IOException e) {
-            throw new NotAvailableException("Unable to read yaml file in repo").setExtra(job);
-        }
-    }
-
-    /**
-     * Get flow repo path: {repo dir}/{flow id}
-     */
-    private Path getFlowRepoDir(String repoUrl, String branch) {
-        String b64 = Base64.getEncoder().encodeToString(repoUrl.getBytes());
-        return Paths.get(repoDir.toString(), b64 + "_" + branch);
-    }
-
-    private SimpleSecret getSimpleSecret(String credentialName) {
-        if (Strings.isNullOrEmpty(credentialName)) {
-            return null;
-        }
-
-        final Secret secret = secretService.get(credentialName);
-        return secret.toSimpleSecret();
     }
 
     private void initJobContext(Job job, Flow flow, Vars<String> inputs) {

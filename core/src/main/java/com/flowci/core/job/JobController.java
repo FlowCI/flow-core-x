@@ -25,7 +25,6 @@ import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.service.*;
-import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.tree.NodePath;
@@ -163,15 +162,10 @@ public class JobController {
     @PostMapping("/run")
     @Action(JobAction.RUN)
     public void createAndRun(@Validated @RequestBody CreateJob body) {
-        try {
-            Flow flow = flowService.get(body.getFlow());
-            Yml yml = ymlService.getYml(flow);
-            Job job = jobService.create(flow, yml.getRaw(), Trigger.API, body.getInputs());
-            jobActionService.toStart(job);
-        } catch (NotAvailableException e) {
-            Job job = (Job) e.getExtra();
-            jobActionService.toFailure(job, e);
-        }
+        Flow flow = flowService.get(body.getFlow());
+        Yml yml = ymlService.getYml(flow);
+        Job job = jobService.create(flow, yml.getRaw(), Trigger.API, body.getInputs());
+        jobActionService.toStart(job);
     }
 
     @PostMapping("/rerun")
@@ -221,8 +215,8 @@ public class JobController {
     @GetMapping(value = "/{flow}/{buildNumber}/artifacts/{artifactId}")
     @Action(JobAction.DOWNLOAD_ARTIFACT)
     public ResponseEntity<Resource> downloadArtifact(@PathVariable String flow,
-                                @PathVariable String buildNumber,
-                                @PathVariable String artifactId) {
+                                                     @PathVariable String buildNumber,
+                                                     @PathVariable String artifactId) {
         Job job = get(flow, buildNumber);
         JobArtifact artifact = artifactService.fetch(job, artifactId);
 

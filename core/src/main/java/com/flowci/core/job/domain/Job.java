@@ -186,6 +186,8 @@ public class Job extends Mongoable implements Pathable {
     @Indexed(name = "index_flow_id", sparse = true)
     private String flowId;
 
+    private String flowName;
+
     private Long buildNumber;
 
     private Trigger trigger;

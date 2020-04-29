@@ -2,6 +2,7 @@ package com.flowci.core.job.service;
 
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
+import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitQueueOperation;
 import com.flowci.core.job.dao.JobDao;
@@ -13,22 +14,19 @@ import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.manager.FlowJobQueueManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.StatusHelper;
-import com.flowci.domain.Agent;
-import com.flowci.domain.CmdIn;
-import com.flowci.domain.ObjectWrapper;
-import com.flowci.domain.Vars;
+import com.flowci.core.secret.domain.Secret;
+import com.flowci.core.secret.service.SecretService;
+import com.flowci.domain.*;
 import com.flowci.exception.CIException;
+import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.sm.Context;
 import com.flowci.sm.StateMachine;
 import com.flowci.sm.Status;
 import com.flowci.sm.Transition;
-import com.flowci.tree.Node;
-import com.flowci.tree.NodePath;
-import com.flowci.tree.NodeTree;
-import com.flowci.tree.StepNode;
-import com.flowci.util.ObjectsHelper;
+import com.flowci.tree.*;
 import com.flowci.util.StringHelper;
+import com.google.common.base.Strings;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -38,6 +36,11 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,6 +51,7 @@ import java.util.function.Function;
 @Service
 public class JobActionServiceImpl implements JobActionService {
 
+    private static final Status Pending = new Status(Job.Status.PENDING.name());
     private static final Status Created = new Status(Job.Status.CREATED.name());
     private static final Status Loading = new Status(Job.Status.LOADING.name());
     private static final Status Canceled = new Status(Job.Status.CANCELLED.name());
@@ -58,17 +62,18 @@ public class JobActionServiceImpl implements JobActionService {
     private static final Status Failure = new Status(Job.Status.FAILURE.name());
     private static final Status Success = new Status(Job.Status.SUCCESS.name());
 
+    // pending
+    private static final Transition PendingToLoading = new Transition(Pending, Loading);
+    private static final Transition PendingToCreated = new Transition(Pending, Created);
+
+    // loading
+    private static final Transition LoadingToFailure = new Transition(Loading, Failure);
+    private static final Transition LoadingToCreated = new Transition(Loading, Queued);
+
     // created
     private static final Transition CreatedToQueued = new Transition(Created, Queued);
     private static final Transition CreatedToTimeout = new Transition(Created, Timeout);
     private static final Transition CreatedToFailure = new Transition(Created, Failure);
-    private static final Transition CreatedToLoading = new Transition(Created, Loading);
-
-    // loading
-    private static final Transition LoadingToFailure = new Transition(Loading, Failure);
-    private static final Transition LoadingToTimeout = new Transition(Loading, Timeout);
-    private static final Transition LoadingToCancel = new Transition(Loading, Canceled);
-    private static final Transition LoadingToQueued = new Transition(Loading, Queued);
 
     // queued
     private static final Transition QueuedToCancel = new Transition(Queued, Canceled);
@@ -88,6 +93,12 @@ public class JobActionServiceImpl implements JobActionService {
     private static final Transition CancellingToCancel = new Transition(Cancelling, Canceled);
 
     private static final StateMachine<JobSmContext> Sm = new StateMachine<>("JOB_STATUS");
+
+    @Autowired
+    private Path repoDir;
+
+    @Autowired
+    private Path tmpDir;
 
     @Autowired
     private JobDao jobDao;
@@ -110,12 +121,29 @@ public class JobActionServiceImpl implements JobActionService {
     @Autowired
     private StepService stepService;
 
+    @Autowired
+    private SecretService secretService;
+
     @EventListener
     public void init(ContextRefreshedEvent ignore) {
-        onCreated();
-        onQueued();
-        onRunning();
-        onCancelling();
+        fromPending();
+        fromLoading();
+        fromCreated();
+        fromQueued();
+        fromRunning();
+        fromCancelling();
+    }
+
+    @Override
+    public void toLoading(Job job) {
+        on(job, Job.Status.LOADING, null);
+    }
+
+    @Override
+    public void toCreated(Job job, String yml) {
+        on(job, Job.Status.CREATED, context -> {
+            context.yml = yml;
+        });
     }
 
     @Override
@@ -175,7 +203,46 @@ public class JobActionServiceImpl implements JobActionService {
         return job;
     }
 
-    private void onCreated() {
+    private void fromPending() {
+        Sm.add(PendingToCreated, context -> {
+            Job job = context.job;
+            String yml = context.yml;
+
+            setupYamlAndSteps(job, yml);
+            setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
+        });
+
+        Sm.add(PendingToLoading, context -> {
+            Job job = context.job;
+            setJobStatusAndSave(job, Job.Status.LOADING, null);
+
+            try {
+                context.yml = fetchYamlFromGit(job);
+                Sm.execute(Loading, Created, context);
+            } catch (Throwable e) {
+                context.setError(e);
+                Sm.execute(Loading, Failure, context);
+            }
+        });
+    }
+
+    private void fromLoading() {
+        Sm.add(LoadingToFailure, context -> {
+            Job job = context.job;
+            Throwable err = context.getError();
+            setJobStatusAndSave(job, Job.Status.FAILURE, err.getMessage());
+        });
+
+        Sm.add(LoadingToCreated, context -> {
+            Job job = context.job;
+            String yml = context.yml;
+
+            setupYamlAndSteps(job, yml);
+            setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
+        });
+    }
+
+    private void fromCreated() {
         Sm.add(CreatedToTimeout, context -> {
             Job job = context.job;
             setJobStatusAndSave(job, Job.Status.TIMEOUT, "expired before enqueue");
@@ -186,10 +253,6 @@ public class JobActionServiceImpl implements JobActionService {
             Job job = context.job;
             Throwable err = context.getError();
             setJobStatusAndSave(job, Job.Status.FAILURE, err.getMessage());
-        });
-
-        Sm.add(CreatedToLoading, context -> {
-
         });
 
         Sm.add(CreatedToQueued, context -> {
@@ -213,7 +276,7 @@ public class JobActionServiceImpl implements JobActionService {
         });
     }
 
-    private void onQueued() {
+    private void fromQueued() {
         Function<String, Boolean> canAcquireAgent = (jobId) -> {
             ObjectWrapper<Job> out = new ObjectWrapper<>();
             boolean canContinue = canContinue(jobId, out);
@@ -274,7 +337,7 @@ public class JobActionServiceImpl implements JobActionService {
         });
     }
 
-    private void onRunning() {
+    private void fromRunning() {
         Sm.add(RunningToRunning, (context) -> {
             Job job = context.job;
             ExecutedCmd execCmd = context.getStep();
@@ -414,12 +477,23 @@ public class JobActionServiceImpl implements JobActionService {
         });
     }
 
-    private void onCancelling() {
+    private void fromCancelling() {
         Sm.add(CancellingToCancel, context -> {
             Job job = context.job;
             setRestStepsToSkipped(job);
             setJobStatusAndSave(job, Job.Status.CANCELLED, null);
         });
+    }
+
+    private void setupYamlAndSteps(Job job, String yml) {
+        FlowNode root = YmlParser.load(job.getFlowName(), yml);
+
+        job.setCurrentPath(root.getPathAsString());
+        job.setAgentSelector(root.getSelector());
+        job.getContext().merge(root.getEnvironments(), false);
+
+        ymlManager.create(job, yml);
+        stepService.init(job);
     }
 
     private void setRestStepsToSkipped(Job job) {
@@ -442,6 +516,54 @@ public class JobActionServiceImpl implements JobActionService {
         }
 
         Sm.execute(current, to, context);
+    }
+
+    private String fetchYamlFromGit(Job job) {
+        final String gitUrl = job.getGitUrl();
+
+        if (!StringHelper.hasValue(gitUrl)) {
+            throw new NotAvailableException("Git url is missing");
+        }
+
+        final Path dir = getFlowRepoDir(gitUrl, job.getYamlRepoBranch());
+
+        try {
+            GitClient client = new GitClient(gitUrl, tmpDir, getSimpleSecret(job.getCredentialName()));
+            client.klone(dir, job.getYamlRepoBranch());
+        } catch (Exception e) {
+            throw new NotAvailableException("Unable to fetch yaml config for flow");
+        }
+
+        String[] files = dir.toFile().list((currentDir, fileName) ->
+                (fileName.endsWith(".yaml") || fileName.endsWith(".yml")) && fileName.startsWith(".flowci"));
+
+        if (files == null || files.length == 0) {
+            throw new NotAvailableException("Unable to find yaml file in repo");
+        }
+
+        try {
+            byte[] ymlInBytes = Files.readAllBytes(Paths.get(dir.toString(), files[0]));
+            return new String(ymlInBytes);
+        } catch (IOException e) {
+            throw new NotAvailableException("Unable to read yaml file in repo").setExtra(job);
+        }
+    }
+
+    /**
+     * Get flow repo path: {repo dir}/{flow id}
+     */
+    private Path getFlowRepoDir(String repoUrl, String branch) {
+        String b64 = Base64.getEncoder().encodeToString(repoUrl.getBytes());
+        return Paths.get(repoDir.toString(), b64 + "_" + branch);
+    }
+
+    private SimpleSecret getSimpleSecret(String credentialName) {
+        if (Strings.isNullOrEmpty(credentialName)) {
+            return null;
+        }
+
+        final Secret secret = secretService.get(credentialName);
+        return secret.toSimpleSecret();
     }
 
     /**
@@ -537,6 +659,8 @@ public class JobActionServiceImpl implements JobActionService {
     private static class JobSmContext extends Context {
 
         private Job job;
+
+        public String yml;
 
         private ExecutedCmd step;
 

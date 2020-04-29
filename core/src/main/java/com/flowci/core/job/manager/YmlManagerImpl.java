@@ -16,21 +16,19 @@
 
 package com.flowci.core.job.manager;
 
-import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.job.dao.JobYmlDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobYml;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.FlowNode;
-import com.flowci.tree.Node;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.YmlParser;
 import com.github.benmanes.caffeine.cache.Cache;
-import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 /**
  * @author yang
@@ -57,8 +55,8 @@ public class YmlManagerImpl implements YmlManager {
     }
 
     @Override
-    public JobYml create(Flow flow, Job job, String yml) {
-        JobYml jobYml = new JobYml(job.getId(), flow.getName(), yml);
+    public JobYml create(Job job, String yml) {
+        JobYml jobYml = new JobYml(job.getId(), job.getFlowName(), yml);
         return jobYmlDao.insert(jobYml);
     }
 
@@ -70,5 +68,10 @@ public class YmlManagerImpl implements YmlManager {
             FlowNode root = YmlParser.load(yml.getName(), yml.getRaw());
             return NodeTree.create(root);
         });
+    }
+
+    @Override
+    public void delete(Job job) {
+        jobYmlDao.deleteById(job.getId());
     }
 }

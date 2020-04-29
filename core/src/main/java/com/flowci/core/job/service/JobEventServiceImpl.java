@@ -32,10 +32,6 @@ import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
 import com.flowci.core.job.manager.FlowJobQueueManager;
 import com.flowci.domain.Agent;
-import com.flowci.exception.NotAvailableException;
-import com.flowci.tree.Node;
-import com.flowci.tree.NodeTree;
-import com.flowci.tree.StepNode;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +42,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -74,9 +69,6 @@ public class JobEventServiceImpl implements JobEventService {
 
     @Autowired
     private JobActionService jobActionService;
-
-    @Autowired
-    private StepService stepService;
 
     @Autowired
     private ThreadPoolTaskExecutor jobRunExecutor;
@@ -147,13 +139,8 @@ public class JobEventServiceImpl implements JobEventService {
     @EventListener
     public void startNewJob(CreateNewJobEvent event) {
         jobRunExecutor.execute(() -> {
-            try {
-                Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
-                jobActionService.toStart(job);
-            } catch (NotAvailableException e) {
-                Job job = (Job) e.getExtra();
-                jobActionService.toFailure(job, e);
-            }
+            Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
+            jobActionService.toStart(job);
         });
     }
 
@@ -189,20 +176,6 @@ public class JobEventServiceImpl implements JobEventService {
 
     private void logInfo(Job job, String message, Object... params) {
         log.info("[Job] " + job.getKey() + " " + message, params);
-    }
-
-    private StepNode findNext(Job job, NodeTree tree, Node current, boolean isSuccess) {
-        StepNode next = tree.next(current.getPath());
-        if (Objects.isNull(next)) {
-            return null;
-        }
-
-        // find step from after
-        if (!isSuccess && !next.isAfter()) {
-            return findNext(job, tree, next, false);
-        }
-
-        return findNext(job, tree, next, isSuccess);
     }
 
     private void startJobConsumer(Flow flow) {
