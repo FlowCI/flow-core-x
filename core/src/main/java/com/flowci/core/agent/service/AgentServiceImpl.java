@@ -200,15 +200,16 @@ public class AgentServiceImpl implements AgentService {
         Selector selector = job.getAgentSelector();
 
         for (; ; ) {
+            if (!canContinue.apply(jobId)) {
+                log.debug("Job {} cannot continue to wait agent", jobId);
+                acquireLocks.remove(job.getFlowId());
+                return Optional.empty();
+            }
+
             Optional<Agent> optional = acquire(jobId, selector);
             if (optional.isPresent()) {
                 acquireLocks.remove(job.getFlowId());
                 return optional;
-            }
-
-            if (!canContinue.apply(jobId)) {
-                acquireLocks.remove(job.getFlowId());
-                return Optional.empty();
             }
 
             eventManager.publish(new NoIdleAgentEvent(this, jobId, selector));
