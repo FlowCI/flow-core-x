@@ -32,7 +32,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -158,12 +157,6 @@ public class JobActionServiceImpl implements JobActionService {
     public synchronized Job setJobStatusAndSave(Job job, Job.Status newStatus, String message) {
         if (job.getStatus() == newStatus) {
             return jobDao.save(job);
-        }
-
-        if (job.isDone()) {
-            if (Objects.isNull(job.getFinishAt())) {
-                job.setFinishAt(new Date());
-            }
         }
 
         job.setStatus(newStatus);
