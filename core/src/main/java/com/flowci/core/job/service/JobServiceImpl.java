@@ -199,7 +199,7 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Job rerun(Flow flow, Job job) {
-        if (!Job.FINISH_STATUS.contains(job.getStatus())) {
+        if (!job.isDone()) {
             throw new StatusException("Job not finished, cannot re-start");
         }
 

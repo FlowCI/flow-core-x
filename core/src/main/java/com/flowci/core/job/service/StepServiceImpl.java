@@ -142,6 +142,8 @@ public class StepServiceImpl implements StepService {
             return entity;
         }
 
+        // TODO: status check
+
         entity.setStatus(status);
         entity.setError(err);
         executedCmdDao.save(entity);

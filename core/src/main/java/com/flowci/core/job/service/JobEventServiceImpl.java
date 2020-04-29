@@ -96,7 +96,7 @@ public class JobEventServiceImpl implements JobEventService {
     }
 
     @EventListener(value = ContextRefreshedEvent.class)
-    public void startCallbackQueueConsumer(ContextRefreshedEvent event) {
+    public void startCallbackQueueConsumer(ContextRefreshedEvent ignore) {
         RabbitChannelOperation.QueueConsumer consumer = callbackQueueManager.createConsumer((message -> {
             if (message == RabbitOperation.Message.STOP_SIGN) {
                 return true;
@@ -118,7 +118,7 @@ public class JobEventServiceImpl implements JobEventService {
     }
 
     @EventListener(value = ContextRefreshedEvent.class)
-    public void startJobTimeoutQueueConsumer(ContextRefreshedEvent e) {
+    public void startJobTimeoutQueueConsumer(ContextRefreshedEvent ignore) {
         RabbitOperation.QueueConsumer consumer = deadLetterQueueManager.createConsumer(message -> {
             if (message == RabbitOperation.Message.STOP_SIGN) {
                 log.info("[Job Timeout Consumer] will be stopped");
@@ -127,13 +127,7 @@ public class JobEventServiceImpl implements JobEventService {
 
             String jobId = new String(message.getBody());
             Job job = jobService.get(jobId);
-
-            // not set to timeout if finished or cancelling
-            if (Job.FINISH_STATUS.contains(job.getStatus()) || job.isCancelling()) {
-                return true;
-            }
-
-            jobActionService.setJobStatusAndSave(job, Job.Status.TIMEOUT, "expired while queued up");
+            jobActionService.toTimeout(job);
             return true;
         });
 
@@ -159,7 +153,7 @@ public class JobEventServiceImpl implements JobEventService {
                 jobActionService.toStart(job);
             } catch (NotAvailableException e) {
                 Job job = (Job) e.getExtra();
-                jobActionService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
+                jobActionService.toFailure(job, e);
             }
         });
     }
@@ -173,20 +167,7 @@ public class JobEventServiceImpl implements JobEventService {
         }
 
         Job job = jobService.get(agent.getJobId());
-        if (job.isDone()) {
-            return;
-        }
-
-        // update step status
-        List<ExecutedCmd> steps = stepService.list(job);
-        for (ExecutedCmd step : steps) {
-            if (step.isRunning() || step.isPending()) {
-                stepService.statusChange(step, ExecutedCmd.Status.SKIPPED, null);
-            }
-        }
-
-        // update job status
-        jobActionService.setJobStatusAndSave(job, Job.Status.CANCELLED, "Agent unexpected offline");
+        jobActionService.toCancel(job, "Agent unexpected offline");
     }
 
     //====================================================================

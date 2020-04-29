@@ -15,6 +15,7 @@ import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.domain.Agent;
 import com.flowci.domain.CmdIn;
+import com.flowci.domain.ObjectWrapper;
 import com.flowci.domain.Vars;
 import com.flowci.exception.NotFoundException;
 import com.flowci.sm.Context;
@@ -32,6 +33,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -42,6 +44,7 @@ import java.util.function.Function;
 public class JobActionServiceImpl implements JobActionService {
 
     private static final Status Created = new Status(Job.Status.CREATED.name());
+    private static final Status Loading = new Status(Job.Status.LOADING.name());
     private static final Status Canceled = new Status(Job.Status.CANCELLED.name());
     private static final Status Cancelling = new Status(Job.Status.CANCELLING.name());
     private static final Status Queued = new Status(Job.Status.QUEUED.name());
@@ -50,10 +53,17 @@ public class JobActionServiceImpl implements JobActionService {
     private static final Status Failure = new Status(Job.Status.FAILURE.name());
     private static final Status Success = new Status(Job.Status.SUCCESS.name());
 
-    // start
+    // created
     private static final Transition CreatedToQueued = new Transition(Created, Queued);
     private static final Transition CreatedToTimeout = new Transition(Created, Timeout);
     private static final Transition CreatedToFailure = new Transition(Created, Failure);
+    private static final Transition CreatedToLoading = new Transition(Created, Loading);
+
+    // loading
+    private static final Transition LoadingToFailure = new Transition(Loading, Failure);
+    private static final Transition LoadingToTimeout = new Transition(Loading, Timeout);
+    private static final Transition LoadingToCancel = new Transition(Loading, Canceled);
+    private static final Transition LoadingToQueued = new Transition(Loading, Queued);
 
     // queued
     private static final Transition QueuedToCancel = new Transition(Queued, Canceled);
@@ -65,7 +75,7 @@ public class JobActionServiceImpl implements JobActionService {
     private static final Transition RunningToRunning = new Transition(Running, Running);
     private static final Transition RunningToSuccess = new Transition(Running, Success);
     private static final Transition RunningToCancelling = new Transition(Running, Cancelling);
-    private static final Transition RunningToCanceled = new Transition(Running, Canceled);
+    private static final Transition RunningToCancel = new Transition(Running, Canceled);
     private static final Transition RunningToTimeout = new Transition(Running, Timeout);
     private static final Transition RunningToFailure = new Transition(Running, Failure);
 
@@ -94,7 +104,7 @@ public class JobActionServiceImpl implements JobActionService {
 
     @EventListener
     public void init(ContextRefreshedEvent ignore) {
-        onStart();
+        onCreated();
         onQueued();
         onRunning();
     }
@@ -117,8 +127,22 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     @Override
-    public void toCancel(Job job) {
-        on(job, Job.Status.CANCELLED, null);
+    public void toCancel(Job job, String reason) {
+        on(job, Job.Status.CANCELLED, context -> {
+            context.put("reason", reason);
+        });
+    }
+
+    @Override
+    public void toTimeout(Job job) {
+        on(job, Job.Status.TIMEOUT, null);
+    }
+
+    @Override
+    public void toFailure(Job job, Throwable e) {
+        on(job, Job.Status.FAILURE, (context) -> {
+            context.put("exception", e);
+        });
     }
 
     @Override
@@ -127,7 +151,7 @@ public class JobActionServiceImpl implements JobActionService {
             return jobDao.save(job);
         }
 
-        if (Job.FINISH_STATUS.contains(newStatus)) {
+        if (job.isDone()) {
             if (Objects.isNull(job.getFinishAt())) {
                 job.setFinishAt(new Date());
             }
@@ -143,7 +167,7 @@ public class JobActionServiceImpl implements JobActionService {
         return job;
     }
 
-    private void onStart() {
+    private void onCreated() {
         Sm.add(CreatedToTimeout, context -> {
             Job job = getJob(context);
             setJobStatusAndSave(job, Job.Status.TIMEOUT, "expired before enqueue");
@@ -179,12 +203,9 @@ public class JobActionServiceImpl implements JobActionService {
 
     private void onQueued() {
         Function<String, Boolean> canAcquireAgent = (jobId) -> {
-            Optional<Job> optional = jobDao.findById(jobId);
-            if (!optional.isPresent()) {
-                return false;
-            }
-
-            Job job = optional.get();
+            ObjectWrapper<Job> out = new ObjectWrapper<>();
+            boolean canContinue = canContinue(jobId, out);
+            Job job = out.getValue();
 
             if (job.isExpired()) {
                 Context context = new Context();
@@ -194,7 +215,7 @@ public class JobActionServiceImpl implements JobActionService {
                 return false;
             }
 
-            return !job.isCancelled();
+            return canContinue;
         };
 
         Sm.add(QueuedToTimeout, context -> {
@@ -205,7 +226,7 @@ public class JobActionServiceImpl implements JobActionService {
 
         Sm.add(QueuedToCancel, (context) -> {
             Job job = getJob(context);
-            setJobStatusAndSave(job, Job.Status.CANCELLED, "canceled while queued up");
+            setJobStatusAndSave(job, Job.Status.CANCELLED, "cancelled while queued up");
         });
 
         Sm.add(QueuedToRunning, (context) -> {
@@ -270,10 +291,10 @@ public class JobActionServiceImpl implements JobActionService {
 
             if (next.isPresent()) {
                 String nextPath = next.get().getPathAsString();
-                job.setCurrentPath(nextPath);
                 ExecutedCmd nextCmd = stepService.statusChange(job.getId(), nextPath, ExecutedCmd.Status.RUNNING, null);
 
                 try {
+                    job.setCurrentPath(nextPath);
                     CmdIn cmd = cmdManager.createShellCmd(job, node, nextCmd);
                     setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
@@ -286,6 +307,7 @@ public class JobActionServiceImpl implements JobActionService {
                     context.put("error", e.getMessage());
                     context.put("step", nextCmd);
                     Sm.execute(getCurrent(context), Failure, context);
+                    return;
                 }
             }
 
@@ -302,6 +324,32 @@ public class JobActionServiceImpl implements JobActionService {
             logInfo(job, "finished with status {}", Success);
 
             setJobStatusAndSave(job, Job.Status.SUCCESS, null);
+        });
+
+        Sm.add(RunningToTimeout, (context) -> {
+            Job job = getJob(context);
+
+            try {
+                Agent agent = agentService.get(job.getAgentId());
+
+                List<ExecutedCmd> steps = stepService.list(job);
+                for (ExecutedCmd step : steps) {
+                    if (step.isRunning() || step.isPending()) {
+                        stepService.statusChange(step, ExecutedCmd.Status.SKIPPED, null);
+                    }
+                }
+                setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
+
+
+                if (agent.isOnline()) {
+                    CmdIn killCmd = cmdManager.createKillCmd();
+                    agentService.dispatch(killCmd, agent);
+                    agentService.tryRelease(agent.getId());
+                }
+
+            } catch (NotFoundException ignore) {
+                setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
+            }
         });
 
         // failure from job end or exception
@@ -327,26 +375,29 @@ public class JobActionServiceImpl implements JobActionService {
             Agent agent = (Agent) context.get("agent");
 
             CmdIn killCmd = cmdManager.createKillCmd();
-            agentService.dispatch(killCmd, agent);
-            logInfo(job, " cancel cmd been send to {}", agent.getName());
             setJobStatusAndSave(job, Job.Status.CANCELLING, null);
+
+            agentService.dispatch(killCmd, agent);
         });
 
-        Sm.add(RunningToCanceled, (context) -> {
+        Sm.add(RunningToCancel, (context) -> {
             Job job = getJob(context);
+            String reason = (String) context.get("reason");
 
             try {
                 Agent agent = agentService.get(job.getAgentId());
                 context.put("agent", agent);
+
+                // TODO: set steps status to skipped
 
                 if (agent.isOnline()) {
                     Sm.execute(getCurrent(context), Cancelling, context);
                     return;
                 }
 
-                setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while agent offline");
+                setJobStatusAndSave(job, Job.Status.CANCELLED, reason);
             } catch (NotFoundException e) {
-                setJobStatusAndSave(job, Job.Status.CANCELLED, "cancel while not agent assigned");
+                setJobStatusAndSave(job, Job.Status.CANCELLED, "agent not found");
             }
         });
     }
@@ -431,6 +482,21 @@ public class JobActionServiceImpl implements JobActionService {
         }
 
         return Optional.of(next);
+    }
+
+    private boolean canContinue(String jobId, ObjectWrapper<Job> out) {
+        Job job = jobDao.findById(jobId).get();
+        out.setValue(job);
+
+        if (job.isExpired()) {
+            return false;
+        }
+
+        if (job.isCancelling()) {
+            return false;
+        }
+
+        return !job.isDone();
     }
 
     private void logInfo(Job job, String message, Object... params) {

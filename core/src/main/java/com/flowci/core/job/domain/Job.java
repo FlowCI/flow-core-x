@@ -91,14 +91,14 @@ public class Job extends Mongoable implements Pathable {
         PENDING,
 
         /**
-         * Loading the yaml from git repo
-         */
-        LOADING,
-
-        /**
          * Job created with yaml and steps
          */
         CREATED,
+
+        /**
+         * Loading the yaml from git repo
+         */
+        LOADING,
 
         /**
          * Been put to job queue

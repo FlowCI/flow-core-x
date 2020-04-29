@@ -29,6 +29,7 @@ import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.tree.NodePath;
+import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -169,7 +170,7 @@ public class JobController {
             jobActionService.toStart(job);
         } catch (NotAvailableException e) {
             Job job = (Job) e.getExtra();
-            jobActionService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
+            jobActionService.toFailure(job, e);
         }
     }
 
@@ -182,7 +183,7 @@ public class JobController {
             jobService.rerun(flow, job);
         } catch (NotAvailableException e) {
             Job job = (Job) e.getExtra();
-            jobActionService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
+            jobActionService.toFailure(job, e);
         }
     }
 
@@ -190,7 +191,7 @@ public class JobController {
     @Action(JobAction.CANCEL)
     public Job cancel(@PathVariable String flow, @PathVariable String buildNumber) {
         Job job = get(flow, buildNumber);
-        jobActionService.toCancel(job);
+        jobActionService.toCancel(job, StringHelper.EMPTY);
         return job;
     }
 

@@ -245,28 +245,16 @@ public class JobServiceTest extends ZookeeperScenario {
 
         NodeTree tree = ymlManager.getTree(job);
         StepNode firstNode = tree.next(tree.getRoot().getPath());
+        ExecutedCmd firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
 
         // when: cmd of first node been executed
         StringVars output = new StringVars();
         output.put("HELLO_WORLD", "hello.world");
 
-        ExecutedCmd executedCmd = new ExecutedCmd(
-                job.getFlowId(),
-                job.getId(),
-                firstNode.getPathAsString(),
-                firstNode.isAllowFailure()
-        );
-        executedCmd.setStatus(ExecutedCmd.Status.SUCCESS);
-        executedCmd.setOutput(output);
-        executedCmd.setBuildNumber(1L);
-        executedCmdDao.save(executedCmd);
-
-        jobEventService.handleCallback(executedCmd);
-
-        // then: executed cmd should be saved
-        ExecutedCmd saved = executedCmdDao.findById(executedCmd.getId()).get();
-        Assert.assertNotNull(saved);
-        Assert.assertEquals(executedCmd, saved);
+        firstStep.setStatus(ExecutedCmd.Status.SUCCESS);
+        firstStep.setOutput(output);
+        executedCmdDao.save(firstStep);
+        jobEventService.handleCallback(firstStep);
 
         // then: job context should be updated
         job = jobDao.findById(job.getId()).get();
@@ -275,28 +263,15 @@ public class JobServiceTest extends ZookeeperScenario {
         // then: job current context should be updated
         StepNode secondNode = tree.next(firstNode.getPath());
         Assert.assertEquals(secondNode.getPath(), NodePath.create(job.getCurrentPath()));
+        ExecutedCmd secondStep = stepService.get(job.getId(), secondNode.getPathAsString());
 
         // when: cmd of second node been executed
         output = new StringVars();
         output.put("HELLO_JAVA", "hello.java");
-
-        executedCmd = new ExecutedCmd(
-                job.getFlowId(),
-                job.getId(),
-                secondNode.getPathAsString(),
-                secondNode.isAllowFailure()
-        );
-        executedCmd.setStatus(ExecutedCmd.Status.SUCCESS);
-        executedCmd.setOutput(output);
-        executedCmd.setBuildNumber(1L);
-        executedCmdDao.save(executedCmd);
-
-        jobEventService.handleCallback(executedCmd);
-
-        // then: executed cmd of second node should be saved
-        saved = executedCmdDao.findById(executedCmd.getId()).get();
-        Assert.assertNotNull(saved);
-        Assert.assertEquals(executedCmd, saved);
+        secondStep.setStatus(ExecutedCmd.Status.SUCCESS);
+        secondStep.setOutput(output);
+        executedCmdDao.save(secondStep);
+        jobEventService.handleCallback(secondStep);
 
         // then: job context should be updated
         job = jobDao.findById(job.getId()).get();
@@ -314,29 +289,21 @@ public class JobServiceTest extends ZookeeperScenario {
 
         NodeTree tree = ymlManager.getTree(job);
         StepNode firstNode = tree.next(tree.getRoot().getPath());
+        ExecutedCmd firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
 
         // when: cmd of first node with failure
         StringVars output = new StringVars();
         output.put("HELLO_WORLD", "hello.world");
 
-        ExecutedCmd executedCmd = new ExecutedCmd(
-                job.getFlowId(),
-                job.getId(),
-                firstNode.getPathAsString(),
-                firstNode.isAllowFailure()
-        );
-        executedCmd.setStatus(ExecutedCmd.Status.EXCEPTION);
-        executedCmd.setOutput(output);
-        executedCmdDao.save(executedCmd);
-
-        jobEventService.handleCallback(executedCmd);
-
-        // then: executed cmd should be recorded
-        Assert.assertNotNull(executedCmdDao.findById(executedCmd.getId()).get());
+        firstStep.setStatus(ExecutedCmd.Status.EXCEPTION);
+        firstStep.setOutput(output);
+        executedCmdDao.save(firstStep);
+        jobEventService.handleCallback(firstStep);
 
         // then: job status should be running and current path should be change to second node
         job = jobDao.findById(job.getId()).get();
         StepNode secondNode = tree.next(firstNode.getPath());
+        ExecutedCmd secondCmd = stepService.get(job.getId(), secondNode.getPathAsString());
 
         Assert.assertEquals(Status.RUNNING, job.getStatus());
         Assert.assertEquals(secondNode.getPathAsString(), job.getCurrentPath());
@@ -346,20 +313,10 @@ public class JobServiceTest extends ZookeeperScenario {
         output = new StringVars();
         output.put("HELLO_TIMEOUT", "hello.timeout");
 
-        executedCmd = new ExecutedCmd(
-                job.getFlowId(),
-                job.getId(),
-                secondNode.getPathAsString(),
-                secondNode.isAllowFailure()
-        );
-        executedCmd.setStatus(ExecutedCmd.Status.TIMEOUT);
-        executedCmd.setOutput(output);
-        executedCmdDao.save(executedCmd);
-
-        jobEventService.handleCallback(executedCmd);
-
-        // then: executed cmd of second node should be recorded
-        Assert.assertNotNull(executedCmdDao.findById(executedCmd.getId()).get());
+        secondCmd.setStatus(ExecutedCmd.Status.TIMEOUT);
+        secondCmd.setOutput(output);
+        executedCmdDao.save(secondCmd);
+        jobEventService.handleCallback(secondCmd);
 
         // then: job should be timeout with error message
         job = jobDao.findById(job.getId()).get();
