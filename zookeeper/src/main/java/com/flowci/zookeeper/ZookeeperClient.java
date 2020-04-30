@@ -19,6 +19,7 @@ package com.flowci.zookeeper;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +32,7 @@ import org.apache.curator.framework.api.DeleteBuilder;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.curator.retry.RetryNTimes;
 import org.apache.zookeeper.CreateMode;
@@ -166,6 +168,18 @@ public class ZookeeperClient implements AutoCloseable {
                 }
             }
         }
+    }
+
+    public Optional<InterProcessLock> lock(String path, int timeout) {
+        InterProcessMutex lock = new InterProcessMutex(client, path);
+        try {
+            if (lock.acquire(timeout, TimeUnit.SECONDS)) {
+                return Optional.of(lock);
+            }
+        } catch (Exception ignore) {
+
+        }
+        return Optional.empty();
     }
 
     public boolean watchChildren(String rootPath, PathChildrenCacheListener listener) {

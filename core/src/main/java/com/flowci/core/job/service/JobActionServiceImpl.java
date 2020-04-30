@@ -26,11 +26,13 @@ import com.flowci.sm.Status;
 import com.flowci.sm.Transition;
 import com.flowci.tree.*;
 import com.flowci.util.StringHelper;
+import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.base.Strings;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.log4j.Log4j2;
+import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -99,6 +101,9 @@ public class JobActionServiceImpl implements JobActionService {
 
     @Autowired
     private Path tmpDir;
+
+    @Autowired
+    private ZookeeperClient zk;
 
     @Autowired
     private JobDao jobDao;
@@ -342,51 +347,20 @@ public class JobActionServiceImpl implements JobActionService {
             Job job = context.job;
             ExecutedCmd execCmd = context.getStep();
 
-            // save executed cmd
-            stepService.resultUpdate(execCmd);
-            log.debug("Executed cmd {} been recorded", execCmd);
-
-            NodePath currentPath = NodePath.create(execCmd.getNodePath());
-
-            // verify job node path is match cmd node path
-            if (!currentPath.equals(NodePath.create(job.getCurrentPath()))) {
-                log.error("Invalid executed cmd callback: does not match job current node path");
-                return;
+            Optional<InterProcessLock> lock = lockJob(job);
+            if (!lock.isPresent()) {
+                log.debug("Fail to lock job {}", job.getId());
+                context.setError(new CIException("Unexpected status"));
+                Sm.execute(context.getCurrent(), Failure, context);
             }
 
-            NodeTree tree = ymlManager.getTree(job);
-            StepNode node = tree.get(currentPath);
-            updateJobTime(job, execCmd, tree, node);
-            updateJobStatusAndContext(job, node, execCmd);
+            log.debug("Job {} is locked", job.getId());
 
-            // to next step
-            Optional<StepNode> next = findNext(tree, node, execCmd.isSuccess());
-            if (next.isPresent()) {
-                String nextPath = next.get().getPathAsString();
-                job.setCurrentPath(nextPath);
-
-                ExecutedCmd nextCmd = stepService.toStatus(job.getId(), nextPath, ExecutedCmd.Status.RUNNING, null);
-                context.setStep(nextCmd);
-
-                try {
-                    Agent agent = agentService.get(job.getAgentId());
-                    CmdIn cmd = cmdManager.createShellCmd(job, next.get(), nextCmd);
-                    setJobStatusAndSave(job, Job.Status.RUNNING, null);
-
-                    agentService.dispatch(cmd, agent);
-                    logInfo(job, "send to agent: step={}, agent={}", next.get().getName(), agent.getName());
-                    return;
-                } catch (Throwable e) {
-                    log.debug("Fail to dispatch job {} to agent {}", job.getId(), job.getAgentId(), e);
-                    context.setError(e);
-                    Sm.execute(context.getCurrent(), Failure, context);
-                    return;
-                }
+            try {
+                toNextStep(context, job, execCmd);
+            } finally {
+                releaseLock(lock.get(), job);
             }
-
-            // to finish status
-            Job.Status statusFromContext = job.getStatusFromContext();
-            Sm.execute(context.getCurrent(), new Status(statusFromContext.name()), context);
         });
 
         Sm.add(RunningToSuccess, (context) -> {
@@ -603,6 +577,54 @@ public class JobActionServiceImpl implements JobActionService {
         logInfo(job, "send to agent: step={}, agent={}", next.getName(), agent.getName());
     }
 
+    private void toNextStep(JobSmContext context, Job job, ExecutedCmd execCmd) {
+        // save executed cmd
+        stepService.resultUpdate(execCmd);
+        log.debug("Executed cmd {} been recorded", execCmd);
+
+        NodePath currentPath = NodePath.create(execCmd.getNodePath());
+
+        // verify job node path is match cmd node path
+        if (!currentPath.equals(NodePath.create(job.getCurrentPath()))) {
+            log.error("Invalid executed cmd callback: does not match job current node path");
+            return;
+        }
+
+        NodeTree tree = ymlManager.getTree(job);
+        StepNode node = tree.get(currentPath);
+        updateJobTime(job, execCmd, tree, node);
+        updateJobStatusAndContext(job, node, execCmd);
+
+        // to next step
+        Optional<StepNode> next = findNext(tree, node, execCmd.isSuccess());
+        if (next.isPresent()) {
+            String nextPath = next.get().getPathAsString();
+            job.setCurrentPath(nextPath);
+
+            ExecutedCmd nextCmd = stepService.toStatus(job.getId(), nextPath, ExecutedCmd.Status.RUNNING, null);
+            context.setStep(nextCmd);
+
+            try {
+                Agent agent = agentService.get(job.getAgentId());
+                CmdIn cmd = cmdManager.createShellCmd(job, next.get(), nextCmd);
+                setJobStatusAndSave(job, Job.Status.RUNNING, null);
+
+                agentService.dispatch(cmd, agent);
+                logInfo(job, "send to agent: step={}, agent={}", next.get().getName(), agent.getName());
+                return;
+            } catch (Throwable e) {
+                log.debug("Fail to dispatch job {} to agent {}", job.getId(), job.getAgentId(), e);
+                context.setError(e);
+                Sm.execute(context.getCurrent(), Failure, context);
+                return;
+            }
+        }
+
+        // to finish status
+        Job.Status statusFromContext = job.getStatusFromContext();
+        Sm.execute(context.getCurrent(), new Status(statusFromContext.name()), context);
+    }
+
     private void updateJobTime(Job job, ExecutedCmd execCmd, NodeTree tree, StepNode node) {
         if (tree.isFirst(node.getPath())) {
             job.setStartAt(execCmd.getStartAt());
@@ -656,6 +678,21 @@ public class JobActionServiceImpl implements JobActionService {
 
     private void logInfo(Job job, String message, Object... params) {
         log.info("[Job] " + job.getKey() + " " + message, params);
+    }
+
+    private Optional<InterProcessLock> lockJob(Job job) {
+        return zk.lock("/jobs/" + job.getId(), 10);
+    }
+
+    private void releaseLock(InterProcessLock lock, Job job) {
+        try {
+            if (lock.isAcquiredInThisProcess()) {
+                lock.release();
+                log.debug("Job {} is released", job.getId());
+            }
+        } catch (Exception ignore) {
+            log.warn(ignore);
+        }
     }
 
     @Getter

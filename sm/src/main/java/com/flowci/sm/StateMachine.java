@@ -19,10 +19,6 @@ public class StateMachine<T extends Context> {
 
     private final String name;
 
-    private Lockable lockable;
-
-    private boolean isSync;
-
     public void add(Transition t, Action<T> action) {
         Map<Status, Action<T>> map = actions.computeIfAbsent(t.getFrom(), k -> new HashMap<>());
 
@@ -49,18 +45,6 @@ public class StateMachine<T extends Context> {
             return;
         }
 
-        if (isSync) {
-            Objects.requireNonNull(lockable, "Lockable instance is null");
-            lockable.lock(name);
-        }
-
-        try {
-            action.accept(context);
-        } finally {
-            // release lock
-            if (isSync) {
-                lockable.unlock(name);
-            }
-        }
+        action.accept(context);
     }
 }
