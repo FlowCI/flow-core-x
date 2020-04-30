@@ -350,7 +350,7 @@ public class JobActionServiceImpl implements JobActionService {
 
             // verify job node path is match cmd node path
             if (!currentPath.equals(NodePath.create(job.getCurrentPath()))) {
-                log.error("Invalid executed cmd callback: does not match job agent node path");
+                log.error("Invalid executed cmd callback: does not match job current node path");
                 return;
             }
 

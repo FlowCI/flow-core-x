@@ -251,7 +251,9 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals(Agent.Status.BUSY, agentForStep1.getValue().getStatus());
 
         // then: verify job status should be running
-        Assert.assertEquals(Status.RUNNING, jobDao.findById(job.getId()).get().getStatus());
+        job = jobService.get(job.getId());
+        Assert.assertEquals(Status.RUNNING, job.getStatus());
+        Assert.assertEquals(firstStep.getNodePath(), job.getCurrentPath());
 
         // then: verify step 1 cmd has been sent
         CmdIn cmd = cmdForStep1.getValue();
@@ -261,19 +263,22 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals("echo step", cmd.getInputs().get("FLOW_WORKSPACE"));
         Assert.assertEquals("echo hello\n", cmd.getScripts().get(0));
 
-        // when: make dummy response from agent
+        // when: make dummy response from agent for step 1
         firstStep.setStatus(ExecutedCmd.Status.SUCCESS);
         executedCmdDao.save(firstStep);
         jobEventService.handleCallback(firstStep);
-        Assert.assertTrue(counterForStep2.await(10, TimeUnit.SECONDS));
 
         // then: verify step 2 agent
+        Assert.assertTrue(counterForStep2.await(10, TimeUnit.SECONDS));
+
         Assert.assertEquals(agent, agentForStep2.getValue());
         Assert.assertEquals(job.getId(), agentForStep2.getValue().getJobId());
         Assert.assertEquals(Agent.Status.BUSY, agentForStep2.getValue().getStatus());
 
         // then: verify job status should be running
-        Assert.assertEquals(Status.RUNNING, jobDao.findById(job.getId()).get().getStatus());
+        job = jobService.get(job.getId());
+        Assert.assertEquals(Status.RUNNING, job.getStatus());
+        Assert.assertEquals(secondStep.getNodePath(), job.getCurrentPath());
 
         // then: verify step 1 cmd has been sent
         cmd = cmdForStep2.getValue();
@@ -281,7 +286,13 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertFalse(cmd.isAllowFailure());
         Assert.assertEquals("echo 2", cmd.getScripts().get(0));
 
-        // TODO: check finish status
+        // when: make dummy response from agent for step 2
+        secondStep.setStatus(ExecutedCmd.Status.SUCCESS);
+        executedCmdDao.save(secondStep);
+        jobEventService.handleCallback(secondStep);
+
+        // then:
+        Assert.assertEquals(Status.SUCCESS, jobService.get(job.getId()).getStatus());
     }
 
     @Test
