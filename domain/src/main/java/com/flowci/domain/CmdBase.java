@@ -48,15 +48,4 @@ public abstract class CmdBase implements Serializable {
     private String containerId;
 
     protected boolean allowFailure;
-
-    /**
-     * Cmd related plugin name
-     */
-    protected String plugin;
-
-    protected DockerOption docker;
-
-    public boolean hasDockerOption() {
-        return docker != null;
-    }
 }

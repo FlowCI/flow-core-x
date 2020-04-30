@@ -61,6 +61,13 @@ public class CmdIn extends CmdBase {
     @NonNull
     private Set<String> envFilters = new LinkedHashSet<>();
 
+    /**
+     * Cmd related plugin name
+     */
+    private String plugin;
+
+    private DockerOption docker;
+
     public CmdIn(String id, CmdType type) {
         setId(id);
         this.type = type;
@@ -72,6 +79,10 @@ public class CmdIn extends CmdBase {
         }
 
         scripts.add(script);
+    }
+
+    public boolean hasDockerOption() {
+        return docker != null;
     }
 
     public void addEnvFilters(Set<String> exports) {
