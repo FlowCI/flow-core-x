@@ -228,28 +228,29 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Boolean tryLock(String jobId, String agentId) {
+    public Optional<Agent> tryLock(String jobId, String agentId) {
         // check agent is available form db
         Agent agent = get(agentId);
+
         if (agent.isBusy()) {
-            return false;
+            return Optional.empty();
         }
 
         try {
             // check agent status from zk
             Status status = getStatusFromZk(agent);
             if (status != Status.IDLE) {
-                return false;
+                return Optional.empty();
             }
 
             // lock and set status to busy
             agent.setJobId(jobId);
             String zkLockPath = getLockPath(agent);
             zk.lock(zkLockPath, path -> updateAgentStatus(agent, Status.BUSY));
-            return true;
+            return Optional.of(agent);
         } catch (ZookeeperException e) {
             log.debug(e);
-            return false;
+            return Optional.empty();
         }
     }
 
@@ -489,9 +490,10 @@ public class AgentServiceImpl implements AgentService {
         // try to lock it
         while (availableList.hasNext()) {
             Agent agent = availableList.next();
+            Optional<Agent> locked = tryLock(jobId, agent.getId());
 
-            if (tryLock(jobId, agent.getId())) {
-                return Optional.of(agent);
+            if (locked.isPresent()) {
+                return locked;
             }
 
             availableList.remove();

@@ -104,8 +104,8 @@ public class AgentServiceTest extends ZookeeperScenario {
 
         for (int i = 0; i < 5; i++) {
             executor.execute(() -> {
-                Boolean isLocked = agentService.tryLock("dummyJobId", available.getId());
-                if (isLocked) {
+                Optional<Agent> optional = agentService.tryLock("dummyJobId", available.getId());
+                if (optional.isPresent()) {
                     numOfLocked.incrementAndGet();
                 }
                 else {

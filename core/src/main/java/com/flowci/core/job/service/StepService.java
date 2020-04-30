@@ -54,9 +54,9 @@ public interface StepService {
     /**
      * Change step status, and put steps string to job context
      */
-    ExecutedCmd statusChange(String jobId, String nodePath, ExecutedCmd.Status status, String err);
+    ExecutedCmd toStatus(String jobId, String nodePath, ExecutedCmd.Status status, String err);
 
-    ExecutedCmd statusChange(ExecutedCmd entity, ExecutedCmd.Status status, String err);
+    ExecutedCmd toStatus(ExecutedCmd entity, ExecutedCmd.Status status, String err);
 
     /**
      * To update properties are related with cmd executed result

@@ -91,8 +91,9 @@ public interface AgentService {
 
     /**
      * Try to lock agent resource, and set agent status to BUSY
+     * @return return agent instance, otherwise return empty
      */
-    Boolean tryLock(String jobId, String agentId);
+    Optional<Agent> tryLock(String jobId, String agentId);
 
     /**
      * Release agent, send 'stop' cmd to agent

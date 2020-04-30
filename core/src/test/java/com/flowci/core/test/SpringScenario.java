@@ -149,9 +149,15 @@ public abstract class SpringScenario {
         }
     }
 
-    protected void addEventListener(ApplicationListener<?> listener) {
+    protected ApplicationListener<?> addEventListener(ApplicationListener<?> listener) {
         applicationEventMulticaster.addApplicationListener(listener);
         listenersForTest.add(listener);
+        return listener;
+    }
+
+    protected void removeListener(ApplicationListener<?> listener) {
+        applicationEventMulticaster.removeApplicationListener(listener);
+        listenersForTest.remove(listener);
     }
 
     protected void multicastEvent(ApplicationEvent event) {

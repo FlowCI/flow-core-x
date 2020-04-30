@@ -199,7 +199,7 @@ public class JobActionServiceImpl implements JobActionService {
 
         jobDao.save(job);
         eventManager.publish(new JobStatusChangeEvent(this, job));
-        log.debug("Job status {} = {}", job.getId(), job.getStatus());
+        logInfo(job, "status = {}", job.getStatus());
         return job;
     }
 
@@ -330,7 +330,7 @@ public class JobActionServiceImpl implements JobActionService {
             // set current step to exception
             String jobId = job.getId();
             String nodePath = job.getCurrentPath(); // set in the dispatch
-            stepService.statusChange(jobId, nodePath, ExecutedCmd.Status.EXCEPTION, null);
+            stepService.toStatus(jobId, nodePath, ExecutedCmd.Status.EXCEPTION, null);
 
             setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
             agentService.tryRelease(agentId);
@@ -363,22 +363,22 @@ public class JobActionServiceImpl implements JobActionService {
             Optional<StepNode> next = findNext(tree, node, execCmd.isSuccess());
             if (next.isPresent()) {
                 String nextPath = next.get().getPathAsString();
-                ExecutedCmd nextCmd = stepService.statusChange(job.getId(), nextPath, ExecutedCmd.Status.RUNNING, null);
+                job.setCurrentPath(nextPath);
+
+                ExecutedCmd nextCmd = stepService.toStatus(job.getId(), nextPath, ExecutedCmd.Status.RUNNING, null);
+                context.setStep(nextCmd);
 
                 try {
-                    job.setCurrentPath(nextPath);
-
                     Agent agent = agentService.get(job.getAgentId());
-                    CmdIn cmd = cmdManager.createShellCmd(job, node, nextCmd);
+                    CmdIn cmd = cmdManager.createShellCmd(job, next.get(), nextCmd);
                     setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
                     agentService.dispatch(cmd, agent);
-                    logInfo(job, "send to agent: step={}, agent={}", node.getName(), agent.getName());
+                    logInfo(job, "send to agent: step={}, agent={}", next.get().getName(), agent.getName());
                     return;
                 } catch (Throwable e) {
                     log.debug("Fail to dispatch job {} to agent {}", job.getId(), job.getAgentId(), e);
                     context.setError(e);
-                    context.setStep(nextCmd);
                     Sm.execute(context.getCurrent(), Failure, context);
                     return;
                 }
@@ -431,7 +431,7 @@ public class JobActionServiceImpl implements JobActionService {
                 err = new CIException(stepErr);
             }
 
-            stepService.statusChange(job.getId(), step.getNodePath(), ExecutedCmd.Status.EXCEPTION, null);
+            stepService.toStatus(job.getId(), step.getNodePath(), ExecutedCmd.Status.EXCEPTION, null);
 
             try {
                 Agent agent = agentService.get(job.getAgentId());
@@ -505,7 +505,7 @@ public class JobActionServiceImpl implements JobActionService {
         List<ExecutedCmd> steps = stepService.list(job);
         for (ExecutedCmd step : steps) {
             if (step.isRunning() || step.isPending()) {
-                stepService.statusChange(step, ExecutedCmd.Status.SKIPPED, null);
+                stepService.toStatus(step, ExecutedCmd.Status.SKIPPED, null);
             }
         }
     }
@@ -593,7 +593,7 @@ public class JobActionServiceImpl implements JobActionService {
         job.setAgentSnapshot(agent);
 
         // set executed cmd step to running
-        ExecutedCmd nextCmd = stepService.statusChange(job.getId(), nextPath, ExecutedCmd.Status.RUNNING, null);
+        ExecutedCmd nextCmd = stepService.toStatus(job.getId(), nextPath, ExecutedCmd.Status.RUNNING, null);
 
         // dispatch job to agent queue
         CmdIn cmd = cmdManager.createShellCmd(job, next, nextCmd);

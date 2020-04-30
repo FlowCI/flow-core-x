@@ -201,44 +201,87 @@ public class JobServiceTest extends ZookeeperScenario {
     }
 
     @Test
-    public void should_dispatch_job_to_agent() throws InterruptedException {
+    public void should_finish_whole_job() throws InterruptedException {
         // init:
         Agent agent = agentService.create("hello.agent", null, Optional.empty());
         mockAgentOnline(agentService.getPath(agent));
 
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
 
+        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+        NodeTree tree = NodeTree.create(root);
+
+        StepNode firstNode = tree.next(tree.getRoot().getPath());
+        ExecutedCmd firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
+
+        StepNode secondNode = tree.next(firstNode.getPath());
+        ExecutedCmd secondStep = stepService.get(job.getId(), secondNode.getPathAsString());
+
         // when:
-        ObjectWrapper<Agent> targetAgent = new ObjectWrapper<>();
-        ObjectWrapper<CmdIn> targetCmd = new ObjectWrapper<>();
-        CountDownLatch counter = new CountDownLatch(1);
+        ObjectWrapper<Agent> agentForStep1 = new ObjectWrapper<>();
+        ObjectWrapper<CmdIn> cmdForStep1 = new ObjectWrapper<>();
+        CountDownLatch counterForStep1 = new CountDownLatch(1);
 
         addEventListener((ApplicationListener<CmdSentEvent>) event -> {
-            targetAgent.setValue(event.getAgent());
-            targetCmd.setValue(event.getCmd());
-            counter.countDown();
+            if (event.getCmd().getId().equals(firstStep.getId())) {
+                agentForStep1.setValue(event.getAgent());
+                cmdForStep1.setValue(event.getCmd());
+                counterForStep1.countDown();
+            }
+        });
+
+        ObjectWrapper<Agent> agentForStep2 = new ObjectWrapper<>();
+        ObjectWrapper<CmdIn> cmdForStep2 = new ObjectWrapper<>();
+        CountDownLatch counterForStep2 = new CountDownLatch(1);
+
+        addEventListener((ApplicationListener<CmdSentEvent>) event -> {
+            if (event.getCmd().getId().equals(secondStep.getId())) {
+                agentForStep2.setValue(event.getAgent());
+                cmdForStep2.setValue(event.getCmd());
+                counterForStep2.countDown();
+            }
         });
 
         jobActionService.toStart(job);
+        Assert.assertTrue(counterForStep1.await(10, TimeUnit.SECONDS));
 
-        // then: verify cmd been sent
-        Assert.assertTrue(counter.await(10, TimeUnit.SECONDS));
-        Assert.assertEquals(agent, targetAgent.getValue());
+        // then: verify step 1 agent
+        Assert.assertEquals(agent, agentForStep1.getValue());
+        Assert.assertEquals(job.getId(), agentForStep1.getValue().getJobId());
+        Assert.assertEquals(Agent.Status.BUSY, agentForStep1.getValue().getStatus());
 
         // then: verify job status should be running
         Assert.assertEquals(Status.RUNNING, jobDao.findById(job.getId()).get().getStatus());
 
-        // then: verify cmd content
-        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
-        NodeTree tree = NodeTree.create(root);
-        StepNode firstNode = tree.next(tree.getRoot().getPath());
-        ExecutedCmd firstCmd = stepService.get(job.getId(), firstNode.getPathAsString());
-
-        CmdIn cmd = targetCmd.getValue();
-        Assert.assertEquals(firstCmd.getId(), cmd.getId());
+        // then: verify step 1 cmd has been sent
+        CmdIn cmd = cmdForStep1.getValue();
+        Assert.assertEquals(firstStep.getId(), cmd.getId());
+        Assert.assertTrue(cmd.isAllowFailure());
         Assert.assertEquals("echo step version", cmd.getInputs().get("FLOW_VERSION"));
         Assert.assertEquals("echo step", cmd.getInputs().get("FLOW_WORKSPACE"));
         Assert.assertEquals("echo hello\n", cmd.getScripts().get(0));
+
+        // when: make dummy response from agent
+        firstStep.setStatus(ExecutedCmd.Status.SUCCESS);
+        executedCmdDao.save(firstStep);
+        jobEventService.handleCallback(firstStep);
+        Assert.assertTrue(counterForStep2.await(10, TimeUnit.SECONDS));
+
+        // then: verify step 2 agent
+        Assert.assertEquals(agent, agentForStep2.getValue());
+        Assert.assertEquals(job.getId(), agentForStep2.getValue().getJobId());
+        Assert.assertEquals(Agent.Status.BUSY, agentForStep2.getValue().getStatus());
+
+        // then: verify job status should be running
+        Assert.assertEquals(Status.RUNNING, jobDao.findById(job.getId()).get().getStatus());
+
+        // then: verify step 1 cmd has been sent
+        cmd = cmdForStep2.getValue();
+        Assert.assertEquals(secondStep.getId(), cmd.getId());
+        Assert.assertFalse(cmd.isAllowFailure());
+        Assert.assertEquals("echo 2", cmd.getScripts().get(0));
+
+        // TODO: check finish status
     }
 
     @Test
