@@ -2,5 +2,17 @@ package com.flowci.sm;
 
 import java.util.function.Consumer;
 
-public interface Action<T extends Context> extends Consumer<T> {
+public abstract class Action<T extends Context> implements Consumer<T> {
+
+    public boolean canRun(T context) {
+        return true;
+    }
+
+    public void onException(T context) {
+        // ignore by default
+    }
+
+    public void onFinally(T context) {
+        // ignore by default
+    }
 }

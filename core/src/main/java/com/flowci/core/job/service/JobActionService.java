@@ -20,6 +20,4 @@ public interface JobActionService {
     void toTimeout(Job job);
 
     void toFailure(Job job, Throwable e);
-
-    Job setJobStatusAndSave(Job job, Job.Status newStatus, String message);
 }

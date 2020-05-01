@@ -464,7 +464,9 @@ public class JobServiceTest extends ZookeeperScenario {
         // init: create old job wit success status
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
         job.getContext().put(com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID, "111222333");
-        jobActionService.setJobStatusAndSave(job, Status.SUCCESS, null);
+        job.setStatus(Status.SUCCESS);
+        job.setStatusToContext(Status.SUCCESS);
+        jobDao.save(job);
 
         // when: rerun
         job = jobService.rerun(flow, job);

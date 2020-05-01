@@ -19,6 +19,14 @@ public class StateMachine<T extends Context> {
 
     private final String name;
 
+    public void addHookActionOnTargetStatus(Status target, Action<T> action) {
+
+    }
+
+    public void addHookActionOnSourceStatus(Status source, Action<T> action) {
+
+    }
+
     public void add(Transition t, Action<T> action) {
         Map<Status, Action<T>> map = actions.computeIfAbsent(t.getFrom(), k -> new HashMap<>());
 
@@ -45,6 +53,14 @@ public class StateMachine<T extends Context> {
             return;
         }
 
-        action.accept(context);
+        try {
+            if (action.canRun(context)) {
+                action.accept(context);
+            }
+        } catch (Throwable e) {
+            action.onException(context);
+        } finally {
+            action.onFinally(context);
+        }
     }
 }
