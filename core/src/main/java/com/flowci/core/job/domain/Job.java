@@ -32,6 +32,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
@@ -90,14 +91,14 @@ public class Job extends Mongoable implements Pathable {
         PENDING,
 
         /**
-         * Loading the yaml from git repo
-         */
-        LOADING,
-
-        /**
          * Job created with yaml and steps
          */
         CREATED,
+
+        /**
+         * Loading the yaml from git repo
+         */
+        LOADING,
 
         /**
          * Been put to job queue
@@ -185,6 +186,8 @@ public class Job extends Mongoable implements Pathable {
     @Indexed(name = "index_flow_id", sparse = true)
     private String flowId;
 
+    private String flowName;
+
     private Long buildNumber;
 
     private Trigger trigger;
@@ -235,18 +238,13 @@ public class Job extends Mongoable implements Pathable {
     private Date finishAt;
 
     @JsonIgnore
-    public boolean isRunning() {
-        return status == Status.RUNNING;
+    public boolean isCancelled() {
+        return status == Status.CANCELLED;
     }
 
     @JsonIgnore
     public boolean isCancelling() {
         return status == Status.CANCELLING;
-    }
-
-    @JsonIgnore
-    public boolean isQueuing() {
-        return status == Status.QUEUED;
     }
 
     @JsonIgnore
@@ -287,6 +285,20 @@ public class Job extends Mongoable implements Pathable {
 
     public String getGitUrl() {
         return context.get(Variables.Flow.GitUrl);
+    }
+
+    public boolean isExpired() {
+        Instant expireAt = getExpireAt().toInstant();
+        return Instant.now().compareTo(expireAt) > 0;
+    }
+
+    @JsonIgnore
+    public Status getStatusFromContext() {
+        return Job.Status.valueOf(context.get(Variables.Job.Status));
+    }
+
+    public void setStatusToContext(Status status) {
+        context.put(Variables.Job.Status, status.name());
     }
 
     public void setAgentSnapshot(Agent agent) {

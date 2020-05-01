@@ -21,6 +21,11 @@
 
     <dependency>
       <groupId>com.flowci</groupId>
+      <artifactId>sm</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.flowci</groupId>
       <artifactId>util</artifactId>
     </dependency>
 
@@ -72,12 +77,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-logging</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>

@@ -19,7 +19,7 @@ package com.flowci.core.job.config;
 import com.flowci.core.common.config.ConfigProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.helper.ThreadHelper;
-import com.flowci.domain.ExecutedCmd;
+import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.tree.NodeTree;
 import com.flowci.util.FileHelper;
 import com.github.benmanes.caffeine.cache.Cache;

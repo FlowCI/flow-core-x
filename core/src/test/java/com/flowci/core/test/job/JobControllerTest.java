@@ -29,8 +29,8 @@ import com.flowci.core.job.domain.JobItem;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.test.flow.FlowMockHelper;
-import com.flowci.domain.ExecutedCmd;
-import com.flowci.domain.ExecutedCmd.Status;
+import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.ExecutedCmd.Status;
 import com.flowci.domain.http.ResponseMessage;
 import com.flowci.util.StringHelper;
 

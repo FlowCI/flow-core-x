@@ -9,6 +9,7 @@ steps:
   script: |
     echo hello
 
+after:
 - name: step2
   allow_failure: true
   script: "echo 2"

@@ -16,13 +16,6 @@
 
 package com.flowci.zookeeper;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import lombok.Getter;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -33,7 +26,17 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.curator.retry.RetryNTimes;
+import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * @author yang
@@ -58,6 +61,10 @@ public class ZookeeperClient implements AutoCloseable {
         client = CuratorFrameworkFactory.newClient(connection, policy);
         this.timeout = timeOutInSeconds;
         this.watchExecutor = watchExecutor;
+    }
+
+    public String makePath(String parent, String child) {
+        return ZKPaths.makePath(parent, child);
     }
 
     public boolean start() {
@@ -89,8 +96,8 @@ public class ZookeeperClient implements AutoCloseable {
 
         try {
             return client.create()
-                .withMode(mode)
-                .forPath(path, data);
+                    .withMode(mode)
+                    .forPath(path, data);
         } catch (Throwable e) {
             throw new ZookeeperException("Fail to create node: {0}", e.getMessage());
         }
@@ -161,10 +168,32 @@ public class ZookeeperClient implements AutoCloseable {
             if (lock.isAcquiredInThisProcess()) {
                 try {
                     lock.release();
+                    delete(path, true);
                 } catch (Exception ignored) {
 
                 }
             }
+        }
+    }
+
+    public Optional<InterLock> lock(String path, int timeout) {
+        InterProcessMutex lock = new InterProcessMutex(client, path);
+        try {
+            if (lock.acquire(timeout, TimeUnit.SECONDS)) {
+                return Optional.of(new InterLock(path, lock));
+            }
+        } catch (Exception ignore) {
+
+        }
+        return Optional.empty();
+    }
+
+    public void release(InterLock lock) {
+        try {
+            lock.getLock().release();
+            delete(lock.getPath(), true);
+        } catch (Exception e) {
+            throw new ZookeeperException("Unable to release lock: {0}", e.getMessage());
         }
     }
 

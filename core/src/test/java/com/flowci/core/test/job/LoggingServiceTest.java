@@ -3,7 +3,7 @@ package com.flowci.core.test.job;
 import com.flowci.core.job.service.LoggingService;
 import com.flowci.core.job.service.StepService;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.domain.ExecutedCmd;
+import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.store.FileManager;
 import com.flowci.util.StringHelper;
 import java.io.IOException;

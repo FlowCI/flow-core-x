@@ -17,6 +17,7 @@
 package com.flowci.core.job.manager;
 
 import com.flowci.core.common.domain.Variables;
+import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.plugin.domain.*;
 import com.flowci.core.plugin.service.PluginService;
@@ -45,14 +46,13 @@ public class CmdManagerImpl implements CmdManager {
         CmdIn in = new CmdIn(cmd.getId(), CmdType.SHELL);
         in.setFlowId(cmd.getFlowId()); // default work dir is {agent dir}/{flow id}
         in.setJobId(cmd.getJobId());
-        in.setNodePath(cmd.getNodePath());
-        in.setDocker(cmd.getDocker());
 
-        // set inputs from step yaml env and job context, step yaml env has top priority
-        in.getInputs().merge(job.getContext()).merge(node.getEnvironments());
-
+        // load setting from yaml StepNode
+        in.setNodePath(node.getPathAsString());
+        in.setDocker(node.getDocker());
         in.addScript(node.getScript());
         in.addEnvFilters(node.getExports());
+        in.getInputs().merge(job.getContext()).merge(node.getEnvironments());
 
         if (node.hasPlugin()) {
             setPlugin(node.getPlugin(), in);

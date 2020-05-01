@@ -104,8 +104,8 @@ public class AgentServiceTest extends ZookeeperScenario {
 
         for (int i = 0; i < 5; i++) {
             executor.execute(() -> {
-                Boolean isLocked = agentService.tryLock(available);
-                if (isLocked) {
+                Optional<Agent> optional = agentService.tryLock("dummyJobId", available.getId());
+                if (optional.isPresent()) {
                     numOfLocked.incrementAndGet();
                 }
                 else {
@@ -123,7 +123,7 @@ public class AgentServiceTest extends ZookeeperScenario {
         Assert.assertEquals(Status.BUSY, getAgentStatus(agentService.getPath(available)));
 
         // when: release agent and mock event from agent
-        agentService.tryRelease(available);
+        agentService.tryRelease(available.getId());
 //        mockReleaseAgent(agentService.getPath(available));
 
         // then: the status should be idle

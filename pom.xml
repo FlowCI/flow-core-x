@@ -1,318 +1,371 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.flowci</groupId>
-  <artifactId>flow-platform-x</artifactId>
-  <packaging>pom</packaging>
-  <version>1.0-SNAPSHOT</version>
+    <groupId>com.flowci</groupId>
+    <artifactId>flow-platform-x</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
 
-  <modules>
-    <module>domain</module>
-    <module>core</module>
-    <module>util</module>
-    <module>exception</module>
-    <module>tree</module>
-    <module>zookeeper</module>
-    <module>pool</module>
-    <module>store</module>
-  </modules>
+    <modules>
+        <module>domain</module>
+        <module>core</module>
+        <module>util</module>
+        <module>exception</module>
+        <module>tree</module>
+        <module>zookeeper</module>
+        <module>pool</module>
+        <module>store</module>
+        <module>sm</module>
+    </modules>
 
-  <properties>
-    <lombok.version>1.18.0</lombok.version>
-    <guava.version>21.0</guava.version>
-    <junit.version>4.12</junit.version>
-    <spring.version>2.0.3.RELEASE</spring.version>
-    <snakeyaml.version>1.21</snakeyaml.version>
-    <jackson.version>2.10.1</jackson.version>
-    <curator.version>2.12.0</curator.version>
-    <caffeine.version>2.6.2</caffeine.version>
-    <h2.version>1.4.197</h2.version>
-    <wiremock.version>2.18.0</wiremock.version>
-    <swagger2.version>2.7.0</swagger2.version>
-    <jgit.version>5.0.3.201809091024-r</jgit.version>
-    <jsch.version>0.1.55</jsch.version>
-    <groovy-all.version>2.4.12</groovy-all.version>
-    <docker-java.version>3.1.5</docker-java.version>
-    <cron-utils.version>7.0.5</cron-utils.version>
-    <velocity-engine-core.version>2.1</velocity-engine-core.version>
-    <amqp-client.version>5.7.2</amqp-client.version>
-    <java-jwt.version>3.8.1</java-jwt.version>
-    <minio.version>6.0.11</minio.version>
-    <protobuf-java.version>3.11.4</protobuf-java.version>
-  </properties>
+    <properties>
+        <lombok.version>1.18.0</lombok.version>
+        <guava.version>21.0</guava.version>
+        <junit.version>4.12</junit.version>
+        <spring.version>2.1.9.RELEASE</spring.version>
+        <snakeyaml.version>1.21</snakeyaml.version>
+        <jackson.version>2.10.1</jackson.version>
+        <curator.version>2.12.0</curator.version>
+        <caffeine.version>2.6.2</caffeine.version>
+        <h2.version>1.4.197</h2.version>
+        <wiremock.version>2.18.0</wiremock.version>
+        <swagger2.version>2.7.0</swagger2.version>
+        <jgit.version>5.0.3.201809091024-r</jgit.version>
+        <jsch.version>0.1.55</jsch.version>
+        <groovy-all.version>2.4.12</groovy-all.version>
+        <docker-java.version>3.1.5</docker-java.version>
+        <cron-utils.version>7.0.5</cron-utils.version>
+        <velocity-engine-core.version>2.1</velocity-engine-core.version>
+        <amqp-client.version>5.7.2</amqp-client.version>
+        <java-jwt.version>3.8.1</java-jwt.version>
+        <minio.version>6.0.11</minio.version>
+        <protobuf-java.version>3.11.4</protobuf-java.version>
+        <log4j-core.version>2.11.2</log4j-core.version>
+    </properties>
 
-  <build>
-    <sourceDirectory>src/main/java</sourceDirectory>
+    <build>
+        <sourceDirectory>src/main/java</sourceDirectory>
 
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.6.1</version>
-        <configuration>
-          <source>8</source>
-          <target>8</target>
-          <encoding>UTF-8</encoding>
-        </configuration>
-      </plugin>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
 
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.2</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>prepare-agent</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>report</id>
-            <phase>test</phase>
-            <goals>
-              <goal>report</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <reportSets>
-          <reportSet>
-            <reports>
-              <report>report</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-    </plugins>
-  </reporting>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
 
-  <dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.flowci</groupId>
+                <artifactId>domain</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.flowci</groupId>
+                <artifactId>sm</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.flowci</groupId>
+                <artifactId>util</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.flowci</groupId>
+                <artifactId>tree</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.flowci</groupId>
+                <artifactId>pool</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.flowci</groupId>
+                <artifactId>store</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.flowci</groupId>
+                <artifactId>exception</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.flowci</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.auth0</groupId>
+                <artifactId>java-jwt</artifactId>
+                <version>${java-jwt.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf-java.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy-all</artifactId>
+                <version>${groovy-all.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.cronutils</groupId>
+                <artifactId>cron-utils</artifactId>
+                <version>${cron-utils.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.rabbitmq</groupId>
+                <artifactId>amqp-client</artifactId>
+                <version>${amqp-client.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.velocity</groupId>
+                <artifactId>velocity-engine-core</artifactId>
+                <version>${velocity-engine-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-web</artifactId>
+                <version>${spring.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-actuator</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-websocket</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-mongodb</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-log4j2</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-cache</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.jgit</groupId>
+                <artifactId>org.eclipse.jgit</artifactId>
+                <version>${jgit.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.jgit</groupId>
+                <artifactId>org.eclipse.jgit.http.server</artifactId>
+                <version>${jgit.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.jcraft</groupId>
+                <artifactId>jsch</artifactId>
+                <version>${jsch.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.docker-java</groupId>
+                <artifactId>docker-java</artifactId>
+                <version>${docker-java.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-swagger2</artifactId>
+                <version>${swagger2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-swagger-ui</artifactId>
+                <version>${swagger2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-recipes</artifactId>
+                <version>${curator.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-test</artifactId>
+                <version>${curator.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.tomakehurst</groupId>
+                <artifactId>wiremock</artifactId>
+                <version>${wiremock.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <!--Common required libraries-->
     <dependencies>
-      <dependency>
-        <groupId>com.flowci</groupId>
-        <artifactId>domain</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
-      <dependency>
-        <groupId>com.flowci</groupId>
-        <artifactId>util</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
 
-      <dependency>
-        <groupId>com.flowci</groupId>
-        <artifactId>tree</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.flowci</groupId>
-        <artifactId>pool</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.flowci</groupId>
-        <artifactId>store</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.flowci</groupId>
-        <artifactId>exception</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.flowci</groupId>
-        <artifactId>zookeeper</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.auth0</groupId>
-        <artifactId>java-jwt</artifactId>
-        <version>${java-jwt.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.google.protobuf</groupId>
-        <artifactId>protobuf-java</artifactId>
-        <version>${protobuf-java.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.codehaus.groovy</groupId>
-        <artifactId>groovy-all</artifactId>
-        <version>${groovy-all.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.cronutils</groupId>
-        <artifactId>cron-utils</artifactId>
-        <version>${cron-utils.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.rabbitmq</groupId>
-        <artifactId>amqp-client</artifactId>
-        <version>${amqp-client.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.github.ben-manes.caffeine</groupId>
-        <artifactId>caffeine</artifactId>
-        <version>${caffeine.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-core</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.apache.velocity</groupId>
-        <artifactId>velocity-engine-core</artifactId>
-        <version>${velocity-engine-core.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <version>${spring.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-        <version>${spring.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-logging</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-
-      <dependency>
-        <groupId>io.minio</groupId>
-        <artifactId>minio</artifactId>
-        <version>${minio.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.yaml</groupId>
-        <artifactId>snakeyaml</artifactId>
-        <version>${snakeyaml.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.eclipse.jgit</groupId>
-        <artifactId>org.eclipse.jgit</artifactId>
-        <version>${jgit.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.eclipse.jgit</groupId>
-        <artifactId>org.eclipse.jgit.http.server</artifactId>
-        <version>${jgit.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.jcraft</groupId>
-        <artifactId>jsch</artifactId>
-        <version>${jsch.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.github.docker-java</groupId>
-        <artifactId>docker-java</artifactId>
-        <version>${docker-java.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>io.springfox</groupId>
-        <artifactId>springfox-swagger2</artifactId>
-        <version>${swagger2.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>io.springfox</groupId>
-        <artifactId>springfox-swagger-ui</artifactId>
-        <version>${swagger2.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.apache.curator</groupId>
-        <artifactId>curator-recipes</artifactId>
-        <version>${curator.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.apache.curator</groupId>
-        <artifactId>curator-test</artifactId>
-        <version>${curator.version}</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${junit.version}</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
-        <groupId>com.github.tomakehurst</groupId>
-        <artifactId>wiremock</artifactId>
-        <version>${wiremock.version}</version>
-        <scope>test</scope>
-      </dependency>
-
+        <!-- keep the same version from spring log4j2 starter -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j-core.version}</version>
+        </dependency>
     </dependencies>
-  </dependencyManagement>
-
-  <!--Common required libraries-->
-  <dependencies>
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <version>${lombok.version}</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
-    </dependency>
-  </dependencies>
 
 </project>

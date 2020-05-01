@@ -26,10 +26,9 @@ import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.service.*;
 import com.flowci.core.user.domain.User;
-import com.flowci.domain.ExecutedCmd;
 import com.flowci.exception.ArgumentException;
-import com.flowci.exception.NotAvailableException;
 import com.flowci.tree.NodePath;
+import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -44,7 +43,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author yang
@@ -70,6 +68,9 @@ public class JobController {
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private JobActionService jobActionService;
 
     @Autowired
     private StepService stepService;
@@ -165,35 +166,32 @@ public class JobController {
     @PostMapping("/run")
     @Action(JobAction.RUN)
     public void createAndRun(@Validated @RequestBody CreateJob body) {
-        try {
+        final User current = sessionManager.get();
+
+        // start from thread since will be loading status
+        jobRunExecutor.execute(() -> {
+            sessionManager.set(current);
             Flow flow = flowService.get(body.getFlow());
             Yml yml = ymlService.getYml(flow);
             Job job = jobService.create(flow, yml.getRaw(), Trigger.API, body.getInputs());
-            jobService.start(job);
-        } catch (NotAvailableException e) {
-            Job job = (Job) e.getExtra();
-            jobService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
-        }
+            jobActionService.toStart(job);
+        });
     }
 
     @PostMapping("/rerun")
     @Action(JobAction.RUN)
     public void rerun(@Validated @RequestBody RerunJob body) {
-        try {
-            Job job = jobService.get(body.getJobId());
-            Flow flow = flowService.getById(job.getFlowId());
-            jobService.rerun(flow, job);
-        } catch (NotAvailableException e) {
-            Job job = (Job) e.getExtra();
-            jobService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
-        }
+        Job job = jobService.get(body.getJobId());
+        Flow flow = flowService.getById(job.getFlowId());
+        jobService.rerun(flow, job);
     }
 
     @PostMapping("/{flow}/{buildNumber}/cancel")
     @Action(JobAction.CANCEL)
     public Job cancel(@PathVariable String flow, @PathVariable String buildNumber) {
         Job job = get(flow, buildNumber);
-        return jobService.cancel(job);
+        jobActionService.toCancelled(job, StringHelper.EMPTY);
+        return job;
     }
 
     @GetMapping("/{flow}/{buildNumber}/reports")
@@ -222,8 +220,8 @@ public class JobController {
     @GetMapping(value = "/{flow}/{buildNumber}/artifacts/{artifactId}")
     @Action(JobAction.DOWNLOAD_ARTIFACT)
     public ResponseEntity<Resource> downloadArtifact(@PathVariable String flow,
-                                @PathVariable String buildNumber,
-                                @PathVariable String artifactId) {
+                                                     @PathVariable String buildNumber,
+                                                     @PathVariable String artifactId) {
         Job job = get(flow, buildNumber);
         JobArtifact artifact = artifactService.fetch(job, artifactId);
 

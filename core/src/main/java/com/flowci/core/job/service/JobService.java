@@ -62,33 +62,13 @@ public interface JobService {
     Job create(Flow flow, String yml, Trigger trigger, StringVars input);
 
     /**
-     * Send to job queue
-     */
-    Job start(Job job);
-
-    /**
      * Restart job
      */
     Job rerun(Flow flow, Job job);
 
     /**
-     * Force to stop the job if it's running
-     */
-    Job cancel(Job job);
-
-    /**
      * Delete all jobs of the flow within an executor
      */
     void delete(Flow flow);
-
-    /**
-     * Job is expired compare to now
-     */
-    boolean isExpired(Job job);
-
-    /**
-     * Save job, with new status, and publish job status change event
-     */
-    Job setJobStatusAndSave(Job job, Job.Status newStatus, String message);
 }
 
