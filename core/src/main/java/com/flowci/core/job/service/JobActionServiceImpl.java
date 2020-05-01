@@ -283,19 +283,34 @@ public class JobActionServiceImpl implements JobActionService {
 
     private void fromQueued() {
         Function<String, Boolean> canAcquireAgent = (jobId) -> {
-            ObjectWrapper<Job> out = new ObjectWrapper<>();
-            boolean canContinue = canContinue(jobId, out);
-            Job job = out.getValue();
+            Optional<InterProcessLock> lock = lockJob(jobId);
 
-            if (job.isExpired()) {
+            if (!lock.isPresent()) {
                 JobSmContext context = new JobSmContext();
-                context.setJob(job);
-                context.setError(new CIException("expired while waiting for agent"));
-                Sm.execute(Queued, Timeout, context);
+                context.setJob(jobDao.findById(jobId).get());
+                context.setError(new CIException("unexpected job status while waiting for agent"));
+                Sm.execute(Queued, Failure, context);
                 return false;
             }
 
-            return canContinue;
+            try {
+                log.debug("Job {} is locked", jobId);
+                ObjectWrapper<Job> out = new ObjectWrapper<>();
+                boolean canContinue = canContinue(jobId, out);
+                Job job = out.getValue();
+
+                if (job.isExpired()) {
+                    JobSmContext context = new JobSmContext();
+                    context.setJob(job);
+                    context.setError(new CIException("expired while waiting for agent"));
+                    Sm.execute(Queued, Timeout, context);
+                    return false;
+                }
+
+                return canContinue;
+            } finally {
+                releaseLock(lock.get(), jobId);
+            }
         };
 
         Sm.add(QueuedToTimeout, context -> {
@@ -345,21 +360,23 @@ public class JobActionServiceImpl implements JobActionService {
     private void fromRunning() {
         Sm.add(RunningToRunning, (context) -> {
             Job job = context.job;
-            ExecutedCmd execCmd = context.getStep();
+            Optional<InterProcessLock> lock = lockJob(job.getId());
 
-            Optional<InterProcessLock> lock = lockJob(job);
             if (!lock.isPresent()) {
                 log.debug("Fail to lock job {}", job.getId());
                 context.setError(new CIException("Unexpected status"));
                 Sm.execute(context.getCurrent(), Failure, context);
+                return;
             }
 
-            log.debug("Job {} is locked", job.getId());
-
             try {
-                toNextStep(context, job, execCmd);
+                log.debug("Job {} is locked", job.getId());
+
+                // refresh job after lock
+                context.job = jobDao.findById(job.getId()).get();
+                toNextStep(context);
             } finally {
-                releaseLock(lock.get(), job);
+                releaseLock(lock.get(), job.getId());
             }
         });
 
@@ -577,7 +594,10 @@ public class JobActionServiceImpl implements JobActionService {
         logInfo(job, "send to agent: step={}, agent={}", next.getName(), agent.getName());
     }
 
-    private void toNextStep(JobSmContext context, Job job, ExecutedCmd execCmd) {
+    private void toNextStep(JobSmContext context) {
+        Job job = context.job;
+        ExecutedCmd execCmd = context.step;
+
         // save executed cmd
         stepService.resultUpdate(execCmd);
         log.debug("Executed cmd {} been recorded", execCmd);
@@ -680,18 +700,18 @@ public class JobActionServiceImpl implements JobActionService {
         log.info("[Job] " + job.getKey() + " " + message, params);
     }
 
-    private Optional<InterProcessLock> lockJob(Job job) {
-        return zk.lock("/jobs/" + job.getId(), 10);
+    private Optional<InterProcessLock> lockJob(String jobId) {
+        return zk.lock("/jobs/" + jobId, 10);
     }
 
-    private void releaseLock(InterProcessLock lock, Job job) {
+    private void releaseLock(InterProcessLock lock, String jobId) {
         try {
             if (lock.isAcquiredInThisProcess()) {
                 lock.release();
-                log.debug("Job {} is released", job.getId());
+                log.debug("Job {} is released", jobId);
             }
-        } catch (Exception ignore) {
-            log.warn(ignore);
+        } catch (Exception warn) {
+            log.warn(warn);
         }
     }
 
