@@ -53,12 +53,14 @@ public class StateMachine<T extends Context> {
             return;
         }
 
+        if (!action.canRun(context)) {
+            return;
+        }
+
         try {
-            if (action.canRun(context)) {
-                action.accept(context);
-            }
+            action.accept(context);
         } catch (Throwable e) {
-            action.onException(context);
+            action.onException(e, context);
         } finally {
             action.onFinally(context);
         }

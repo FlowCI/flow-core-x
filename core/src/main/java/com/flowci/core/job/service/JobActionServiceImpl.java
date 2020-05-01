@@ -19,7 +19,6 @@ import com.flowci.core.secret.service.SecretService;
 import com.flowci.domain.*;
 import com.flowci.exception.CIException;
 import com.flowci.exception.NotAvailableException;
-import com.flowci.exception.NotFoundException;
 import com.flowci.sm.*;
 import com.flowci.tree.*;
 import com.flowci.util.StringHelper;
@@ -84,7 +83,7 @@ public class JobActionServiceImpl implements JobActionService {
     private static final Transition RunningToRunning = new Transition(Running, Running);
     private static final Transition RunningToSuccess = new Transition(Running, Success);
     private static final Transition RunningToCancelling = new Transition(Running, Cancelling);
-    private static final Transition RunningToCancel = new Transition(Running, Canceled);
+    private static final Transition RunningToCanceled = new Transition(Running, Canceled);
     private static final Transition RunningToTimeout = new Transition(Running, Timeout);
     private static final Transition RunningToFailure = new Transition(Running, Failure);
 
@@ -207,13 +206,14 @@ public class JobActionServiceImpl implements JobActionService {
                 Job job = context.job;
                 setJobStatusAndSave(job, Job.Status.LOADING, null);
 
-                try {
-                    context.yml = fetchYamlFromGit(job);
-                    Sm.execute(Loading, Created, context);
-                } catch (Throwable e) {
-                    context.setError(e);
-                    Sm.execute(Loading, Failure, context);
-                }
+                context.yml = fetchYamlFromGit(job);
+                Sm.execute(Loading, Created, context);
+            }
+
+            @Override
+            public void onException(Throwable e, JobSmContext context) {
+                context.setError(e);
+                Sm.execute(Loading, Failure, context);
             }
         });
     }
@@ -260,25 +260,34 @@ public class JobActionServiceImpl implements JobActionService {
         });
 
         Sm.add(CreatedToQueued, new Action<JobSmContext>() {
+
             @Override
-            public void accept(JobSmContext context) {
+            public boolean canRun(JobSmContext context) {
                 Job job = context.job;
 
                 if (job.isExpired()) {
                     Sm.execute(context.getCurrent(), Timeout, context);
-                    return;
+                    return false;
                 }
 
-                try {
-                    RabbitQueueOperation manager = flowJobQueueManager.get(job.getQueueName());
-                    setJobStatusAndSave(job, Job.Status.QUEUED, null);
+                return true;
+            }
 
-                    manager.send(job.getId().getBytes(), job.getPriority(), job.getExpire());
-                    logInfo(job, "enqueue");
-                } catch (Throwable e) {
-                    context.setError(new CIException("Unable to enqueue"));
-                    Sm.execute(context.getCurrent(), Failure, context);
-                }
+            @Override
+            public void accept(JobSmContext context) {
+                Job job = context.job;
+
+                RabbitQueueOperation manager = flowJobQueueManager.get(job.getQueueName());
+                setJobStatusAndSave(job, Job.Status.QUEUED, null);
+
+                manager.send(job.getId().getBytes(), job.getPriority(), job.getExpire());
+                logInfo(job, "enqueue");
+            }
+
+            @Override
+            public void onException(Throwable e, JobSmContext context) {
+                context.setError(new CIException("Unable to enqueue"));
+                Sm.execute(context.getCurrent(), Failure, context);
             }
         });
     }
@@ -337,17 +346,20 @@ public class JobActionServiceImpl implements JobActionService {
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 eventManager.publish(new JobReceivedEvent(this, job));
+
                 Optional<Agent> available = agentService.acquire(job, canAcquireAgent);
 
-                available.ifPresent(agent -> {
-                    try {
-                        dispatch(job, agent);
-                    } catch (Throwable e) {
-                        context.setAgentId(agent.getId());
-                        context.setError(e);
-                        Sm.execute(Queued, Failure, context);
-                    }
-                });
+                if (available.isPresent()) {
+                    Agent agent = available.get();
+                    context.agentId = agent.getId();
+                    dispatch(job, agent);
+                }
+            }
+
+            @Override
+            public void onException(Throwable e, JobSmContext context) {
+                context.setError(e);
+                Sm.execute(Queued, Failure, context);
             }
         });
 
@@ -374,7 +386,7 @@ public class JobActionServiceImpl implements JobActionService {
     private void fromRunning() {
         Sm.add(RunningToRunning, new Action<JobSmContext>() {
             @Override
-            public void accept(JobSmContext context) {
+            public boolean canRun(JobSmContext context) {
                 Job job = context.job;
                 Optional<InterProcessLock> lock = lockJob(job.getId());
 
@@ -382,18 +394,37 @@ public class JobActionServiceImpl implements JobActionService {
                     log.debug("Fail to lock job {}", job.getId());
                     context.setError(new CIException("Unexpected status"));
                     Sm.execute(context.getCurrent(), Failure, context);
-                    return;
+                    return false;
                 }
 
-                try {
-                    log.debug("Job {} is locked", job.getId());
+                context.lock = lock.get();
+                return true;
+            }
 
-                    // refresh job after lock
-                    context.job = jobDao.findById(job.getId()).get();
-                    toNextStep(context);
-                } finally {
-                    releaseLock(lock.get(), job.getId());
-                }
+            @Override
+            public void accept(JobSmContext context) {
+                Job job = context.job;
+
+                log.debug("Job {} is locked", job.getId());
+
+                // refresh job after lock
+                context.job = jobDao.findById(job.getId()).get();
+                toNextStep(context);
+            }
+
+            @Override
+            public void onException(Throwable e, JobSmContext context) {
+                Job job = context.job;
+                context.setError(e);
+                log.debug("Fail to dispatch job {} to agent {}", job.getId(), job.getAgentId(), e);
+                Sm.execute(context.getCurrent(), Failure, context);
+            }
+
+            @Override
+            public void onFinally(JobSmContext context) {
+                Job job = context.job;
+                InterProcessLock lock = context.getLock();
+                releaseLock(lock, job.getId());
             }
         });
 
@@ -412,22 +443,22 @@ public class JobActionServiceImpl implements JobActionService {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
+                Agent agent = agentService.get(job.getAgentId());
 
-                try {
-                    Agent agent = agentService.get(job.getAgentId());
+                setRestStepsToSkipped(job);
+                setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
 
-                    setRestStepsToSkipped(job);
-                    setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
-
-                    if (agent.isOnline()) {
-                        CmdIn killCmd = cmdManager.createKillCmd();
-                        agentService.dispatch(killCmd, agent);
-                        agentService.tryRelease(agent.getId());
-                    }
-
-                } catch (NotFoundException ignore) {
-                    setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
+                if (agent.isOnline()) {
+                    CmdIn killCmd = cmdManager.createKillCmd();
+                    agentService.dispatch(killCmd, agent);
+                    agentService.tryRelease(agent.getId());
                 }
+            }
+
+            @Override
+            public void onException(Throwable e, JobSmContext context) {
+                Job job = context.getJob();
+                setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
             }
         });
 
@@ -449,15 +480,17 @@ public class JobActionServiceImpl implements JobActionService {
 
                 stepService.toStatus(job.getId(), step.getNodePath(), ExecutedCmd.Status.EXCEPTION, null);
 
-                try {
-                    Agent agent = agentService.get(job.getAgentId());
-                    agentService.tryRelease(agent.getId());
-                } catch (NotFoundException ignore) {
-                    // ignore agent not found
-                }
+                Agent agent = agentService.get(job.getAgentId());
+                agentService.tryRelease(agent.getId());
 
                 logInfo(job, "finished with status {}", Failure);
                 setJobStatusAndSave(job, Job.Status.FAILURE, err.getMessage());
+            }
+
+            @Override
+            public void onException(Throwable e, JobSmContext context) {
+                Job job = context.getJob();
+                setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
             }
         });
 
@@ -472,22 +505,19 @@ public class JobActionServiceImpl implements JobActionService {
 
                 agentService.dispatch(killCmd, agent);
             }
+
+            @Override
+            public void onException(Throwable e, JobSmContext context) {
+                Sm.execute(context.getCurrent(), Canceled, context);
+            }
         });
 
-        Sm.add(RunningToCancel, new Action<JobSmContext>() {
+        Sm.add(RunningToCanceled, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 String reason = context.reasonForCancel;
-                Agent agent = null;
-
-                try {
-                    agent = agentService.get(job.getAgentId());
-                } catch (NotFoundException e) {
-                    setRestStepsToSkipped(job);
-                    setJobStatusAndSave(job, Job.Status.CANCELLED, "agent not found");
-                    return;
-                }
+                Agent agent = agentService.get(job.getAgentId());
 
                 if (agent.isOnline()) {
                     Sm.execute(context.getCurrent(), Cancelling, context);
@@ -497,6 +527,13 @@ public class JobActionServiceImpl implements JobActionService {
                 agentService.tryRelease(agent.getId());
                 setRestStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.CANCELLED, reason);
+            }
+
+            @Override
+            public void onException(Throwable e, JobSmContext context) {
+                Job job = context.job;
+                setRestStepsToSkipped(job);
+                setJobStatusAndSave(job, Job.Status.CANCELLED, e.getMessage());
             }
         });
     }
@@ -659,20 +696,13 @@ public class JobActionServiceImpl implements JobActionService {
             ExecutedCmd nextCmd = stepService.toStatus(job.getId(), nextPath, ExecutedCmd.Status.RUNNING, null);
             context.setStep(nextCmd);
 
-            try {
-                Agent agent = agentService.get(job.getAgentId());
-                CmdIn cmd = cmdManager.createShellCmd(job, next.get(), nextCmd);
-                setJobStatusAndSave(job, Job.Status.RUNNING, null);
+            Agent agent = agentService.get(job.getAgentId());
+            CmdIn cmd = cmdManager.createShellCmd(job, next.get(), nextCmd);
+            setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
-                agentService.dispatch(cmd, agent);
-                logInfo(job, "send to agent: step={}, agent={}", next.get().getName(), agent.getName());
-                return;
-            } catch (Throwable e) {
-                log.debug("Fail to dispatch job {} to agent {}", job.getId(), job.getAgentId(), e);
-                context.setError(e);
-                Sm.execute(context.getCurrent(), Failure, context);
-                return;
-            }
+            agentService.dispatch(cmd, agent);
+            logInfo(job, "send to agent: step={}, agent={}", next.get().getName(), agent.getName());
+            return;
         }
 
         // to finish status
@@ -779,5 +809,7 @@ public class JobActionServiceImpl implements JobActionService {
         private String agentId;
 
         private String reasonForCancel;
+
+        private InterProcessLock lock;
     }
 }

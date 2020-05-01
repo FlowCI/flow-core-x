@@ -8,7 +8,7 @@ public abstract class Action<T extends Context> implements Consumer<T> {
         return true;
     }
 
-    public void onException(T context) {
+    public void onException(Throwable e, T context) {
         // ignore by default
     }
 
