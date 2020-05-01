@@ -333,27 +333,26 @@ public class FlowServiceImpl implements FlowService {
 
             flow.setWebhookStatus(ws);
             update(flow);
-        } else {
-            Optional<Yml> optional = ymlDao.findById(flow.getId());
-
-            if (!optional.isPresent()) {
-                log.warn("No available yml for flow {}", flow.getName());
-                return;
-            }
-
-            Yml yml = optional.get();
-            FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
-
-            if (!canStartJob(root, event.getTrigger())) {
-                log.debug("Cannot start job since filter not matched on flow {}", flow.getName());
-                return;
-            }
-
-            StringVars gitInput = event.getTrigger().toVariableMap();
-            Trigger jobTrigger = event.getTrigger().toJobTrigger();
-
-            eventManager.publish(new CreateNewJobEvent(this, flow, yml.getRaw(), jobTrigger, gitInput));
+            return;
         }
+
+        Optional<Yml> optional = ymlDao.findById(flow.getId());
+        if (!optional.isPresent()) {
+            log.warn("No available yml for flow {}", flow.getName());
+            return;
+        }
+
+        Yml yml = optional.get();
+        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+        if (!canStartJob(root, event.getTrigger())) {
+            log.debug("Cannot start job since filter not matched on flow {}", flow.getName());
+            return;
+        }
+
+        StringVars gitInput = event.getTrigger().toVariableMap();
+        Trigger jobTrigger = event.getTrigger().toJobTrigger();
+
+        eventManager.publish(new CreateNewJobEvent(this, flow, yml.getRaw(), jobTrigger, gitInput));
     }
 
     // ====================================================================
