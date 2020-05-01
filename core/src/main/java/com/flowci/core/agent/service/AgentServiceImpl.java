@@ -522,8 +522,6 @@ public class AgentServiceImpl implements AgentService {
 
         @Override
         public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) {
-            ChildData data = event.getData();
-
             if (ChildOperations.contains(event.getType())) {
                 handleAgentStatusChange(event);
             }
@@ -531,6 +529,8 @@ public class AgentServiceImpl implements AgentService {
 
         private void handleAgentStatusChange(PathChildrenCacheEvent event) {
             String path = event.getData().getPath();
+
+            // TODO: handle status change only within one node
 
             // do not handle event from lock node
             if (path.endsWith(LockPathSuffix)) {

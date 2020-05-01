@@ -67,7 +67,7 @@ public class JobActionServiceImpl implements JobActionService {
 
     // loading
     private static final Transition LoadingToFailure = new Transition(Loading, Failure);
-    private static final Transition LoadingToCreated = new Transition(Loading, Queued);
+    private static final Transition LoadingToCreated = new Transition(Loading, Created);
 
     // created
     private static final Transition CreatedToQueued = new Transition(Created, Queued);
