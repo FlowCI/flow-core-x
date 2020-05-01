@@ -295,34 +295,19 @@ public class JobActionServiceImpl implements JobActionService {
 
     private void fromQueued() {
         Function<String, Boolean> canAcquireAgent = (jobId) -> {
-            Optional<InterLock> lock = lockJob(jobId);
+            ObjectWrapper<Job> out = new ObjectWrapper<>();
+            boolean canContinue = canContinue(jobId, out);
+            Job job = out.getValue();
 
-            if (!lock.isPresent()) {
+            if (job.isExpired()) {
                 JobSmContext context = new JobSmContext();
-                context.setJob(jobDao.findById(jobId).get());
-                context.setError(new CIException("unexpected job status while waiting for agent"));
-                Sm.execute(Queued, Failure, context);
+                context.setJob(job);
+                context.setError(new CIException("expired while waiting for agent"));
+                Sm.execute(Queued, Timeout, context);
                 return false;
             }
 
-            try {
-                log.debug("Job {} is locked", jobId);
-                ObjectWrapper<Job> out = new ObjectWrapper<>();
-                boolean canContinue = canContinue(jobId, out);
-                Job job = out.getValue();
-
-                if (job.isExpired()) {
-                    JobSmContext context = new JobSmContext();
-                    context.setJob(job);
-                    context.setError(new CIException("expired while waiting for agent"));
-                    Sm.execute(Queued, Timeout, context);
-                    return false;
-                }
-
-                return canContinue;
-            } finally {
-                releaseLock(lock.get(), jobId);
-            }
+            return canContinue;
         };
 
         Sm.add(QueuedToTimeout, new Action<JobSmContext>() {
