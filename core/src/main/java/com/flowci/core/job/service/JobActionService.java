@@ -15,9 +15,7 @@ public interface JobActionService {
 
     void toContinue(Job job, ExecutedCmd step);
 
-    void toCancel(Job job, String reason);
+    void toCancelled(Job job, String reason);
 
     void toTimeout(Job job);
-
-    void toFailure(Job job, Throwable e);
 }

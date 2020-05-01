@@ -157,7 +157,7 @@ public class JobEventServiceImpl implements JobEventService {
         }
 
         Job job = jobService.get(agent.getJobId());
-        jobActionService.toCancel(job, "Agent unexpected offline");
+        jobActionService.toCancelled(job, "Agent unexpected offline");
     }
 
     //====================================================================

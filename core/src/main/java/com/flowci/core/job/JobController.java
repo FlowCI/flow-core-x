@@ -190,7 +190,7 @@ public class JobController {
     @Action(JobAction.CANCEL)
     public Job cancel(@PathVariable String flow, @PathVariable String buildNumber) {
         Job job = get(flow, buildNumber);
-        jobActionService.toCancel(job, StringHelper.EMPTY);
+        jobActionService.toCancelled(job, StringHelper.EMPTY);
         return job;
     }
 

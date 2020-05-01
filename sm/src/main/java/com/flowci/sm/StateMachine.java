@@ -8,6 +8,7 @@ import lombok.extern.log4j.Log4j2;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 @Log4j2
 @Setter
@@ -17,14 +18,12 @@ public class StateMachine<T extends Context> {
 
     private final Map<Status, Map<Status, Action<T>>> actions = new HashMap<>();
 
+    private final Map<Status, Consumer<T>> hooksOnTargetStatus = new HashMap<>();
+
     private final String name;
 
-    public void addHookActionOnTargetStatus(Status target, Action<T> action) {
-
-    }
-
-    public void addHookActionOnSourceStatus(Status source, Action<T> action) {
-
+    public void addHookActionOnTargetStatus(Status target, Consumer<T> action) {
+        hooksOnTargetStatus.put(target, action);
     }
 
     public void add(Transition t, Action<T> action) {
@@ -55,6 +54,12 @@ public class StateMachine<T extends Context> {
 
         if (!action.canRun(context)) {
             return;
+        }
+
+        // execute target hook
+        Consumer<T> targetHook = hooksOnTargetStatus.get(target);
+        if (targetHook != null) {
+            targetHook.accept(context);
         }
 
         try {

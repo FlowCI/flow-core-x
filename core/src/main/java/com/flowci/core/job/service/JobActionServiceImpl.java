@@ -19,16 +19,17 @@ import com.flowci.core.secret.service.SecretService;
 import com.flowci.domain.*;
 import com.flowci.exception.CIException;
 import com.flowci.exception.NotAvailableException;
+import com.flowci.exception.StatusException;
 import com.flowci.sm.*;
 import com.flowci.tree.*;
 import com.flowci.util.StringHelper;
+import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.base.Strings;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.log4j.Log4j2;
-import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -133,6 +134,13 @@ public class JobActionServiceImpl implements JobActionService {
         fromQueued();
         fromRunning();
         fromCancelling();
+
+        Sm.addHookActionOnTargetStatus(Cancelled, context -> {
+            Job job = context.job;
+            if (hasJobLock(job.getId())) {
+                throw new StatusException("Unable to cancel right now, try later");
+            }
+        });
     }
 
     @Override
@@ -170,7 +178,7 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     @Override
-    public void toCancel(Job job, String reason) {
+    public void toCancelled(Job job, String reason) {
         on(job, Job.Status.CANCELLED, context -> {
             context.reasonForCancel = reason;
         });
@@ -179,13 +187,6 @@ public class JobActionServiceImpl implements JobActionService {
     @Override
     public void toTimeout(Job job) {
         on(job, Job.Status.TIMEOUT, null);
-    }
-
-    @Override
-    public void toFailure(Job job, Throwable e) {
-        on(job, Job.Status.FAILURE, (context) -> {
-            context.setError(e);
-        });
     }
 
     private void fromPending() {
@@ -294,7 +295,7 @@ public class JobActionServiceImpl implements JobActionService {
 
     private void fromQueued() {
         Function<String, Boolean> canAcquireAgent = (jobId) -> {
-            Optional<InterProcessLock> lock = lockJob(jobId);
+            Optional<InterLock> lock = lockJob(jobId);
 
             if (!lock.isPresent()) {
                 JobSmContext context = new JobSmContext();
@@ -388,7 +389,7 @@ public class JobActionServiceImpl implements JobActionService {
             @Override
             public boolean canRun(JobSmContext context) {
                 Job job = context.job;
-                Optional<InterProcessLock> lock = lockJob(job.getId());
+                Optional<InterLock> lock = lockJob(job.getId());
 
                 if (!lock.isPresent()) {
                     log.debug("Fail to lock job {}", job.getId());
@@ -423,7 +424,7 @@ public class JobActionServiceImpl implements JobActionService {
             @Override
             public void onFinally(JobSmContext context) {
                 Job job = context.job;
-                InterProcessLock lock = context.getLock();
+                InterLock lock = context.getLock();
                 releaseLock(lock, job.getId());
             }
         });
@@ -780,16 +781,20 @@ public class JobActionServiceImpl implements JobActionService {
         log.info("[Job] " + job.getKey() + " " + message, params);
     }
 
-    private Optional<InterProcessLock> lockJob(String jobId) {
-        return zk.lock("/jobs/" + jobId, 10);
+    private Optional<InterLock> lockJob(String jobId) {
+        String path = zk.makePath("/job-locks", jobId);
+        return zk.lock(path, 10);
     }
 
-    private void releaseLock(InterProcessLock lock, String jobId) {
+    private boolean hasJobLock(String jobId) {
+        String path = zk.makePath("/job-locks", jobId);
+        return zk.exist(path);
+    }
+
+    private void releaseLock(InterLock lock, String jobId) {
         try {
-            if (lock.isAcquiredInThisProcess()) {
-                lock.release();
-                log.debug("Job {} is released", jobId);
-            }
+            zk.release(lock);
+            log.debug("Job {} is released", jobId);
         } catch (Exception warn) {
             log.warn(warn);
         }
@@ -810,6 +815,6 @@ public class JobActionServiceImpl implements JobActionService {
 
         private String reasonForCancel;
 
-        private InterProcessLock lock;
+        private InterLock lock;
     }
 }
