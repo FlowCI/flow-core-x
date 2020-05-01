@@ -52,7 +52,7 @@ public class JobActionServiceImpl implements JobActionService {
     private static final Status Pending = new Status(Job.Status.PENDING.name());
     private static final Status Created = new Status(Job.Status.CREATED.name());
     private static final Status Loading = new Status(Job.Status.LOADING.name());
-    private static final Status Canceled = new Status(Job.Status.CANCELLED.name());
+    private static final Status Cancelled = new Status(Job.Status.CANCELLED.name());
     private static final Status Cancelling = new Status(Job.Status.CANCELLING.name());
     private static final Status Queued = new Status(Job.Status.QUEUED.name());
     private static final Status Running = new Status(Job.Status.RUNNING.name());
@@ -74,7 +74,7 @@ public class JobActionServiceImpl implements JobActionService {
     private static final Transition CreatedToFailure = new Transition(Created, Failure);
 
     // queued
-    private static final Transition QueuedToCancel = new Transition(Queued, Canceled);
+    private static final Transition QueuedToCancelled = new Transition(Queued, Cancelled);
     private static final Transition QueuedToRunning = new Transition(Queued, Running);
     private static final Transition QueuedToTimeout = new Transition(Queued, Timeout);
     private static final Transition QueuedToFailure = new Transition(Queued, Failure);
@@ -83,12 +83,12 @@ public class JobActionServiceImpl implements JobActionService {
     private static final Transition RunningToRunning = new Transition(Running, Running);
     private static final Transition RunningToSuccess = new Transition(Running, Success);
     private static final Transition RunningToCancelling = new Transition(Running, Cancelling);
-    private static final Transition RunningToCanceled = new Transition(Running, Canceled);
+    private static final Transition RunningToCanceled = new Transition(Running, Cancelled);
     private static final Transition RunningToTimeout = new Transition(Running, Timeout);
     private static final Transition RunningToFailure = new Transition(Running, Failure);
 
     // cancelling
-    private static final Transition CancellingToCancel = new Transition(Cancelling, Canceled);
+    private static final Transition CancellingToCancelled = new Transition(Cancelling, Cancelled);
 
     private static final StateMachine<JobSmContext> Sm = new StateMachine<>("JOB_STATUS");
 
@@ -333,7 +333,7 @@ public class JobActionServiceImpl implements JobActionService {
             }
         });
 
-        Sm.add(QueuedToCancel, new Action<JobSmContext>() {
+        Sm.add(QueuedToCancelled, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
@@ -508,7 +508,7 @@ public class JobActionServiceImpl implements JobActionService {
 
             @Override
             public void onException(Throwable e, JobSmContext context) {
-                Sm.execute(context.getCurrent(), Canceled, context);
+                Sm.execute(context.getCurrent(), Cancelled, context);
             }
         });
 
@@ -539,7 +539,7 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     private void fromCancelling() {
-        Sm.add(CancellingToCancel, new Action<JobSmContext>() {
+        Sm.add(CancellingToCancelled, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
