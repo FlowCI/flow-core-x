@@ -563,7 +563,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         @Override
         public void create(AgentHost host) {
             SshAgentHost sshHost = (SshAgentHost) host;
-            Preconditions.checkArgument(sshHost.getSecret() != null, "Credential name must be defined");
+            Preconditions.checkArgument(sshHost.getSecret() != null, "Secret name must be defined");
 
             sshHost.setCreatedAt(new Date());
             sshHost.setCreatedBy(sessionManager.getUserId());
@@ -577,7 +577,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             eventManager.publish(event);
 
             Secret c = event.getSecret();
-            Preconditions.checkArgument(c != null, "Credential not found");
+            Preconditions.checkArgument(c != null, "Secret not found");
             Preconditions.checkArgument(c.getCategory() == SSH_RSA, "Invalid credential category");
 
             RSASecret rsa = (RSASecret) c;

@@ -73,7 +73,7 @@ public class SecretServiceImpl implements SecretService {
         if (optional.isPresent()) {
             return optional.get();
         }
-        throw new NotFoundException("Credential {0} is not found", name);
+        throw new NotFoundException("Secret {0} is not found", name);
     }
 
     @Override
@@ -134,7 +134,7 @@ public class SecretServiceImpl implements SecretService {
             credential.setCreatedBy(sessionManager.getUserId());
             return secretDao.insert(credential);
         } catch (DuplicateKeyException e) {
-            throw new DuplicateException("Credential name {0} is already defined", credential.getName());
+            throw new DuplicateException("Secret name {0} is already defined", credential.getName());
         }
     }
 }
