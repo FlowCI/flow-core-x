@@ -290,7 +290,9 @@ public class JobServiceImpl implements JobService {
         context.mergeFromTypedVars(flow.getLocally());
 
         context.put(Variables.App.Url, serverUrl);
+
         context.put(Variables.Flow.Name, flow.getName());
+        context.put(Variables.Flow.GitRepo, flow.getName());
 
         context.put(Variables.Job.Status, Job.Status.PENDING.name());
         context.put(Variables.Job.Trigger, job.getTrigger().toString());
