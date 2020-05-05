@@ -21,8 +21,6 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitChannelOperation;
-import com.flowci.core.secret.domain.Secret;
-import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowUserDao;
 import com.flowci.core.flow.dao.YmlDao;
@@ -35,6 +33,10 @@ import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.CreateNewJobEvent;
+import com.flowci.core.secret.domain.Secret;
+import com.flowci.core.secret.event.CreateAuthEvent;
+import com.flowci.core.secret.event.CreateRsaEvent;
+import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.core.trigger.domain.GitPingTrigger;
 import com.flowci.core.trigger.domain.GitPushTrigger;
 import com.flowci.core.trigger.domain.GitTrigger;
@@ -47,7 +49,11 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
-import com.flowci.tree.*;
+import com.flowci.tree.FlowNode;
+import com.flowci.tree.NodePath;
+import com.flowci.tree.TriggerFilter;
+import com.flowci.tree.YmlParser;
+import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
@@ -94,9 +100,6 @@ public class FlowServiceImpl implements FlowService {
     private FileManager fileManager;
 
     @Autowired
-    private SecretService secretService;
-
-    @Autowired
     private RabbitChannelOperation jobQueueManager;
 
     // ====================================================================
@@ -110,9 +113,13 @@ public class FlowServiceImpl implements FlowService {
     }
 
     @Override
-    public List<Flow> listByCredential(String credentialName) {
-        Secret secret = secretService.get(credentialName);
+    public List<Flow> listByCredential(String secretName) {
+        GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, secretName));
+        if (!event.hasSecret()) {
+            throw new NotFoundException("Secret {0} not found", secretName);
+        }
 
+        Secret secret = event.getSecret();
         List<Flow> list = list(Status.CONFIRMED);
         Iterator<Flow> iter = list.iterator();
 
@@ -202,12 +209,14 @@ public class FlowServiceImpl implements FlowService {
             throw new DuplicateException("Flow {0} has created", name);
         }
 
+        Vars<VarValue> localVars = flow.getLocally();
+
         if (StringHelper.hasValue(gitUrl)) {
-            flow.getLocally().put(Variables.Flow.GitUrl, VarValue.of(gitUrl, VarType.GIT_URL, true));
+            localVars.put(Variables.Flow.GitUrl, VarValue.of(gitUrl, VarType.GIT_URL, true));
         }
 
         if (StringHelper.hasValue(credential)) {
-            flow.getLocally().put(Variables.Flow.GitCredential, VarValue.of(credential, VarType.STRING, true));
+            localVars.put(Variables.Flow.GitCredential, VarValue.of(credential, VarType.STRING, true));
         }
 
         flow.setStatus(Status.CONFIRMED);
@@ -258,20 +267,22 @@ public class FlowServiceImpl implements FlowService {
     public String setSshRsaCredential(String name, SimpleKeyPair pair) {
         Flow flow = get(name);
 
-        String credentialName = "flow-" + flow.getName() + "-ssh-rsa";
-        secretService.createRSA(credentialName, pair);
+        String secretName = "flow-" + flow.getName() + "-ssh-rsa";
+        CreateRsaEvent event = eventManager.publish(new CreateRsaEvent(this, secretName, pair));
 
-        return credentialName;
+        ObjectsHelper.throwIfNotNull(event.getErr());
+        return secretName;
     }
 
     @Override
     public String setAuthCredential(String name, SimpleAuthPair keyPair) {
         Flow flow = get(name);
 
-        String credentialName = "flow-" + flow.getName() + "-auth";
-        secretService.createAuth(credentialName, keyPair);
+        String secretName = "flow-" + flow.getName() + "-auth";
+        CreateAuthEvent event = eventManager.publish(new CreateAuthEvent(this, secretName, keyPair));
 
-        return credentialName;
+        ObjectsHelper.throwIfNotNull(event.getErr());
+        return secretName;
     }
 
     @Override

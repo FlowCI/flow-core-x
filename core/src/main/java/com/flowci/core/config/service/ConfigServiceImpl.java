@@ -40,12 +40,11 @@ public class ConfigServiceImpl implements ConfigService {
 
         if (smtp.hasSecret()) {
             GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, smtp.getSecret()));
-            Secret secret = event.getSecret();
-
-            if (Objects.isNull(secret)) {
+            if (!event.hasSecret()) {
                 throw new NotFoundException("The secret {0} not found", smtp.getSecret());
             }
 
+            Secret secret = event.getSecret();
             if (secret.getCategory() != Secret.Category.AUTH) {
                 throw new ArgumentException("Invalid secret type");
             }

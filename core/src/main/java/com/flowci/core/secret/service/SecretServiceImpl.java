@@ -22,6 +22,8 @@ import com.flowci.core.secret.dao.SecretDao;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
+import com.flowci.core.secret.event.CreateAuthEvent;
+import com.flowci.core.secret.event.CreateRsaEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
@@ -123,6 +125,26 @@ public class SecretServiceImpl implements SecretService {
             Secret c = get(event.getName());
             event.setSecret(c);
         } catch (NotFoundException ignore) {
+        }
+    }
+
+    @EventListener
+    public void onCreateRsaEvent(CreateRsaEvent event) {
+        try {
+            RSASecret secret = createRSA(event.getName(), event.getPair());
+            event.setSecret(secret);
+        } catch (DuplicateException e) {
+            event.setErr(e);
+        }
+    }
+
+    @EventListener
+    public void onCreateAuthEvent(CreateAuthEvent event) {
+        try {
+            AuthSecret secret = createAuth(event.getName(), event.getPair());
+            event.setSecret(secret);
+        } catch (DuplicateException e) {
+            event.setErr(e);
         }
     }
 
