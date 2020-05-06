@@ -19,6 +19,7 @@ package com.flowci.core.api.service;
 
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
+import com.flowci.core.config.domain.Config;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.flow.domain.StatsCounter;
 import com.flowci.core.user.domain.User;
@@ -32,6 +33,11 @@ public interface OpenRestService {
      * Get credential data by name
      */
     Secret getSecret(String name);
+
+    /**
+     * Get config by name
+     */
+    Config getConfig(String name);
 
     /**
      * Save statistic data for flow

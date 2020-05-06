@@ -21,6 +21,7 @@ import com.flowci.core.api.domain.AddStatsItem;
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.api.service.OpenRestService;
+import com.flowci.core.config.domain.Config;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.flow.domain.StatsCounter;
@@ -50,15 +51,19 @@ public class OpenRestController {
 
     @GetMapping("/credential/{name}")
     public Secret getSecret(@PathVariable String name) {
-        Secret credential = openRestService.getSecret(name);
-        credential.cleanDBInfo();
+        Secret secret = openRestService.getSecret(name);
 
-        if (credential instanceof RSASecret) {
-            RSASecret rsa = (RSASecret) credential;
+        if (secret instanceof RSASecret) {
+            RSASecret rsa = (RSASecret) secret;
             rsa.setPublicKey(null);
         }
 
-        return credential;
+        return secret;
+    }
+
+    @GetMapping("/config/{name}")
+    public Config getConfig(@PathVariable String name) {
+        return openRestService.getConfig(name);
     }
 
     @GetMapping("/flow/{name}/users")
