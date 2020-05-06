@@ -1,6 +1,8 @@
 package com.flowci.core.config;
 
+import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.config.domain.Config;
+import com.flowci.core.config.domain.ConfigAction;
 import com.flowci.core.config.domain.CreateSmtp;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.service.ConfigService;
@@ -18,18 +20,27 @@ public class ConfigController {
     private ConfigService configService;
 
     @GetMapping
+    @Action(ConfigAction.LIST)
     public List<Config> list() {
         return configService.list();
     }
 
     @PostMapping
+    @Action(ConfigAction.CREATE)
     public Config create(@Validated @RequestBody CreateSmtp body) {
         SmtpConfig config = body.toConfig();
         return configService.create(config);
     }
 
     @GetMapping("/{name}")
+    @Action(ConfigAction.GET)
     public Config get(@PathVariable String name) {
         return configService.get(name);
+    }
+
+    @DeleteMapping("/{name}")
+    @Action(ConfigAction.DELETE)
+    public Config delete(@PathVariable String name) {
+        return configService.delete(name);
     }
 }

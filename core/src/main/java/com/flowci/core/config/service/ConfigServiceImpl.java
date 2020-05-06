@@ -76,6 +76,13 @@ public class ConfigServiceImpl implements ConfigService {
         return save(smtp);
     }
 
+    @Override
+    public Config delete(String name) {
+        Config config = get(name);
+        configDao.deleteById(config.getId());
+        return config;
+    }
+
     private <T extends Config> T save(T config) {
         try {
             Date now = Date.from(Instant.now());

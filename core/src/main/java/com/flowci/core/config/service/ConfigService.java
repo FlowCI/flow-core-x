@@ -15,4 +15,5 @@ public interface ConfigService {
 
     Config create(SmtpConfig smtpConfig);
 
+    Config delete(String name);
 }
