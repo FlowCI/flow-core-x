@@ -25,7 +25,7 @@ public class ConfigController {
         return configService.list();
     }
 
-    @PostMapping
+    @PostMapping("/smtp")
     @Action(ConfigAction.CREATE)
     public Config create(@Validated @RequestBody CreateSmtp body) {
         SmtpConfig config = body.toConfig();
