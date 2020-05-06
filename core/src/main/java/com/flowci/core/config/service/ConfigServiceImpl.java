@@ -1,5 +1,6 @@
 package com.flowci.core.config.service;
 
+import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.dao.ConfigDao;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -31,6 +33,25 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Autowired
     private SpringEventManager eventManager;
+
+    @Override
+    public Config get(String name) {
+        Optional<Config> optional = configDao.findByName(name);
+        if (!optional.isPresent()) {
+            throw new NotFoundException("Configuration name {0} is not found", name);
+        }
+        return optional.get();
+    }
+
+    @Override
+    public List<Config> list() {
+        return configDao.findAll(Mongoable.SortByCreatedAtASC);
+    }
+
+    @Override
+    public List<Config> list(Config.Category category) {
+        return configDao.findAllByCategoryOrderByCreatedAtAsc(category);
+    }
 
     @Override
     public Config create(SmtpConfig smtp) {
@@ -53,15 +74,6 @@ public class ConfigServiceImpl implements ConfigService {
         }
 
         return save(smtp);
-    }
-
-    @Override
-    public Config get(String name) {
-        Optional<Config> optional = configDao.findByName(name);
-        if (!optional.isPresent()) {
-            throw new NotFoundException("Configuration name {0} is not found", name);
-        }
-        return optional.get();
     }
 
     private <T extends Config> T save(T config) {

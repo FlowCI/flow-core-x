@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.domain.Sort;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -33,6 +34,8 @@ import java.util.Date;
 @Getter
 @Setter
 public abstract class Mongoable implements Serializable {
+
+    public final static Sort SortByCreatedAtASC = new Sort(Sort.Direction.ASC, "createdAt");
 
     @Id
     protected String id;

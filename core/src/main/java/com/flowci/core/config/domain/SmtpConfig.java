@@ -4,10 +4,12 @@ import com.flowci.domain.SimpleAuthPair;
 import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @Setter
+@Accessors(chain = true)
 @Document(collection = "configuration")
 public class SmtpConfig extends Config {
 

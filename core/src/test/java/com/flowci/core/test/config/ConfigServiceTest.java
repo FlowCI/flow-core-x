@@ -14,6 +14,9 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import static com.flowci.core.config.domain.Config.Category.FILE;
+import static com.flowci.core.config.domain.Config.Category.SMTP;
+
 public class ConfigServiceTest extends SpringScenario {
 
     @MockBean
@@ -47,8 +50,15 @@ public class ConfigServiceTest extends SpringScenario {
         configService.create(config);
 
         // then:
+        config = (SmtpConfig) configService.get(config.getName());
         Assert.assertNotNull(config.getId());
         Assert.assertEquals(mockSecret.getUsername(), config.getAuth().getUsername());
         Assert.assertEquals(mockSecret.getPassword(), config.getAuth().getPassword());
+
+        // then: test list
+        Assert.assertEquals(1, configService.list().size());
+        Assert.assertEquals(config, configService.list().get(0));
+        Assert.assertEquals(1, configService.list(SMTP).size());
+        Assert.assertEquals(0, configService.list(FILE).size());
     }
 }

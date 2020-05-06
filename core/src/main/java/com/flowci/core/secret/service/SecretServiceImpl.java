@@ -16,6 +16,7 @@
 
 package com.flowci.core.secret.service;
 
+import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.secret.dao.SecretDao;
@@ -57,7 +58,7 @@ public class SecretServiceImpl implements SecretService {
 
     @Override
     public List<Secret> list() {
-        return secretDao.findAll(Sort.by("createdAt"));
+        return secretDao.findAll(Mongoable.SortByCreatedAtASC);
     }
 
     @Override
