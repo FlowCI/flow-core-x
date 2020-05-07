@@ -20,6 +20,9 @@ public final class CreateSmtp {
     @NonNull
     private Integer port;
 
+    @NonNull
+    private Boolean isSecure;
+
     private String username;
 
     private String password;
@@ -31,6 +34,7 @@ public final class CreateSmtp {
                 .setServer(server)
                 .setPort(port)
                 .setSecret(secret)
+                .setIsSecure(isSecure)
                 .setAuth(SimpleAuthPair.of(username, password));
 
         smtpConfig.setName(name);

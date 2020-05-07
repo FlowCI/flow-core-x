@@ -21,12 +21,14 @@ import com.flowci.domain.SimpleSecret;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author yang
  */
 @Getter
 @Setter
+@Document(collection = "secret")
 public class Secret extends Mongoable {
 
     public enum Category {

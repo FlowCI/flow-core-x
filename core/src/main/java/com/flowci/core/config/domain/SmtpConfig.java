@@ -21,6 +21,8 @@ public class SmtpConfig extends Config {
 
     private String secret; // could specify secret name instead auth pair
 
+    private Boolean isSecure;
+
     public SmtpConfig() {
         setCategory(Category.SMTP);
     }
