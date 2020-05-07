@@ -91,6 +91,14 @@ public class ConfigServiceImpl implements ConfigService {
     private <T extends Config> T insertOrUpdate(T config) {
         try {
             if (config.hasId()) {
+                Optional<Config> optional = configDao.findById(config.getId());
+                if (!optional.isPresent()) {
+                    throw new NotFoundException("Config not found");
+                }
+
+                Config exist = optional.get();
+                config.setCreatedAt(exist.getCreatedAt());
+                config.setCreatedBy(exist.getCreatedBy());
                 return configDao.save(config);
             }
 
