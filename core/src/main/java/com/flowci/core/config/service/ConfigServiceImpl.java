@@ -88,7 +88,7 @@ public class ConfigServiceImpl implements ConfigService {
             Date now = Date.from(Instant.now());
             config.setUpdatedAt(now);
             config.setCreatedAt(now);
-            config.setCreatedBy(sessionManager.getUserId());
+            config.setCreatedBy(sessionManager.getUserEmail());
             return configDao.insert(config);
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Configuration name {0} is already defined", config.getName());

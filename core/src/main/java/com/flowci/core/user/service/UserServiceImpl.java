@@ -83,8 +83,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> list(Collection<String> ids) {
-        Iterable<User> all = userDao.findAllById(ids);
+    public List<User> list(Collection<String> emails) {
+        Iterable<User> all = userDao.findAllByEmailIn(emails);
         return Lists.newArrayList(all);
     }
 
@@ -102,7 +102,7 @@ public class UserServiceImpl implements UserService {
             User user = new User(email, passwordOnMd5, role);
             user.setCreatedAt(now);
             user.setUpdatedAt(now);
-            user.setCreatedBy(sessionManager.exist() ? sessionManager.getUserId() : DefaultCreator);
+            user.setCreatedBy(sessionManager.exist() ? sessionManager.getUserEmail() : DefaultCreator);
             return userDao.insert(user);
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Email {0} is already existed", email);
@@ -141,7 +141,7 @@ public class UserServiceImpl implements UserService {
 
         target.setRole(newRole);
         target.setUpdatedAt(Date.from(Instant.now()));
-        target.setUpdatedBy(sessionManager.getUserId());
+        target.setUpdatedBy(sessionManager.getUserEmail());
         userDao.save(target);
     }
 

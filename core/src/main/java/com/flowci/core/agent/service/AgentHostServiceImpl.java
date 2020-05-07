@@ -566,7 +566,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             Preconditions.checkArgument(sshHost.getSecret() != null, "Secret name must be defined");
 
             sshHost.setCreatedAt(new Date());
-            sshHost.setCreatedBy(sessionManager.getUserId());
+            sshHost.setCreatedBy(sessionManager.getUserEmail());
             agentHostDao.insert(sshHost);
         }
 

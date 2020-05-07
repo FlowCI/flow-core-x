@@ -196,7 +196,7 @@ public class JobServiceImpl implements JobService {
         job.setStatus(Job.Status.PENDING);
         job.setTrigger(Trigger.MANUAL);
         job.setCurrentPath(root.getPathAsString());
-        job.setCreatedBy(sessionManager.getUserId());
+        job.setCreatedBy(sessionManager.getUserEmail());
 
         // re-init job context
         Vars<String> context = job.getContext();
@@ -260,7 +260,7 @@ public class JobServiceImpl implements JobService {
 
         // setup created by form login user or git event author
         if (sessionManager.exist()) {
-            job.setCreatedBy(sessionManager.getUserId());
+            job.setCreatedBy(sessionManager.getUserEmail());
             job.getContext().put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         } else {
             String createdBy = job.getContext().get(GIT_AUTHOR, "Unknown");

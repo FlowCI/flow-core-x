@@ -34,9 +34,9 @@ public interface UserService {
     Page<User> list(Pageable pageable);
 
     /**
-     * List users by given ids
+     * List users by given emails
      */
-    List<User> list(Collection<String> ids);
+    List<User> list(Collection<String> emails);
 
     /**
      * Get default admin user

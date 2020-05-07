@@ -154,7 +154,7 @@ public class SecretServiceImpl implements SecretService {
             Date now = Date.from(Instant.now());
             credential.setUpdatedAt(now);
             credential.setCreatedAt(now);
-            credential.setCreatedBy(sessionManager.getUserId());
+            credential.setCreatedBy(sessionManager.getUserEmail());
             return secretDao.insert(credential);
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Secret name {0} is already defined", credential.getName());

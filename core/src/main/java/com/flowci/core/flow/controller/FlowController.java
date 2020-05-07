@@ -119,26 +119,26 @@ public class FlowController {
 
     @PostMapping("/{name}/users")
     @Action(FlowAction.ADD_USER)
-    public List<User> addUsers(@PathVariable String name, @RequestBody String[] userIds) {
+    public List<User> addUsers(@PathVariable String name, @RequestBody String[] emails) {
         Flow flow = flowService.get(name);
-        flowService.addUsers(flow, userIds);
-        return userService.list(Lists.newArrayList(userIds));
+        flowService.addUsers(flow, emails);
+        return userService.list(Lists.newArrayList(emails));
     }
 
     @DeleteMapping("/{name}/users")
     @Action(FlowAction.REMOVE_USER)
-    public List<User> removeUsers(@PathVariable String name, @RequestBody String[] userIds) {
+    public List<User> removeUsers(@PathVariable String name, @RequestBody String[] emails) {
         Flow flow = flowService.get(name);
-        flowService.removeUsers(flow, userIds);
-        return userService.list(Lists.newArrayList(userIds));
+        flowService.removeUsers(flow, emails);
+        return userService.list(Lists.newArrayList(emails));
     }
 
     @GetMapping("/{name}/users")
     @Action(FlowAction.LIST_USER)
     public List<User> listUsers(@PathVariable String name) {
         Flow flow = flowService.get(name);
-        List<String> ids = flowService.listUsers(flow);
-        return userService.list(ids);
+        List<String> emails = flowService.listUsers(flow);
+        return userService.list(emails);
     }
 
     @PostMapping("/{name}/variables")

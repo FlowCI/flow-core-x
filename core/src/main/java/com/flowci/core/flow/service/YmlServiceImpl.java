@@ -108,7 +108,7 @@ public class YmlServiceImpl implements YmlService {
         }
 
         Yml ymlObj = new Yml(flow.getId(), yml);
-        ymlObj.setCreatedBy(sessionManager.getUserId());
+        ymlObj.setCreatedBy(sessionManager.getUserEmail());
         ymlDao.save(ymlObj);
 
         // sync flow envs from yml root envs

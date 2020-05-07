@@ -108,8 +108,18 @@ public class FlowServiceImpl implements FlowService {
 
     @Override
     public List<Flow> list(Status status) {
-        String userId = sessionManager.getUserId();
-        return list(userId, status);
+        if (sessionManager.get().isAdmin()) {
+            return flowDao.findAll();
+        }
+
+        String email = sessionManager.getUserEmail();
+        List<String> flowIds = flowUserDao.findAllFlowsByUserEmail(email);
+
+        if (flowIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return flowDao.findAllByIdInAndStatus(flowIds, status);
     }
 
     @Override
@@ -136,17 +146,6 @@ public class FlowServiceImpl implements FlowService {
     }
 
     @Override
-    public List<Flow> list(String userId, Status status) {
-        List<String> flowIds = flowUserDao.findAllFlowsByUserId(userId);
-
-        if (flowIds.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return flowDao.findAllByIdInAndStatus(flowIds, status);
-    }
-
-    @Override
     public Boolean exist(String name) {
         try {
             Flow flow = get(name);
@@ -163,7 +162,7 @@ public class FlowServiceImpl implements FlowService {
             throw new ArgumentException(message, name);
         }
 
-        String userId = sessionManager.getUserId();
+        String email = sessionManager.getUserEmail();
 
         Flow flow = flowDao.findByName(name);
         if (flow != null && flow.getStatus() == Status.CONFIRMED) {
@@ -171,12 +170,12 @@ public class FlowServiceImpl implements FlowService {
         }
 
         // reuse from pending list
-        List<Flow> pending = flowDao.findAllByStatusAndCreatedBy(Status.PENDING, userId);
+        List<Flow> pending = flowDao.findAllByStatusAndCreatedBy(Status.PENDING, email);
         flow = pending.size() > 0 ? pending.get(0) : new Flow();
 
         // set properties
         flow.setName(name);
-        flow.setCreatedBy(userId);
+        flow.setCreatedBy(email);
 
         setupDefaultVars(flow);
 
@@ -286,8 +285,8 @@ public class FlowServiceImpl implements FlowService {
     }
 
     @Override
-    public void addUsers(Flow flow, String... userIds) {
-        flowUserDao.insert(flow.getId(), Sets.newHashSet(userIds));
+    public void addUsers(Flow flow, String... emails) {
+        flowUserDao.insert(flow.getId(), Sets.newHashSet(emails));
     }
 
     @Override
@@ -296,18 +295,18 @@ public class FlowServiceImpl implements FlowService {
     }
 
     @Override
-    public void removeUsers(Flow flow, String... userIds) {
-        Set<String> idSet = Sets.newHashSet(userIds);
+    public void removeUsers(Flow flow, String... emails) {
+        Set<String> emailSet = Sets.newHashSet(emails);
 
-        if (idSet.contains(flow.getCreatedBy())) {
+        if (emailSet.contains(flow.getCreatedBy())) {
             throw new ArgumentException("Cannot remove user who create the flow");
         }
 
-        if (idSet.contains(sessionManager.getUserId())) {
+        if (emailSet.contains(sessionManager.getUserEmail())) {
             throw new ArgumentException("Cannot remove current user from flow");
         }
 
-        flowUserDao.remove(flow.getId(), idSet);
+        flowUserDao.remove(flow.getId(), emailSet);
     }
 
     // ====================================================================

@@ -44,8 +44,14 @@ public abstract class Mongoable implements Serializable {
 
     protected Date updatedAt;
 
+    /**
+     * User email
+     */
     protected String createdBy;
 
+    /**
+     * User email
+     */
     protected String updatedBy;
 
     public void cleanDBInfo() {

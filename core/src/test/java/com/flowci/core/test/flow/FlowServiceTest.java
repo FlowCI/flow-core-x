@@ -19,12 +19,6 @@ package com.flowci.core.test.flow;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.Variables;
-import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.secret.domain.AuthSecret;
-import com.flowci.core.secret.domain.RSASecret;
-import com.flowci.core.secret.event.CreateRsaEvent;
-import com.flowci.core.secret.event.GetSecretEvent;
-import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.domain.Yml;
@@ -32,6 +26,8 @@ import com.flowci.core.flow.event.GitTestEvent;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.GitService;
 import com.flowci.core.flow.service.YmlService;
+import com.flowci.core.secret.domain.AuthSecret;
+import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
@@ -41,22 +37,16 @@ import com.flowci.domain.http.ResponseMessage;
 import com.flowci.exception.ArgumentException;
 import com.flowci.tree.Node;
 import com.flowci.tree.YmlParser;
+import org.junit.*;
+import org.junit.runners.MethodSorters;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
 
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationListener;
 
 /**
  * @author yang
@@ -110,7 +100,7 @@ public class FlowServiceTest extends SpringScenario {
         Flow second = flowService.create("test-2");
         flowService.confirm(second.getName(), null, null);
 
-        List<Flow> list = flowService.list(sessionManager.getUserId(), Status.CONFIRMED);
+        List<Flow> list = flowService.list(Status.CONFIRMED);
         Assert.assertEquals(2, list.size());
         Assert.assertEquals(first, list.get(0));
         Assert.assertEquals(second, list.get(1));
@@ -197,8 +187,8 @@ public class FlowServiceTest extends SpringScenario {
     public void should_list_remote_branches_via_ssh_rsa() throws IOException, InterruptedException {
         // init: load private key
         TypeReference<ResponseMessage<SimpleKeyPair>> keyPairResponseType =
-            new TypeReference<ResponseMessage<SimpleKeyPair>>() {
-            };
+                new TypeReference<ResponseMessage<SimpleKeyPair>>() {
+                };
 
         ResponseMessage<SimpleKeyPair> r = objectMapper.readValue(load("rsa-test.json"), keyPairResponseType);
 

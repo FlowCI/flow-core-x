@@ -12,6 +12,9 @@ import javax.validation.constraints.NotEmpty;
 public final class CreateSmtp {
 
     @NotEmpty
+    private String name;
+
+    @NotEmpty
     private String server;
 
     @NonNull
@@ -24,10 +27,13 @@ public final class CreateSmtp {
     private String secret;
 
     public SmtpConfig toConfig() {
-        return new SmtpConfig()
+        SmtpConfig smtpConfig = new SmtpConfig()
                 .setServer(server)
                 .setPort(port)
                 .setSecret(secret)
                 .setAuth(SimpleAuthPair.of(username, password));
+
+        smtpConfig.setName(name);
+        return smtpConfig;
     }
 }

@@ -37,8 +37,8 @@ public class SessionManager {
         return user;
     }
 
-    public String getUserId() {
-        return get().getId();
+    public String getUserEmail() {
+        return get().getEmail();
     }
 
     public void set(User user) {
