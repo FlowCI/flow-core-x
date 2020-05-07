@@ -9,7 +9,9 @@ import javax.validation.constraints.NotEmpty;
 
 @Getter
 @Setter
-public final class CreateSmtp {
+public final class CreateOrUpdateSmtp {
+
+    private String id;
 
     @NotEmpty
     private String name;
@@ -23,9 +25,7 @@ public final class CreateSmtp {
     @NonNull
     private Boolean isSecure;
 
-    private String username;
-
-    private String password;
+    private SimpleAuthPair auth;
 
     private String secret;
 
@@ -35,8 +35,9 @@ public final class CreateSmtp {
                 .setPort(port)
                 .setSecret(secret)
                 .setIsSecure(isSecure)
-                .setAuth(SimpleAuthPair.of(username, password));
+                .setAuth(auth);
 
+        smtpConfig.setId(id);
         smtpConfig.setName(name);
         return smtpConfig;
     }

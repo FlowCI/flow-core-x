@@ -12,6 +12,7 @@ import com.flowci.domain.SimpleAuthPair;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
+import com.flowci.util.ObjectsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -54,26 +55,30 @@ public class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
-    public Config create(SmtpConfig smtp) {
+    public Config save(SmtpConfig smtp) {
         Objects.requireNonNull(smtp.getName(), "Config name is required");
         Objects.requireNonNull(smtp.getServer(), "Smtp server address is required");
         Objects.requireNonNull(smtp.getPort(), "Smtp port is required");
 
         if (smtp.hasSecret()) {
-            GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, smtp.getSecret()));
-            if (!event.hasSecret()) {
-                throw new NotFoundException("The secret {0} not found", smtp.getSecret());
-            }
-
-            Secret secret = event.getSecret();
-            if (secret.getCategory() != Secret.Category.AUTH) {
-                throw new ArgumentException("Invalid secret type");
-            }
-
-            smtp.setAuth((SimpleAuthPair) secret.toSimpleSecret());
+            setAuthFromSecret(smtp);
         }
 
-        return save(smtp);
+        return insertOrUpdate(smtp);
+    }
+
+    private void setAuthFromSecret(SmtpConfig smtp) {
+        GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, smtp.getSecret()));
+        if (!event.hasSecret()) {
+            throw new NotFoundException("The secret {0} not found", smtp.getSecret());
+        }
+
+        Secret secret = event.getSecret();
+        if (secret.getCategory() != Secret.Category.AUTH) {
+            throw new ArgumentException("Invalid secret type");
+        }
+
+        smtp.setAuth((SimpleAuthPair) secret.toSimpleSecret());
     }
 
     @Override
@@ -83,12 +88,12 @@ public class ConfigServiceImpl implements ConfigService {
         return config;
     }
 
-    private <T extends Config> T save(T config) {
+    private <T extends Config> T insertOrUpdate(T config) {
         try {
-            Date now = Date.from(Instant.now());
-            config.setUpdatedAt(now);
-            config.setCreatedAt(now);
-            config.setCreatedBy(sessionManager.getUserEmail());
+            if (config.hasId()) {
+                return configDao.save(config);
+            }
+
             return configDao.insert(config);
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Configuration name {0} is already defined", config.getName());

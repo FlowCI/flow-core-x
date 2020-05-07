@@ -13,7 +13,10 @@ public interface ConfigService {
 
     List<Config> list(Config.Category category);
 
-    Config create(SmtpConfig smtpConfig);
+    /**
+     * Create or update config
+     */
+    Config save(SmtpConfig smtpConfig);
 
     Config delete(String name);
 }

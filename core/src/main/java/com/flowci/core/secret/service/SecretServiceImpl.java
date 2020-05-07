@@ -151,9 +151,6 @@ public class SecretServiceImpl implements SecretService {
 
     private <T extends Secret> T save(T credential) {
         try {
-            Date now = Date.from(Instant.now());
-            credential.setUpdatedAt(now);
-            credential.setCreatedAt(now);
             credential.setCreatedBy(sessionManager.getUserEmail());
             return secretDao.insert(credential);
         } catch (DuplicateKeyException e) {

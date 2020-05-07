@@ -3,7 +3,7 @@ package com.flowci.core.config;
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.domain.ConfigAction;
-import com.flowci.core.config.domain.CreateSmtp;
+import com.flowci.core.config.domain.CreateOrUpdateSmtp;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.service.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +27,9 @@ public class ConfigController {
 
     @PostMapping("/smtp")
     @Action(ConfigAction.CREATE)
-    public Config create(@Validated @RequestBody CreateSmtp body) {
+    public Config save(@Validated @RequestBody CreateOrUpdateSmtp body) {
         SmtpConfig config = body.toConfig();
-        return configService.create(config);
+        return configService.save(config);
     }
 
     @GetMapping("/{name}")

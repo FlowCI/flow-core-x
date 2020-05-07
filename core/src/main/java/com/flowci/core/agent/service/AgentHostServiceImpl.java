@@ -529,7 +529,6 @@ public class AgentHostServiceImpl implements AgentHostService {
             }
 
             try {
-                host.setCreatedAt(new Date());
                 host.setCreatedBy(User.DefaultSystemUser);
                 agentHostDao.insert(host);
             } catch (Exception e) {
@@ -565,7 +564,6 @@ public class AgentHostServiceImpl implements AgentHostService {
             SshAgentHost sshHost = (SshAgentHost) host;
             Preconditions.checkArgument(sshHost.getSecret() != null, "Secret name must be defined");
 
-            sshHost.setCreatedAt(new Date());
             sshHost.setCreatedBy(sessionManager.getUserEmail());
             agentHostDao.insert(sshHost);
         }

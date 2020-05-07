@@ -47,11 +47,15 @@ public class ConfigServiceTest extends SpringScenario {
         config.setServer("smtp.google.com");
         config.setPort(25);
         config.setSecret(mockSecret.getName());
-        configService.create(config);
+        configService.save(config);
 
         // then:
         config = (SmtpConfig) configService.get(config.getName());
         Assert.assertNotNull(config.getId());
+        Assert.assertNotNull(config.getCreatedAt());
+        Assert.assertNotNull(config.getUpdatedAt());
+        Assert.assertNotNull(config.getCreatedBy());
+        Assert.assertNotNull(config.getUpdatedBy());
         Assert.assertEquals(mockSecret.getUsername(), config.getAuth().getUsername());
         Assert.assertEquals(mockSecret.getPassword(), config.getAuth().getPassword());
 

@@ -248,7 +248,6 @@ public class JobServiceImpl implements JobService {
         job.setFlowName(flow.getName());
         job.setTrigger(trigger);
         job.setBuildNumber(jobNumber.getNumber());
-        job.setCreatedAt(Date.from(Instant.now()));
         job.setTimeout(jobProperties.getTimeoutInSeconds());
         job.setExpire(jobProperties.getExpireInSeconds());
         job.setYamlFromRepo(flow.isYamlFromRepo());

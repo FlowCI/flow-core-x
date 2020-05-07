@@ -97,11 +97,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User create(String email, String passwordOnMd5, User.Role role) {
         try {
-            Date now = Date.from(Instant.now());
-
             User user = new User(email, passwordOnMd5, role);
-            user.setCreatedAt(now);
-            user.setUpdatedAt(now);
             user.setCreatedBy(sessionManager.exist() ? sessionManager.getUserEmail() : DefaultCreator);
             return userDao.insert(user);
         } catch (DuplicateKeyException e) {
