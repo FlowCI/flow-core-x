@@ -49,7 +49,7 @@ public class OpenRestController {
     @Autowired
     private OpenRestService openRestService;
 
-    @GetMapping("/credential/{name}")
+    @GetMapping("/secret/{name}")
     public Secret getSecret(@PathVariable String name) {
         Secret secret = openRestService.getSecret(name);
 
