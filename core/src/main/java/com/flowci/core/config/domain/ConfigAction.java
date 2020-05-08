@@ -6,14 +6,14 @@ public abstract class ConfigAction {
 
     public static final String GET = "get_config";
 
-    public static final String CREATE = "create_config";
+    public static final String SAVE = "create_or_update_config";
 
     public static final String DELETE = "delete_config";
 
     public static final String[] ALL = {
             LIST,
             GET,
-            CREATE,
+            SAVE,
             DELETE
     };
 }

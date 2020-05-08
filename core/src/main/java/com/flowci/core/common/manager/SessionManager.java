@@ -17,6 +17,7 @@
 
 package com.flowci.core.common.manager;
 
+import com.flowci.core.common.domain.SyncEvent;
 import com.flowci.core.user.domain.User;
 import com.flowci.exception.AuthenticationException;
 import org.springframework.data.domain.AuditorAware;
@@ -25,7 +26,7 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 @Component
-public class SessionManager implements AuditorAware<String> {
+public class SessionManager implements AuditorAware<String>, SyncEvent {
 
     private final ThreadLocal<User> currentUser = new ThreadLocal<>();
 

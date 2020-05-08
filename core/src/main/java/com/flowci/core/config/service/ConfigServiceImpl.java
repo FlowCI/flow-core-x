@@ -5,6 +5,7 @@ import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.dao.ConfigDao;
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.domain.SmtpConfig;
+import com.flowci.core.config.domain.SmtpOption;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.domain.SimpleAuthPair;
@@ -48,22 +49,36 @@ public class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
-    public Config save(SmtpConfig smtp) {
-        Objects.requireNonNull(smtp.getName(), "Config name is required");
-        Objects.requireNonNull(smtp.getServer(), "Smtp server address is required");
-        Objects.requireNonNull(smtp.getPort(), "Smtp port is required");
+    public Config save(String name, SmtpOption option) {
+        Objects.requireNonNull(name, "Config name is required");
 
-        if (smtp.hasSecret()) {
-            setAuthFromSecret(smtp);
+        SmtpConfig config;
+
+        Optional<Config> optional = configDao.findByName(name);
+        if (optional.isPresent()) {
+            config = (SmtpConfig) optional.get();
+        } else {
+            config = new SmtpConfig();
+            config.setName(name);
         }
 
-        return insertOrUpdate(smtp);
+        config.setSmtp(option);
+
+        if (config.hasSecret()) {
+            setAuthFromSecret(config);
+        }
+
+        try {
+            return configDao.save(config);
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateException("Config name {0} is already defined", config.getName());
+        }
     }
 
-    private void setAuthFromSecret(SmtpConfig smtp) {
-        GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, smtp.getSecret()));
+    private void setAuthFromSecret(SmtpConfig config) {
+        GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, config.getSecret()));
         if (!event.hasSecret()) {
-            throw new NotFoundException("The secret {0} not found", smtp.getSecret());
+            throw new NotFoundException("The secret {0} not found", config.getSecret());
         }
 
         Secret secret = event.getSecret();
@@ -71,7 +86,7 @@ public class ConfigServiceImpl implements ConfigService {
             throw new ArgumentException("Invalid secret type");
         }
 
-        smtp.setAuth((SimpleAuthPair) secret.toSimpleSecret());
+        config.setAuth((SimpleAuthPair) secret.toSimpleSecret());
     }
 
     @Override
@@ -79,25 +94,5 @@ public class ConfigServiceImpl implements ConfigService {
         Config config = get(name);
         configDao.deleteById(config.getId());
         return config;
-    }
-
-    private <T extends Config> T insertOrUpdate(T config) {
-        try {
-            if (config.hasId()) {
-                Optional<Config> optional = configDao.findById(config.getId());
-                if (!optional.isPresent()) {
-                    throw new NotFoundException("Config not found");
-                }
-
-                Config exist = optional.get();
-                config.setCreatedAt(exist.getCreatedAt());
-                config.setCreatedBy(exist.getCreatedBy());
-                return configDao.save(config);
-            }
-
-            return configDao.insert(config);
-        } catch (DuplicateKeyException e) {
-            throw new DuplicateException("Configuration name {0} is already defined", config.getName());
-        }
     }
 }

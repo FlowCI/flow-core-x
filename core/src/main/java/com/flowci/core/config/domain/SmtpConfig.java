@@ -1,5 +1,6 @@
 package com.flowci.core.config.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.util.StringHelper;
 import lombok.Getter;
@@ -13,21 +14,27 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "configuration")
 public class SmtpConfig extends Config {
 
-    private String server; // smtp server
-
-    private Integer port; // smtp server port, 465 (SSL) or 587 (TLS)
-
-    private SimpleAuthPair auth; // smtp server username, password
-
-    private String secret; // could specify secret name instead auth pair
-
-    private Boolean isSecure;
+    private SmtpOption smtp;
 
     public SmtpConfig() {
         setCategory(Category.SMTP);
     }
 
     public boolean hasSecret() {
-        return StringHelper.hasValue(secret);
+        return StringHelper.hasValue(smtp.getSecret());
+    }
+
+    @JsonIgnore
+    public String getSecret() {
+        return smtp.getSecret();
+    }
+
+    @JsonIgnore
+    public SimpleAuthPair getAuth() {
+        return smtp.getAuth();
+    }
+
+    public void setAuth(SimpleAuthPair auth) {
+        this.smtp.setAuth(auth);
     }
 }

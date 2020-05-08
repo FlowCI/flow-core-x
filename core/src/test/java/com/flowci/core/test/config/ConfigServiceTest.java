@@ -1,7 +1,9 @@
 package com.flowci.core.test.config;
 
+import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.domain.SmtpConfig;
+import com.flowci.core.config.domain.SmtpOption;
 import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.event.GetSecretEvent;
@@ -23,6 +25,9 @@ public class ConfigServiceTest extends SpringScenario {
     private SpringEventManager eventManager;
 
     @Autowired
+    private SessionManager sessionManager;
+
+    @Autowired
     private ConfigService configService;
 
     @Before
@@ -42,20 +47,19 @@ public class ConfigServiceTest extends SpringScenario {
         Mockito.when(eventManager.publish(Mockito.any())).thenReturn(mockEvent);
 
         // when:
-        SmtpConfig config = new SmtpConfig();
-        config.setName("smtp-config");
-        config.setServer("smtp.google.com");
-        config.setPort(25);
-        config.setSecret(mockSecret.getName());
-        configService.save(config);
+        SmtpOption option = new SmtpOption();
+        option.setServer("smtp.google.com");
+        option.setPort(25);
+        option.setSecret(mockSecret.getName());
+        configService.save("smtp-config", option);
 
         // then:
-        config = (SmtpConfig) configService.get(config.getName());
+        SmtpConfig config = (SmtpConfig) configService.get("smtp-config");
         Assert.assertNotNull(config.getId());
         Assert.assertNotNull(config.getCreatedAt());
         Assert.assertNotNull(config.getUpdatedAt());
-        Assert.assertNotNull(config.getCreatedBy());
-        Assert.assertNotNull(config.getUpdatedBy());
+        Assert.assertEquals(sessionManager.getUserEmail(), config.getCreatedBy());
+        Assert.assertEquals(sessionManager.getUserEmail(), config.getUpdatedBy());
         Assert.assertEquals(mockSecret.getUsername(), config.getAuth().getUsername());
         Assert.assertEquals(mockSecret.getPassword(), config.getAuth().getPassword());
 

@@ -1,7 +1,7 @@
 package com.flowci.core.config.service;
 
 import com.flowci.core.config.domain.Config;
-import com.flowci.core.config.domain.SmtpConfig;
+import com.flowci.core.config.domain.SmtpOption;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public interface ConfigService {
     /**
      * Create or update config
      */
-    Config save(SmtpConfig smtpConfig);
+    Config save(String name, SmtpOption option);
 
     Config delete(String name);
 }
