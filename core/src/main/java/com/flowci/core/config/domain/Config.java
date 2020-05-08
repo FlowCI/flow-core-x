@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @Document(collection = "configuration")
-public class Config extends Mongoable {
+public abstract class Config extends Mongoable {
 
     public enum Category {
 

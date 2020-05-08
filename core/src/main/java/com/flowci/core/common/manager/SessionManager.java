@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 @Component
-public class SessionManager implements AuditorAware<String>, SyncEvent {
+public class SessionManager implements AuditorAware<String> {
 
     private final ThreadLocal<User> currentUser = new ThreadLocal<>();
 

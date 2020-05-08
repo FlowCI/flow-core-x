@@ -19,6 +19,7 @@ package com.flowci.core.test.flow;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.Variables;
+import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.domain.Yml;
@@ -58,6 +59,9 @@ public class FlowServiceTest extends SpringScenario {
     private ObjectMapper objectMapper;
 
     @Autowired
+    private SessionManager sessionManager;
+
+    @Autowired
     private FlowService flowService;
 
     @Autowired
@@ -78,8 +82,10 @@ public class FlowServiceTest extends SpringScenario {
     }
 
     @Test
-    public void should_have_default_vars() {
+    public void should_create_with_default_vars() {
         final Flow flow = flowService.create("vars-test");
+        should_has_db_info(flow);
+
         final Vars<VarValue> vars = flow.getLocally();
         Assert.assertEquals(2, vars.size());
 

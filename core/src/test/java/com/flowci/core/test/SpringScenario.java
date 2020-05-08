@@ -17,6 +17,7 @@
 package com.flowci.core.test;
 
 import com.flowci.core.agent.dao.AgentDao;
+import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.rabbit.RabbitChannelOperation;
 import com.flowci.core.common.rabbit.RabbitQueueOperation;
@@ -35,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -147,6 +149,13 @@ public abstract class SpringScenario {
         for (Flow flow : flowDao.findAll()) {
             flowJobQueueManager.remove(flow.getQueueName());
         }
+    }
+
+    protected void should_has_db_info(Mongoable obj) {
+        Assert.assertNotNull(obj.getCreatedAt());
+        Assert.assertNotNull(obj.getUpdatedAt());
+        Assert.assertEquals(sessionManager.getUserEmail(), obj.getCreatedBy());
+        Assert.assertEquals(sessionManager.getUserEmail(), obj.getUpdatedBy());
     }
 
     protected ApplicationListener<?> addEventListener(ApplicationListener<?> listener) {
