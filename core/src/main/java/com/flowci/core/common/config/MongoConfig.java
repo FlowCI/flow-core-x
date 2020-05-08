@@ -40,7 +40,7 @@ import java.util.List;
  */
 @Log4j2
 @Configuration
-@EnableMongoAuditing
+@EnableMongoAuditing(auditorAwareRef = "sessionManager")
 public class MongoConfig extends AbstractMongoConfiguration {
 
     @Autowired

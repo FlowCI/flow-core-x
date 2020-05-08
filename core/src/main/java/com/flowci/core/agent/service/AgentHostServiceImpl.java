@@ -563,8 +563,6 @@ public class AgentHostServiceImpl implements AgentHostService {
         public void create(AgentHost host) {
             SshAgentHost sshHost = (SshAgentHost) host;
             Preconditions.checkArgument(sshHost.getSecret() != null, "Secret name must be defined");
-
-            sshHost.setCreatedBy(sessionManager.getUserEmail());
             agentHostDao.insert(sshHost);
         }
 

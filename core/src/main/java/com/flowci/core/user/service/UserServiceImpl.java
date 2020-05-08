@@ -27,14 +27,6 @@ import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.util.HashingHelper;
-
-import java.time.Instant;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import javax.annotation.PostConstruct;
-
 import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,14 +35,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+
 /**
  * @author yang
  */
 @Log4j2
 @Service
 public class UserServiceImpl implements UserService {
-
-    private static final String DefaultCreator = "System";
 
     @Autowired
     private ConfigProperties.Admin adminProperties;
@@ -98,7 +93,6 @@ public class UserServiceImpl implements UserService {
     public User create(String email, String passwordOnMd5, User.Role role) {
         try {
             User user = new User(email, passwordOnMd5, role);
-            user.setCreatedBy(sessionManager.exist() ? sessionManager.getUserEmail() : DefaultCreator);
             return userDao.insert(user);
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Email {0} is already existed", email);
@@ -120,7 +114,6 @@ public class UserServiceImpl implements UserService {
 
         if (Objects.equals(user.getPasswordOnMd5(), oldOnMd5)) {
             user.setPasswordOnMd5(newOnMd5);
-            user.setUpdatedAt(Date.from(Instant.now()));
             userDao.save(user);
             return;
         }
@@ -136,8 +129,6 @@ public class UserServiceImpl implements UserService {
         }
 
         target.setRole(newRole);
-        target.setUpdatedAt(Date.from(Instant.now()));
-        target.setUpdatedBy(sessionManager.getUserEmail());
         userDao.save(target);
     }
 

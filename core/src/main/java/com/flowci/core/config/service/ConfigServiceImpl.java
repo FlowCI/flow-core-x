@@ -1,7 +1,6 @@
 package com.flowci.core.config.service;
 
 import com.flowci.core.common.domain.Mongoable;
-import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.dao.ConfigDao;
 import com.flowci.core.config.domain.Config;
@@ -12,13 +11,10 @@ import com.flowci.domain.SimpleAuthPair;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
-import com.flowci.util.ObjectsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,9 +24,6 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Autowired
     private ConfigDao configDao;
-
-    @Autowired
-    private SessionManager sessionManager;
 
     @Autowired
     private SpringEventManager eventManager;

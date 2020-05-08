@@ -259,8 +259,7 @@ public class JobServiceImpl implements JobService {
 
         // setup created by form login user or git event author
         if (sessionManager.exist()) {
-            job.setCreatedBy(sessionManager.getUserEmail());
-            job.getContext().put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
+            job.getContext().put(Variables.Job.TriggerBy, sessionManager.getUserEmail());
         } else {
             String createdBy = job.getContext().get(GIT_AUTHOR, "Unknown");
             job.setCreatedBy(createdBy);

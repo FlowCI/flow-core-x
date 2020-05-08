@@ -151,7 +151,6 @@ public class SecretServiceImpl implements SecretService {
 
     private <T extends Secret> T save(T credential) {
         try {
-            credential.setCreatedBy(sessionManager.getUserEmail());
             return secretDao.insert(credential);
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Secret name {0} is already defined", credential.getName());

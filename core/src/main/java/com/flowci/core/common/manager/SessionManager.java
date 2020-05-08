@@ -19,15 +19,25 @@ package com.flowci.core.common.manager;
 
 import com.flowci.core.user.domain.User;
 import com.flowci.exception.AuthenticationException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
+import java.util.Optional;
 
 @Component
-public class SessionManager {
+public class SessionManager implements AuditorAware<String> {
 
     private final ThreadLocal<User> currentUser = new ThreadLocal<>();
+
+    private static final String DefaultCreator = "System";
+
+    @Override
+    public Optional<String> getCurrentAuditor() {
+        if (exist()) {
+            return Optional.of(currentUser.get().getEmail());
+        }
+        return Optional.of(DefaultCreator);
+    }
 
     public User get() {
         User user = currentUser.get();
