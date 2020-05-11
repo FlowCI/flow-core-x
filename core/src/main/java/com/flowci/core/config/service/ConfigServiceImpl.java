@@ -15,9 +15,11 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +32,9 @@ import java.util.Optional;
 @Service
 public class ConfigServiceImpl implements ConfigService {
 
+    @Value("classpath:default/smtp-demo-config.yml")
+    private Resource defaultSmtpConfigYml;
+
     @Autowired
     private ConfigDao configDao;
 
@@ -39,8 +44,7 @@ public class ConfigServiceImpl implements ConfigService {
     @EventListener
     public void onInit(ContextRefreshedEvent ignore) {
         try {
-            ClassPathResource resource = new ClassPathResource("default/smtp-demo-config.yml");
-            Config config = ConfigParser.parse(resource.getInputStream());
+            Config config = ConfigParser.parse(defaultSmtpConfigYml.getInputStream());
             Optional<Config> optional = configDao.findByName(config.getName());
 
             if (optional.isPresent()) {

@@ -301,6 +301,15 @@ public class Job extends Mongoable implements Pathable {
         context.put(Variables.Job.Status, status.name());
     }
 
+    @JsonIgnore
+    public String getErrorFromContext() {
+        return context.get(Variables.Job.Error);
+    }
+
+    public void setErrorToContext(String err) {
+        context.put(Variables.Job.Error, err);
+    }
+
     public void setAgentSnapshot(Agent agent) {
         agentInfo.setName(agent.getName());
         agentInfo.setOs(agent.getOs().name());

@@ -22,6 +22,7 @@ import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.StatusException;
 import com.flowci.sm.*;
 import com.flowci.tree.*;
+import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
@@ -30,6 +31,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.log4j.Log4j2;
+import org.omg.CORBA.ObjectHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -455,16 +457,10 @@ public class JobActionServiceImpl implements JobActionService {
                 Job job = context.job;
                 ExecutedCmd step = context.step;
                 Throwable err = context.getError();
-                if (Objects.isNull(err)) {
-                    err = new CIException("");
-                }
 
-                String stepErr = step.getError();
-                if (StringHelper.hasValue(stepErr)) {
-                    err = new CIException(stepErr);
+                if (!step.isAfter()) {
+                    stepService.toStatus(job.getId(), step.getNodePath(), ExecutedCmd.Status.EXCEPTION, null);
                 }
-
-                stepService.toStatus(job.getId(), step.getNodePath(), ExecutedCmd.Status.EXCEPTION, null);
 
                 Agent agent = agentService.get(job.getAgentId());
                 agentService.tryRelease(agent.getId());
@@ -693,12 +689,15 @@ public class JobActionServiceImpl implements JobActionService {
 
         // to finish status
         Job.Status statusFromContext = job.getStatusFromContext();
+        String error = job.getErrorFromContext();
+        ObjectsHelper.ifNotNull(error, s -> context.setError(new CIException(s)));
         Sm.execute(context.getCurrent(), new Status(statusFromContext.name()), context);
     }
 
-    private synchronized Job setJobStatusAndSave(Job job, Job.Status newStatus, String message) {
+    private synchronized void setJobStatusAndSave(Job job, Job.Status newStatus, String message) {
         if (job.getStatus() == newStatus) {
-            return jobDao.save(job);
+            jobDao.save(job);
+            return;
         }
 
         job.setStatus(newStatus);
@@ -708,7 +707,6 @@ public class JobActionServiceImpl implements JobActionService {
         jobDao.save(job);
         eventManager.publish(new JobStatusChangeEvent(this, job));
         logInfo(job, "status = {}", job.getStatus());
-        return job;
     }
 
     private void updateJobTime(Job job, ExecutedCmd execCmd, NodeTree tree, StepNode node) {
@@ -730,6 +728,7 @@ public class JobActionServiceImpl implements JobActionService {
         // after status not apart of job status
         if (!node.isAfter()) {
             job.setStatusToContext(StatusHelper.convert(cmd));
+            job.setErrorToContext(cmd.getError());
         }
     }
 
