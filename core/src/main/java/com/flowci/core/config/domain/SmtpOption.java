@@ -11,6 +11,14 @@ import javax.validation.constraints.NotEmpty;
 @Setter
 public final class SmtpOption {
 
+    public enum SecureType {
+        NONE,
+
+        SSL,
+
+        TLS,
+    }
+
     @NotEmpty
     private String server;
 
@@ -18,7 +26,7 @@ public final class SmtpOption {
     private Integer port;
 
     @NonNull
-    private Boolean isSecure;
+    private SecureType secure = SecureType.NONE;
 
     private SimpleAuthPair auth;
 
