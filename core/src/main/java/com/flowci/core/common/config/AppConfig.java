@@ -110,7 +110,7 @@ public class AppConfig {
                 for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
                     if (event instanceof SyncEvent || listener instanceof AuditingEventListener) {
                         invokeListener(listener, event);
-                        return;
+                        continue;
                     }
 
                     executor.execute(() -> invokeListener(listener, event));

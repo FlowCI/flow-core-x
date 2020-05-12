@@ -18,6 +18,7 @@ package com.flowci.core.job.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.event.AgentStatusEvent;
+import com.flowci.core.common.config.ConfigProperties;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitChannelOperation;
 import com.flowci.core.common.rabbit.RabbitOperation;
@@ -48,6 +49,9 @@ import java.util.function.Function;
 @Log4j2
 @Service
 public class JobEventServiceImpl implements JobEventService {
+
+    @Autowired
+    private ConfigProperties.RabbitMQ rabbitProperties;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -82,7 +86,7 @@ public class JobEventServiceImpl implements JobEventService {
     @EventListener(FlowInitEvent.class)
     public void startJobQueueConsumers(FlowInitEvent event) {
         for (Flow flow : event.getFlows()) {
-            startJobConsumer(flow);
+            declareJobQueueAndStartConsumer(flow);
         }
     }
 
@@ -126,14 +130,14 @@ public class JobEventServiceImpl implements JobEventService {
     }
 
     @EventListener
-    public void deleteJob(FlowDeletedEvent event) {
-        stopJobConsumer(event.getFlow());
-        jobService.delete(event.getFlow());
+    public void onFlowCreated(FlowCreatedEvent event) {
+        declareJobQueueAndStartConsumer(event.getFlow());
     }
 
     @EventListener
-    public void startJobConsumer(FlowCreatedEvent event) {
-        startJobConsumer(event.getFlow());
+    public void onFlowDeleted(FlowDeletedEvent event) {
+        stopJobConsumerAndDeleteQueue(event.getFlow());
+        jobService.delete(event.getFlow());
     }
 
     @EventListener
@@ -178,20 +182,23 @@ public class JobEventServiceImpl implements JobEventService {
         log.info("[Job] " + job.getKey() + " " + message, params);
     }
 
-    private void startJobConsumer(Flow flow) {
-        String queueName = flow.getQueueName();
+    private void declareJobQueueAndStartConsumer(Flow flow) {
+        try {
+            String queueName = flow.getQueueName();
+            RabbitQueueOperation manager = flowJobQueueManager.create(queueName);
+            manager.declare(flow.getQueueName(), true, 255, rabbitProperties.getJobDlExchange());
 
-        JobConsumerHandler handler = new JobConsumerHandler(queueName);
-        consumeHandlers.put(queueName, handler);
+            JobConsumerHandler handler = new JobConsumerHandler(queueName);
+            consumeHandlers.put(queueName, handler);
 
-        RabbitQueueOperation manager = flowJobQueueManager.create(queueName);
-        RabbitOperation.QueueConsumer consumer = manager.createConsumer(queueName, handler);
-
-        // start consumer
-        consumer.start(false);
+            RabbitOperation.QueueConsumer consumer = manager.createConsumer(queueName, handler);
+            consumer.start(false);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void stopJobConsumer(Flow flow) {
+    private void stopJobConsumerAndDeleteQueue(Flow flow) {
         String queueName = flow.getQueueName();
 
         // remove queue manager and send Message.STOP_SIGN to consumer

@@ -36,6 +36,8 @@ import java.util.function.Function;
 @Getter
 public abstract class RabbitOperation implements AutoCloseable {
 
+    private final static int DefaultExecutorQueueSize = 1000;
+
     protected final Connection conn;
 
     protected final Channel channel;
@@ -55,7 +57,7 @@ public abstract class RabbitOperation implements AutoCloseable {
         this.name = name;
         this.channel = conn.createChannel();
         this.channel.basicQos(0, concurrency, false);
-        this.executor = ThreadHelper.createTaskExecutor(concurrency, concurrency, 1000, name + "-");
+        this.executor = ThreadHelper.createTaskExecutor(concurrency, concurrency, DefaultExecutorQueueSize, name + "-");
     }
 
     public String declare(String queue, boolean durable) throws IOException {

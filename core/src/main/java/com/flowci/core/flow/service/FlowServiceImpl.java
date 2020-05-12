@@ -16,11 +16,9 @@
 
 package com.flowci.core.flow.service;
 
-import com.flowci.core.common.config.ConfigProperties;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.common.rabbit.RabbitChannelOperation;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowUserDao;
 import com.flowci.core.flow.dao.YmlDao;
@@ -79,9 +77,6 @@ public class FlowServiceImpl implements FlowService {
     private String serverUrl;
 
     @Autowired
-    private ConfigProperties.RabbitMQ rabbitProperties;
-
-    @Autowired
     private FlowDao flowDao;
 
     @Autowired
@@ -98,9 +93,6 @@ public class FlowServiceImpl implements FlowService {
 
     @Autowired
     private FileManager fileManager;
-
-    @Autowired
-    private RabbitChannelOperation jobQueueManager;
 
     // ====================================================================
     // %% Public function
@@ -185,8 +177,6 @@ public class FlowServiceImpl implements FlowService {
             fileManager.create(flow);
 
             addUsers(flow, flow.getCreatedBy());
-            createFlowJobQueue(flow);
-
             eventManager.publish(new FlowCreatedEvent(this, flow));
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Flow {0} already exists", name);
@@ -250,8 +240,6 @@ public class FlowServiceImpl implements FlowService {
         Flow flow = get(name);
         flowDao.delete(flow);
         flowUserDao.delete(flow.getId());
-
-        removeFlowJobQueue(flow);
         eventManager.publish(new FlowDeletedEvent(this, flow));
         return flow;
     }
@@ -316,11 +304,6 @@ public class FlowServiceImpl implements FlowService {
     @EventListener
     public void initJobQueueForFlow(ContextRefreshedEvent ignore) {
         List<Flow> all = flowDao.findAll();
-
-        for (Flow flow : all) {
-            createFlowJobQueue(flow);
-        }
-
         eventManager.publish(new FlowInitEvent(this, all));
     }
 
@@ -389,18 +372,6 @@ public class FlowServiceImpl implements FlowService {
         }
 
         return true;
-    }
-
-    private void createFlowJobQueue(Flow flow) {
-        try {
-            jobQueueManager.declare(flow.getQueueName(), true, 255, rabbitProperties.getJobDlExchange());
-        } catch (IOException e) {
-            log.warn(e.getMessage());
-        }
-    }
-
-    private void removeFlowJobQueue(Flow flow) {
-        jobQueueManager.delete(flow.getQueueName());
     }
 
     private String getWebhook(String name) {
