@@ -38,11 +38,6 @@ public interface FlowService {
     List<Flow> list(Status status);
 
     /**
-     * List flows by user id and status
-     */
-    List<Flow> list(String userId, Status status);
-
-    /**
      * List flows of current user by credential name
      */
     List<Flow> listByCredential(String credentialName);
@@ -106,15 +101,15 @@ public interface FlowService {
     /**
      * Add users to flow
      */
-    void addUsers(Flow flow, String ...userIds);
+    void addUsers(Flow flow, String ...emails);
 
     /**
      * Remove users from flow
      */
-    void removeUsers(Flow flow, String ...userIds);
+    void removeUsers(Flow flow, String ...emails);
 
     /**
-     * List users by flow
+     * List all users email by flow
      */
     List<String> listUsers(Flow flow);
 }

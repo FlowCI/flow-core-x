@@ -83,10 +83,10 @@ public class FlowUserListDaoTest extends SpringScenario {
         flowUserListDao.insert(flow3.getId(), Sets.newHashSet("1"));
 
         // then:
-        List<String> flowsForUser1 = flowUserListDao.findAllFlowsByUserId("1");
+        List<String> flowsForUser1 = flowUserListDao.findAllFlowsByUserEmail("1");
         Assert.assertEquals(3, flowsForUser1.size());
 
-        List<String> flowsForUser2 = flowUserListDao.findAllFlowsByUserId("2");
+        List<String> flowsForUser2 = flowUserListDao.findAllFlowsByUserEmail("2");
         Assert.assertEquals(1, flowsForUser2.size());
     }
 

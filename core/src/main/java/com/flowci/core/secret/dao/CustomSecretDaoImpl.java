@@ -19,12 +19,13 @@ package com.flowci.core.secret.dao;
 
 import com.flowci.core.secret.domain.Secret;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 import java.util.List;
+
+import static com.flowci.core.common.domain.Mongoable.SortByCreatedAtASC;
 
 public class CustomSecretDaoImpl implements CustomSecretDao {
 
@@ -33,7 +34,7 @@ public class CustomSecretDaoImpl implements CustomSecretDao {
 
     @Override
     public List<Secret> listNameOnly() {
-        Query query = Query.query(new Criteria()).with(new Sort(Sort.Direction.ASC, "createdAt"));
+        Query query = Query.query(new Criteria()).with(SortByCreatedAtASC);
         query.fields().include("name");
 
         return operations.find(query, Secret.class);
@@ -42,7 +43,7 @@ public class CustomSecretDaoImpl implements CustomSecretDao {
     @Override
     public List<Secret> listNameOnly(Secret.Category category) {
         Criteria criteria = Criteria.where("category").is(category);
-        Query query = Query.query(criteria).with(new Sort(Sort.Direction.ASC, "createdAt"));
+        Query query = Query.query(criteria).with(SortByCreatedAtASC);
         query.fields().include("name");
         return operations.find(query, Secret.class);
     }

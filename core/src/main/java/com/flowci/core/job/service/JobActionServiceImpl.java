@@ -22,6 +22,7 @@ import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.StatusException;
 import com.flowci.sm.*;
 import com.flowci.tree.*;
+import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
@@ -168,13 +169,11 @@ public class JobActionServiceImpl implements JobActionService {
     @Override
     public void toContinue(Job job, ExecutedCmd step) {
         if (job.isCancelling()) {
-            on(job, Job.Status.CANCELLED, null);
+            on(job, Job.Status.CANCELLED, (context) -> context.step = step);
             return;
         }
 
-        on(job, Job.Status.RUNNING, (context) -> {
-            context.step = step;
-        });
+        on(job, Job.Status.RUNNING, (context) -> context.step = step);
     }
 
     @Override
@@ -390,12 +389,16 @@ public class JobActionServiceImpl implements JobActionService {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-
                 log.debug("Job {} is locked", job.getId());
 
                 // refresh job after lock
                 context.job = jobDao.findById(job.getId()).get();
-                toNextStep(context);
+
+                if (toNextStep(context)) {
+                    return;
+                }
+
+                toFinishStatus(context);
             }
 
             @Override
@@ -455,16 +458,10 @@ public class JobActionServiceImpl implements JobActionService {
                 Job job = context.job;
                 ExecutedCmd step = context.step;
                 Throwable err = context.getError();
-                if (Objects.isNull(err)) {
-                    err = new CIException("");
-                }
 
-                String stepErr = step.getError();
-                if (StringHelper.hasValue(stepErr)) {
-                    err = new CIException(stepErr);
+                if (!step.isAfter()) {
+                    stepService.toStatus(job.getId(), step.getNodePath(), ExecutedCmd.Status.EXCEPTION, null);
                 }
-
-                stepService.toStatus(job.getId(), step.getNodePath(), ExecutedCmd.Status.EXCEPTION, null);
 
                 Agent agent = agentService.get(job.getAgentId());
                 agentService.tryRelease(agent.getId());
@@ -528,8 +525,12 @@ public class JobActionServiceImpl implements JobActionService {
         Sm.add(CancellingToCancelled, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) {
-                Job job = context.job;
+                // run after steps
+                if (toNextStep(context)) {
+                    return;
+                }
 
+                Job job = context.job;
                 Agent agent = agentService.get(job.getAgentId());
                 agentService.tryRelease(agent.getId());
 
@@ -652,29 +653,33 @@ public class JobActionServiceImpl implements JobActionService {
         logInfo(job, "send to agent: step={}, agent={}", next.getName(), agent.getName());
     }
 
-    private void toNextStep(JobSmContext context) {
+    /**
+     * Dispatch next step to agent
+     * @return true if next step dispatched, false if no more steps
+     */
+    private boolean toNextStep(JobSmContext context) {
         Job job = context.job;
-        ExecutedCmd execCmd = context.step;
+        ExecutedCmd step = context.step;
 
         // save executed cmd
-        stepService.resultUpdate(execCmd);
-        log.debug("Executed cmd {} been recorded", execCmd);
+        stepService.resultUpdate(step);
+        log.debug("Step {} been recorded", step);
 
-        NodePath currentPath = NodePath.create(execCmd.getNodePath());
+        NodePath currentPath = NodePath.create(step.getNodePath());
 
         // verify job node path is match cmd node path
         if (!currentPath.equals(NodePath.create(job.getCurrentPath()))) {
             log.error("Invalid executed cmd callback: does not match job current node path");
-            return;
+            return false;
         }
 
         NodeTree tree = ymlManager.getTree(job);
         StepNode node = tree.get(currentPath);
-        updateJobTime(job, execCmd, tree, node);
-        updateJobStatusAndContext(job, node, execCmd);
+        updateJobTime(job, step, tree, node);
+        updateJobStatusAndContext(job, node, step);
 
         // to next step
-        Optional<StepNode> next = findNext(tree, node, execCmd.isSuccess());
+        Optional<StepNode> next = findNext(tree, node, step.isSuccess());
         if (next.isPresent()) {
             String nextPath = next.get().getPathAsString();
             job.setCurrentPath(nextPath);
@@ -688,17 +693,27 @@ public class JobActionServiceImpl implements JobActionService {
 
             agentService.dispatch(cmd, agent);
             logInfo(job, "send to agent: step={}, agent={}", next.get().getName(), agent.getName());
-            return;
+            return true;
         }
 
-        // to finish status
+        return false;
+    }
+
+    private void toFinishStatus(JobSmContext context) {
+        Job job = context.job;
+
         Job.Status statusFromContext = job.getStatusFromContext();
+        String error = job.getErrorFromContext();
+        ObjectsHelper.ifNotNull(error, s -> context.setError(new CIException(s)));
+
         Sm.execute(context.getCurrent(), new Status(statusFromContext.name()), context);
     }
 
-    private synchronized Job setJobStatusAndSave(Job job, Job.Status newStatus, String message) {
-        if (job.getStatus() == newStatus) {
-            return jobDao.save(job);
+    private synchronized void setJobStatusAndSave(Job job, Job.Status newStatus, String message) {
+        // check status order, just save job if new status is downgrade
+        if (job.getStatus().getOrder() >= newStatus.getOrder()) {
+            jobDao.save(job);
+            return;
         }
 
         job.setStatus(newStatus);
@@ -708,7 +723,6 @@ public class JobActionServiceImpl implements JobActionService {
         jobDao.save(job);
         eventManager.publish(new JobStatusChangeEvent(this, job));
         logInfo(job, "status = {}", job.getStatus());
-        return job;
     }
 
     private void updateJobTime(Job job, ExecutedCmd execCmd, NodeTree tree, StepNode node) {
@@ -730,6 +744,7 @@ public class JobActionServiceImpl implements JobActionService {
         // after status not apart of job status
         if (!node.isAfter()) {
             job.setStatusToContext(StatusHelper.convert(cmd));
+            job.setErrorToContext(cmd.getError());
         }
     }
 

@@ -89,13 +89,6 @@ public class ExecutedCmd extends CmdBase {
     }
 
     /**
-     * Job build number
-     */
-    private Long buildNumber;
-
-    private boolean isAfter;
-
-    /**
      * Process id
      */
     private Integer processId;

@@ -196,7 +196,7 @@ public class JobServiceImpl implements JobService {
         job.setStatus(Job.Status.PENDING);
         job.setTrigger(Trigger.MANUAL);
         job.setCurrentPath(root.getPathAsString());
-        job.setCreatedBy(sessionManager.getUserId());
+        job.setCreatedBy(sessionManager.getUserEmail());
 
         // re-init job context
         Vars<String> context = job.getContext();
@@ -248,7 +248,6 @@ public class JobServiceImpl implements JobService {
         job.setFlowName(flow.getName());
         job.setTrigger(trigger);
         job.setBuildNumber(jobNumber.getNumber());
-        job.setCreatedAt(Date.from(Instant.now()));
         job.setTimeout(jobProperties.getTimeoutInSeconds());
         job.setExpire(jobProperties.getExpireInSeconds());
         job.setYamlFromRepo(flow.isYamlFromRepo());
@@ -260,8 +259,7 @@ public class JobServiceImpl implements JobService {
 
         // setup created by form login user or git event author
         if (sessionManager.exist()) {
-            job.setCreatedBy(sessionManager.getUserId());
-            job.getContext().put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
+            job.getContext().put(Variables.Job.TriggerBy, sessionManager.getUserEmail());
         } else {
             String createdBy = job.getContext().get(GIT_AUTHOR, "Unknown");
             job.setCreatedBy(createdBy);

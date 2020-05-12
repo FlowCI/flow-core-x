@@ -16,12 +16,7 @@
 
 package com.flowci.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -61,5 +56,11 @@ public abstract class ObjectsHelper {
         }
 
         consumer.accept(val);
+    }
+
+    public static void throwIfNotNull(RuntimeException e) {
+        if (e != null) {
+            throw e;
+        }
     }
 }

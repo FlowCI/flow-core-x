@@ -44,8 +44,8 @@ public class FlowUserDaoImpl implements FlowUserDao {
     }
 
     @Override
-    public List<String> findAllFlowsByUserId(String userId) {
-        Query q = Query.query(Criteria.where("users").in(userId));
+    public List<String> findAllFlowsByUserEmail(String email) {
+        Query q = Query.query(Criteria.where("users").in(email));
         q.fields().exclude("users");
 
         List<FlowUsers> lists = mongoOps.find(q, FlowUsers.class);
@@ -71,27 +71,27 @@ public class FlowUserDaoImpl implements FlowUserDao {
     }
 
     @Override
-    public void insert(String flowId, Set<String> userIds) {
+    public void insert(String flowId, Set<String> emails) {
         Query q = Query.query(Criteria.where("_id").is(flowId));
-        Update u = new Update().addToSet("users").each(userIds);
+        Update u = new Update().addToSet("users").each(emails);
         mongoOps.upsert(q, u, FlowUsers.class);
     }
 
     @Override
-    public void remove(String flowId, Set<String> userIds) {
+    public void remove(String flowId, Set<String> emails) {
         Query q = Query.query(Criteria.where("_id").is(flowId));
 
         Update u = new Update();
-        u.pullAll("users", userIds.toArray());
+        u.pullAll("users", emails.toArray());
 
         mongoOps.updateFirst(q, u, FlowUsers.class);
     }
 
     @Override
-    public boolean exist(String flowId, String userId) {
+    public boolean exist(String flowId, String email) {
         Query q = new Query();
         q.addCriteria(Criteria.where("_id").is(flowId));
-        q.addCriteria(Criteria.where("users").is(userId));
+        q.addCriteria(Criteria.where("users").is(email));
         return mongoOps.exists(q, FlowUsers.class);
     }
 }

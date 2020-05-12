@@ -15,32 +15,21 @@
  *
  */
 
-package com.flowci.core.flow.domain;
+package com.flowci.core.common.manager;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
 
-import java.util.LinkedList;
-import java.util.List;
+@Component("eventManager")
+public class SpringEventManagerImpl implements SpringEventManager {
 
-@Getter
-@Setter
-@EqualsAndHashCode(of = {"flowId"})
-@Document(collection = "flow_users")
-public class FlowUsers {
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
-    @Id
-    private String flowId;
-
-    private List<String> users = new LinkedList<>(); // user email list
-
-    public FlowUsers() {
-    }
-
-    public FlowUsers(String flowId) {
-        this.flowId = flowId;
+    public <T extends ApplicationEvent> T publish(T event) {
+        applicationEventPublisher.publishEvent(event);
+        return event;
     }
 }

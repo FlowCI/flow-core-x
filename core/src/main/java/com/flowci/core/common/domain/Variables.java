@@ -56,8 +56,6 @@ public abstract class Variables {
 
         public static final String BuildNumber = "FLOWCI_JOB_BUILD_NUM";
 
-        public static final String Status = "FLOWCI_JOB_STATUS";
-
         public static final String Trigger = "FLOWCI_JOB_TRIGGER";
 
         public static final String TriggerBy = "FLOWCI_JOB_TRIGGER_BY"; // == user email of job.createdBy
@@ -68,6 +66,11 @@ public abstract class Variables {
 
         // {step name}={status};{step name}={status}
         public static final String Steps = "FLOWCI_JOB_STEPS";
+
+        // both status and error will carry out latest job status and error message from step
+        public static final String Status = "FLOWCI_JOB_STATUS";
+
+        public static final String Error = "FLOWCI_JOB_ERROR";
     }
 
     public abstract static class Step {
