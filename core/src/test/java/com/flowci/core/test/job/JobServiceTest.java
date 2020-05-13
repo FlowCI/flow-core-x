@@ -33,7 +33,6 @@ import com.flowci.core.job.domain.Job.Status;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
-import com.flowci.core.job.manager.FlowJobQueueManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.service.JobActionService;
 import com.flowci.core.job.service.JobEventService;
@@ -98,9 +97,6 @@ public class JobServiceTest extends ZookeeperScenario {
     @Autowired
     private YmlManager ymlManager;
 
-    @Autowired
-    private FlowJobQueueManager flowJobQueueManager;
-
     private Flow flow;
 
     private Yml yml;
@@ -111,8 +107,6 @@ public class JobServiceTest extends ZookeeperScenario {
 
         flow = flowService.create("hello");
         yml = ymlService.saveYml(flow, StringHelper.toString(load("flow.yml")));
-
-        Assert.assertNotNull(flowJobQueueManager.get(flow.getQueueName()));
     }
 
     @Test

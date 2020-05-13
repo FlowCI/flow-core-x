@@ -18,12 +18,11 @@ package com.flowci.core.job.service;
 
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SocketPushManager;
-import com.flowci.core.common.rabbit.RabbitChannelOperation;
-import com.flowci.core.common.rabbit.RabbitOperation;
-import com.flowci.core.common.rabbit.RabbitQueueOperation;
+import com.flowci.core.common.rabbit.QueueOperations;
+import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Job;
 import com.flowci.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
@@ -83,15 +82,15 @@ public class LoggingServiceImpl implements LoggingService {
     private FileManager fileManager;
 
     @Autowired
-    private RabbitQueueOperation loggingQueueManager;
+    private QueueOperations loggingQueueManager;
 
     @Autowired
     private StepService stepService;
 
     @EventListener(ContextRefreshedEvent.class)
     public void onStart() {
-        RabbitChannelOperation.QueueConsumer consumer = loggingQueueManager.createConsumer(message -> {
-            if (message == RabbitOperation.Message.STOP_SIGN) {
+        loggingQueueManager.startConsumer(true, message -> {
+            if (message == RabbitOperations.Message.STOP_SIGN) {
                 return true;
             }
 
@@ -99,8 +98,6 @@ public class LoggingServiceImpl implements LoggingService {
             socketPushManager.push(topicForLogs, message.getBody());
             return true;
         });
-
-        consumer.start(true);
     }
 
     @Override

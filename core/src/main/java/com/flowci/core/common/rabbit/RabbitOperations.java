@@ -34,43 +34,55 @@ import java.util.function.Function;
 
 @Log4j2
 @Getter
-public abstract class RabbitOperation implements AutoCloseable {
+public class RabbitOperations implements AutoCloseable {
 
-    private final static int DefaultExecutorQueueSize = 1000;
+    private final static int ExecutorQueueSize = 1000;
 
-    protected final Connection conn;
+    private final Connection conn;
 
-    protected final Channel channel;
+    private final Channel channel;
 
-    protected final Integer concurrency;
+    private final Integer concurrency;
 
-    protected final String name;
-
-    protected final ThreadPoolTaskExecutor executor;
+    private final ThreadPoolTaskExecutor executor;
 
     // key as queue name, value as instance
-    protected final ConcurrentHashMap<String, QueueConsumer> consumers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, QueueConsumer> consumers = new ConcurrentHashMap<>();
 
-    public RabbitOperation(Connection conn, Integer concurrency, String name) throws IOException {
+    public RabbitOperations(Connection conn, Integer concurrency) throws IOException {
         this.conn = conn;
         this.concurrency = concurrency;
-        this.name = name;
         this.channel = conn.createChannel();
         this.channel.basicQos(0, concurrency, false);
-        this.executor = ThreadHelper.createTaskExecutor(concurrency, concurrency, DefaultExecutorQueueSize, name + "-");
+        this.executor = ThreadHelper.createTaskExecutor(concurrency, concurrency, ExecutorQueueSize, "rabbit-oper-");
     }
 
-    public String declare(String queue, boolean durable) throws IOException {
-        return this.channel.queueDeclare(queue, durable, false, false, null).getQueue();
+    public void declareExchangeAndBind(String exchange, BuiltinExchangeType type, String queue, String routingKey) throws IOException {
+        channel.exchangeDeclare(exchange, type);
+        channel.queueBind(queue, exchange, routingKey);
     }
 
-    public String declare(String queue, boolean durable, Integer maxPriority, String dlExName) throws IOException {
+    public void declareExchangeAndBind(String exchange,
+                                       BuiltinExchangeType type,
+                                       boolean durable,
+                                       boolean autoDelete,
+                                       Map<String, Object> args,
+                                       String queue,
+                                       String routingKey) throws IOException {
+        channel.exchangeDeclare(exchange, BuiltinExchangeType.DIRECT, durable, autoDelete, args);
+        channel.queueBind(queue, exchange, routingKey);
+    }
+
+    public void declare(String queue, boolean durable) throws IOException {
+        this.channel.queueDeclare(queue, durable, false, false, null);
+    }
+
+    public void declare(String queue, boolean durable, Integer maxPriority, String dlExName) throws IOException {
         Map<String, Object> props = new HashMap<>(1);
         props.put("x-max-priority", maxPriority);
         props.put("x-dead-letter-exchange", dlExName);
         props.put("x-dead-letter-routing-key", QueueConfig.JobDlRoutingKey);
-
-        return this.channel.queueDeclare(queue, durable, false, false, props).getQueue();
+        this.channel.queueDeclare(queue, durable, false, false, props);
     }
 
     public boolean delete(String queue) {
@@ -120,24 +132,16 @@ public abstract class RabbitOperation implements AutoCloseable {
         }
     }
 
-    public QueueConsumer getConsumer(String queue) {
-        return consumers.get(queue);
+    public void startConsumer(String queue, boolean autoAck, Function<Message, Boolean> onMessage) {
+        QueueConsumer consumer = consumers.computeIfAbsent(queue, s -> new QueueConsumer(queue, onMessage));
+        consumer.start(autoAck);
     }
 
-    public QueueConsumer createConsumer(String queue, Function<Message, Boolean> consume) {
-        QueueConsumer consumer = new QueueConsumer(queue, consume);
-        consumers.put(queue, consumer);
-        return consumer;
-    }
-
-    public boolean removeConsumer(String queue) {
+    public void removeConsumer(String queue) {
         QueueConsumer consumer = consumers.remove(queue);
-
-        if (Objects.isNull(consumer)) {
-            return false;
+        if (consumer != null) {
+            consumer.cancel();
         }
-
-        return consumer.cancel();
     }
 
     /**
@@ -152,16 +156,16 @@ public abstract class RabbitOperation implements AutoCloseable {
         executor.shutdown();
     }
 
-    public class QueueConsumer extends DefaultConsumer {
+    private class QueueConsumer extends DefaultConsumer {
 
         private final String queue;
 
-        private final Function<Message, Boolean> consume;
+        private final Function<Message, Boolean> onMessageFunc;
 
-        QueueConsumer(String queue, Function<Message, Boolean> consume) {
+        QueueConsumer(String queue, Function<Message, Boolean> onMessageFunc) {
             super(channel);
             this.queue = queue;
-            this.consume = consume;
+            this.onMessageFunc = onMessageFunc;
         }
 
         @Override
@@ -170,13 +174,13 @@ public abstract class RabbitOperation implements AutoCloseable {
             consume(body, envelope);
         }
 
-        public void consume(byte[] body, Envelope envelope) {
+        void consume(byte[] body, Envelope envelope) {
             executor.execute(() -> {
-                Boolean ignoreForNow = consume.apply(new Message(getChannel(), body, envelope));
+                Boolean ignoreForNow = onMessageFunc.apply(new Message(getChannel(), body, envelope));
             });
         }
 
-        public String start(boolean autoAck) {
+        String start(boolean autoAck) {
             try {
                 String tag = getChannel().basicConsume(queue, autoAck, this);
                 log.info("[Consumer STARTED] queue {} with tag {}", queue, tag);
@@ -193,7 +197,7 @@ public abstract class RabbitOperation implements AutoCloseable {
                     return true; // not started
                 }
 
-                consume.apply(Message.STOP_SIGN);
+                onMessageFunc.apply(Message.STOP_SIGN);
                 getChannel().basicCancel(getConsumerTag());
                 log.info("[Consumer STOP] queue {} with tag {}", queue, getConsumerTag());
                 return true;

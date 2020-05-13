@@ -20,9 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.common.config.ConfigProperties;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.common.rabbit.RabbitChannelOperation;
-import com.flowci.core.common.rabbit.RabbitOperation;
-import com.flowci.core.common.rabbit.RabbitQueueOperation;
+import com.flowci.core.common.rabbit.QueueOperations;
+import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
@@ -31,7 +30,6 @@ import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
-import com.flowci.core.job.manager.FlowJobQueueManager;
 import com.flowci.domain.Agent;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -42,8 +40,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 @Log4j2
@@ -60,13 +56,10 @@ public class JobEventServiceImpl implements JobEventService {
     private SpringEventManager eventManager;
 
     @Autowired
-    private FlowJobQueueManager flowJobQueueManager;
+    private RabbitOperations jobsQueueManager;
 
     @Autowired
-    private RabbitQueueOperation callbackQueueManager;
-
-    @Autowired
-    private RabbitQueueOperation deadLetterQueueManager;
+    private QueueOperations callbackQueueManager;
 
     @Autowired
     private JobService jobService;
@@ -76,8 +69,6 @@ public class JobEventServiceImpl implements JobEventService {
 
     @Autowired
     private ThreadPoolTaskExecutor jobRunExecutor;
-
-    private final Map<String, JobConsumerHandler> consumeHandlers = new ConcurrentHashMap<>();
 
     //====================================================================
     //        %% Internal events
@@ -92,8 +83,8 @@ public class JobEventServiceImpl implements JobEventService {
 
     @EventListener(value = ContextRefreshedEvent.class)
     public void startCallbackQueueConsumer(ContextRefreshedEvent ignore) {
-        RabbitChannelOperation.QueueConsumer consumer = callbackQueueManager.createConsumer((message -> {
-            if (message == RabbitOperation.Message.STOP_SIGN) {
+        callbackQueueManager.startConsumer(false, message -> {
+            if (message == RabbitOperations.Message.STOP_SIGN) {
                 return true;
             }
 
@@ -107,15 +98,14 @@ public class JobEventServiceImpl implements JobEventService {
                 log.error(e.getMessage());
                 return false;
             }
-        }));
-
-        consumer.start(false);
+        });
     }
 
     @EventListener(value = ContextRefreshedEvent.class)
     public void startJobTimeoutQueueConsumer(ContextRefreshedEvent ignore) {
-        RabbitOperation.QueueConsumer consumer = deadLetterQueueManager.createConsumer(message -> {
-            if (message == RabbitOperation.Message.STOP_SIGN) {
+        String deadLetterQueue = rabbitProperties.getJobDlQueue();
+        jobsQueueManager.startConsumer(deadLetterQueue, true, message -> {
+            if (message == RabbitOperations.Message.STOP_SIGN) {
                 log.info("[Job Timeout Consumer] will be stopped");
                 return true;
             }
@@ -125,8 +115,6 @@ public class JobEventServiceImpl implements JobEventService {
             jobActionService.toTimeout(job);
             return true;
         });
-
-        consumer.start(true);
     }
 
     @EventListener
@@ -184,50 +172,37 @@ public class JobEventServiceImpl implements JobEventService {
 
     private void declareJobQueueAndStartConsumer(Flow flow) {
         try {
-            String queueName = flow.getQueueName();
-            RabbitQueueOperation manager = flowJobQueueManager.create(queueName);
-            manager.declare(flow.getQueueName(), true, 255, rabbitProperties.getJobDlExchange());
+            String queue = flow.getQueueName();
+            jobsQueueManager.declare(flow.getQueueName(), true, 255, rabbitProperties.getJobDlExchange());
 
-            JobConsumerHandler handler = new JobConsumerHandler(queueName);
-            consumeHandlers.put(queueName, handler);
-
-            RabbitOperation.QueueConsumer consumer = manager.createConsumer(queueName, handler);
-            consumer.start(false);
+            JobMessageHandler handler = new JobMessageHandler(queue);
+            jobsQueueManager.startConsumer(queue, false, handler);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private void stopJobConsumerAndDeleteQueue(Flow flow) {
-        String queueName = flow.getQueueName();
-
-        // remove queue manager and send Message.STOP_SIGN to consumer
-        flowJobQueueManager.remove(queueName);
-
-        // resume
-        JobConsumerHandler handler = consumeHandlers.get(queueName);
-        if (handler != null) {
-            eventManager.publish(new StopJobConsumerEvent(this, flow.getId()));
-        }
-
-        consumeHandlers.remove(queueName);
+        String queue = flow.getQueueName();
+        jobsQueueManager.removeConsumer(queue);
+        eventManager.publish(new StopJobConsumerEvent(this, flow.getId()));
     }
 
     /**
      * Job queue consumer for each flow
      */
-    private class JobConsumerHandler implements Function<RabbitChannelOperation.Message, Boolean> {
+    private class JobMessageHandler implements Function<RabbitOperations.Message, Boolean> {
 
         @Getter
         private final String queueName;
 
-        JobConsumerHandler(String queueName) {
+        JobMessageHandler(String queueName) {
             this.queueName = queueName;
         }
 
         @Override
-        public Boolean apply(RabbitChannelOperation.Message message) {
-            if (message == RabbitOperation.Message.STOP_SIGN) {
+        public Boolean apply(RabbitOperations.Message message) {
+            if (message == RabbitOperations.Message.STOP_SIGN) {
                 log.info("[Job Consumer] {} will be stopped", queueName);
                 return true;
             }

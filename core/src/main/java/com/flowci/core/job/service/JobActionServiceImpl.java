@@ -4,14 +4,13 @@ import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.common.rabbit.RabbitQueueOperation;
+import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.manager.CmdManager;
-import com.flowci.core.job.manager.FlowJobQueueManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
@@ -116,7 +115,7 @@ public class JobActionServiceImpl implements JobActionService {
     private YmlManager ymlManager;
 
     @Autowired
-    private FlowJobQueueManager flowJobQueueManager;
+    private RabbitOperations jobsQueueManager;
 
     @Autowired
     private AgentService agentService;
@@ -276,11 +275,12 @@ public class JobActionServiceImpl implements JobActionService {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-
-                RabbitQueueOperation manager = flowJobQueueManager.get(job.getQueueName());
                 setJobStatusAndSave(job, Job.Status.QUEUED, null);
 
-                manager.send(job.getId().getBytes(), job.getPriority(), job.getExpire());
+                String queue = job.getQueueName();
+                byte[] payload = job.getId().getBytes();
+
+                jobsQueueManager.send(queue, payload, job.getPriority(), job.getExpire());
                 logInfo(job, "enqueue");
             }
 

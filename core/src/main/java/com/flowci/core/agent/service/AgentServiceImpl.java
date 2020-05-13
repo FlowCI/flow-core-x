@@ -27,7 +27,7 @@ import com.flowci.core.common.config.ConfigProperties;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.common.rabbit.RabbitChannelOperation;
+import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
@@ -84,7 +84,7 @@ public class AgentServiceImpl implements AgentService {
     private AgentDao agentDao;
 
     @Autowired
-    private RabbitChannelOperation agentQueueManager;
+    private RabbitOperations agentQueueManager;
 
     @Autowired
     private SpringEventManager eventManager;
