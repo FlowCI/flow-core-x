@@ -1,0 +1,8 @@
+kind: smtp
+name: my-demo
+smtp:
+  server: smtp.sendgrid.net
+  port: 587
+  username: apikey
+  password: 123
+  secure: TLS

@@ -48,8 +48,10 @@ public class SecretServiceTest extends SpringScenario {
     public void should_create_rsa_secret() {
         Secret rsa = secretService.createRSA("hello.rsa");
         Assert.assertNotNull(rsa);
+        should_has_db_info(rsa);
+
         Assert.assertEquals(Secret.Category.SSH_RSA, rsa.getCategory());
-        Assert.assertEquals(sessionManager.getUserId(), rsa.getCreatedBy());
+        Assert.assertEquals(sessionManager.getUserEmail(), rsa.getCreatedBy());
         Assert.assertNotNull(rsa.getCreatedAt());
         Assert.assertNotNull(rsa.getUpdatedAt());
 
@@ -70,7 +72,7 @@ public class SecretServiceTest extends SpringScenario {
         Secret auth = secretService.createAuth("hello.auth", sa);
         Assert.assertNotNull(auth);
         Assert.assertEquals(Secret.Category.AUTH, auth.getCategory());
-        Assert.assertEquals(sessionManager.getUserId(), auth.getCreatedBy());
+        Assert.assertEquals(sessionManager.getUserEmail(), auth.getCreatedBy());
         Assert.assertNotNull(auth.getCreatedAt());
         Assert.assertNotNull(auth.getUpdatedAt());
 

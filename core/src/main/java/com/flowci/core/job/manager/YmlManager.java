@@ -16,8 +16,6 @@
 
 package com.flowci.core.job.manager;
 
-import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobYml;
 import com.flowci.tree.NodeTree;
@@ -29,10 +27,15 @@ public interface YmlManager {
 
     JobYml get(Job job);
 
-    JobYml create(Flow flow, Job job, String yml);
+    JobYml create(Job job, String yml);
 
     /**
      * Get node tree from job
      */
     NodeTree getTree(Job job);
+
+    /**
+     * Delete yaml for job
+     */
+    void delete(Job job);
 }

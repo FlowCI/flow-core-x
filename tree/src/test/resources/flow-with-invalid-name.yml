@@ -6,15 +6,15 @@ envs:
 cron: "* * * * *"
 
 trigger:
-  branches:
+  branch:
     - "develop"
     - "master"
     - "feature/*"
-  tags:
+  tag:
     - "*"
 
 selector:
-  tags:
+  label:
     - ios
     - local
 

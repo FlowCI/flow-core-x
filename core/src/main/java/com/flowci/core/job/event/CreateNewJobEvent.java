@@ -23,6 +23,8 @@ import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 /**
+ * Start job from jobRunExecutor
+ *
  * @author yang
  */
 @Getter

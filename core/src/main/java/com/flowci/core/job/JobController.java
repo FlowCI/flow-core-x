@@ -26,11 +26,9 @@ import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.service.*;
 import com.flowci.core.user.domain.User;
-import com.flowci.domain.CmdId;
-import com.flowci.domain.ExecutedCmd;
 import com.flowci.exception.ArgumentException;
-import com.flowci.exception.NotAvailableException;
 import com.flowci.tree.NodePath;
+import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -45,7 +43,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author yang
@@ -71,6 +68,9 @@ public class JobController {
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private JobActionService jobActionService;
 
     @Autowired
     private StepService stepService;
@@ -139,22 +139,15 @@ public class JobController {
         return loggingService.read(stepService.get(executedCmdId), PageRequest.of(page, size));
     }
 
-    @GetMapping("/logs/{executedCmdId}/download")
+    @GetMapping("/logs/{cmdId}/download")
     @Action(JobAction.DOWNLOAD_STEP_LOG)
-    public ResponseEntity<Resource> downloadStepLog(@PathVariable String executedCmdId) {
-        CmdId cmdId = CmdId.parse(executedCmdId);
+    public ResponseEntity<Resource> downloadStepLog(@PathVariable String cmdId) {
+        ExecutedCmd cmd = stepService.get(cmdId);
+        Resource resource = loggingService.get(cmdId);
+        Flow flow = flowService.getById(cmd.getFlowId());
 
-        if (Objects.isNull(cmdId)) {
-            throw new ArgumentException("Illegal cmd id");
-        }
-
-        Resource resource = loggingService.get(executedCmdId);
-
-        Job job = jobService.get(cmdId.getJobId());
-        Flow flow = flowService.getById(job.getFlowId());
-        NodePath path = NodePath.create(cmdId.getNodePath());
-
-        String fileName = String.format("%s-#%s-%s.log", flow.getName(), job.getBuildNumber(), path.name());
+        NodePath path = NodePath.create(cmd.getNodePath());
+        String fileName = String.format("%s-#%s-%s.log", flow.getName(), cmd.getBuildNumber(), path.name());
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))
@@ -172,27 +165,33 @@ public class JobController {
 
     @PostMapping("/run")
     @Action(JobAction.RUN)
-    public void createAndRun(@Validated @RequestBody CreateJob data) {
+    public void createAndRun(@Validated @RequestBody CreateJob body) {
         final User current = sessionManager.get();
+
+        // start from thread since will be loading status
         jobRunExecutor.execute(() -> {
-            try {
-                sessionManager.set(current);
-                Flow flow = flowService.get(data.getFlow());
-                Yml yml = ymlService.getYml(flow);
-                Job job = jobService.create(flow, yml.getRaw(), Trigger.API, data.getInputs());
-                jobService.start(job);
-            } catch (NotAvailableException e) {
-                Job job = (Job) e.getExtra();
-                jobService.setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
-            }
+            sessionManager.set(current);
+            Flow flow = flowService.get(body.getFlow());
+            Yml yml = ymlService.getYml(flow);
+            Job job = jobService.create(flow, yml.getRaw(), Trigger.API, body.getInputs());
+            jobActionService.toStart(job);
         });
+    }
+
+    @PostMapping("/rerun")
+    @Action(JobAction.RUN)
+    public void rerun(@Validated @RequestBody RerunJob body) {
+        Job job = jobService.get(body.getJobId());
+        Flow flow = flowService.getById(job.getFlowId());
+        jobService.rerun(flow, job);
     }
 
     @PostMapping("/{flow}/{buildNumber}/cancel")
     @Action(JobAction.CANCEL)
     public Job cancel(@PathVariable String flow, @PathVariable String buildNumber) {
         Job job = get(flow, buildNumber);
-        return jobService.cancel(job);
+        jobActionService.toCancelled(job, StringHelper.EMPTY);
+        return job;
     }
 
     @GetMapping("/{flow}/{buildNumber}/reports")
@@ -221,8 +220,8 @@ public class JobController {
     @GetMapping(value = "/{flow}/{buildNumber}/artifacts/{artifactId}")
     @Action(JobAction.DOWNLOAD_ARTIFACT)
     public ResponseEntity<Resource> downloadArtifact(@PathVariable String flow,
-                                @PathVariable String buildNumber,
-                                @PathVariable String artifactId) {
+                                                     @PathVariable String buildNumber,
+                                                     @PathVariable String artifactId) {
         Job job = get(flow, buildNumber);
         JobArtifact artifact = artifactService.fetch(job, artifactId);
 

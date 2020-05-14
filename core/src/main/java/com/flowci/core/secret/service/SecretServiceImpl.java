@@ -16,12 +16,15 @@
 
 package com.flowci.core.secret.service;
 
+import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.secret.dao.SecretDao;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
+import com.flowci.core.secret.event.CreateAuthEvent;
+import com.flowci.core.secret.event.CreateRsaEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
@@ -55,7 +58,7 @@ public class SecretServiceImpl implements SecretService {
 
     @Override
     public List<Secret> list() {
-        return secretDao.findAll(Sort.by("createdAt"));
+        return secretDao.findAll(Mongoable.SortByCreatedAtASC);
     }
 
     @Override
@@ -73,7 +76,7 @@ public class SecretServiceImpl implements SecretService {
         if (optional.isPresent()) {
             return optional.get();
         }
-        throw new NotFoundException("Credential {0} is not found", name);
+        throw new NotFoundException("Secret {0} is not found", name);
     }
 
     @Override
@@ -126,15 +129,31 @@ public class SecretServiceImpl implements SecretService {
         }
     }
 
+    @EventListener
+    public void onCreateRsaEvent(CreateRsaEvent event) {
+        try {
+            RSASecret secret = createRSA(event.getName(), event.getPair());
+            event.setSecret(secret);
+        } catch (DuplicateException e) {
+            event.setErr(e);
+        }
+    }
+
+    @EventListener
+    public void onCreateAuthEvent(CreateAuthEvent event) {
+        try {
+            AuthSecret secret = createAuth(event.getName(), event.getPair());
+            event.setSecret(secret);
+        } catch (DuplicateException e) {
+            event.setErr(e);
+        }
+    }
+
     private <T extends Secret> T save(T credential) {
         try {
-            Date now = Date.from(Instant.now());
-            credential.setUpdatedAt(now);
-            credential.setCreatedAt(now);
-            credential.setCreatedBy(sessionManager.getUserId());
             return secretDao.insert(credential);
         } catch (DuplicateKeyException e) {
-            throw new DuplicateException("Credential name {0} is already defined", credential.getName());
+            throw new DuplicateException("Secret name {0} is already defined", credential.getName());
         }
     }
 }

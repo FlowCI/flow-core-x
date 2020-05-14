@@ -35,7 +35,7 @@ public class FlowUsers {
     @Id
     private String flowId;
 
-    private List<String> users = new LinkedList<>();
+    private List<String> users = new LinkedList<>(); // user email list
 
     public FlowUsers() {
     }

@@ -33,6 +33,10 @@ import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.data.mongodb.core.mapping.event.AuditingEventListener;
+import org.springframework.data.mongodb.core.mapping.event.BeforeConvertEvent;
+import org.springframework.data.mongodb.core.mapping.event.BeforeSaveEvent;
+import org.springframework.data.mongodb.core.mapping.event.MongoMappingEvent;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
@@ -40,6 +44,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.Executor;
 
 /**
  * @author yang
@@ -93,17 +98,23 @@ public class AppConfig {
     public ApplicationEventMulticaster simpleApplicationEventMulticaster() {
         SimpleApplicationEventMulticaster multicaster = new SimpleApplicationEventMulticaster() {
 
+            private ResolvableType resolveDefaultEventType(ApplicationEvent event) {
+                return ResolvableType.forInstance(event);
+            }
+
             @Override
             public void multicastEvent(ApplicationEvent event, ResolvableType eventType) {
-                if (event instanceof SyncEvent) {
-                    ResolvableType type = (eventType != null ? eventType : ResolvableType.forInstance(event));
-                    for (final ApplicationListener<?> listener : getApplicationListeners(event, type)) {
-                        invokeListener(listener, event);
-                    }
-                    return;
-                }
+                ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
+                Executor executor = getTaskExecutor();
 
-                super.multicastEvent(event, eventType);
+                for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+                    if (event instanceof SyncEvent || listener instanceof AuditingEventListener) {
+                        invokeListener(listener, event);
+                        continue;
+                    }
+
+                    executor.execute(() -> invokeListener(listener, event));
+                }
             }
         };
 

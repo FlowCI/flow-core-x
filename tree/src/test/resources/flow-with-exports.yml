@@ -4,15 +4,15 @@ envs:
   FLOW_VERSION: "echo version"
 
 trigger:
-  branches:
+  branch:
   - "develop"
   - "master"
   - "feature/*"
-  tags:
+  tag:
   - "*"
 
 selector:
-  tags:
+  label:
   - ios
   - local
 
@@ -24,11 +24,6 @@ steps:
   exports:
   - "PLUGIN_"
   - "HELLO_"
-
-- name: step3
-  allow_failure: false
-  tail: true
-  script: "echo 3"
 
 - name: step2
   allow_failure: false

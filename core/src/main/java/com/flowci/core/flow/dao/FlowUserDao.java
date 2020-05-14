@@ -30,9 +30,9 @@ public interface FlowUserDao {
     void delete(String flowId);
 
     /**
-     * Find all flows by users id
+     * Find all flows by users email
      */
-    List<String> findAllFlowsByUserId(String userId);
+    List<String> findAllFlowsByUserEmail(String email);
 
     /**
      * Find all users by flow id
@@ -42,15 +42,15 @@ public interface FlowUserDao {
     /**
      * Batch insert users
      */
-    void insert(String flowId, Set<String> userIds);
+    void insert(String flowId, Set<String> emails);
 
     /**
      * Batch remove users
      */
-    void remove(String flowId, Set<String> userIds);
+    void remove(String flowId, Set<String> emails);
 
     /**
      * Check user is existed
      */
-    boolean exist(String flowId, String userId);
+    boolean exist(String flowId, String emails);
 }

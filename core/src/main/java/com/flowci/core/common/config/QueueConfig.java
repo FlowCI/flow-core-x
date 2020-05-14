@@ -17,11 +17,10 @@
 package com.flowci.core.common.config;
 
 import com.flowci.core.common.helper.ThreadHelper;
-import com.flowci.core.common.rabbit.RabbitChannelOperation;
-import com.flowci.core.common.rabbit.RabbitQueueOperation;
+import com.flowci.core.common.rabbit.QueueOperations;
+import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.util.StringHelper;
 import com.rabbitmq.client.BuiltinExchangeType;
-import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.log4j.Log4j2;
@@ -62,48 +61,43 @@ public class QueueConfig {
         return factory.newConnection(rabbitConsumerExecutor.getThreadPoolExecutor());
     }
 
-    @Bean
-    public RabbitQueueOperation callbackQueueManager(Connection rabbitConnection) throws IOException {
-        String name = rabbitProperties.getCallbackQueue();
-        RabbitQueueOperation manager = new RabbitQueueOperation(rabbitConnection, 10, name);
+    @Bean("callbackQueueManager")
+    public QueueOperations callbackQueueManager(Connection rabbitConnection) throws IOException {
+        String queue = rabbitProperties.getCallbackQueue();
+        QueueOperations manager = new QueueOperations(rabbitConnection, 10, queue);
         manager.declare(true);
         return manager;
     }
 
-    @Bean
-    public RabbitQueueOperation loggingQueueManager(Connection rabbitConnection) throws IOException {
-        String name = rabbitProperties.getLoggingQueue();
+    @Bean("loggingQueueManager")
+    public QueueOperations loggingQueueManager(Connection rabbitConnection) throws IOException {
+        String queue = rabbitProperties.getLoggingQueue();
         String exchange = rabbitProperties.getLoggingExchange();
 
-        RabbitQueueOperation manager = new RabbitQueueOperation(rabbitConnection, 10, name);
+        QueueOperations manager = new QueueOperations(rabbitConnection, 10, queue);
         manager.declare(false);
-
-        Channel channel = manager.getChannel();
-        channel.exchangeDeclare(exchange, BuiltinExchangeType.FANOUT);
-        channel.queueBind(manager.getQueueName(), exchange, StringHelper.EMPTY);
+        manager.declareExchangeAndBind(exchange, BuiltinExchangeType.FANOUT, StringHelper.EMPTY);
 
         return manager;
     }
 
-    @Bean
-    public RabbitQueueOperation deadLetterQueueManager(Connection rabbitConnection) throws IOException {
-        String name = rabbitProperties.getJobDlQueue();
+    @Bean("jobsQueueManager")
+    public RabbitOperations jobsQueueManager(Connection rabbitConnection) throws IOException {
+        RabbitOperations manager = new RabbitOperations(rabbitConnection, 1);
+
+        // setup dead letter queue
+        String queue = rabbitProperties.getJobDlQueue();
+        manager.declare(queue, true);
+
+        Map<String, Object> args = new HashMap<>(0);
         String exchange = rabbitProperties.getJobDlExchange();
-
-        RabbitQueueOperation manager = new RabbitQueueOperation(rabbitConnection, 1, name);
-        manager.declare(true);
-
-        Map<String, Object> props = new HashMap<>(0);
-
-        Channel channel = manager.getChannel();
-        channel.exchangeDeclare(exchange, BuiltinExchangeType.DIRECT, true, false, props);
-        channel.queueBind(manager.getQueueName(), exchange, JobDlRoutingKey);
+        manager.declareExchangeAndBind(exchange, BuiltinExchangeType.DIRECT, true, false, args, queue, JobDlRoutingKey);
 
         return manager;
     }
 
-    @Bean
-    public RabbitChannelOperation agentQueueManager(Connection rabbitConnection) throws IOException {
-        return new RabbitChannelOperation(rabbitConnection, 1, "agent-channel-mgr");
+    @Bean("agentQueueManager")
+    public RabbitOperations agentQueueManager(Connection rabbitConnection) throws IOException {
+        return new RabbitOperations(rabbitConnection, 1);
     }
 }

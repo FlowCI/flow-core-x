@@ -16,11 +16,13 @@
 
 package com.flowci.core.common.domain;
 
+import com.flowci.util.StringHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.*;
+import org.springframework.data.domain.Sort;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -34,16 +36,32 @@ import java.util.Date;
 @Setter
 public abstract class Mongoable implements Serializable {
 
+    public final static Sort SortByCreatedAtASC = new Sort(Sort.Direction.ASC, "createdAt");
+
     @Id
     protected String id;
 
+    @CreatedDate
     protected Date createdAt;
 
-    protected Date updatedAt;
-
+    /**
+     * User email
+     */
+    @CreatedBy
     protected String createdBy;
 
+    @LastModifiedDate
+    protected Date updatedAt;
+
+    /**
+     * User email
+     */
+    @LastModifiedBy
     protected String updatedBy;
+
+    public boolean hasId() {
+        return StringHelper.hasValue(id);
+    }
 
     public void cleanDBInfo() {
         this.id = null;

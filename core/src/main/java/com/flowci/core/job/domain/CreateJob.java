@@ -17,7 +17,8 @@
 package com.flowci.core.job.domain;
 
 import com.flowci.domain.StringVars;
-import javax.validation.constraints.NotNull;
+
+import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 
 /**
@@ -26,7 +27,7 @@ import lombok.Data;
 @Data
 public class CreateJob {
 
-    @NotNull
+    @NotEmpty
     private String flow;
 
     private StringVars inputs = StringVars.EMPTY;
@@ -34,7 +35,7 @@ public class CreateJob {
     public CreateJob() {
     }
 
-    public CreateJob(@NotNull String flow) {
+    public CreateJob(@NotEmpty String flow) {
         this.flow = flow;
     }
 }

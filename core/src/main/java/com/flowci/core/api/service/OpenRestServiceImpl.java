@@ -20,8 +20,8 @@ package com.flowci.core.api.service;
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.common.helper.DateHelper;
-import com.flowci.core.secret.domain.Secret;
-import com.flowci.core.secret.service.SecretService;
+import com.flowci.core.config.domain.Config;
+import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.flow.dao.FlowUserDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.StatsCounter;
@@ -32,6 +32,8 @@ import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.service.ArtifactService;
 import com.flowci.core.job.service.ReportService;
 import com.flowci.core.job.util.JobKeyBuilder;
+import com.flowci.core.secret.domain.Secret;
+import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.user.dao.UserDao;
 import com.flowci.core.user.domain.User;
 import com.flowci.exception.NotFoundException;
@@ -68,9 +70,21 @@ public class OpenRestServiceImpl implements OpenRestService {
     @Autowired
     private ArtifactService artifactService;
 
+    @Autowired
+    private ConfigService configService;
+
     @Override
     public Secret getSecret(String name) {
-        return credentialService.get(name);
+        Secret secret = credentialService.get(name);
+        secret.cleanDBInfo();
+        return secret;
+    }
+
+    @Override
+    public Config getConfig(String name) {
+        Config config = configService.get(name);
+        config.cleanDBInfo();
+        return config;
     }
 
     @Override
@@ -105,8 +119,14 @@ public class OpenRestServiceImpl implements OpenRestService {
     @Override
     public List<User> users(String flowName) {
         Flow flow = flowService.get(flowName);
-        List<String> userIds = flowUserDao.findAllUsers(flow.getId());
-        return userDao.listUserEmailByIds(userIds);
+        List<String> emails = flowUserDao.findAllUsers(flow.getId());
+        List<User> users = new ArrayList<>(emails.size());
+        for (String email : emails) {
+            User user = new User();
+            user.setEmail(email);
+            users.add(user);
+        }
+        return users;
     }
 
     private Job getJob(String name, long number) {

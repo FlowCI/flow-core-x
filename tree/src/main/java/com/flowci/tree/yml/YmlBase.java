@@ -36,8 +36,6 @@ public abstract class YmlBase<T extends Node> implements Serializable {
 
     public Map<String, String> envs = new LinkedHashMap<>();
 
-    public abstract T toNode(int index);
-
     StringVars getVariableMap() {
         StringVars variables = new StringVars(envs.size());
         for (Map.Entry<String, String> entry : envs.entrySet()) {

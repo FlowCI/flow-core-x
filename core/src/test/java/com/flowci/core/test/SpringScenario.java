@@ -17,12 +17,12 @@
 package com.flowci.core.test;
 
 import com.flowci.core.agent.dao.AgentDao;
+import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.SessionManager;
-import com.flowci.core.common.rabbit.RabbitChannelOperation;
-import com.flowci.core.common.rabbit.RabbitQueueOperation;
+import com.flowci.core.common.rabbit.QueueOperations;
+import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.manager.FlowJobQueueManager;
 import com.flowci.core.test.SpringScenario.Config;
 import com.flowci.core.test.auth.AuthHelper;
 import com.flowci.core.test.flow.FlowMockHelper;
@@ -30,11 +30,9 @@ import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
 import com.flowci.domain.Agent;
 import com.flowci.exception.NotFoundException;
-import java.io.InputStream;
-import java.util.LinkedList;
-import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -47,12 +45,19 @@ import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * @author yang
  */
 @Log4j2
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = Config.class)
+@SpringBootTest(
+        classes = Config.class,
+        properties = {"spring.main.allow-bean-definition-overriding=true"}
+)
 @AutoConfigureMockMvc
 public abstract class SpringScenario {
 
@@ -97,16 +102,16 @@ public abstract class SpringScenario {
     private MongoTemplate mongoTemplate;
 
     @Autowired
-    private RabbitQueueOperation callbackQueueManager;
+    private QueueOperations callbackQueueManager;
 
     @Autowired
-    private RabbitQueueOperation loggingQueueManager;
+    private QueueOperations loggingQueueManager;
 
     @Autowired
-    private RabbitChannelOperation agentQueueManager;
+    private RabbitOperations agentQueueManager;
 
     @Autowired
-    private FlowJobQueueManager flowJobQueueManager;
+    private RabbitOperations jobsQueueManager;
 
     @Autowired
     private AgentDao agentDao;
@@ -121,7 +126,7 @@ public abstract class SpringScenario {
 
     @After
     public void cleanListeners() {
-        for (ApplicationListener listener : listenersForTest) {
+        for (ApplicationListener<?> listener : listenersForTest) {
             applicationEventMulticaster.removeApplicationListener(listener);
         }
     }
@@ -141,13 +146,25 @@ public abstract class SpringScenario {
         }
 
         for (Flow flow : flowDao.findAll()) {
-            flowJobQueueManager.remove(flow.getQueueName());
+            jobsQueueManager.delete(flow.getQueueName());
         }
+    }
+
+    protected void should_has_db_info(Mongoable obj) {
+        Assert.assertNotNull(obj.getCreatedAt());
+        Assert.assertNotNull(obj.getUpdatedAt());
+        Assert.assertEquals(sessionManager.getUserEmail(), obj.getCreatedBy());
+        Assert.assertEquals(sessionManager.getUserEmail(), obj.getUpdatedBy());
     }
 
     protected void addEventListener(ApplicationListener<?> listener) {
         applicationEventMulticaster.addApplicationListener(listener);
         listenersForTest.add(listener);
+    }
+
+    protected void removeListener(ApplicationListener<?> listener) {
+        applicationEventMulticaster.removeApplicationListener(listener);
+        listenersForTest.remove(listener);
     }
 
     protected void multicastEvent(ApplicationEvent event) {

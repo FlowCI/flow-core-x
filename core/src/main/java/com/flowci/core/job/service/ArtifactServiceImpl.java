@@ -75,7 +75,6 @@ public class ArtifactServiceImpl implements ArtifactService {
             artifact.setPath(path);
             artifact.setSrcDir(srcDir);
             artifact.setMd5(md5);
-            artifact.setCreatedAt(new Date());
 
             jobArtifactDao.save(artifact);
         } catch (IOException e) {

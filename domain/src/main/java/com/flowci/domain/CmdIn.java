@@ -41,8 +41,6 @@ public class CmdIn extends CmdBase {
     @NonNull
     private List<String> scripts = new LinkedList<>();
 
-    private String flowId;
-
     /**
      * Container id that prefer to reuse
      */

@@ -32,6 +32,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
@@ -87,52 +88,59 @@ public class Job extends Mongoable implements Pathable {
         /**
          * Initial job state
          */
-        PENDING,
-
-        /**
-         * Loading the yaml from git repo
-         */
-        LOADING,
+        PENDING(0),
 
         /**
          * Job created with yaml and steps
          */
-        CREATED,
+        CREATED(1),
+
+        /**
+         * Loading the yaml from git repo
+         */
+        LOADING(2),
 
         /**
          * Been put to job queue
          */
-        QUEUED,
+        QUEUED(3),
 
         /**
          * Agent take over the job, and been start to execute
          */
-        RUNNING,
-
-        /**
-         * Job been executed
-         */
-        SUCCESS,
-
-        /**
-         * Job been executed but failure
-         */
-        FAILURE,
+        RUNNING(4),
 
         /**
          * Job will be cancelled, but waiting for response from agent
          */
-        CANCELLING,
+        CANCELLING(5),
+
+        /**
+         * Job been executed
+         */
+        SUCCESS(10),
+
+        /**
+         * Job been executed but failure
+         */
+        FAILURE(10),
 
         /**
          * Job been cancelled by user
          */
-        CANCELLED,
+        CANCELLED(10),
 
         /**
          * Job execution time been over the expiredAt
          */
-        TIMEOUT
+        TIMEOUT(10);
+
+        @Getter
+        private int order;
+
+        Status(int order) {
+            this.order = order;
+        }
     }
 
     /**
@@ -185,6 +193,8 @@ public class Job extends Mongoable implements Pathable {
     @Indexed(name = "index_flow_id", sparse = true)
     private String flowId;
 
+    private String flowName;
+
     private Long buildNumber;
 
     private Trigger trigger;
@@ -235,18 +245,13 @@ public class Job extends Mongoable implements Pathable {
     private Date finishAt;
 
     @JsonIgnore
-    public boolean isRunning() {
-        return status == Status.RUNNING;
+    public boolean isCancelled() {
+        return status == Status.CANCELLED;
     }
 
     @JsonIgnore
     public boolean isCancelling() {
         return status == Status.CANCELLING;
-    }
-
-    @JsonIgnore
-    public boolean isQueuing() {
-        return status == Status.QUEUED;
     }
 
     @JsonIgnore
@@ -287,6 +292,29 @@ public class Job extends Mongoable implements Pathable {
 
     public String getGitUrl() {
         return context.get(Variables.Flow.GitUrl);
+    }
+
+    public boolean isExpired() {
+        Instant expireAt = getExpireAt().toInstant();
+        return Instant.now().compareTo(expireAt) > 0;
+    }
+
+    @JsonIgnore
+    public Status getStatusFromContext() {
+        return Job.Status.valueOf(context.get(Variables.Job.Status));
+    }
+
+    public void setStatusToContext(Status status) {
+        context.put(Variables.Job.Status, status.name());
+    }
+
+    @JsonIgnore
+    public String getErrorFromContext() {
+        return context.get(Variables.Job.Error);
+    }
+
+    public void setErrorToContext(String err) {
+        context.put(Variables.Job.Error, err);
     }
 
     public void setAgentSnapshot(Agent agent) {

@@ -41,7 +41,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     "com.flowci.core.agent",
     "com.flowci.core.stats",
     "com.flowci.core.secret",
-    "com.flowci.core.plugin"
+    "com.flowci.core.plugin",
+    "com.flowci.core.config"
 })
 public class ExceptionAdviser {
 

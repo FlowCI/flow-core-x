@@ -20,14 +20,15 @@ import com.flowci.domain.DockerOption;
 import com.flowci.exception.YmlException;
 import com.flowci.tree.*;
 import com.google.common.io.Files;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * @author yang
@@ -57,11 +58,11 @@ public class YmlParserTest {
         Assert.assertEquals("echo hello", root.getEnv("FLOW_WORKSPACE"));
         Assert.assertEquals("echo version", root.getEnv("FLOW_VERSION"));
 
-        Assert.assertTrue(root.getSelector().getTags().contains("ios"));
-        Assert.assertTrue(root.getSelector().getTags().contains("local"));
+        Assert.assertTrue(root.getSelector().getLabel().contains("ios"));
+        Assert.assertTrue(root.getSelector().getLabel().contains("local"));
 
-        Assert.assertEquals(3, root.getTrigger().getBranches().size());
-        Assert.assertEquals(1, root.getTrigger().getTags().size());
+        Assert.assertEquals(3, root.getTrigger().getBranch().size());
+        Assert.assertEquals(1, root.getTrigger().getTag().size());
 
         // verify steps
         List<StepNode> steps = root.getChildren();
@@ -73,7 +74,6 @@ public class YmlParserTest {
         Assert.assertEquals("echo step version", step1.getEnv("FLOW_VERSION"));
 
         Assert.assertTrue(step1.isAllowFailure());
-        Assert.assertFalse(step1.isTail());
         Assert.assertEquals("println(FLOW_WORKSPACE)\ntrue\n", step1.getBefore());
 
         StepNode step2 = steps.get(1);
@@ -87,6 +87,20 @@ public class YmlParserTest {
         Assert.assertEquals("2700:2700", dockerOption.getPorts().get(1));
         Assert.assertEquals("/bin/sh", dockerOption.getEntrypoint().get(0));
         Assert.assertEquals("host", dockerOption.getNetworkMode());
+
+        // verify after steps
+        List<StepNode> after = root.getAfter();
+        Assert.assertEquals(2, after.size());
+
+        StepNode after1 = after.get(0);
+        Assert.assertEquals("step3", after1.getName());
+        Assert.assertTrue(after1.isAfter());
+        Assert.assertTrue(after1.isAllowFailure());
+
+        StepNode after2 = after.get(1);
+        Assert.assertEquals("after-2", after2.getName());
+        Assert.assertTrue(after2.isAfter());
+        Assert.assertFalse(after2.isAllowFailure());
     }
 
     @Test
@@ -104,10 +118,19 @@ public class YmlParserTest {
         Assert.assertNotNull(step2);
         Assert.assertTrue(step2.getChildren().isEmpty());
         Assert.assertEquals(root, step2.getParent());
-
-        // verify next / previous relationship
         Assert.assertEquals(step2, tree.next(step1.getPath()));
-        Assert.assertNull(tree.next(step2.getPath()));
+
+        StepNode after1 = tree.next(step2.getPath());
+        Assert.assertNotNull(after1);
+        Assert.assertTrue(after1.isAfter());
+        Assert.assertEquals(root, after1.getParent());
+
+        StepNode after2 = tree.next(after1.getPath());
+        Assert.assertNotNull(after2);
+        Assert.assertTrue(after2.isAfter());
+        Assert.assertEquals(root, after2.getParent());
+
+        Assert.assertNull(tree.next(after2.getPath()));
     }
 
     @Test
@@ -132,6 +155,6 @@ public class YmlParserTest {
     private String loadContent(String resource) throws IOException {
         ClassLoader classLoader = YmlParserTest.class.getClassLoader();
         URL url = classLoader.getResource(resource);
-        return Files.toString(new File(url.getFile()), Charset.forName("UTF-8"));
+        return Files.toString(new File(url.getFile()), StandardCharsets.UTF_8);
     }
 }

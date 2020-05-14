@@ -31,7 +31,6 @@ import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
-import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.Agent;
@@ -346,8 +345,11 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @EventListener
     public void onNoIdleAgent(NoIdleAgentEvent event) {
-        Job job = event.getJob();
-        Set<String> agentTags = job.getAgentSelector().getTags();
+        if (!appProperties.isAutoLocalAgentHost()) {
+            return;
+        }
+
+        Set<String> agentTags = event.getSelector().getLabel();
 
         List<AgentHost> hosts;
         if (agentTags.isEmpty()) {
@@ -357,7 +359,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
 
         if (hosts.isEmpty()) {
-            log.warn("Unable to find matched agent host for job {}", job.getId());
+            log.warn("Unable to find matched agent host for job {}", event.getJobId());
             return;
         }
 
@@ -526,7 +528,6 @@ public class AgentHostServiceImpl implements AgentHostService {
             }
 
             try {
-                host.setCreatedAt(new Date());
                 host.setCreatedBy(User.DefaultSystemUser);
                 agentHostDao.insert(host);
             } catch (Exception e) {
@@ -560,10 +561,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         @Override
         public void create(AgentHost host) {
             SshAgentHost sshHost = (SshAgentHost) host;
-            Preconditions.checkArgument(sshHost.getSecret() != null, "Credential name must be defined");
-
-            sshHost.setCreatedAt(new Date());
-            sshHost.setCreatedBy(sessionManager.getUserId());
+            Preconditions.checkArgument(sshHost.getSecret() != null, "Secret name must be defined");
             agentHostDao.insert(sshHost);
         }
 
@@ -574,7 +572,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             eventManager.publish(event);
 
             Secret c = event.getSecret();
-            Preconditions.checkArgument(c != null, "Credential not found");
+            Preconditions.checkArgument(c != null, "Secret not found");
             Preconditions.checkArgument(c.getCategory() == SSH_RSA, "Invalid credential category");
 
             RSASecret rsa = (RSASecret) c;

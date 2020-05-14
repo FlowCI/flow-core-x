@@ -21,6 +21,11 @@
 
     <dependency>
       <groupId>com.flowci</groupId>
+      <artifactId>sm</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.flowci</groupId>
       <artifactId>util</artifactId>
     </dependency>
 
@@ -72,12 +77,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-logging</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
@@ -172,29 +171,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.6.0</version>
-        <executions>
-          <execution>
-            <phase>
-              generate-sources
-            </phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <workingDirectory>${project.build.sourceDirectory}</workingDirectory>
-          <executable>protoc</executable>
-          <commandlineArgs>
-            -I=./ --java_out=./ job.proto
-          </commandlineArgs>
-        </configuration>
       </plugin>
     </plugins>
   </build>

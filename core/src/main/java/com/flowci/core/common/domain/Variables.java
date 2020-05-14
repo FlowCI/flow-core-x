@@ -16,6 +16,10 @@
 
 package com.flowci.core.common.domain;
 
+import com.google.common.collect.Lists;
+
+import java.util.List;
+
 /**
  * @author yang
  */
@@ -43,14 +47,14 @@ public abstract class Variables {
 
         public static final String GitBranch = "FLOWCI_GIT_BRANCH"; // set
 
+        public static final String GitRepo = "FLOWCI_GIT_REPO"; // set
+
         public static final String GitCredential = "FLOWCI_GIT_CREDENTIAL"; // set
     }
 
     public abstract static class Job {
 
         public static final String BuildNumber = "FLOWCI_JOB_BUILD_NUM";
-
-        public static final String Status = "FLOWCI_JOB_STATUS";
 
         public static final String Trigger = "FLOWCI_JOB_TRIGGER";
 
@@ -62,6 +66,11 @@ public abstract class Variables {
 
         // {step name}={status};{step name}={status}
         public static final String Steps = "FLOWCI_JOB_STEPS";
+
+        // both status and error will carry out latest job status and error message from step
+        public static final String Status = "FLOWCI_JOB_STATUS";
+
+        public static final String Error = "FLOWCI_JOB_ERROR";
     }
 
     public abstract static class Step {

@@ -83,7 +83,6 @@ public class ReportServiceImpl implements ReportService {
             r.setContentType(type);
             r.setContentSize(file.getSize());
             r.setPath(path.getValue());
-            r.setCreatedAt(new Date());
 
             jobReportDao.save(r);
 

@@ -19,7 +19,6 @@ package com.flowci.core.agent.config;
 import com.flowci.core.common.config.ConfigProperties;
 import com.flowci.core.common.domain.Variables.App;
 import com.flowci.core.common.helper.ThreadHelper;
-import com.flowci.core.common.rabbit.RabbitQueueOperation;
 import com.flowci.domain.Settings;
 import java.util.Objects;
 import lombok.extern.log4j.Log4j2;
@@ -45,9 +44,6 @@ public class AgentConfig {
     @Autowired
     private ConfigProperties.RabbitMQ rabbitProperties;
 
-    @Autowired
-    private RabbitQueueOperation callbackQueueManager;
-
     @Bean("baseSettings")
     public Settings baseSettings() {
         Settings.Zookeeper zk = new Settings.Zookeeper();
@@ -56,7 +52,7 @@ public class AgentConfig {
 
         Settings.RabbitMQ mq = new Settings.RabbitMQ();
         mq.setUri(getRabbitUri());
-        mq.setCallback(callbackQueueManager.getQueueName());
+        mq.setCallback(rabbitProperties.getCallbackQueue());
         mq.setLogsExchange(rabbitProperties.getLoggingExchange());
 
         Settings settings = new Settings();

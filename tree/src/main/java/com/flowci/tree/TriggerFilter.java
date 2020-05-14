@@ -34,23 +34,23 @@ public class TriggerFilter implements Serializable {
     /**
      * Condition on branches
      */
-    private List<String> branches = new LinkedList<>();
+    private List<String> branch = new LinkedList<>();
 
     /**
      * Condition on tags
      */
-    private List<String> tags = new LinkedList<>();
+    private List<String> tag = new LinkedList<>();
 
     public boolean available() {
-        return !branches.isEmpty() || !tags.isEmpty();
+        return !branch.isEmpty() || !tag.isEmpty();
     }
 
     public boolean isMatchBranch(String branch) {
-        if (branches.isEmpty()) {
+        if (this.branch.isEmpty()) {
             return true;
         }
 
-        for (String re : branches) {
+        for (String re : this.branch) {
             re = replaceStar(re);
 
             if (branch.matches(re)) {
@@ -62,11 +62,11 @@ public class TriggerFilter implements Serializable {
     }
 
     public boolean isMatchTag(String tag) {
-        if (tags.isEmpty()) {
+        if (this.tag.isEmpty()) {
             return true;
         }
 
-        for (String re : tags) {
+        for (String re : this.tag) {
             re = replaceStar(re);
 
             if (tag.matches(re)) {

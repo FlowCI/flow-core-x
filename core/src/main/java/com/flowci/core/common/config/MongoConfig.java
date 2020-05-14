@@ -18,14 +18,13 @@ package com.flowci.core.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.mongo.EncryptConverter;
-import com.flowci.core.common.mongo.FlowMappingContext;
 import com.flowci.core.common.mongo.VariableMapConverter;
+import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.job.domain.JobItem;
-import com.flowci.domain.ExecutedCmd;
+import com.flowci.core.secret.domain.AuthSecret;
+import com.flowci.core.secret.domain.RSASecret;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.MongoProperties;
@@ -36,14 +35,16 @@ import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
-import org.springframework.data.util.ClassTypeInformation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author yang
  */
 @Log4j2
 @Configuration
-@EnableMongoAuditing
+@EnableMongoAuditing(auditorAwareRef = "sessionManager")
 public class MongoConfig extends AbstractMongoConfiguration {
 
     @Autowired
@@ -68,6 +69,21 @@ public class MongoConfig extends AbstractMongoConfiguration {
     }
 
     @Override
+    public MongoMappingContext mongoMappingContext() throws ClassNotFoundException {
+        CustomizedMappingContext context = new CustomizedMappingContext();
+        context.setInitialEntitySet(getInitialEntitySet());
+        context.setSimpleTypeHolder(customConversions().getSimpleTypeHolder());
+        context.setFieldNamingStrategy(fieldNamingStrategy());
+
+        // add addPersistentEntity for sub types since not registered if called within same thread
+        context.addEntity(SmtpConfig.class);
+        context.addEntity(AuthSecret.class);
+        context.addEntity(RSASecret.class);
+
+        return context;
+    }
+
+    @Override
     public CustomConversions customConversions() {
         List<Converter<?, ?>> converters = new ArrayList<>();
 
@@ -85,15 +101,9 @@ public class MongoConfig extends AbstractMongoConfiguration {
         return new MongoCustomConversions(converters);
     }
 
-    @Override
-    public MongoMappingContext mongoMappingContext() throws ClassNotFoundException {
-        FlowMappingContext mappingContext = new FlowMappingContext();
-        mappingContext.setInitialEntitySet(getInitialEntitySet());
-        mappingContext.setSimpleTypeHolder(customConversions().getSimpleTypeHolder());
-        mappingContext.setFieldNamingStrategy(fieldNamingStrategy());
-
-        mappingContext.addCustomizedPersistentEntity(ClassTypeInformation.from(ExecutedCmd.class), "executed_cmd");
-
-        return mappingContext;
+    private static class CustomizedMappingContext extends MongoMappingContext {
+        public void addEntity(Class<?> c) {
+            this.addPersistentEntity(c);
+        }
     }
 }

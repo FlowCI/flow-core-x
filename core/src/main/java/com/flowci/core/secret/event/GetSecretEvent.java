@@ -37,4 +37,8 @@ public class GetSecretEvent extends ApplicationEvent implements SyncEvent {
         super(source);
         this.name = credentialName;
     }
+
+    public boolean hasSecret() {
+        return secret != null;
+    }
 }

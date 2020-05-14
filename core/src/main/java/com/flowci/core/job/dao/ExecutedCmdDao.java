@@ -16,11 +16,12 @@
 
 package com.flowci.core.job.dao;
 
-import com.flowci.domain.ExecutedCmd;
+import com.flowci.core.job.domain.ExecutedCmd;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author yang
@@ -29,6 +30,10 @@ import java.util.List;
 public interface ExecutedCmdDao extends MongoRepository<ExecutedCmd, String> {
 
     Long deleteByFlowId(String flowId);
+
+    Long deleteByJobId(String jobId);
+
+    Optional<ExecutedCmd> findByJobIdAndNodePath(String jobId, String nodePath);
 
     List<ExecutedCmd> findByFlowIdAndBuildNumber(String flowId, long buildNumber);
 }

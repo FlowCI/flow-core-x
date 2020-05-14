@@ -28,8 +28,8 @@ public class FilterTest {
     @Test
     public void should_match_branches_regular_expression() {
         TriggerFilter condition = new TriggerFilter();
-        condition.getBranches().add("feature/*");
-        condition.getBranches().add("personal/.+");
+        condition.getBranch().add("feature/*");
+        condition.getBranch().add("personal/.+");
 
         Assert.assertTrue(condition.isMatchBranch("feature/fb_123"));
         Assert.assertTrue(condition.isMatchBranch("personal/my-branch"));
@@ -38,7 +38,7 @@ public class FilterTest {
     @Test
     public void should_available_if_condition_defined() {
         TriggerFilter condition = new TriggerFilter();
-        condition.getBranches().add("feature/*");
+        condition.getBranch().add("feature/*");
         Assert.assertTrue(condition.available());
     }
 

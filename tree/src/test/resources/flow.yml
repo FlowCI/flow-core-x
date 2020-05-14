@@ -6,15 +6,15 @@ envs:
 cron: "* * * * *"
 
 trigger:
-  branches:
+  branch:
     - "develop"
     - "master"
     - "feature/*"
-  tags:
+  tag:
     - "*"
 
 selector:
-  tags:
+  label:
   - ios
   - local
 
@@ -37,3 +37,11 @@ steps:
      entrypoint: ["/bin/sh"]
      network_mode: host
    script: "echo 2"
+
+after:
+  - name: step3
+    allow_failure: true
+    script: "echo 3"
+
+  - allow_failure: false
+    script: "echo 4"
