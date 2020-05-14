@@ -24,12 +24,14 @@ import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.domain.PluginParser;
 import com.flowci.core.plugin.domain.PluginRepoInfo;
+import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.plugin.event.RepoCloneEvent;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -82,6 +84,16 @@ public class PluginServiceImpl implements PluginService {
     private PluginDao pluginDao;
 
     private final Object reloadLock = new Object();
+
+    @EventListener
+    public void onGetPluginEvent(GetPluginEvent event) {
+        try {
+            Plugin plugin = get(event.getName());
+            event.setPlugin(plugin);
+        } catch (NotFoundException ignore) {
+
+        }
+    }
 
     @Override
     public Collection<Plugin> list() {

@@ -19,17 +19,22 @@ package com.flowci.core.job.manager;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.plugin.domain.*;
+import com.flowci.core.plugin.domain.ParentBody;
+import com.flowci.core.plugin.domain.Plugin;
+import com.flowci.core.plugin.domain.PluginBody;
+import com.flowci.core.plugin.domain.ScriptBody;
 import com.flowci.core.plugin.service.PluginService;
-import com.flowci.domain.*;
+import com.flowci.domain.CmdIn;
+import com.flowci.domain.CmdType;
+import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
-import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -79,7 +84,10 @@ public class CmdManagerImpl implements CmdManager {
 
     private void setPlugin(String name, CmdIn cmd) {
         Plugin plugin = pluginService.get(name);
-        verifyPluginInput(cmd.getInputs(), plugin);
+        Optional<String> validate = plugin.verifyInput(cmd.getInputs());
+        if (validate.isPresent()) {
+            throw new ArgumentException("The illegal input {0} for plugin {1}", validate.get(), plugin.getName());
+        }
 
         cmd.setPlugin(name);
         cmd.setAllowFailure(plugin.isAllowFailure());
@@ -115,30 +123,15 @@ public class CmdManagerImpl implements CmdManager {
                 cmd.setDocker(parent.getDocker());
             }
 
-            verifyPluginInput(cmd.getInputs(), parent);
+            validate = parent.verifyInput(cmd.getInputs());
+            if (validate.isPresent()) {
+                throw new ArgumentException("The illegal input {0} for plugin {1}", validate.get(), parent.getName());
+            }
         }
     }
 
     private static boolean isDockerEnabled(Vars<String> input) {
         String val = input.get(Variables.Step.DockerEnabled, "true");
         return Boolean.parseBoolean(val);
-    }
-
-    private static void verifyPluginInput(Vars<String> context, Plugin plugin) {
-        for (Input input : plugin.getInputs()) {
-            String value = context.get(input.getName());
-
-            // setup plugin default value to context
-            if (!StringHelper.hasValue(value) && input.hasDefaultValue()) {
-                context.put(input.getName(), input.getValue());
-                continue;
-            }
-
-            // verify value from context
-            if (!input.verify(value)) {
-                throw new ArgumentException(
-                        "The illegal input {0} for plugin {1}", input.getName(), plugin.getName());
-            }
-        }
     }
 }

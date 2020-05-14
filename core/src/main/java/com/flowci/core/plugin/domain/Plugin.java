@@ -18,19 +18,17 @@ package com.flowci.core.plugin.domain;
 
 import com.flowci.core.flow.domain.StatsType;
 import com.flowci.domain.DockerOption;
+import com.flowci.domain.Vars;
 import com.flowci.domain.Version;
-
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
+import com.flowci.util.StringHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.*;
 
 /**
  * @author yang
@@ -74,5 +72,29 @@ public class Plugin extends PluginRepoInfo implements PluginBody {
         this.setAllowFailure(src.allowFailure);
         this.setBody(src.body);
         this.setDocker(src.docker);
+    }
+
+    /**
+     * Verify input from context
+     *
+     * @return invalid input name, or empty if all inputs are validated
+     */
+    public Optional<String> verifyInput(Vars<String> context) {
+        for (Input input : inputs) {
+            String value = context.get(input.getName());
+
+            // setup plugin default value to context
+            if (!StringHelper.hasValue(value) && input.hasDefaultValue()) {
+                context.put(input.getName(), input.getValue());
+                continue;
+            }
+
+            // verify value from context
+            if (!input.verify(value)) {
+                return Optional.of(input.getName());
+            }
+        }
+
+        return Optional.empty();
     }
 }

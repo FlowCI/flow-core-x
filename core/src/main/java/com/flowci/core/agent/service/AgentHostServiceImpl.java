@@ -50,6 +50,7 @@ import com.flowci.zookeeper.ZookeeperException;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.RemovalListener;
+import com.github.dockerjava.api.DockerClient;
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -97,10 +98,10 @@ public class AgentHostServiceImpl implements AgentHostService {
     private SpringEventManager eventManager;
 
     @Autowired
-    private SessionManager sessionManager;
+    private ZookeeperClient zk;
 
     @Autowired
-    private ZookeeperClient zk;
+    private DockerClient dockerClient;
 
     @Autowired
     private ConfigProperties.Zookeeper zkProperties;
@@ -539,7 +540,11 @@ public class AgentHostServiceImpl implements AgentHostService {
         @Override
         public PoolManager<?> init(AgentHost host) throws Exception {
             PoolManager<SocketInitContext> poolManager = new SocketPoolManager();
-            poolManager.init(new SocketInitContext());
+
+            SocketInitContext context = new SocketInitContext();
+            context.setClient(dockerClient);
+
+            poolManager.init(context);
             return poolManager;
         }
 
