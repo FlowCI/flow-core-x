@@ -14,7 +14,7 @@ trigger:
     - "*"
 
 selector:
-  tags:
+  label:
   - ios
   - local
 

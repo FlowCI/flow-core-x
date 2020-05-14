@@ -31,7 +31,6 @@ import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
-import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.Agent;
@@ -350,7 +349,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             return;
         }
 
-        Set<String> agentTags = event.getSelector().getTags();
+        Set<String> agentTags = event.getSelector().getLabel();
 
         List<AgentHost> hosts;
         if (agentTags.isEmpty()) {

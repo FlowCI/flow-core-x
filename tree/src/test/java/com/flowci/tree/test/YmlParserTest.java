@@ -58,8 +58,8 @@ public class YmlParserTest {
         Assert.assertEquals("echo hello", root.getEnv("FLOW_WORKSPACE"));
         Assert.assertEquals("echo version", root.getEnv("FLOW_VERSION"));
 
-        Assert.assertTrue(root.getSelector().getTags().contains("ios"));
-        Assert.assertTrue(root.getSelector().getTags().contains("local"));
+        Assert.assertTrue(root.getSelector().getLabel().contains("ios"));
+        Assert.assertTrue(root.getSelector().getLabel().contains("local"));
 
         Assert.assertEquals(3, root.getTrigger().getBranch().size());
         Assert.assertEquals(1, root.getTrigger().getTag().size());

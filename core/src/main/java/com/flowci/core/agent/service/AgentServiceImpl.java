@@ -478,7 +478,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     private Optional<Agent> acquire(String jobId, Selector selector) {
-        List<Agent> agents = find(Agent.Status.IDLE, selector.getTags());
+        List<Agent> agents = find(Agent.Status.IDLE, selector.getLabel());
 
         if (agents.isEmpty()) {
             return Optional.empty();

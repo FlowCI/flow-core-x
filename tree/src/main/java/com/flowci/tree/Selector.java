@@ -29,5 +29,5 @@ import lombok.Data;
 @Data
 public class Selector implements Serializable {
 
-    private Set<String> tags = Collections.emptySet();
+    private Set<String> label = Collections.emptySet();
 }
