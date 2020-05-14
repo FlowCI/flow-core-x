@@ -3,7 +3,7 @@ envs:
   FLOW_VERSION: "echo version"
 
 trigger:
-  branches:
+  branch:
   - develop
 
 steps:

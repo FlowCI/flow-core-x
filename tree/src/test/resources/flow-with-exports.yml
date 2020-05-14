@@ -4,11 +4,11 @@ envs:
   FLOW_VERSION: "echo version"
 
 trigger:
-  branches:
+  branch:
   - "develop"
   - "master"
   - "feature/*"
-  tags:
+  tag:
   - "*"
 
 selector:

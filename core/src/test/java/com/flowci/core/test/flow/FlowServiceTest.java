@@ -19,7 +19,6 @@ package com.flowci.core.test.flow;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.Variables;
-import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.domain.Yml;
@@ -57,9 +56,6 @@ public class FlowServiceTest extends SpringScenario {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Autowired
-    private SessionManager sessionManager;
 
     @Autowired
     private FlowService flowService;
