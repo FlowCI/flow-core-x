@@ -4,6 +4,7 @@ import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.util.StringHelper;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
 /**
@@ -11,13 +12,21 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class LocalTask {
+public abstract class LocalTask {
 
-    private Vars<String> inputs = new StringVars();
+    @NonNull
+    protected String name;
 
-    private String plugin;
+    @NonNull
+    protected String jobId;
 
-    private String script;
+    protected Vars<String> inputs = new StringVars();
+
+    protected String plugin;
+
+    protected String script;
+
+    protected int timeoutInSecond = 60;
 
     public boolean hasPlugin() {
         return StringHelper.hasValue(plugin);

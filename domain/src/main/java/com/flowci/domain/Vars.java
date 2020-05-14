@@ -20,10 +20,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.io.Serializable;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -75,6 +72,11 @@ public abstract class Vars<V> extends LinkedHashMap<String, V> implements Serial
 
         return this;
     }
+
+    /**
+     * Convert vars to key=value list
+     */
+    public abstract List<String> toList();
 
     void merge(Map<String, V> vars) {
         if (Objects.isNull(vars)) {
