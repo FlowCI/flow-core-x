@@ -21,7 +21,7 @@ public class LocalTaskManagerTest extends SpringScenario {
         task.setJobId("test-job-id");
         task.setDocker(new DockerOption().setImage("ubuntu:18.04"));
         task.setScript("echo aaa \n sleep 9999 \n echo bbb");
-        task.setTimeoutInSecond(10);
+        task.setTimeoutInSecond(1);
 
         TaskResult result = localTaskManager.execute(task);
         Assert.assertEquals(0, result.getExitCode());

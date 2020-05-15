@@ -1,5 +1,6 @@
 package com.flowci.core.task;
 
+import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.domain.ScriptBody;
@@ -11,23 +12,21 @@ import com.flowci.exception.NotFoundException;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.ExecCreateCmdResponse;
-import com.github.dockerjava.api.command.ExecStartCmd;
-import com.github.dockerjava.api.command.InspectExecResponse;
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.exception.DockerClientException;
 import com.github.dockerjava.api.exception.DockerException;
-import com.github.dockerjava.api.model.*;
-import com.github.dockerjava.core.command.LogContainerResultCallback;
-import com.github.dockerjava.core.command.WaitContainerResultCallback;
-import com.google.common.io.ByteStreams;
+import com.github.dockerjava.api.model.Frame;
+import com.github.dockerjava.api.model.StreamType;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.IOException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @Component
@@ -78,7 +77,8 @@ public class LocalTaskManager {
 
             // create
             CreateContainerResponse container = dockerClient.createContainerCmd(option.getImage())
-                    .withEntrypoint("/bin/bash")
+                    .withEnv(task.getInputs().toList())
+                    .withCmd("/bin/bash", "-c", task.getScript())
                     .exec();
 
             // start
@@ -93,20 +93,39 @@ public class LocalTaskManager {
                     .withFollowStream(true)
                     .exec(new DockerExecCallBack());
 
-            WaitContainerResultCallback resultCallback = new WaitContainerResultCallback();
-            dockerClient.waitContainerCmd(containerId).exec(resultCallback);
-            Integer code = resultCallback.awaitStatusCode(task.getTimeoutInSecond(), TimeUnit.SECONDS);
-            r.setExitCode(code);
+            waitContainerWithTimeout(containerId, task.getTimeoutInSecond());
+
         } catch (DockerException | DockerClientException e) {
             log.warn(e.getMessage());
             r.setErr(e.getMessage());
         } finally {
             if (r.hasContainerId()) {
-                dockerClient.removeContainerCmd(r.getContainerId())
-                        .withForce(true)
-                        .withRemoveVolumes(true)
-                        .exec();
+                dockerClient.removeContainerCmd(r.getContainerId()).withForce(true).withRemoveVolumes(true).exec();
             }
+        }
+    }
+
+    private void waitContainerWithTimeout(String containerId, int timeout) {
+        Instant expire = Instant.now().plus(timeout, ChronoUnit.SECONDS);
+
+        for (; true; ) {
+            InspectContainerResponse inspect = dockerClient.inspectContainerCmd(containerId).exec();
+            InspectContainerResponse.ContainerState state = inspect.getState();
+
+            if (state.getRunning() == null) {
+                break;
+            }
+
+            if (!state.getRunning()) {
+                break;
+            }
+
+            if (Instant.now().isAfter(expire)) {
+                dockerClient.killContainerCmd(containerId).exec();
+                break;
+            }
+
+            ThreadHelper.sleep(1000);
         }
     }
 
