@@ -20,7 +20,7 @@ public final class TaskResult extends Mongoable {
     @Indexed(name = "index_task_job_id")
     private String jobId;
 
-    private int exitCode;
+    private int exitCode = -1;
 
     private String containerId;
 

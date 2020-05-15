@@ -9,15 +9,22 @@ import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.command.ExecCreateCmdResponse;
+import com.github.dockerjava.api.command.ExecStartCmd;
+import com.github.dockerjava.api.command.InspectExecResponse;
+import com.github.dockerjava.api.exception.DockerClientException;
 import com.github.dockerjava.api.exception.DockerException;
-import com.github.dockerjava.api.model.Bind;
-import com.github.dockerjava.api.model.Volume;
+import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.core.command.WaitContainerResultCallback;
+import com.google.common.io.ByteStreams;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.*;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -68,28 +75,37 @@ public class LocalTaskManager {
     private void runDockerTask(LocalDockerTask task, TaskResult r) {
         try {
             DockerOption option = task.getDocker();
+
+            // create
             CreateContainerResponse container = dockerClient.createContainerCmd(option.getImage())
-                    .withEnv(task.getInputs().toList())
-                    .withCmd(task.getScript())
-                    .withBinds(new Bind("/var/run/docker.sock", new Volume("/var/run/docker.sock")))
+                    .withEntrypoint("/bin/bash")
                     .exec();
 
+            // start
             String containerId = container.getId();
             r.setContainerId(containerId);
+            dockerClient.startContainerCmd(container.getId()).exec();
 
-            dockerClient.startContainerCmd(containerId).exec();
+            // print log
+            dockerClient.logContainerCmd(containerId)
+                    .withStdOut(true)
+                    .withStdErr(true)
+                    .withFollowStream(true)
+                    .exec(new DockerExecCallBack());
 
             WaitContainerResultCallback resultCallback = new WaitContainerResultCallback();
             dockerClient.waitContainerCmd(containerId).exec(resultCallback);
-
             Integer code = resultCallback.awaitStatusCode(task.getTimeoutInSecond(), TimeUnit.SECONDS);
             r.setExitCode(code);
-        } catch (DockerException e) {
+        } catch (DockerException | DockerClientException e) {
             log.warn(e.getMessage());
             r.setErr(e.getMessage());
         } finally {
             if (r.hasContainerId()) {
-                dockerClient.removeContainerCmd(r.getContainerId());
+                dockerClient.removeContainerCmd(r.getContainerId())
+                        .withForce(true)
+                        .withRemoveVolumes(true)
+                        .exec();
             }
         }
     }
@@ -101,5 +117,34 @@ public class LocalTaskManager {
             throw new NotFoundException("The plugin {0} defined in local task not found", name);
         }
         return event.getPlugin();
+    }
+
+    private static class DockerExecCallBack implements ResultCallback<Frame> {
+
+        @Override
+        public void onStart(Closeable closeable) {
+            log.debug("On cmd start");
+        }
+
+        @Override
+        public void onNext(Frame object) {
+            StreamType streamType = object.getStreamType();
+            log.debug("[LOCAL-TASK]: {} = {}", streamType, new String(object.getPayload()));
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+            log.debug("On cmd err");
+        }
+
+        @Override
+        public void onComplete() {
+            log.debug("On cmd complete");
+        }
+
+        @Override
+        public void close() throws IOException {
+            log.debug("On cmd close");
+        }
     }
 }
