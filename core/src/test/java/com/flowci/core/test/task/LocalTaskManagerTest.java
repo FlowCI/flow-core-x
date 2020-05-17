@@ -19,9 +19,9 @@ public class LocalTaskManagerTest extends SpringScenario {
         LocalDockerTask task = new LocalDockerTask();
         task.setName("test");
         task.setJobId("test-job-id");
-        task.setDocker(new DockerOption().setImage("ubuntu:18.04"));
-        task.setScript("echo aaa \n sleep 9999 \n echo bbb");
-        task.setTimeoutInSecond(1);
+        task.setDocker(new DockerOption().setImage("sonarqube:latest"));
+        task.setScript("echo aaa \n echo bbb");
+        task.setTimeoutInSecond(30);
 
         TaskResult result = localTaskManager.execute(task);
         Assert.assertEquals(0, result.getExitCode());
