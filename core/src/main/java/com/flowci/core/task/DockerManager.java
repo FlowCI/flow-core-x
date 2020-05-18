@@ -5,9 +5,9 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
-import com.github.dockerjava.api.model.Frame;
-import com.github.dockerjava.api.model.PullResponseItem;
-import com.github.dockerjava.api.model.StreamType;
+import com.github.dockerjava.api.command.InspectImageCmd;
+import com.github.dockerjava.api.command.InspectImageResponse;
+import com.github.dockerjava.api.model.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,8 +34,21 @@ public class DockerManager {
             imageUrl = "docker.io/" + image;
         }
 
+        List<Image> images = client.listImagesCmd().withImageNameFilter(image).exec();
+        if (images.size() >= 1) {
+            return true;
+        }
+
+        log.info("Image {} not found, will pull", image);
         PullImageCallback callback = client.pullImageCmd(imageUrl).exec(new PullImageCallback());
-        callback.counter.await(60, TimeUnit.SECONDS);
+
+        boolean await = callback.counter.await(60, TimeUnit.SECONDS);
+        if (!await) {
+            log.info("Pulling image {} timeout", image);
+            return false;
+        }
+
+        log.info("Image {} pulled", image);
         return callback.isSuccess;
     }
 
@@ -130,7 +143,6 @@ public class DockerManager {
 
         @Override
         public void onNext(PullResponseItem object) {
-            log.debug(object.getStatus() + " : " + object.getProgress());
             isSuccess = object.isPullSuccessIndicated();
         }
     }
