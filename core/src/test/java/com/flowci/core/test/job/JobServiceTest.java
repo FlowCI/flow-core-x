@@ -21,6 +21,7 @@ import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
+import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Notification;
 import com.flowci.core.flow.domain.Yml;
@@ -65,6 +66,9 @@ import java.util.concurrent.TimeUnit;
 @Log4j2
 @FixMethodOrder(MethodSorters.JVM)
 public class JobServiceTest extends ZookeeperScenario {
+
+    @Autowired
+    private FlowDao flowDao;
 
     @Autowired
     private JobDao jobDao;
@@ -116,7 +120,7 @@ public class JobServiceTest extends ZookeeperScenario {
         // init:
         flow.getLocally().put("LOCAL_VAR", VarValue.of("local", VarType.STRING));
         flow.getNotifications().add(new Notification().setPlugin("email"));
-        flowService.update(flow);
+        flowDao.save(flow);
         flow = flowService.get(flow.getName());
 
         StringVars input = new StringVars();

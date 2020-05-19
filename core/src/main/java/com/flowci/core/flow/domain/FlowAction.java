@@ -25,7 +25,9 @@ public abstract class FlowAction {
 
     public static final String CONFIRM = "confirm_flow";
 
-    public static final String UPDATE = "update_flow";
+    public static final String RENAME = "rename_flow";
+
+    public static final String YAML_SOURCE = "update_flow_yaml_source";
 
     public static final String DELETE = "delete_flow";
 
@@ -65,7 +67,8 @@ public abstract class FlowAction {
             CREATE,
             CHECK_NAME,
             CONFIRM,
-            UPDATE,
+            RENAME,
+            YAML_SOURCE,
             DELETE,
             LIST,
             LIST_BY_CREDENTIAL,
@@ -80,7 +83,9 @@ public abstract class FlowAction {
             ADD_USER,
             REMOVE_USER,
             LIST_USER,
-            LIST_PLUGINS
+            LIST_PLUGINS,
+            ADD_NOTIFY,
+            REMOVE_NOTIFY
     };
 
 }

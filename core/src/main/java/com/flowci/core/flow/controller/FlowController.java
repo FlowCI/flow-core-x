@@ -84,12 +84,19 @@ public class FlowController {
         return flowService.confirm(name, gitSettings.getGitUrl(), gitSettings.getCredential());
     }
 
-    @PostMapping(value = "/{name}/update")
-    @Action(FlowAction.UPDATE)
-    public Flow update(@PathVariable String name, @RequestBody UpdateFlow body) {
+    @PostMapping(value = "/{name}/sourceOfYaml")
+    @Action(FlowAction.YAML_SOURCE)
+    public Flow updateYAMLSource(@PathVariable String name, @RequestBody UpdateYAMLSource body) {
         Flow flow = flowService.get(name);
-        body.update(flow);
-        flowService.update(flow);
+        flowSettingService.set(flow, body);
+        return flow;
+    }
+
+    @PostMapping(value = "/{name}/rename")
+    @Action(FlowAction.RENAME)
+    public Flow rename(@PathVariable String name, @RequestBody RenameFlow body) {
+        Flow flow = flowService.get(name);
+        flowSettingService.rename(flow, body.getName());
         return flow;
     }
 

@@ -77,11 +77,6 @@ public interface FlowService {
     Flow delete(String name);
 
     /**
-     * Update flow name or variables
-     */
-    void update(Flow flow);
-
-    /**
      * Create ssh-rsa credential
      * It will create default credential name: 'flow-{flow name}-ssh-rsa'
      *
