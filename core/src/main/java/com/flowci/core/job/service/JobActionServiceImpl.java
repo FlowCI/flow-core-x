@@ -5,6 +5,7 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
+import com.flowci.core.flow.domain.Notification;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
@@ -15,6 +16,8 @@ import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
+import com.flowci.core.task.domain.LocalDockerTask;
+import com.flowci.core.task.event.StartAsyncLocalTaskEvent;
 import com.flowci.domain.*;
 import com.flowci.exception.CIException;
 import com.flowci.exception.NotAvailableException;
@@ -135,12 +138,15 @@ public class JobActionServiceImpl implements JobActionService {
         fromRunning();
         fromCancelling();
 
-        Sm.addHookActionOnTargetStatus(Cancelled, context -> {
+        Sm.addHookActionOnTargetStatus(context -> {
             Job job = context.job;
             if (hasJobLock(job.getId())) {
                 throw new StatusException("Unable to cancel right now, try later");
             }
-        });
+        }, Cancelled);
+
+        // run local notification task
+        Sm.addHookActionOnTargetStatus(notificationConsumer(), Success, Failure, Timeout, Cancelled);
     }
 
     @Override
@@ -655,6 +661,7 @@ public class JobActionServiceImpl implements JobActionService {
 
     /**
      * Dispatch next step to agent
+     *
      * @return true if next step dispatched, false if no more steps
      */
     private boolean toNextStep(JobSmContext context) {
@@ -798,6 +805,25 @@ public class JobActionServiceImpl implements JobActionService {
         } catch (Exception warn) {
             log.warn(warn);
         }
+    }
+
+    private Consumer<JobSmContext> notificationConsumer() {
+        return context -> {
+            Job job = context.job;
+            for (Notification n : job.getNotifications()) {
+                StringVars input = new StringVars(job.getContext());
+                input.merge(n.getInputs());
+
+                LocalDockerTask task = new LocalDockerTask();
+                task.setName(n.getPlugin()); // plugin name as task name
+                task.setImage(n.getImage());
+                task.setPlugin(n.getPlugin());
+                task.setJobId(job.getId());
+                task.setInputs(input);
+
+                eventManager.publish(new StartAsyncLocalTaskEvent(this, task));
+            }
+        };
     }
 
     @Getter

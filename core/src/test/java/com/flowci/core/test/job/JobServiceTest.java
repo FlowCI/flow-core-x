@@ -39,6 +39,7 @@ import com.flowci.core.job.service.JobActionService;
 import com.flowci.core.job.service.JobEventService;
 import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
+import com.flowci.core.task.event.StartAsyncLocalTaskEvent;
 import com.flowci.core.test.ZookeeperScenario;
 import com.flowci.domain.*;
 import com.flowci.tree.*;
@@ -206,7 +207,13 @@ public class JobServiceTest extends ZookeeperScenario {
         Agent agent = agentService.create("hello.agent", null, Optional.empty());
         mockAgentOnline(agentService.getPath(agent));
 
+        flow.getNotifications().add(new Notification().setPlugin("email"));
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
+
+        CountDownLatch localTaskCountDown = new CountDownLatch(1);
+        addEventListener((ApplicationListener<StartAsyncLocalTaskEvent>) event -> {
+            localTaskCountDown.countDown();
+        });
 
         FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
         NodeTree tree = NodeTree.create(root);
@@ -291,8 +298,9 @@ public class JobServiceTest extends ZookeeperScenario {
         executedCmdDao.save(secondStep);
         jobEventService.handleCallback(secondStep);
 
-        // then:
+        // // then: should job with SUCCESS status and sent notification task
         Assert.assertEquals(Status.SUCCESS, jobService.get(job.getId()).getStatus());
+        Assert.assertTrue(localTaskCountDown.await(60, TimeUnit.SECONDS));
     }
 
     @Test

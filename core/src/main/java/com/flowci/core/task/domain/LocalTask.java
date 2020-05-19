@@ -1,4 +1,4 @@
-package com.flowci.core.task;
+package com.flowci.core.task.domain;
 
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;

@@ -5,9 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 
 @Log4j2
@@ -18,12 +16,15 @@ public class StateMachine<T extends Context> {
 
     private final Map<Status, Map<Status, Action<T>>> actions = new HashMap<>();
 
-    private final Map<Status, Consumer<T>> hooksOnTargetStatus = new HashMap<>();
+    private final Map<Status, List<Consumer<T>>> hooksOnTargetStatus = new HashMap<>();
 
     private final String name;
 
-    public void addHookActionOnTargetStatus(Status target, Consumer<T> action) {
-        hooksOnTargetStatus.put(target, action);
+    public void addHookActionOnTargetStatus(Consumer<T> action, Status... targets) {
+        for (Status target : targets) {
+            List<Consumer<T>> actions = hooksOnTargetStatus.computeIfAbsent(target, status -> new LinkedList<>());
+            actions.add(action);
+        }
     }
 
     public void add(Transition t, Action<T> action) {
@@ -57,10 +58,12 @@ public class StateMachine<T extends Context> {
         }
 
         // execute target hook
-        Consumer<T> targetHook = hooksOnTargetStatus.get(target);
-        if (targetHook != null) {
-            targetHook.accept(context);
-        }
+        hooksOnTargetStatus.computeIfPresent(target, (status, hooks) -> {
+            for (Consumer<T> hook : hooks) {
+                hook.accept(context);
+            }
+            return hooks;
+        });
 
         try {
             action.accept(context);
