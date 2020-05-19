@@ -18,21 +18,23 @@ package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.Notification;
 import com.flowci.domain.VarType;
 import com.flowci.domain.VarValue;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.StringHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import java.util.Objects;
 
 /**
  * @author yang
  */
 @Service
-public class FlowVarServiceImpl implements FlowVarService {
+public class FlowSettingServiceImpl implements FlowSettingService {
 
     @Autowired
     private FlowDao flowDao;
@@ -71,5 +73,24 @@ public class FlowVarServiceImpl implements FlowVarService {
         }
 
         flowDao.save(flow);
+    }
+
+    @Override
+    public void add(Flow flow, Notification notification) {
+        Objects.requireNonNull(notification.getPlugin(), "Notification plugin name is missing");
+
+        List<Notification> list = flow.getNotifications();
+        list.remove(notification);
+
+        list.add(notification);
+        flowDao.save(flow);
+    }
+
+    @Override
+    public void remove(Flow flow, String plugin) {
+        List<Notification> list = flow.getNotifications();
+        if (list.remove(new Notification().setPlugin(plugin))) {
+            flowDao.save(flow);
+        }
     }
 }

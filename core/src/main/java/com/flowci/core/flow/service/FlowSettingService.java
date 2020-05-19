@@ -17,6 +17,7 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.Notification;
 import com.flowci.domain.VarValue;
 
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.Map;
 /**
  * @author yang
  */
-public interface FlowVarService {
+public interface FlowSettingService {
 
     /**
      * Add vars to flow locally
@@ -37,4 +38,13 @@ public interface FlowVarService {
      */
     void remove(Flow flow, List<String> vars);
 
+    /**
+     * Add notification to flow
+     */
+    void add(Flow flow, Notification notification);
+
+    /**
+     * Remove notification from
+     */
+    void remove(Flow flow, String notification);
 }

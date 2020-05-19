@@ -17,13 +17,10 @@
 package com.flowci.core.flow.controller;
 
 import com.flowci.core.auth.annotation.Action;
-import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.*;
 import com.flowci.core.flow.domain.Flow.Status;
-import com.flowci.core.flow.domain.FlowAction;
-import com.flowci.core.flow.domain.GitSettings;
-import com.flowci.core.flow.domain.UpdateFlow;
 import com.flowci.core.flow.service.FlowService;
-import com.flowci.core.flow.service.FlowVarService;
+import com.flowci.core.flow.service.FlowSettingService;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
 import com.flowci.domain.SimpleAuthPair;
@@ -52,7 +49,7 @@ public class FlowController {
     private FlowService flowService;
 
     @Autowired
-    private FlowVarService flowVarService;
+    private FlowSettingService flowSettingService;
 
     @GetMapping
     @Action(FlowAction.LIST)
@@ -146,19 +143,33 @@ public class FlowController {
     public void addVariables(@PathVariable String name,
                              @Validated @RequestBody Map<String, VarValue> variables) {
         Flow flow = flowService.get(name);
-        flowVarService.add(flow, variables);
+        flowSettingService.add(flow, variables);
     }
 
     @DeleteMapping("/{name}/variables")
     @Action(FlowAction.REMOVE_VARS)
     public void removeVariables(@PathVariable String name, @RequestBody List<String> vars) {
         Flow flow = flowService.get(name);
-        flowVarService.remove(flow, vars);
+        flowSettingService.remove(flow, vars);
     }
 
     @GetMapping("/secret/{name}")
     @Action(FlowAction.LIST_BY_CREDENTIAL)
     public List<Flow> listFlowByCredentials(@PathVariable String name) {
         return flowService.listByCredential(name);
+    }
+
+    @PostMapping("/{name}/notification")
+    @Action(FlowAction.ADD_NOTIFY)
+    public void addNotification(@PathVariable String name, @RequestBody Notification body) {
+        Flow flow = flowService.get(name);
+        flowSettingService.add(flow, body);
+    }
+
+    @DeleteMapping("/{name}/notification/{notify}")
+    @Action(FlowAction.REMOVE_NOTIFY)
+    public void removeNotification(@PathVariable String name, @PathVariable String notify) {
+        Flow flow = flowService.get(name);
+        flowSettingService.remove(flow, notify);
     }
 }

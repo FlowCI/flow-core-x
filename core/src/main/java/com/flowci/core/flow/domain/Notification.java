@@ -2,6 +2,7 @@ package com.flowci.core.flow.domain;
 
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -9,6 +10,7 @@ import lombok.experimental.Accessors;
 @Getter
 @Setter
 @Accessors(chain = true)
+@EqualsAndHashCode(of = "plugin")
 public final class Notification {
 
     /**
