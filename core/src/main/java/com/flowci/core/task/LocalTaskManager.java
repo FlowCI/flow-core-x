@@ -46,9 +46,9 @@ public class LocalTaskManager {
             ScriptBody body = (ScriptBody) plugin.getBody();
             task.setScript(body.getScript());
 
-            // apply docker from plugin if it's specified
+            // apply docker image only from plugin if it's specified
             ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> {
-                task.setDocker(plugin.getDocker());
+                task.setImage(plugin.getDocker().getImage());
             });
         }
 
@@ -64,8 +64,7 @@ public class LocalTaskManager {
 
     private void runDockerTask(LocalDockerTask task, TaskResult r) {
         try {
-            DockerOption option = task.getDocker();
-            String image = option.getImage();
+            String image = task.getImage();
 
             boolean isSuccess = dockerManager.pullImage(image);
             if (!isSuccess) {

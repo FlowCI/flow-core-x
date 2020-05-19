@@ -246,7 +246,6 @@ public class FlowServiceImpl implements FlowService {
 
     @Override
     public void update(Flow flow) {
-        flow.setUpdatedAt(Date.from(Instant.now()));
         flowDao.save(flow);
     }
 

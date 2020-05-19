@@ -22,6 +22,7 @@ import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.Notification;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
@@ -113,6 +114,7 @@ public class JobServiceTest extends ZookeeperScenario {
     public void should_create_job_with_expected_context() {
         // init:
         flow.getLocally().put("LOCAL_VAR", VarValue.of("local", VarType.STRING));
+        flow.getNotifications().add(new Notification().setPlugin("email"));
         flowService.update(flow);
         flow = flowService.get(flow.getName());
 
@@ -140,6 +142,10 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertTrue(context.containsKey("INPUT_VAR"));
         Assert.assertTrue(context.containsKey("FLOW_WORKSPACE"));
         Assert.assertTrue(context.containsKey("FLOW_VERSION"));
+
+        // then: notification should be added
+        Assert.assertEquals(1, job.getNotifications().size());
+        Assert.assertEquals("email", job.getNotifications().get(0).getPlugin());
     }
 
     @Test

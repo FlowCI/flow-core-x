@@ -25,6 +25,9 @@ import com.flowci.domain.VarValue;
 import com.flowci.domain.Vars;
 import com.flowci.store.Pathable;
 import com.flowci.util.StringHelper;
+
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Data;
@@ -78,6 +81,8 @@ public final class Flow extends Mongoable implements Pathable {
     private Vars<VarValue> locally = new TypedVars();
 
     private WebhookStatus webhookStatus;
+
+    private List<Notification> notifications = new LinkedList<>();
 
     public Flow(String name) {
         this.name = name;

@@ -4,7 +4,6 @@ import com.flowci.core.task.LocalDockerTask;
 import com.flowci.core.task.LocalTaskManager;
 import com.flowci.core.task.TaskResult;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.domain.DockerOption;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +18,7 @@ public class LocalTaskManagerTest extends SpringScenario {
         LocalDockerTask task = new LocalDockerTask();
         task.setName("test");
         task.setJobId("test-job-id");
-        task.setDocker(new DockerOption().setImage("sonarqube:latest"));
+        task.setImage("sonarqube:latest");
         task.setScript("echo aaa \n echo bbb");
         task.setTimeoutInSecond(30);
 
