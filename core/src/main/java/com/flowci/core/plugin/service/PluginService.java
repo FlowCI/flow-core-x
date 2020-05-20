@@ -18,9 +18,11 @@ package com.flowci.core.plugin.service;
 
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.domain.PluginRepoInfo;
+
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author yang
@@ -31,6 +33,11 @@ public interface PluginService {
      * List all installed plugin
      */
     Collection<Plugin> list();
+
+    /**
+     * List installed plugins by tag filter
+     */
+    Collection<Plugin> list(Set<String> tags);
 
     /**
      * Get plugin by name

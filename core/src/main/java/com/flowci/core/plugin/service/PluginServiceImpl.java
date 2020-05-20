@@ -44,10 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author yang
@@ -98,6 +95,11 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public Collection<Plugin> list() {
         return pluginDao.findAll();
+    }
+
+    @Override
+    public Collection<Plugin> list(Set<String> tags) {
+        return pluginDao.findAllByTagsIn(tags);
     }
 
     @Override

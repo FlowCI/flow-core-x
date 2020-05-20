@@ -17,7 +17,11 @@
 package com.flowci.core.plugin.dao;
 
 import com.flowci.core.plugin.domain.Plugin;
+
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -28,4 +32,6 @@ import org.springframework.stereotype.Repository;
 public interface PluginDao extends MongoRepository<Plugin, String> {
 
     Optional<Plugin> findByName(String name);
+
+    List<Plugin> findAllByTagsIn(Set<String> tags);
 }

@@ -18,13 +18,16 @@ package com.flowci.core.plugin;
 
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.service.PluginService;
+import com.flowci.exception.ArgumentException;
 import com.flowci.util.StringHelper;
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Base64;
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * @author yang
@@ -36,8 +39,18 @@ public class PluginController {
     @Autowired
     private PluginService pluginService;
 
-    @GetMapping
-    public Collection<Plugin> installed() {
+    @GetMapping()
+    public Collection<Plugin> installed(@RequestParam(required = false) String tags) {
+        // tags format is tags=a,b,c,d
+        if (StringHelper.hasValue(tags)) {
+            String[] split = tags.split(",");
+            if (split.length == 0) {
+                return pluginService.list();
+            }
+
+            return pluginService.list(Sets.newHashSet(split));
+        }
+
         return pluginService.list();
     }
 
