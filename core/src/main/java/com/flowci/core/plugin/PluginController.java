@@ -18,7 +18,6 @@ package com.flowci.core.plugin;
 
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.service.PluginService;
-import com.flowci.exception.ArgumentException;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Base64;
 import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * @author yang

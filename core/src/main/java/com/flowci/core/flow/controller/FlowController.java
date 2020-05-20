@@ -166,14 +166,14 @@ public class FlowController {
         return flowService.listByCredential(name);
     }
 
-    @PostMapping("/{name}/notification")
+    @PostMapping("/{name}/notify")
     @Action(FlowAction.ADD_NOTIFY)
-    public void addNotification(@PathVariable String name, @RequestBody Notification body) {
+    public void addNotification(@PathVariable String name, @Validated @RequestBody SaveNotify body) {
         Flow flow = flowService.get(name);
-        flowSettingService.add(flow, body);
+        flowSettingService.add(flow, body.toObj());
     }
 
-    @DeleteMapping("/{name}/notification/{notify}")
+    @DeleteMapping("/{name}/notify/{notify}")
     @Action(FlowAction.REMOVE_NOTIFY)
     public void removeNotification(@PathVariable String name, @PathVariable String notify) {
         Flow flow = flowService.get(name);
