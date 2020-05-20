@@ -24,4 +24,6 @@ public final class Notification {
     private String image = "flowci/plugin-runtime:1.0";
 
     private Vars<String> inputs = new StringVars();
+
+    private boolean enabled;
 }

@@ -811,6 +811,10 @@ public class JobActionServiceImpl implements JobActionService {
         return context -> {
             Job job = context.job;
             for (Notification n : job.getNotifications()) {
+                if (!n.isEnabled()) {
+                    continue;
+                }
+
                 StringVars input = new StringVars(job.getContext());
                 input.merge(n.getInputs());
 
