@@ -45,7 +45,6 @@ public class LocalTaskManager {
         localTaskExecutor.execute(() -> {
             LocalTask task = event.getTask();
             if (task instanceof LocalDockerTask) {
-                log.info("Start local task {} for job {}", task.getName(), task.getJobId());
                 execute((LocalDockerTask) task);
             }
         });
@@ -55,9 +54,17 @@ public class LocalTaskManager {
      * Execute local task, should be run async
      */
     public TaskResult execute(LocalDockerTask task) {
-        if (task.hasPlugin()) {
-            Plugin plugin = getPlugin(task);
+        log.info("Start local task {} image = {} for job {}", task.getName(), task.getImage(), task.getJobId());
 
+        if (task.hasPlugin()) {
+            String name = task.getPlugin();
+            GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, name));
+
+            if (Objects.isNull(event.getPlugin())) {
+                throw new NotFoundException("The plugin {0} defined in local task not found", name);
+            }
+
+            Plugin plugin = event.getPlugin();
             Optional<String> validate = plugin.verifyInput(task.getInputs());
             if (validate.isPresent()) {
                 throw new ArgumentException("The illegal input {0} for plugin {1}", validate.get(), plugin.getName());
@@ -65,6 +72,7 @@ public class LocalTaskManager {
 
             ScriptBody body = (ScriptBody) plugin.getBody();
             task.setScript(body.getScript());
+            task.setPluginDir(event.getDir());
 
             // apply docker image only from plugin if it's specified
             ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> {
@@ -91,7 +99,7 @@ public class LocalTaskManager {
                 throw new NotAvailableException("Docker image {0} not available", image);
             }
 
-            String cid = dockerManager.createAndStartContainer(image, task.getInputs().toList(), task.getScript());
+            String cid = dockerManager.createAndStartContainer(task);
             r.setContainerId(cid);
             dockerManager.printContainerLog(cid);
 
@@ -109,14 +117,5 @@ public class LocalTaskManager {
                 dockerManager.removeContainer(r.getContainerId());
             }
         }
-    }
-
-    private Plugin getPlugin(LocalTask task) {
-        String name = task.getPlugin();
-        GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, name));
-        if (Objects.isNull(event.getPlugin())) {
-            throw new NotFoundException("The plugin {0} defined in local task not found", name);
-        }
-        return event.getPlugin();
     }
 }

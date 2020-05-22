@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 
+import java.nio.file.Path;
+
 @Getter
 @Setter
 public class GetPluginEvent extends ApplicationEvent implements SyncEvent {
@@ -13,6 +15,8 @@ public class GetPluginEvent extends ApplicationEvent implements SyncEvent {
     private final String name;
 
     private Plugin plugin;
+
+    private Path dir;
 
     public GetPluginEvent(Object source, String name) {
         super(source);
