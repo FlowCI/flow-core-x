@@ -124,8 +124,9 @@ public class SecretServiceImpl implements SecretService {
     public void onGetCredentialEvent(GetSecretEvent event) {
         try {
             Secret c = get(event.getName());
-            event.setSecret(c);
-        } catch (NotFoundException ignore) {
+            event.setFetched(c);
+        } catch (NotFoundException e) {
+            event.setError(e);
         }
     }
 

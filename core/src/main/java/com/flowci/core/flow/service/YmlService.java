@@ -42,4 +42,6 @@ public interface YmlService {
      * Create or update yml for flow
      */
     Yml saveYml(Flow flow, String yml);
+
+    Yml saveDefaultTemplate(Flow flow);
 }

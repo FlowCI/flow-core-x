@@ -23,7 +23,6 @@ import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowUserDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
-import com.flowci.core.flow.event.FlowConfirmedEvent;
 import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
@@ -76,6 +75,9 @@ public class FlowServiceImpl implements FlowService {
     @Autowired
     private FileManager fileManager;
 
+    @Autowired
+    private YmlService ymlService;
+
     // ====================================================================
     // %% Public function
     // ====================================================================
@@ -99,15 +101,15 @@ public class FlowServiceImpl implements FlowService {
     @Override
     public List<Flow> listByCredential(String secretName) {
         GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, secretName));
-        if (!event.hasSecret()) {
-            throw new NotFoundException("Secret {0} not found", secretName);
+        if (event.hasError()) {
+            throw event.getError();
         }
 
-        Secret secret = event.getSecret();
+        Secret secret = event.getFetched();
         List<Flow> list = list(Status.CONFIRMED);
         Iterator<Flow> iter = list.iterator();
 
-        for (; iter.hasNext(); ) {
+        while (iter.hasNext()) {
             Flow flow = iter.next();
             if (Objects.equals(flow.getCredentialName(), secret.getName())) {
                 continue;
@@ -188,8 +190,7 @@ public class FlowServiceImpl implements FlowService {
 
         flow.setStatus(Status.CONFIRMED);
         flowDao.save(flow);
-
-        eventManager.publish(new FlowConfirmedEvent(this, flow));
+        ymlService.saveDefaultTemplate(flow);
         return flow;
     }
 

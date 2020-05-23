@@ -74,7 +74,7 @@ public class CmdManagerTest extends SpringScenario {
         // init: setup mock plugin service
         Plugin plugin = createDummyPlugin();
         GetPluginEvent event = new GetPluginEvent(this, plugin.getName());
-        event.setObj(plugin);
+        event.setFetched(plugin);
         Mockito.when(eventManager.publish(Mockito.any())).thenReturn(event);
 
         // given: flow and job

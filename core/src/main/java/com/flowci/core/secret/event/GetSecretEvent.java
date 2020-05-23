@@ -16,29 +16,22 @@
 
 package com.flowci.core.secret.event;
 
-import com.flowci.core.common.event.SyncEvent;
+import com.flowci.core.common.event.AbstractSyncEvent;
 import com.flowci.core.secret.domain.Secret;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.context.ApplicationEvent;
 
 /**
  * Sync event to get credential by name
  */
 @Getter
 @Setter
-public class GetSecretEvent extends ApplicationEvent implements SyncEvent {
+public class GetSecretEvent extends AbstractSyncEvent<Secret> {
 
     private final String name;
-
-    private Secret secret;
 
     public GetSecretEvent(Object source, String credentialName) {
         super(source);
         this.name = credentialName;
-    }
-
-    public boolean hasSecret() {
-        return secret != null;
     }
 }

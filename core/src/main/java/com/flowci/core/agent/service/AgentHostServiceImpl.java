@@ -228,10 +228,10 @@ public class AgentHostServiceImpl implements AgentHostService {
         // create new agent
         if (agents.size() < host.getMaxSize()) {
             String name = String.format("%s-%s", host.getName(), StringHelper.randomString(5));
-            CreateAgentEvent syncEvent = new CreateAgentEvent(this, name, host.getTags(), host.getId());
-            eventManager.publish(syncEvent);
+            CreateAgentEvent syncEvent =
+                    eventManager.publish(new CreateAgentEvent(this, name, host.getTags(), host.getId()));
 
-            Agent agent = syncEvent.getCreated();
+            Agent agent = syncEvent.getFetched();
             eventManager.publish(new AgentCreatedEvent(this, agent, host));
 
             StartContext context = new StartContext();
@@ -575,7 +575,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             GetSecretEvent event = new GetSecretEvent(this, sshHost.getSecret());
             eventManager.publish(event);
 
-            Secret c = event.getSecret();
+            Secret c = event.getFetched();
             Preconditions.checkArgument(c != null, "Secret not found");
             Preconditions.checkArgument(c.getCategory() == SSH_RSA, "Invalid credential category");
 

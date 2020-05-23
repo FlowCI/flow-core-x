@@ -21,7 +21,6 @@ import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
-import com.flowci.core.flow.event.FlowConfirmedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.Notification;
@@ -117,6 +116,11 @@ public class YmlServiceImpl implements YmlService {
         return ymlObj;
     }
 
+    @Override
+    public Yml saveDefaultTemplate(Flow flow) {
+        return saveYml(flow, getTemplateYml());
+    }
+
     //====================================================================
     //        %% Internal events
     //====================================================================
@@ -129,11 +133,6 @@ public class YmlServiceImpl implements YmlService {
         } catch (NotFoundException ignore) {
 
         }
-    }
-
-    @EventListener
-    public void createYmlFromTemplate(FlowConfirmedEvent event) {
-        saveYml(event.getFlow(), getTemplateYml());
     }
 
     /**

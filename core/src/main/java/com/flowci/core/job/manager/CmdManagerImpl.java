@@ -85,7 +85,7 @@ public class CmdManagerImpl implements CmdManager {
             throw event.getError();
         }
 
-        Plugin plugin = event.getObj();
+        Plugin plugin = event.getFetched();
         Optional<String> validate = plugin.verifyInputAndSetDefaultValue(cmd.getInputs());
         if (validate.isPresent()) {
             throw new ArgumentException("The illegal input {0} for plugin {1}", validate.get(), plugin.getName());

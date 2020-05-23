@@ -16,25 +16,22 @@
 
 package com.flowci.core.agent.event;
 
-import com.flowci.core.common.event.SyncEvent;
+import com.flowci.core.common.event.AbstractSyncEvent;
 import com.flowci.domain.Agent;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.context.ApplicationEvent;
 
 import java.util.Set;
 
 @Getter
 @Setter
-public class CreateAgentEvent extends ApplicationEvent implements SyncEvent {
+public class CreateAgentEvent extends AbstractSyncEvent<Agent> {
 
     private final String name;
 
     private final Set<String> tags;
 
     private final String hostId;
-
-    private Agent created;
 
     public CreateAgentEvent(Object source, String name, Set<String> tags, String hostId) {
         super(source);

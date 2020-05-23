@@ -18,7 +18,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
 import java.util.Optional;
 
 @Log4j2
@@ -66,7 +65,7 @@ public class LocalTaskManager {
                 return output;
             }
 
-            Plugin plugin = event.getObj();
+            Plugin plugin = event.getFetched();
             Optional<String> validate = plugin.verifyInputAndSetDefaultValue(task.getInputs());
             if (validate.isPresent()) {
                 output.setErr(String.format("The illegal input %s for plugin %s", validate.get(), plugin.getName()));

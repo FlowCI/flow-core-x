@@ -39,7 +39,7 @@ public class ConfigServiceTest extends SpringScenario {
         mockSecret.setPair(SimpleAuthPair.of("test@gmail.com", "12345"));
 
         GetSecretEvent mockEvent = new GetSecretEvent(this, mockSecret.getName());
-        mockEvent.setSecret(mockSecret);
+        mockEvent.setFetched(mockSecret);
         Mockito.when(eventManager.publish(Mockito.any())).thenReturn(mockEvent);
 
         // when:

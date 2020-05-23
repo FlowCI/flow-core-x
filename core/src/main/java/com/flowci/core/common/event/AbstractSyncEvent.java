@@ -8,7 +8,7 @@ import org.springframework.context.ApplicationEvent;
 @Setter
 public abstract class AbstractSyncEvent<T> extends ApplicationEvent implements SyncEvent {
 
-    private T obj;
+    private T fetched;
 
     private RuntimeException error;
 

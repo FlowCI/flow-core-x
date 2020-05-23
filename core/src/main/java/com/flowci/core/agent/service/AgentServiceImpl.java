@@ -329,7 +329,7 @@ public class AgentServiceImpl implements AgentService {
     @EventListener
     public void onCreateAgentEvent(CreateAgentEvent event) {
         Agent agent = this.create(event.getName(), event.getTags(), Optional.of(event.getHostId()));
-        event.setCreated(agent);
+        event.setFetched(agent);
     }
 
     @EventListener

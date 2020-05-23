@@ -17,12 +17,11 @@
 
 package com.flowci.core.flow.event;
 
-import com.flowci.core.common.event.SyncEvent;
+import com.flowci.core.common.event.AbstractSyncEvent;
 import com.flowci.core.flow.domain.Flow;
 import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
 
-public abstract class FlowOperationEvent extends ApplicationEvent implements SyncEvent {
+public abstract class FlowOperationEvent extends AbstractSyncEvent<Void> {
 
     @Getter
     protected final Flow flow;

@@ -114,11 +114,11 @@ public class ConfigServiceImpl implements ConfigService {
 
     private void setAuthFromSecret(SmtpConfig config) {
         GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, config.getSecret()));
-        if (!event.hasSecret()) {
-            throw new NotFoundException("The secret {0} not found", config.getSecret());
+        if (event.hasError()) {
+            throw event.getError();
         }
 
-        Secret secret = event.getSecret();
+        Secret secret = event.getFetched();
         if (secret.getCategory() != Secret.Category.AUTH) {
             throw new ArgumentException("Invalid secret type");
         }
