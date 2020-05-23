@@ -16,15 +16,15 @@
 
 package com.flowci.tree.yml;
 
+import com.flowci.domain.Notification;
 import com.flowci.exception.YmlException;
 import com.flowci.tree.*;
-
-import java.util.*;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+
+import java.util.*;
 
 /**
  * @author yang
@@ -41,6 +41,9 @@ public class FlowYml extends YmlBase<FlowNode> {
 
     @NonNull
     private TriggerFilter trigger = new TriggerFilter();
+
+    @NonNull
+    private List<NotifyYml> notifications = new LinkedList<>();
 
     @NonNull
     private List<StepYml> steps = new LinkedList<>();
@@ -68,9 +71,25 @@ public class FlowYml extends YmlBase<FlowNode> {
         node.setTrigger(trigger);
         node.setEnvironments(getVariableMap());
 
+        setupNotifications(node);
         setupSteps(node);
         setupAfter(node);
         return node;
+    }
+
+    private void setupNotifications(FlowNode node) {
+        if (notifications.isEmpty()) {
+            return;
+        }
+
+        Set<String> uniqueName = new HashSet<>(notifications.size());
+        for (NotifyYml n : notifications) {
+            if (!uniqueName.add(n.getPlugin())) {
+                throw new YmlException("Duplicate plugin {0} defined in notifications", n.getPlugin());
+            }
+
+            node.getNotifications().add(n.toObj());
+        }
     }
 
     private void setupAfter(FlowNode node) {

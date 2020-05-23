@@ -1,6 +1,7 @@
 package com.flowci.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.domain.Notification;
 import com.google.common.base.Strings;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -28,6 +29,11 @@ public class FlowNode extends Node {
      * Unix cron expression
      */
     private String cron;
+
+    /**
+     * Notification list that run locally
+     */
+    private List<Notification> notifications = new LinkedList<>();
 
     /**
      * The final step that will be executed anyway

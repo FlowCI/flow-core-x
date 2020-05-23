@@ -17,7 +17,6 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Notification;
 import com.flowci.core.flow.domain.UpdateYAMLSource;
 import com.flowci.core.flow.domain.WebhookStatus;
 import com.flowci.domain.VarValue;
@@ -51,14 +50,4 @@ public interface FlowSettingService {
      * Remove vars from flow locally
      */
     void remove(Flow flow, List<String> vars);
-
-    /**
-     * Add notification to flow
-     */
-    void add(Flow flow, Notification notification);
-
-    /**
-     * Remove notification from
-     */
-    void remove(Flow flow, String notification);
 }

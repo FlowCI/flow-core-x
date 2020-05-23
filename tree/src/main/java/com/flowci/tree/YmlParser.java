@@ -39,8 +39,9 @@ public class YmlParser {
         .put("trigger", 2)
         .put("selector", 3)
         .put("cron", 4)
-        .put("steps", 5)
-        .put("after", 6)
+        .put("notifications", 5)
+        .put("steps", 6)
+        .put("after", 7)
         .build();
 
     /**

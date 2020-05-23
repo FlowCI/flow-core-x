@@ -59,10 +59,6 @@ public abstract class FlowAction {
 
     public static final String LIST_PLUGINS = "list_plugins";
 
-    public static final String ADD_NOTIFY = "add_notify";
-
-    public static final String REMOVE_NOTIFY = "remove_notify";
-
     public static final String[] ALL = {
             CREATE,
             CHECK_NAME,
@@ -84,8 +80,6 @@ public abstract class FlowAction {
             REMOVE_USER,
             LIST_USER,
             LIST_PLUGINS,
-            ADD_NOTIFY,
-            REMOVE_NOTIFY
     };
 
 }

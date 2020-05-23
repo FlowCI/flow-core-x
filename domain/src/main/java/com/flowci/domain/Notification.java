@@ -1,7 +1,5 @@
-package com.flowci.core.flow.domain;
+package com.flowci.domain;
 
-import com.flowci.domain.StringVars;
-import com.flowci.domain.Vars;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,11 +15,6 @@ public final class Notification {
      * Plugin name which has tag 'notification'
      */
     private String plugin;
-
-    /**
-     * Fetch image from plugin first, otherwise apply this default image to local task
-     */
-    private String image = "flowci/plugin-runtime:1.0";
 
     private Vars<String> inputs = new StringVars();
 

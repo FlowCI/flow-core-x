@@ -5,7 +5,7 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
-import com.flowci.core.flow.domain.Notification;
+import com.flowci.domain.Notification;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
@@ -820,7 +820,6 @@ public class JobActionServiceImpl implements JobActionService {
 
                 LocalDockerTask task = new LocalDockerTask();
                 task.setName(n.getPlugin()); // plugin name as task name
-                task.setImage(n.getImage());
                 task.setPlugin(n.getPlugin());
                 task.setJobId(job.getId());
                 task.setInputs(input);

@@ -1,5 +1,6 @@
 package com.flowci.core.flow.domain;
 
+import com.flowci.domain.Notification;
 import com.flowci.domain.StringVars;
 import lombok.Getter;
 import lombok.Setter;

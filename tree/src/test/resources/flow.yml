@@ -18,6 +18,11 @@ selector:
   - ios
   - local
 
+notifications:
+  - plugin: 'email-notify'
+    envs:
+      FLOWCI_SMTP_CONFIG: 'test-config'
+
 steps:
  - before: |
      println(FLOW_WORKSPACE)

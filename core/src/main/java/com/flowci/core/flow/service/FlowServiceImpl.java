@@ -21,7 +21,6 @@ import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowUserDao;
-import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.event.FlowConfirmedEvent;
@@ -64,9 +63,6 @@ public class FlowServiceImpl implements FlowService {
 
     @Autowired
     private FlowDao flowDao;
-
-    @Autowired
-    private YmlDao ymlDao;
 
     @Autowired
     private FlowUserDao flowUserDao;

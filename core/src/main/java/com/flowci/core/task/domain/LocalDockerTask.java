@@ -9,7 +9,7 @@ import java.nio.file.Path;
 @Setter
 public class LocalDockerTask extends LocalTask {
 
-    private String image;
+    private String image = "flowci/plugin-runtime";
 
     private Path pluginDir;
 }
