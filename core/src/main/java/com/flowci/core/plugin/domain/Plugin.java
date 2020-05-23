@@ -79,7 +79,7 @@ public class Plugin extends PluginRepoInfo {
      *
      * @return invalid input name, or empty if all inputs are validated
      */
-    public Optional<String> verifyInput(Vars<String> context) {
+    public Optional<String> verifyInputAndSetDefaultValue(Vars<String> context) {
         for (Input input : inputs) {
             String value = context.get(input.getName());
 

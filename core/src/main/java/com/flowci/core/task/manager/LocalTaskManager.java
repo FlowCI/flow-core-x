@@ -8,9 +8,7 @@ import com.flowci.core.task.domain.LocalDockerTask;
 import com.flowci.core.task.domain.LocalTask;
 import com.flowci.core.task.domain.TaskResult;
 import com.flowci.core.task.event.StartAsyncLocalTaskEvent;
-import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotAvailableException;
-import com.flowci.exception.NotFoundException;
 import com.flowci.util.ObjectsHelper;
 import com.github.dockerjava.api.exception.DockerClientException;
 import com.github.dockerjava.api.exception.DockerException;
@@ -53,20 +51,27 @@ public class LocalTaskManager {
      * Execute local task, should be run async
      */
     public TaskResult execute(LocalDockerTask task) {
-        log.info("Start local task {} image = {} for job {}", task.getName(), task.getImage(), task.getJobId());
+        TaskResult output = new TaskResult();
+        output.setName(task.getName());
+        output.setJobId(task.getJobId());
+        taskResultDao.insert(output);
 
         if (task.hasPlugin()) {
             String name = task.getPlugin();
             GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, name));
 
             if (Objects.isNull(event.getPlugin())) {
-                throw new NotFoundException("The plugin {0} defined in local task not found", name);
+                output.setErr(String.format("The plugin %s defined in local task not found", name));
+                taskResultDao.save(output);
+                return output;
             }
 
             Plugin plugin = event.getPlugin();
-            Optional<String> validate = plugin.verifyInput(task.getInputs());
+            Optional<String> validate = plugin.verifyInputAndSetDefaultValue(task.getInputs());
             if (validate.isPresent()) {
-                throw new ArgumentException("The illegal input {0} for plugin {1}", validate.get(), plugin.getName());
+                output.setErr(String.format("The illegal input %s for plugin %s", validate.get(), plugin.getName()));
+                taskResultDao.save(output);
+                return output;
             }
 
             task.setScript(plugin.getScript());
@@ -78,11 +83,7 @@ public class LocalTaskManager {
             });
         }
 
-        TaskResult output = new TaskResult();
-        output.setName(task.getName());
-        output.setJobId(task.getJobId());
-        taskResultDao.insert(output);
-
+        log.info("Start local task {} image = {} for job {}", task.getName(), task.getImage(), task.getJobId());
         runDockerTask(task, output);
         taskResultDao.save(output);
         return output;

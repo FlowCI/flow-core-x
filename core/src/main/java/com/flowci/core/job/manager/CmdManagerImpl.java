@@ -25,7 +25,6 @@ import com.flowci.domain.CmdIn;
 import com.flowci.domain.CmdType;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
-import com.flowci.exception.NotAvailableException;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +80,7 @@ public class CmdManagerImpl implements CmdManager {
 
     private void setPlugin(String name, CmdIn cmd) {
         Plugin plugin = pluginService.get(name);
-        Optional<String> validate = plugin.verifyInput(cmd.getInputs());
+        Optional<String> validate = plugin.verifyInputAndSetDefaultValue(cmd.getInputs());
         if (validate.isPresent()) {
             throw new ArgumentException("The illegal input {0} for plugin {1}", validate.get(), plugin.getName());
         }
