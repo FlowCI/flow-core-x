@@ -18,7 +18,7 @@ package com.flowci.core.plugin.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
@@ -69,7 +69,7 @@ public class PluginServiceImpl implements PluginService {
     private Path pluginDir;
 
     @Autowired
-    private ConfigProperties.Plugin pluginProperties;
+    private AppProperties.Plugin pluginProperties;
 
     @Autowired
     private ThreadPoolTaskExecutor repoCloneExecutor;

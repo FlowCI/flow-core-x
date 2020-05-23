@@ -34,9 +34,6 @@ import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.data.mongodb.core.mapping.event.AuditingEventListener;
-import org.springframework.data.mongodb.core.mapping.event.BeforeConvertEvent;
-import org.springframework.data.mongodb.core.mapping.event.BeforeSaveEvent;
-import org.springframework.data.mongodb.core.mapping.event.MongoMappingEvent;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
@@ -59,7 +56,7 @@ public class AppConfig {
     private MultipartProperties multipartProperties;
 
     @Autowired
-    private ConfigProperties appProperties;
+    private AppProperties appProperties;
 
     @PostConstruct
     private void initWorkspace() throws IOException {

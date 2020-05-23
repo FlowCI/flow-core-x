@@ -23,7 +23,7 @@ import com.flowci.core.agent.domain.AgentInit;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.event.CreateAgentEvent;
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -75,7 +75,7 @@ public class AgentServiceImpl implements AgentService {
     private static final long RetryIntervalOnNotFound = 10 * 1000; // 10 seconds
 
     @Autowired
-    private ConfigProperties.Zookeeper zkProperties;
+    private AppProperties.Zookeeper zkProperties;
 
     @Autowired
     private ZookeeperClient zk;

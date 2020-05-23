@@ -16,7 +16,7 @@
 
 package com.flowci.core.user.service;
 
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.user.dao.UserDao;
@@ -48,7 +48,7 @@ import java.util.Objects;
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    private ConfigProperties.Admin adminProperties;
+    private AppProperties.Admin adminProperties;
 
     @Autowired
     private UserDao userDao;

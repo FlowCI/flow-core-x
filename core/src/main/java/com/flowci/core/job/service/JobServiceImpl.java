@@ -16,7 +16,7 @@
 
 package com.flowci.core.job.service;
 
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -40,7 +40,6 @@ import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.YmlParser;
-import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -78,7 +77,7 @@ public class JobServiceImpl implements JobService {
     private String serverUrl;
 
     @Autowired
-    private ConfigProperties.Job jobProperties;
+    private AppProperties.Job jobProperties;
 
     @Autowired
     private JobDao jobDao;

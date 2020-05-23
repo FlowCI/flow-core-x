@@ -38,7 +38,7 @@ import javax.validation.constraints.NotBlank;
 @Configuration
 @ConfigurationProperties(prefix = "app")
 @PropertySource("classpath:flow.properties")
-public class ConfigProperties {
+public class AppProperties {
 
     private Path workspace;
 
@@ -55,6 +55,8 @@ public class ConfigProperties {
     private String secret;
 
     private boolean autoLocalAgentHost;
+
+    private boolean defaultSmtpConfig;
 
     @Bean("adminProperties")
     @ConfigurationProperties(prefix = "app.admin")

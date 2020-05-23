@@ -1,5 +1,6 @@
 package com.flowci.core.config.service;
 
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.dao.ConfigDao;
@@ -18,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -36,6 +36,9 @@ public class ConfigServiceImpl implements ConfigService {
     private Resource defaultSmtpConfigYml;
 
     @Autowired
+    private AppProperties appProperties;
+
+    @Autowired
     private ConfigDao configDao;
 
     @Autowired
@@ -47,10 +50,15 @@ public class ConfigServiceImpl implements ConfigService {
             Config config = ConfigParser.parse(defaultSmtpConfigYml.getInputStream());
             Optional<Config> optional = configDao.findByName(config.getName());
 
-            if (optional.isPresent()) {
+            // delete if default smtp config is disabled
+            if (!appProperties.isDefaultSmtpConfig()) {
+                optional.ifPresent(value -> configDao.delete(value));
                 return;
             }
 
+            if (optional.isPresent()) {
+                return;
+            }
             configDao.save(config);
             log.info("Config {} has been created", config.getName());
         } catch (IOException e) {

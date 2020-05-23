@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.auth.domain.Tokens;
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.domain.http.ResponseMessage;
 import java.util.Base64;
@@ -41,7 +41,7 @@ public class AuthHelper {
     private MockMvcHelper mockMvcHelper;
 
     @Autowired
-    private ConfigProperties.Auth authProperties;
+    private AppProperties.Auth authProperties;
 
     @Autowired
     private ObjectMapper objectMapper;

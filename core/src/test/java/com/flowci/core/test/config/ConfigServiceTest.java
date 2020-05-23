@@ -1,6 +1,5 @@
 package com.flowci.core.test.config;
 
-import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.SmtpOption;
@@ -23,9 +22,6 @@ public class ConfigServiceTest extends SpringScenario {
 
     @MockBean
     private SpringEventManager eventManager;
-
-    @Autowired
-    private SessionManager sessionManager;
 
     @Autowired
     private ConfigService configService;

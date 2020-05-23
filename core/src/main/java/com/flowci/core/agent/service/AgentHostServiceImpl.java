@@ -24,9 +24,8 @@ import com.flowci.core.agent.domain.SshAgentHost;
 import com.flowci.core.agent.event.AgentCreatedEvent;
 import com.flowci.core.agent.event.AgentHostStatusEvent;
 import com.flowci.core.agent.event.CreateAgentEvent;
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
-import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
@@ -83,7 +82,7 @@ public class AgentHostServiceImpl implements AgentHostService {
     private String collectTaskZkPath;
 
     @Autowired
-    private ConfigProperties appProperties;
+    private AppProperties appProperties;
 
     @Autowired
     private String serverUrl;
@@ -104,7 +103,7 @@ public class AgentHostServiceImpl implements AgentHostService {
     private DockerClient dockerClient;
 
     @Autowired
-    private ConfigProperties.Zookeeper zkProperties;
+    private AppProperties.Zookeeper zkProperties;
 
     @Autowired
     private ThreadPoolTaskExecutor agentHostExecutor;

@@ -43,7 +43,7 @@ public class QueueConfig {
     public static final String JobDlRoutingKey = "jobtimeout";
 
     @Autowired
-    private ConfigProperties.RabbitMQ rabbitProperties;
+    private AppProperties.RabbitMQ rabbitProperties;
 
     @Bean
     public ThreadPoolTaskExecutor rabbitConsumerExecutor() {

@@ -38,10 +38,10 @@ import java.nio.file.Path;
 public class StorageConfig {
 
     @Autowired
-    private ConfigProperties appProperties;
+    private AppProperties appProperties;
 
     @Autowired
-    private ConfigProperties.Minio minioProperties;
+    private AppProperties.Minio minioProperties;
 
     @PostConstruct
     private void initFlowDir() throws IOException {

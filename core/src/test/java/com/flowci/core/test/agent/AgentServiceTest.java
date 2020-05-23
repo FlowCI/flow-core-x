@@ -18,7 +18,7 @@ package com.flowci.core.test.agent;
 
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.service.AgentService;
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.test.ZookeeperScenario;
 import com.flowci.domain.Agent;
@@ -45,7 +45,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class AgentServiceTest extends ZookeeperScenario {
 
     @Autowired
-    private ConfigProperties.Zookeeper zkProperties;
+    private AppProperties.Zookeeper zkProperties;
 
     @Autowired
     private ZookeeperClient zk;
