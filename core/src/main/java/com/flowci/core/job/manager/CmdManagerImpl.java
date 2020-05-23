@@ -17,10 +17,11 @@
 package com.flowci.core.job.manager;
 
 import com.flowci.core.common.domain.Variables;
+import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.plugin.domain.Plugin;
-import com.flowci.core.plugin.service.PluginService;
+import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.CmdIn;
 import com.flowci.domain.CmdType;
 import com.flowci.domain.Vars;
@@ -28,7 +29,7 @@ import com.flowci.exception.ArgumentException;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -36,11 +37,11 @@ import java.util.UUID;
 /**
  * @author yang
  */
-@Repository
+@Component
 public class CmdManagerImpl implements CmdManager {
 
     @Autowired
-    private PluginService pluginService;
+    private SpringEventManager eventManager;
 
     @Override
     public CmdIn createShellCmd(Job job, StepNode node, ExecutedCmd cmd) {
@@ -79,7 +80,12 @@ public class CmdManagerImpl implements CmdManager {
     }
 
     private void setPlugin(String name, CmdIn cmd) {
-        Plugin plugin = pluginService.get(name);
+        GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, name));
+        if (event.hasError()) {
+            throw event.getError();
+        }
+
+        Plugin plugin = event.getObj();
         Optional<String> validate = plugin.verifyInputAndSetDefaultValue(cmd.getInputs());
         if (validate.isPresent()) {
             throw new ArgumentException("The illegal input {0} for plugin {1}", validate.get(), plugin.getName());

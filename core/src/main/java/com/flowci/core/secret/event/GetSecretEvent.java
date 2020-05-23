@@ -16,7 +16,7 @@
 
 package com.flowci.core.secret.event;
 
-import com.flowci.core.common.domain.SyncEvent;
+import com.flowci.core.common.event.SyncEvent;
 import com.flowci.core.secret.domain.Secret;
 import lombok.Getter;
 import lombok.Setter;

@@ -60,13 +60,13 @@ public class LocalTaskManager {
             String name = task.getPlugin();
             GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, name));
 
-            if (Objects.isNull(event.getPlugin())) {
+            if (event.hasError()) {
                 output.setErr(String.format("The plugin %s defined in local task not found", name));
                 taskResultDao.save(output);
                 return output;
             }
 
-            Plugin plugin = event.getPlugin();
+            Plugin plugin = event.getObj();
             Optional<String> validate = plugin.verifyInputAndSetDefaultValue(task.getInputs());
             if (validate.isPresent()) {
                 output.setErr(String.format("The illegal input %s for plugin %s", validate.get(), plugin.getName()));

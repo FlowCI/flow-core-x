@@ -16,7 +16,7 @@
 
 package com.flowci.core.agent.event;
 
-import com.flowci.core.common.domain.SyncEvent;
+import com.flowci.core.common.event.SyncEvent;
 import com.flowci.domain.Agent;
 import lombok.Getter;
 import lombok.Setter;

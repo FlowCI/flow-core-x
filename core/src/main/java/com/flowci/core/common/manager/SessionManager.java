@@ -17,7 +17,6 @@
 
 package com.flowci.core.common.manager;
 
-import com.flowci.core.common.domain.SyncEvent;
 import com.flowci.core.user.domain.User;
 import com.flowci.exception.AuthenticationException;
 import org.springframework.data.domain.AuditorAware;

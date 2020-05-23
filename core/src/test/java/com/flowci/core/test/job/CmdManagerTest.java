@@ -16,6 +16,7 @@
 
 package com.flowci.core.test.job;
 
+import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
@@ -27,7 +28,7 @@ import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
 import com.flowci.core.plugin.domain.Input;
 import com.flowci.core.plugin.domain.Plugin;
-import com.flowci.core.plugin.service.PluginService;
+import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.*;
 import com.flowci.tree.*;
@@ -57,11 +58,11 @@ public class CmdManagerTest extends SpringScenario {
     @Autowired
     private StepService stepService;
 
-    @MockBean
-    private PluginService pluginService;
-
     @Autowired
     private CmdManager cmdManager;
+
+    @MockBean
+    private SpringEventManager eventManager;
 
     @Before
     public void login() {
@@ -72,7 +73,9 @@ public class CmdManagerTest extends SpringScenario {
     public void should_create_cmd_in_with_default_plugin_value() throws IOException {
         // init: setup mock plugin service
         Plugin plugin = createDummyPlugin();
-        Mockito.when(pluginService.get(plugin.getName())).thenReturn(plugin);
+        GetPluginEvent event = new GetPluginEvent(this, plugin.getName());
+        event.setObj(plugin);
+        Mockito.when(eventManager.publish(Mockito.any())).thenReturn(event);
 
         // given: flow and job
         Flow flow = flowService.create("hello");

@@ -17,7 +17,7 @@
 
 package com.flowci.core.flow.event;
 
-import com.flowci.core.common.domain.SyncEvent;
+import com.flowci.core.common.event.SyncEvent;
 import com.flowci.core.flow.domain.Flow;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;

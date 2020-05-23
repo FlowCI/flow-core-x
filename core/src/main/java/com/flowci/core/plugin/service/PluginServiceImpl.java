@@ -86,10 +86,10 @@ public class PluginServiceImpl implements PluginService {
     public void onGetPluginEvent(GetPluginEvent event) {
         try {
             Plugin plugin = get(event.getName());
-            event.setPlugin(plugin);
+            event.setObj(plugin);
             event.setDir(getDir(plugin));
-        } catch (NotFoundException ignore) {
-
+        } catch (NotFoundException e) {
+            event.setError(e);
         }
     }
 

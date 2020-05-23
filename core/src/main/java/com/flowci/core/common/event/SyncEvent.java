@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flowci.core.common.domain;
+package com.flowci.core.common.event;
 
 /**
  * @author yang

@@ -95,7 +95,7 @@ public class YmlServiceImpl implements YmlService {
         }
 
         FlowNode root = YmlParser.load(flow.getName(), yml);
-        Optional<NotFoundException> hasErr = verifyPlugins(root);
+        Optional<RuntimeException> hasErr = verifyPlugins(root);
         if (hasErr.isPresent()) {
             throw hasErr.get();
         }
@@ -141,7 +141,7 @@ public class YmlServiceImpl implements YmlService {
      *
      * @return Optional exception
      */
-    private Optional<NotFoundException> verifyPlugins(FlowNode flowNode) {
+    private Optional<RuntimeException> verifyPlugins(FlowNode flowNode) {
         Set<String> plugins = new HashSet<>();
 
         for (StepNode step : flowNode.getChildren()) {
@@ -162,8 +162,8 @@ public class YmlServiceImpl implements YmlService {
 
         for (String plugin : plugins) {
             GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, plugin));
-            if (Objects.isNull(event.getPlugin())) {
-                return Optional.of(new NotFoundException("Plugin {0} is not found", plugin));
+            if (event.hasError()) {
+                return Optional.of(event.getError());
             }
         }
 

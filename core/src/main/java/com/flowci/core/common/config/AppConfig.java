@@ -17,7 +17,7 @@
 package com.flowci.core.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flowci.core.common.domain.SyncEvent;
+import com.flowci.core.common.event.SyncEvent;
 import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.util.FileHelper;
 import lombok.extern.log4j.Log4j2;
