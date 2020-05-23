@@ -211,13 +211,12 @@ public class JobServiceTest extends ZookeeperScenario {
         Agent agent = agentService.create("hello.agent", null, Optional.empty());
         mockAgentOnline(agentService.getPath(agent));
 
-        flow.getNotifications().add(new Notification().setPlugin("email"));
+        Notification notify = new Notification().setPlugin("email").setEnabled(true);
+        flow.getNotifications().add(notify);
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
 
         CountDownLatch localTaskCountDown = new CountDownLatch(1);
-        addEventListener((ApplicationListener<StartAsyncLocalTaskEvent>) event -> {
-            localTaskCountDown.countDown();
-        });
+        addEventListener((ApplicationListener<StartAsyncLocalTaskEvent>) event -> localTaskCountDown.countDown());
 
         FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
         NodeTree tree = NodeTree.create(root);

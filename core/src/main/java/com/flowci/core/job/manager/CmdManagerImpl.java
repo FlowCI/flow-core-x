@@ -19,10 +19,7 @@ package com.flowci.core.job.manager;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.plugin.domain.ParentBody;
 import com.flowci.core.plugin.domain.Plugin;
-import com.flowci.core.plugin.domain.PluginBody;
-import com.flowci.core.plugin.domain.ScriptBody;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.domain.CmdIn;
 import com.flowci.domain.CmdType;
@@ -92,42 +89,12 @@ public class CmdManagerImpl implements CmdManager {
         cmd.setPlugin(name);
         cmd.setAllowFailure(plugin.isAllowFailure());
         cmd.addEnvFilters(plugin.getExports());
+        cmd.addScript(plugin.getScript());
 
         // apply docker from plugin if it's specified
         ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> {
             cmd.setDocker(plugin.getDocker());
         });
-
-        PluginBody body = plugin.getBody();
-
-        if (body instanceof ScriptBody) {
-            String script = ((ScriptBody) body).getScript();
-            cmd.addScript(script);
-            return;
-        }
-
-        if (body instanceof ParentBody) {
-            ParentBody parentData = (ParentBody) body;
-            Plugin parent = pluginService.get(parentData.getName());
-
-            if (!(parent.getBody() instanceof ScriptBody)) {
-                throw new NotAvailableException("Script not found on parent plugin");
-            }
-
-            String scriptFromParent = ((ScriptBody) parent.getBody()).getScript();
-            cmd.addInputs(parentData.getEnvs());
-            cmd.addScript(scriptFromParent);
-
-            // apply docker option from parent if not specified
-            if (!cmd.hasDockerOption()) {
-                cmd.setDocker(parent.getDocker());
-            }
-
-            validate = parent.verifyInput(cmd.getInputs());
-            if (validate.isPresent()) {
-                throw new ArgumentException("The illegal input {0} for plugin {1}", validate.get(), parent.getName());
-            }
-        }
     }
 
     private static boolean isDockerEnabled(Vars<String> input) {

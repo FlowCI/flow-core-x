@@ -2,7 +2,6 @@ package com.flowci.core.task.manager;
 
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.plugin.domain.Plugin;
-import com.flowci.core.plugin.domain.ScriptBody;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.task.dao.TaskResultDao;
 import com.flowci.core.task.domain.LocalDockerTask;
@@ -70,8 +69,7 @@ public class LocalTaskManager {
                 throw new ArgumentException("The illegal input {0} for plugin {1}", validate.get(), plugin.getName());
             }
 
-            ScriptBody body = (ScriptBody) plugin.getBody();
-            task.setScript(body.getScript());
+            task.setScript(plugin.getScript());
             task.setPluginDir(event.getDir());
 
             // apply docker image only from plugin if it's specified

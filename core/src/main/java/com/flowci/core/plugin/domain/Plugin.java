@@ -38,7 +38,7 @@ import java.util.*;
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"id"}, callSuper = false)
 @Document(collection = "plugins")
-public class Plugin extends PluginRepoInfo implements PluginBody {
+public class Plugin extends PluginRepoInfo {
 
     @Id
     private String id;
@@ -55,7 +55,7 @@ public class Plugin extends PluginRepoInfo implements PluginBody {
 
     private DockerOption docker;
 
-    private PluginBody body;
+    private String script;
 
     private String icon;
 
@@ -70,7 +70,7 @@ public class Plugin extends PluginRepoInfo implements PluginBody {
         this.setInputs(src.inputs);
         this.setStatsTypes(src.statsTypes);
         this.setAllowFailure(src.allowFailure);
-        this.setBody(src.body);
+        this.setScript(src.script);
         this.setDocker(src.docker);
     }
 

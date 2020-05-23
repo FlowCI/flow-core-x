@@ -57,27 +57,4 @@ public class PluginParserTest {
         Assert.assertTrue(exports.contains("VAR_EXPORT_1"));
         Assert.assertTrue(exports.contains("VAR_EXPORT_2"));
     }
-
-    @Test
-    public void should_parse_yml_with_parent() {
-        InputStream is = PluginParserTest.class.getClassLoader().getResourceAsStream("plugin_with_parent.yml");
-        Plugin plugin = PluginParser.parse(is);
-        Assert.assertNotNull(plugin);
-
-        PluginBody body = plugin.getBody();
-        Assert.assertNotNull(body);
-        Assert.assertTrue(body instanceof ParentBody);
-
-        ParentBody parent = (ParentBody) body;
-        Assert.assertEquals("hello", parent.getName());
-        Assert.assertEquals("0.1.0", parent.getVersion());
-        Assert.assertEquals(1, parent.getEnvs().size());
-        Assert.assertEquals("hello message", parent.getEnvs().get("GIT_URL_PARENT"));
-
-        DockerOption dockerOption = plugin.getDocker();
-        Assert.assertNotNull(dockerOption);
-        Assert.assertEquals("ubuntu:18.04", dockerOption.getImage());
-        Assert.assertEquals("none", dockerOption.getNetworkMode());
-    }
-
 }
