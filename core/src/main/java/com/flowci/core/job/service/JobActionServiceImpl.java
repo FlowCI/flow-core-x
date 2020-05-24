@@ -5,7 +5,6 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
-import com.flowci.domain.Notification;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
@@ -749,21 +748,15 @@ public class JobActionServiceImpl implements JobActionService {
         context.put(Variables.Job.Steps, stepService.toVarString(job, node));
 
         // after status not apart of job status
-        if (!node.isAfter()) {
-            job.setStatusToContext(StatusHelper.convert(cmd));
-            job.setErrorToContext(cmd.getError());
-        }
+        job.setStatusToContext(StatusHelper.convert(cmd));
+        job.setErrorToContext(cmd.getError());
     }
 
     private Optional<StepNode> findNext(NodeTree tree, Node current, boolean isSuccess) {
         StepNode next = tree.next(current.getPath());
+
         if (Objects.isNull(next)) {
             return Optional.empty();
-        }
-
-        // find step from after
-        if (!isSuccess && !next.isAfter()) {
-            return findNext(tree, next, false);
         }
 
         return Optional.of(next);

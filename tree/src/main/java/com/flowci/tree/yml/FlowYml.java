@@ -16,7 +16,6 @@
 
 package com.flowci.tree.yml;
 
-import com.flowci.domain.Notification;
 import com.flowci.exception.YmlException;
 import com.flowci.tree.*;
 import lombok.Getter;
@@ -48,9 +47,6 @@ public class FlowYml extends YmlBase<FlowNode> {
     @NonNull
     private List<StepYml> steps = new LinkedList<>();
 
-    @NonNull
-    private List<StepYml> after = new LinkedList<>();
-
     public FlowYml(FlowNode node) {
         setEnvs(node.getEnvironments());
 
@@ -73,7 +69,6 @@ public class FlowYml extends YmlBase<FlowNode> {
 
         setupNotifications(node);
         setupSteps(node);
-        setupAfter(node);
         return node;
     }
 
@@ -92,23 +87,6 @@ public class FlowYml extends YmlBase<FlowNode> {
         }
     }
 
-    private void setupAfter(FlowNode node) {
-        if (Objects.isNull(after) || after.isEmpty()) {
-            return;
-        }
-
-        int index = 1;
-        Set<String> uniqueName = new HashSet<>(after.size());
-
-        for (StepYml child : after) {
-            StepNode step = child.toNode(index++, StepNode.Type.After);
-            if (!uniqueName.add(step.getName())) {
-                throw new YmlException("Duplicate name {0} in after", step.getName());
-            }
-            node.getAfter().add(step);
-        }
-    }
-
     private void setupSteps(FlowNode node) {
         if (Objects.isNull(steps) || steps.isEmpty()) {
             throw new YmlException("The 'steps' must be defined");
@@ -118,7 +96,7 @@ public class FlowYml extends YmlBase<FlowNode> {
         Set<String> uniqueName = new HashSet<>(steps.size());
 
         for (StepYml child : steps) {
-            StepNode step = child.toNode(index++, StepNode.Type.Step);
+            StepNode step = child.toNode(index++);
             if (!uniqueName.add(step.getName())) {
                 throw new YmlException("Duplicate name {0} in step", step.getName());
             }

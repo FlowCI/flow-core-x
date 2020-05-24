@@ -153,12 +153,6 @@ public class YmlServiceImpl implements YmlService {
             plugins.add(n.getPlugin());
         }
 
-        for (StepNode after : flowNode.getAfter()) {
-            if (after.hasPlugin()) {
-                plugins.add(after.getPlugin());
-            }
-        }
-
         for (String plugin : plugins) {
             GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, plugin));
             if (event.hasError()) {

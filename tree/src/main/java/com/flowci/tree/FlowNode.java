@@ -35,11 +35,6 @@ public class FlowNode extends Node {
      */
     private List<Notification> notifications = new LinkedList<>();
 
-    /**
-     * The final step that will be executed anyway
-     */
-    private List<StepNode> after = new LinkedList<>();
-
     public FlowNode(String name) {
         super(name);
     }

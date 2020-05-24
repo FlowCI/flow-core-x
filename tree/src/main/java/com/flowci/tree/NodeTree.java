@@ -65,10 +65,6 @@ public class NodeTree {
         }
 
         StepNode step = get(path);
-        if (step.isAfter()) {
-            return findNext(step, after);
-        }
-
         StepNode next = findNext(step, steps);
         if (next != null) {
             return next;
@@ -126,16 +122,6 @@ public class NodeTree {
      * Reset node path and parent reference and put to cache
      */
     private void buildTree(Node root) {
-        if (root instanceof FlowNode) {
-            FlowNode flow = (FlowNode) root;
-            for (StepNode step : flow.getAfter()) {
-                step.setPath(NodePath.create(root.getPath(), step.getName()));
-                step.setParent(root);
-                step.setAllowFailure(true);
-                after.add(step);
-            }
-        }
-
         for (StepNode step : root.getChildren()) {
             step.setPath(NodePath.create(root.getPath(), step.getName()));
             step.setParent(root);

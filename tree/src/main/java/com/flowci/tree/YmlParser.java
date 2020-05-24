@@ -41,7 +41,6 @@ public class YmlParser {
         .put("cron", 4)
         .put("notifications", 5)
         .put("steps", 6)
-        .put("after", 7)
         .build();
 
     /**

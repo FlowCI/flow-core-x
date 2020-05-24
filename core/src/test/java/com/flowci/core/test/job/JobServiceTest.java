@@ -394,33 +394,6 @@ public class JobServiceTest extends ZookeeperScenario {
     }
 
     @Test
-    public void should_job_failure_with_after() throws Exception {
-        yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-failure-with-after.yml")));
-        Agent agent = agentService.create("hello.agent.0", null, Optional.empty());
-        Job job = prepareJobForRunningStatus(agent);
-
-        NodeTree tree = ymlManager.getTree(job);
-        StepNode firstNode = tree.next(tree.getRoot().getPath());
-
-        // when: set first step as failure status
-        ExecutedCmd firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
-        firstStep.setStatus(ExecutedCmd.Status.EXCEPTION);
-        executedCmdDao.save(firstStep);
-        jobEventService.handleCallback(firstStep);
-
-        // when: set final node as success status
-        StepNode secondNode = tree.next(firstNode.getPath());
-        ExecutedCmd secondStep = stepService.get(job.getId(), secondNode.getPathAsString());
-        secondStep.setStatus(ExecutedCmd.Status.SUCCESS);
-        executedCmdDao.save(secondStep);
-        jobEventService.handleCallback(secondStep);
-
-        // then: job status should be failure since final node does not count to step
-        job = jobDao.findById(job.getId()).get();
-        Assert.assertEquals(Status.FAILURE, job.getStatus());
-    }
-
-    @Test
     public void should_cancel_job_if_agent_offline() throws IOException, InterruptedException {
         // init:
         yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-before.yml")));
