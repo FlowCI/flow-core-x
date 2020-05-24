@@ -15,6 +15,8 @@ import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
+import com.flowci.core.task.domain.LocalDockerTask;
+import com.flowci.core.task.event.StartAsyncLocalTaskEvent;
 import com.flowci.domain.*;
 import com.flowci.exception.CIException;
 import com.flowci.exception.NotAvailableException;
@@ -135,12 +137,15 @@ public class JobActionServiceImpl implements JobActionService {
         fromRunning();
         fromCancelling();
 
-        Sm.addHookActionOnTargetStatus(Cancelled, context -> {
+        Sm.addHookActionOnTargetStatus(context -> {
             Job job = context.job;
             if (hasJobLock(job.getId())) {
                 throw new StatusException("Unable to cancel right now, try later");
             }
-        });
+        }, Cancelled);
+
+        // run local notification task
+        Sm.addHookActionOnTargetStatus(notificationConsumer(), Success, Failure, Timeout, Cancelled);
     }
 
     @Override
@@ -655,6 +660,7 @@ public class JobActionServiceImpl implements JobActionService {
 
     /**
      * Dispatch next step to agent
+     *
      * @return true if next step dispatched, false if no more steps
      */
     private boolean toNextStep(JobSmContext context) {
@@ -742,21 +748,15 @@ public class JobActionServiceImpl implements JobActionService {
         context.put(Variables.Job.Steps, stepService.toVarString(job, node));
 
         // after status not apart of job status
-        if (!node.isAfter()) {
-            job.setStatusToContext(StatusHelper.convert(cmd));
-            job.setErrorToContext(cmd.getError());
-        }
+        job.setStatusToContext(StatusHelper.convert(cmd));
+        job.setErrorToContext(cmd.getError());
     }
 
     private Optional<StepNode> findNext(NodeTree tree, Node current, boolean isSuccess) {
         StepNode next = tree.next(current.getPath());
+
         if (Objects.isNull(next)) {
             return Optional.empty();
-        }
-
-        // find step from after
-        if (!isSuccess && !next.isAfter()) {
-            return findNext(tree, next, false);
         }
 
         return Optional.of(next);
@@ -798,6 +798,28 @@ public class JobActionServiceImpl implements JobActionService {
         } catch (Exception warn) {
             log.warn(warn);
         }
+    }
+
+    private Consumer<JobSmContext> notificationConsumer() {
+        return context -> {
+            Job job = context.job;
+            for (Notification n : job.getNotifications()) {
+                if (!n.isEnabled()) {
+                    continue;
+                }
+
+                StringVars input = new StringVars(job.getContext());
+                input.merge(n.getInputs());
+
+                LocalDockerTask task = new LocalDockerTask();
+                task.setName(n.getPlugin()); // plugin name as task name
+                task.setPlugin(n.getPlugin());
+                task.setJobId(job.getId());
+                task.setInputs(input);
+
+                eventManager.publish(new StartAsyncLocalTaskEvent(this, task));
+            }
+        };
     }
 
     @Getter

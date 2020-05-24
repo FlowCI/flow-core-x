@@ -22,7 +22,7 @@ import com.flowci.core.agent.controller.AgentAuth;
 import com.flowci.core.agent.domain.AgentInit;
 import com.flowci.core.agent.domain.CreateOrUpdateAgent;
 import com.flowci.core.agent.domain.DeleteAgent;
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
@@ -73,7 +73,7 @@ public class AgentControllerTest extends SpringScenario {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private ConfigProperties.RabbitMQ rabbitConfig;
+    private AppProperties.RabbitMQ rabbitConfig;
 
     @Before
     public void login() {

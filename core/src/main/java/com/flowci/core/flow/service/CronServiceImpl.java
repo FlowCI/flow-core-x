@@ -22,7 +22,7 @@ import com.cronutils.model.definition.CronDefinition;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
@@ -65,7 +65,7 @@ public class CronServiceImpl implements CronService {
     private SpringEventManager eventManager;
 
     @Autowired
-    private ConfigProperties.Zookeeper zkProperties;
+    private AppProperties.Zookeeper zkProperties;
 
     @Autowired
     private ZookeeperClient zk;

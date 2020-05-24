@@ -18,7 +18,7 @@ package com.flowci.core.job.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.event.AgentStatusEvent;
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.QueueOperations;
 import com.flowci.core.common.rabbit.RabbitOperations;
@@ -47,7 +47,7 @@ import java.util.function.Function;
 public class JobEventServiceImpl implements JobEventService {
 
     @Autowired
-    private ConfigProperties.RabbitMQ rabbitProperties;
+    private AppProperties.RabbitMQ rabbitProperties;
 
     @Autowired
     private ObjectMapper objectMapper;

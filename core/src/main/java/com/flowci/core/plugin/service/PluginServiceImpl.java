@@ -18,18 +18,20 @@ package com.flowci.core.plugin.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.domain.PluginParser;
 import com.flowci.core.plugin.domain.PluginRepoInfo;
+import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.plugin.event.RepoCloneEvent;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -42,10 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author yang
@@ -70,7 +69,7 @@ public class PluginServiceImpl implements PluginService {
     private Path pluginDir;
 
     @Autowired
-    private ConfigProperties.Plugin pluginProperties;
+    private AppProperties.Plugin pluginProperties;
 
     @Autowired
     private ThreadPoolTaskExecutor repoCloneExecutor;
@@ -83,9 +82,25 @@ public class PluginServiceImpl implements PluginService {
 
     private final Object reloadLock = new Object();
 
+    @EventListener
+    public void onGetPluginEvent(GetPluginEvent event) {
+        try {
+            Plugin plugin = get(event.getName());
+            event.setFetched(plugin);
+            event.setDir(getDir(plugin));
+        } catch (NotFoundException e) {
+            event.setError(e);
+        }
+    }
+
     @Override
     public Collection<Plugin> list() {
         return pluginDao.findAll();
+    }
+
+    @Override
+    public Collection<Plugin> list(Set<String> tags) {
+        return pluginDao.findAllByTagsIn(tags);
     }
 
     @Override

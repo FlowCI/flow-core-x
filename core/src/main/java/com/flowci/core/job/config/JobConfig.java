@@ -16,7 +16,7 @@
 
 package com.flowci.core.job.config;
 
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.job.domain.ExecutedCmd;
@@ -42,7 +42,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class JobConfig {
 
     @Autowired
-    private ConfigProperties appProperties;
+    private AppProperties appProperties;
 
     /**
      * Consume http request

@@ -17,29 +17,31 @@
 package com.flowci.core.job.manager;
 
 import com.flowci.core.common.domain.Variables;
+import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.plugin.domain.*;
-import com.flowci.core.plugin.service.PluginService;
-import com.flowci.domain.*;
+import com.flowci.core.plugin.domain.Plugin;
+import com.flowci.core.plugin.event.GetPluginEvent;
+import com.flowci.domain.CmdIn;
+import com.flowci.domain.CmdType;
+import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
-import com.flowci.exception.NotAvailableException;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
-import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * @author yang
  */
-@Repository
+@Component
 public class CmdManagerImpl implements CmdManager {
 
     @Autowired
-    private PluginService pluginService;
+    private SpringEventManager eventManager;
 
     @Override
     public CmdIn createShellCmd(Job job, StepNode node, ExecutedCmd cmd) {
@@ -78,67 +80,30 @@ public class CmdManagerImpl implements CmdManager {
     }
 
     private void setPlugin(String name, CmdIn cmd) {
-        Plugin plugin = pluginService.get(name);
-        verifyPluginInput(cmd.getInputs(), plugin);
+        GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, name));
+        if (event.hasError()) {
+            throw event.getError();
+        }
+
+        Plugin plugin = event.getFetched();
+        Optional<String> validate = plugin.verifyInputAndSetDefaultValue(cmd.getInputs());
+        if (validate.isPresent()) {
+            throw new ArgumentException("The illegal input {0} for plugin {1}", validate.get(), plugin.getName());
+        }
 
         cmd.setPlugin(name);
         cmd.setAllowFailure(plugin.isAllowFailure());
         cmd.addEnvFilters(plugin.getExports());
+        cmd.addScript(plugin.getScript());
 
         // apply docker from plugin if it's specified
         ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> {
             cmd.setDocker(plugin.getDocker());
         });
-
-        PluginBody body = plugin.getBody();
-
-        if (body instanceof ScriptBody) {
-            String script = ((ScriptBody) body).getScript();
-            cmd.addScript(script);
-            return;
-        }
-
-        if (body instanceof ParentBody) {
-            ParentBody parentData = (ParentBody) body;
-            Plugin parent = pluginService.get(parentData.getName());
-
-            if (!(parent.getBody() instanceof ScriptBody)) {
-                throw new NotAvailableException("Script not found on parent plugin");
-            }
-
-            String scriptFromParent = ((ScriptBody) parent.getBody()).getScript();
-            cmd.addInputs(parentData.getEnvs());
-            cmd.addScript(scriptFromParent);
-
-            // apply docker option from parent if not specified
-            if (!cmd.hasDockerOption()) {
-                cmd.setDocker(parent.getDocker());
-            }
-
-            verifyPluginInput(cmd.getInputs(), parent);
-        }
     }
 
     private static boolean isDockerEnabled(Vars<String> input) {
         String val = input.get(Variables.Step.DockerEnabled, "true");
         return Boolean.parseBoolean(val);
-    }
-
-    private static void verifyPluginInput(Vars<String> context, Plugin plugin) {
-        for (Input input : plugin.getInputs()) {
-            String value = context.get(input.getName());
-
-            // setup plugin default value to context
-            if (!StringHelper.hasValue(value) && input.hasDefaultValue()) {
-                context.put(input.getName(), input.getValue());
-                continue;
-            }
-
-            // verify value from context
-            if (!input.verify(value)) {
-                throw new ArgumentException(
-                        "The illegal input {0} for plugin {1}", input.getName(), plugin.getName());
-            }
-        }
     }
 }

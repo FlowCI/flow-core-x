@@ -64,6 +64,12 @@ public class YmlParserTest {
         Assert.assertEquals(3, root.getTrigger().getBranch().size());
         Assert.assertEquals(1, root.getTrigger().getTag().size());
 
+        // verify notifications
+        Assert.assertEquals(1, root.getNotifications().size());
+        Assert.assertTrue(root.getNotifications().get(0).isEnabled());
+        Assert.assertEquals("email-notify", root.getNotifications().get(0).getPlugin());
+        Assert.assertEquals("test-config", root.getNotifications().get(0).getInputs().get("FLOWCI_SMTP_CONFIG"));
+
         // verify steps
         List<StepNode> steps = root.getChildren();
         Assert.assertEquals(2, steps.size());
@@ -87,20 +93,6 @@ public class YmlParserTest {
         Assert.assertEquals("2700:2700", dockerOption.getPorts().get(1));
         Assert.assertEquals("/bin/sh", dockerOption.getEntrypoint().get(0));
         Assert.assertEquals("host", dockerOption.getNetworkMode());
-
-        // verify after steps
-        List<StepNode> after = root.getAfter();
-        Assert.assertEquals(2, after.size());
-
-        StepNode after1 = after.get(0);
-        Assert.assertEquals("step3", after1.getName());
-        Assert.assertTrue(after1.isAfter());
-        Assert.assertTrue(after1.isAllowFailure());
-
-        StepNode after2 = after.get(1);
-        Assert.assertEquals("after-2", after2.getName());
-        Assert.assertTrue(after2.isAfter());
-        Assert.assertFalse(after2.isAllowFailure());
     }
 
     @Test
@@ -119,18 +111,6 @@ public class YmlParserTest {
         Assert.assertTrue(step2.getChildren().isEmpty());
         Assert.assertEquals(root, step2.getParent());
         Assert.assertEquals(step2, tree.next(step1.getPath()));
-
-        StepNode after1 = tree.next(step2.getPath());
-        Assert.assertNotNull(after1);
-        Assert.assertTrue(after1.isAfter());
-        Assert.assertEquals(root, after1.getParent());
-
-        StepNode after2 = tree.next(after1.getPath());
-        Assert.assertNotNull(after2);
-        Assert.assertTrue(after2.isAfter());
-        Assert.assertEquals(root, after2.getParent());
-
-        Assert.assertNull(tree.next(after2.getPath()));
     }
 
     @Test

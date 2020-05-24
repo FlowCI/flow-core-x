@@ -55,7 +55,7 @@ public class WebConfig {
     private HandlerInterceptor webAuth;
 
     @Autowired
-    private ConfigProperties appProperties;
+    private AppProperties appProperties;
 
     @Bean("staticResourceDir")
     public Path staticResourceDir() throws IOException {

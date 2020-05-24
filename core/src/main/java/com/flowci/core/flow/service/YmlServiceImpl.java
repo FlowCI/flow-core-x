@@ -16,33 +16,31 @@
 
 package com.flowci.core.flow.service;
 
-import com.flowci.core.common.manager.SessionManager;
+import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
-import com.flowci.core.flow.event.FlowConfirmedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
-import com.flowci.core.plugin.service.PluginService;
+import com.flowci.core.plugin.event.GetPluginEvent;
+import com.flowci.domain.Notification;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.FlowNode;
-import com.flowci.tree.Node;
 import com.flowci.tree.StepNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.*;
 
 /**
  * @author yang
@@ -60,13 +58,10 @@ public class YmlServiceImpl implements YmlService {
     private FlowDao flowDao;
 
     @Autowired
-    private SessionManager sessionManager;
+    private SpringEventManager eventManager;
 
     @Autowired
     private CronService cronService;
-
-    @Autowired
-    private PluginService pluginService;
 
     //====================================================================
     //        %% Public function
@@ -99,12 +94,9 @@ public class YmlServiceImpl implements YmlService {
         }
 
         FlowNode root = YmlParser.load(flow.getName(), yml);
-
-        // verify plugin and throw NotFoundException if not exist
-        for (StepNode child : root.getChildren()) {
-            if (child.hasPlugin()) {
-                pluginService.get(child.getPlugin());
-            }
+        Optional<RuntimeException> hasErr = verifyPlugins(root);
+        if (hasErr.isPresent()) {
+            throw hasErr.get();
         }
 
         Yml ymlObj = new Yml(flow.getId(), yml);
@@ -114,11 +106,19 @@ public class YmlServiceImpl implements YmlService {
         Vars<String> vars = flow.getVariables();
         vars.clear();
         vars.merge(root.getEnvironments());
+
+        // set notifications from yml
+        flow.setNotifications(root.getNotifications());
         flowDao.save(flow);
 
         // update cron task
         cronService.update(flow, root, ymlObj);
         return ymlObj;
+    }
+
+    @Override
+    public Yml saveDefaultTemplate(Flow flow) {
+        return saveYml(flow, getTemplateYml());
     }
 
     //====================================================================
@@ -135,9 +135,32 @@ public class YmlServiceImpl implements YmlService {
         }
     }
 
-    @EventListener
-    public void createYmlFromTemplate(FlowConfirmedEvent event) {
-        saveYml(event.getFlow(), getTemplateYml());
+    /**
+     * Try to fetch plugins
+     *
+     * @return Optional exception
+     */
+    private Optional<RuntimeException> verifyPlugins(FlowNode flowNode) {
+        Set<String> plugins = new HashSet<>();
+
+        for (StepNode step : flowNode.getChildren()) {
+            if (step.hasPlugin()) {
+                plugins.add(step.getPlugin());
+            }
+        }
+
+        for (Notification n : flowNode.getNotifications()) {
+            plugins.add(n.getPlugin());
+        }
+
+        for (String plugin : plugins) {
+            GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, plugin));
+            if (event.hasError()) {
+                return Optional.of(event.getError());
+            }
+        }
+
+        return Optional.empty();
     }
 
     private String getTemplateYml() {

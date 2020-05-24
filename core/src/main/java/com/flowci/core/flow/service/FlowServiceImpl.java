@@ -21,25 +21,15 @@ import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowUserDao;
-import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
-import com.flowci.core.flow.domain.Yml;
-import com.flowci.core.flow.event.FlowConfirmedEvent;
 import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
-import com.flowci.core.job.domain.Job.Trigger;
-import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.CreateAuthEvent;
 import com.flowci.core.secret.event.CreateRsaEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
-import com.flowci.core.trigger.domain.GitPingTrigger;
-import com.flowci.core.trigger.domain.GitPushTrigger;
-import com.flowci.core.trigger.domain.GitTrigger;
-import com.flowci.core.trigger.domain.GitTrigger.GitEvent;
-import com.flowci.core.trigger.event.GitHookEvent;
 import com.flowci.core.user.event.UserDeletedEvent;
 import com.flowci.domain.*;
 import com.flowci.exception.ArgumentException;
@@ -47,10 +37,6 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
-import com.flowci.tree.FlowNode;
-import com.flowci.tree.NodePath;
-import com.flowci.tree.TriggerFilter;
-import com.flowci.tree.YmlParser;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
@@ -62,8 +48,6 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.sql.Date;
-import java.time.Instant;
 import java.util.*;
 
 /**
@@ -80,9 +64,6 @@ public class FlowServiceImpl implements FlowService {
     private FlowDao flowDao;
 
     @Autowired
-    private YmlDao ymlDao;
-
-    @Autowired
     private FlowUserDao flowUserDao;
 
     @Autowired
@@ -93,6 +74,9 @@ public class FlowServiceImpl implements FlowService {
 
     @Autowired
     private FileManager fileManager;
+
+    @Autowired
+    private YmlService ymlService;
 
     // ====================================================================
     // %% Public function
@@ -117,15 +101,15 @@ public class FlowServiceImpl implements FlowService {
     @Override
     public List<Flow> listByCredential(String secretName) {
         GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, secretName));
-        if (!event.hasSecret()) {
-            throw new NotFoundException("Secret {0} not found", secretName);
+        if (event.hasError()) {
+            throw event.getError();
         }
 
-        Secret secret = event.getSecret();
+        Secret secret = event.getFetched();
         List<Flow> list = list(Status.CONFIRMED);
         Iterator<Flow> iter = list.iterator();
 
-        for (; iter.hasNext(); ) {
+        while (iter.hasNext()) {
             Flow flow = iter.next();
             if (Objects.equals(flow.getCredentialName(), secret.getName())) {
                 continue;
@@ -149,11 +133,7 @@ public class FlowServiceImpl implements FlowService {
 
     @Override
     public Flow create(String name) {
-        if (!NodePath.validate(name)) {
-            String message = "Illegal flow name {0}, the length cannot over 100 and '*' ',' is not available";
-            throw new ArgumentException(message, name);
-        }
-
+        Flow.validateName(name);
         String email = sessionManager.getUserEmail();
 
         Flow flow = flowDao.findByName(name);
@@ -210,8 +190,7 @@ public class FlowServiceImpl implements FlowService {
 
         flow.setStatus(Status.CONFIRMED);
         flowDao.save(flow);
-
-        eventManager.publish(new FlowConfirmedEvent(this, flow));
+        ymlService.saveDefaultTemplate(flow);
         return flow;
     }
 
@@ -242,12 +221,6 @@ public class FlowServiceImpl implements FlowService {
         flowUserDao.delete(flow.getId());
         eventManager.publish(new FlowDeletedEvent(this, flow));
         return flow;
-    }
-
-    @Override
-    public void update(Flow flow) {
-        flow.setUpdatedAt(Date.from(Instant.now()));
-        flowDao.save(flow);
     }
 
     @Override
@@ -312,42 +285,6 @@ public class FlowServiceImpl implements FlowService {
         // TODO:
     }
 
-    @EventListener
-    public void onGitHookEvent(GitHookEvent event) {
-        Flow flow = get(event.getFlow());
-
-        if (event.isPingEvent()) {
-            GitPingTrigger ping = (GitPingTrigger) event.getTrigger();
-
-            Flow.WebhookStatus ws = new Flow.WebhookStatus();
-            ws.setAdded(true);
-            ws.setCreatedAt(ping.getCreatedAt());
-            ws.setEvents(ping.getEvents());
-
-            flow.setWebhookStatus(ws);
-            update(flow);
-            return;
-        }
-
-        Optional<Yml> optional = ymlDao.findById(flow.getId());
-        if (!optional.isPresent()) {
-            log.warn("No available yml for flow {}", flow.getName());
-            return;
-        }
-
-        Yml yml = optional.get();
-        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
-        if (!canStartJob(root, event.getTrigger())) {
-            log.debug("Cannot start job since filter not matched on flow {}", flow.getName());
-            return;
-        }
-
-        StringVars gitInput = event.getTrigger().toVariableMap();
-        Trigger jobTrigger = event.getTrigger().toJobTrigger();
-
-        eventManager.publish(new CreateNewJobEvent(this, flow, yml.getRaw(), jobTrigger, gitInput));
-    }
-
     // ====================================================================
     // %% Utils
     // ====================================================================
@@ -356,22 +293,6 @@ public class FlowServiceImpl implements FlowService {
         Vars<VarValue> localVars = flow.getLocally();
         localVars.put(Variables.Flow.Name, VarValue.of(flow.getName(), VarType.STRING, false));
         localVars.put(Variables.Flow.Webhook, VarValue.of(getWebhook(flow.getName()), VarType.HTTP_URL, false));
-    }
-
-    private boolean canStartJob(FlowNode root, GitTrigger trigger) {
-        TriggerFilter condition = root.getTrigger();
-
-        if (trigger.getEvent() == GitEvent.PUSH) {
-            GitPushTrigger pushTrigger = (GitPushTrigger) trigger;
-            return condition.isMatchBranch(pushTrigger.getRef());
-        }
-
-        if (trigger.getEvent() == GitEvent.TAG) {
-            GitPushTrigger tagTrigger = (GitPushTrigger) trigger;
-            return condition.isMatchTag(tagTrigger.getRef());
-        }
-
-        return true;
     }
 
     private String getWebhook(String name) {

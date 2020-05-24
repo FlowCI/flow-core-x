@@ -16,14 +16,13 @@
 
 package com.flowci.core.agent.dao;
 
+import com.flowci.core.agent.domain.AgentHost;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import com.flowci.core.agent.domain.AgentHost;
 
 @Repository
 public interface AgentHostDao extends MongoRepository<AgentHost, String> {

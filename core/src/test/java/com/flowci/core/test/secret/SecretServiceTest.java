@@ -22,14 +22,13 @@ import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.SimpleAuthPair;
-import com.flowci.exception.DuplicateException;
-import java.util.List;
-
 import org.assertj.core.util.Strings;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
  * @author yang
@@ -82,12 +81,6 @@ public class SecretServiceTest extends SpringScenario {
         AuthSecret keyPair = (AuthSecret) loaded;
         Assert.assertFalse(Strings.isNullOrEmpty(keyPair.getUsername()));
         Assert.assertFalse(Strings.isNullOrEmpty(keyPair.getPassword()));
-    }
-
-    @Test(expected = DuplicateException.class)
-    public void should_throw_duplicate_error_on_same_name() {
-        secretService.createRSA("hello.rsa");
-        secretService.createRSA("hello.rsa");
     }
 
     @Test

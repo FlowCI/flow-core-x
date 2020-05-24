@@ -16,10 +16,6 @@
 
 package com.flowci.core.common.domain;
 
-import com.google.common.collect.Lists;
-
-import java.util.List;
-
 /**
  * @author yang
  */
@@ -77,5 +73,14 @@ public abstract class Variables {
 
         // to control run step from docker defined in step or plugin, default is true
         public static final String DockerEnabled = "FLOWCI_STEP_DOCKER_ENABLED";
+    }
+
+    public abstract static class Agent {
+
+        public static final String Token = "FLOWCI_AGENT_TOKEN";
+
+        public static final String Workspace = "FLOWCI_AGENT_WORKSPACE";
+
+        public static final String PluginDir = "FLOWCI_AGENT_PLUGIN_DIR";
     }
 }

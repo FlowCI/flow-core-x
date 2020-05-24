@@ -16,7 +16,7 @@
 
 package com.flowci.core.agent.config;
 
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Variables.App;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.domain.Settings;
@@ -39,10 +39,10 @@ public class AgentConfig {
     private Environment env;
 
     @Autowired
-    private ConfigProperties.Zookeeper zkProperties;
+    private AppProperties.Zookeeper zkProperties;
 
     @Autowired
-    private ConfigProperties.RabbitMQ rabbitProperties;
+    private AppProperties.RabbitMQ rabbitProperties;
 
     @Bean("baseSettings")
     public Settings baseSettings() {

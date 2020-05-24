@@ -21,7 +21,9 @@ import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
+import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.domain.Notification;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
@@ -38,6 +40,7 @@ import com.flowci.core.job.service.JobActionService;
 import com.flowci.core.job.service.JobEventService;
 import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
+import com.flowci.core.task.event.StartAsyncLocalTaskEvent;
 import com.flowci.core.test.ZookeeperScenario;
 import com.flowci.domain.*;
 import com.flowci.tree.*;
@@ -63,6 +66,9 @@ import java.util.concurrent.TimeUnit;
 @Log4j2
 @FixMethodOrder(MethodSorters.JVM)
 public class JobServiceTest extends ZookeeperScenario {
+
+    @Autowired
+    private FlowDao flowDao;
 
     @Autowired
     private JobDao jobDao;
@@ -113,7 +119,8 @@ public class JobServiceTest extends ZookeeperScenario {
     public void should_create_job_with_expected_context() {
         // init:
         flow.getLocally().put("LOCAL_VAR", VarValue.of("local", VarType.STRING));
-        flowService.update(flow);
+        flow.getNotifications().add(new Notification().setPlugin("email"));
+        flowDao.save(flow);
         flow = flowService.get(flow.getName());
 
         StringVars input = new StringVars();
@@ -140,6 +147,10 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertTrue(context.containsKey("INPUT_VAR"));
         Assert.assertTrue(context.containsKey("FLOW_WORKSPACE"));
         Assert.assertTrue(context.containsKey("FLOW_VERSION"));
+
+        // then: notification should be added
+        Assert.assertEquals(1, job.getNotifications().size());
+        Assert.assertEquals("email", job.getNotifications().get(0).getPlugin());
     }
 
     @Test
@@ -200,7 +211,12 @@ public class JobServiceTest extends ZookeeperScenario {
         Agent agent = agentService.create("hello.agent", null, Optional.empty());
         mockAgentOnline(agentService.getPath(agent));
 
+        Notification notify = new Notification().setPlugin("email").setEnabled(true);
+        flow.getNotifications().add(notify);
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
+
+        CountDownLatch localTaskCountDown = new CountDownLatch(1);
+        addEventListener((ApplicationListener<StartAsyncLocalTaskEvent>) event -> localTaskCountDown.countDown());
 
         FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
         NodeTree tree = NodeTree.create(root);
@@ -285,8 +301,9 @@ public class JobServiceTest extends ZookeeperScenario {
         executedCmdDao.save(secondStep);
         jobEventService.handleCallback(secondStep);
 
-        // then:
+        // // then: should job with SUCCESS status and sent notification task
         Assert.assertEquals(Status.SUCCESS, jobService.get(job.getId()).getStatus());
+        Assert.assertTrue(localTaskCountDown.await(60, TimeUnit.SECONDS));
     }
 
     @Test
@@ -374,33 +391,6 @@ public class JobServiceTest extends ZookeeperScenario {
         job = jobDao.findById(job.getId()).get();
         Assert.assertEquals(Status.SUCCESS, job.getStatus());
         Assert.assertEquals("hello.timeout", job.getContext().get("HELLO_TIMEOUT"));
-    }
-
-    @Test
-    public void should_job_failure_with_after() throws Exception {
-        yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-failure-with-after.yml")));
-        Agent agent = agentService.create("hello.agent.0", null, Optional.empty());
-        Job job = prepareJobForRunningStatus(agent);
-
-        NodeTree tree = ymlManager.getTree(job);
-        StepNode firstNode = tree.next(tree.getRoot().getPath());
-
-        // when: set first step as failure status
-        ExecutedCmd firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
-        firstStep.setStatus(ExecutedCmd.Status.EXCEPTION);
-        executedCmdDao.save(firstStep);
-        jobEventService.handleCallback(firstStep);
-
-        // when: set final node as success status
-        StepNode secondNode = tree.next(firstNode.getPath());
-        ExecutedCmd secondStep = stepService.get(job.getId(), secondNode.getPathAsString());
-        secondStep.setStatus(ExecutedCmd.Status.SUCCESS);
-        executedCmdDao.save(secondStep);
-        jobEventService.handleCallback(secondStep);
-
-        // then: job status should be failure since final node does not count to step
-        job = jobDao.findById(job.getId()).get();
-        Assert.assertEquals(Status.FAILURE, job.getStatus());
     }
 
     @Test

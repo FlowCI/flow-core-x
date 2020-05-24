@@ -13,13 +13,12 @@ import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Volume;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientBuilder;
 import com.google.common.collect.Lists;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.flowci.pool.domain.AgentContainer.NameFilter;
@@ -34,11 +33,9 @@ public class SocketPoolManager implements PoolManager<SocketInitContext> {
      * Init local docker.sock api interface
      */
     @Override
-    public void init(SocketInitContext context) throws Exception {
-        DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-                .withDockerHost(context.getDockerHost()).build();
-
-        client = DockerClientBuilder.getInstance(config).build();
+    public void init(SocketInitContext context) {
+        Objects.requireNonNull(context.getClient(), "Missing docker client instance");
+        client = context.getClient();
     }
 
     @Override

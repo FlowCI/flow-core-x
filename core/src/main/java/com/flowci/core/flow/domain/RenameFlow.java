@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 flow.ci
+ * Copyright 2020 flow.ci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package com.flowci.core.flow.event;
+package com.flowci.core.flow.domain;
 
-import com.flowci.core.flow.domain.Flow;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- * @author yang
- */
-public class FlowConfirmedEvent extends FlowOperationEvent {
+import javax.validation.constraints.NotEmpty;
 
-    public FlowConfirmedEvent(Object source, Flow flow) {
-        super(source, flow);
-    }
+@Getter
+@Setter
+public class RenameFlow {
+
+    @NotEmpty
+    private String name;
 }

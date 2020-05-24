@@ -16,7 +16,7 @@
 
 package com.flowci.core.plugin.config;
 
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.plugin.PluginRepoResolver;
 import com.flowci.util.FileHelper;
@@ -41,7 +41,7 @@ public class PluginConfig {
     private static final String GIT_URL = "/git/plugins";
 
     @Autowired
-    private ConfigProperties appProperties;
+    private AppProperties appProperties;
 
     @Bean("repoCloneExecutor")
     public ThreadPoolTaskExecutor repoCloneExecutor() {

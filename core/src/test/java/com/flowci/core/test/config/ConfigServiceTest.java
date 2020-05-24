@@ -1,6 +1,5 @@
 package com.flowci.core.test.config;
 
-import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.SmtpOption;
@@ -25,9 +24,6 @@ public class ConfigServiceTest extends SpringScenario {
     private SpringEventManager eventManager;
 
     @Autowired
-    private SessionManager sessionManager;
-
-    @Autowired
     private ConfigService configService;
 
     @Before
@@ -43,7 +39,7 @@ public class ConfigServiceTest extends SpringScenario {
         mockSecret.setPair(SimpleAuthPair.of("test@gmail.com", "12345"));
 
         GetSecretEvent mockEvent = new GetSecretEvent(this, mockSecret.getName());
-        mockEvent.setSecret(mockSecret);
+        mockEvent.setFetched(mockSecret);
         Mockito.when(eventManager.publish(Mockito.any())).thenReturn(mockEvent);
 
         // when:

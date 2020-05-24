@@ -19,7 +19,7 @@ package com.flowci.core.auth.config;
 import com.flowci.core.agent.domain.AgentAction;
 import com.flowci.core.agent.domain.AgentHostAction;
 import com.flowci.core.auth.domain.PermissionMap;
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.config.domain.ConfigAction;
 import com.flowci.core.secret.domain.SecretAction;
 import com.flowci.core.flow.domain.FlowAction;
@@ -48,7 +48,7 @@ public class AuthConfig {
     private static final long MaxCacheSize = 500;
 
     @Autowired
-    private ConfigProperties.Auth authProperties;
+    private AppProperties.Auth authProperties;
 
     @Bean
     public Cache onlineUsersCache() {
