@@ -96,6 +96,12 @@ public class QueueConfig {
         return manager;
     }
 
+    @Bean("jobDeadLetterManager")
+    public QueueOperations jobDeadLetterManager(Connection rabbitConnection) throws IOException {
+        String queue = rabbitProperties.getJobDlQueue();
+        return new QueueOperations(rabbitConnection, 1, queue);
+    }
+
     @Bean("agentQueueManager")
     public RabbitOperations agentQueueManager(Connection rabbitConnection) throws IOException {
         return new RabbitOperations(rabbitConnection, 1);

@@ -318,8 +318,7 @@ public class JobActionServiceImpl implements JobActionService {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                Throwable err = context.getError();
-                setJobStatusAndSave(job, Job.Status.TIMEOUT, err.getMessage());
+                setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
             }
         });
 

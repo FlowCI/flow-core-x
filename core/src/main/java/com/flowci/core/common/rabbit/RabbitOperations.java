@@ -40,16 +40,13 @@ public class RabbitOperations implements AutoCloseable {
 
     private final Channel channel;
 
-    private final Integer concurrency;
-
     // key as queue name, value as instance
     private final ConcurrentHashMap<String, QueueConsumer> consumers = new ConcurrentHashMap<>();
 
-    public RabbitOperations(Connection conn, Integer concurrency) throws IOException {
+    public RabbitOperations(Connection conn, int prefetch) throws IOException {
         this.conn = conn;
-        this.concurrency = concurrency;
         this.channel = conn.createChannel();
-        this.channel.basicQos(1);
+        this.channel.basicQos(prefetch, false);
     }
 
     public void declareExchangeAndBind(String exchange, BuiltinExchangeType type, String queue, String routingKey) throws IOException {
@@ -64,7 +61,7 @@ public class RabbitOperations implements AutoCloseable {
                                        Map<String, Object> args,
                                        String queue,
                                        String routingKey) throws IOException {
-        channel.exchangeDeclare(exchange, BuiltinExchangeType.DIRECT, durable, autoDelete, args);
+        channel.exchangeDeclare(exchange, type, durable, autoDelete, args);
         channel.queueBind(queue, exchange, routingKey);
     }
 

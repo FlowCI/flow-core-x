@@ -60,6 +60,9 @@ public class JobEventServiceImpl implements JobEventService {
     private QueueOperations callbackQueueManager;
 
     @Autowired
+    private QueueOperations jobDeadLetterManager;
+
+    @Autowired
     private JobService jobService;
 
     @Autowired
@@ -96,9 +99,9 @@ public class JobEventServiceImpl implements JobEventService {
     }
 
     @EventListener(value = ContextRefreshedEvent.class)
-    public void startJobTimeoutQueueConsumer(ContextRefreshedEvent ignore) {
+    public void startJobDeadLetterConsumer(ContextRefreshedEvent ignore) {
         String deadLetterQueue = rabbitProperties.getJobDlQueue();
-        jobsQueueManager.startConsumer(deadLetterQueue, true, message -> {
+        jobDeadLetterManager.startConsumer(deadLetterQueue, true, message -> {
             String jobId = new String(message.getBody());
             Job job = jobService.get(jobId);
             jobActionService.toTimeout(job);
@@ -162,7 +165,7 @@ public class JobEventServiceImpl implements JobEventService {
     private void declareJobQueueAndStartConsumer(Flow flow) {
         try {
             final String queue = flow.getQueueName();
-            jobsQueueManager.declare(flow.getQueueName(), true, 255, rabbitProperties.getJobDlExchange());
+            jobsQueueManager.declare(queue, true, 255, rabbitProperties.getJobDlExchange());
 
             jobsQueueManager.startConsumer(queue, false, message -> {
                 String jobId = new String(message.getBody());
