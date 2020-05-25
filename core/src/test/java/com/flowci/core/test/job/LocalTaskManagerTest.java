@@ -1,8 +1,8 @@
-package com.flowci.core.test.task;
+package com.flowci.core.test.job;
 
-import com.flowci.core.task.domain.LocalDockerTask;
-import com.flowci.core.task.domain.TaskResult;
-import com.flowci.core.task.manager.LocalTaskManager;
+import com.flowci.core.job.domain.LocalDockerTask;
+import com.flowci.core.job.domain.TaskResult;
+import com.flowci.core.job.manager.LocalTaskManager;
 import com.flowci.core.test.SpringScenario;
 import org.junit.Assert;
 import org.junit.Test;

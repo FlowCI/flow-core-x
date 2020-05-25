@@ -1,9 +1,9 @@
-package com.flowci.core.task.manager;
+package com.flowci.core.job.manager;
 
 import com.flowci.core.api.adviser.ApiAuth;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.helper.ThreadHelper;
-import com.flowci.core.task.domain.LocalDockerTask;
+import com.flowci.core.job.domain.LocalDockerTask;
 import com.flowci.domain.StringVars;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;

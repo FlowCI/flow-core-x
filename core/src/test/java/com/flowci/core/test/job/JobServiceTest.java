@@ -40,7 +40,7 @@ import com.flowci.core.job.service.JobActionService;
 import com.flowci.core.job.service.JobEventService;
 import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
-import com.flowci.core.task.event.StartAsyncLocalTaskEvent;
+import com.flowci.core.job.event.StartAsyncLocalTaskEvent;
 import com.flowci.core.test.ZookeeperScenario;
 import com.flowci.domain.*;
 import com.flowci.tree.*;

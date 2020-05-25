@@ -243,6 +243,9 @@ public class Job extends Mongoable implements Pathable {
      */
     private Date finishAt;
 
+    /**
+     * Executed as local task
+     */
     private List<Notification> notifications = new LinkedList<>();
 
     @JsonIgnore

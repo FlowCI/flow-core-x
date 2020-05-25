@@ -1,4 +1,4 @@
-package com.flowci.core.task.domain;
+package com.flowci.core.job.domain;
 
 import lombok.Getter;
 import lombok.Setter;

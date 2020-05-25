@@ -57,6 +57,11 @@ public class JobConfig {
         return ThreadHelper.createTaskExecutor(1, 1, 100, "job-delete-");
     }
 
+    @Bean("localTaskExecutor")
+    public ThreadPoolTaskExecutor localTaskExecutor() {
+        return ThreadHelper.createTaskExecutor(5, 5, 100, "local-task-");
+    }
+
     @Bean("jobTreeCache")
     public Cache<String, NodeTree> jobTreeCache() {
         return CacheHelper.createLocalCache(50, 60);

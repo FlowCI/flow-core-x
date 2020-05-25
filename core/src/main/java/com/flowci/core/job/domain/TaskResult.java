@@ -1,4 +1,4 @@
-package com.flowci.core.task.domain;
+package com.flowci.core.job.domain;
 
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.util.StringHelper;

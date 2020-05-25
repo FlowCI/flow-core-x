@@ -1,6 +1,6 @@
-package com.flowci.core.task.dao;
+package com.flowci.core.job.dao;
 
-import com.flowci.core.task.domain.TaskResult;
+import com.flowci.core.job.domain.TaskResult;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,14 +1,14 @@
-package com.flowci.core.task.manager;
+package com.flowci.core.job.manager;
 
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
-import com.flowci.core.task.dao.TaskResultDao;
-import com.flowci.core.task.domain.LocalDockerTask;
-import com.flowci.core.task.domain.LocalTask;
-import com.flowci.core.task.domain.TaskResult;
-import com.flowci.core.task.event.StartAsyncLocalTaskEvent;
+import com.flowci.core.job.dao.TaskResultDao;
+import com.flowci.core.job.domain.LocalDockerTask;
+import com.flowci.core.job.domain.LocalTask;
+import com.flowci.core.job.domain.TaskResult;
+import com.flowci.core.job.event.StartAsyncLocalTaskEvent;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.util.ObjectsHelper;
 import com.github.dockerjava.api.exception.DockerClientException;
