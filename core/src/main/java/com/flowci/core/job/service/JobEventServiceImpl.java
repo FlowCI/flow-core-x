@@ -31,7 +31,6 @@ import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
 import com.flowci.domain.Agent;
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -40,7 +39,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.function.Function;
 
 @Log4j2
 @Service
@@ -84,10 +82,6 @@ public class JobEventServiceImpl implements JobEventService {
     @EventListener(value = ContextRefreshedEvent.class)
     public void startCallbackQueueConsumer(ContextRefreshedEvent ignore) {
         callbackQueueManager.startConsumer(false, message -> {
-            if (message == RabbitOperations.Message.STOP_SIGN) {
-                return true;
-            }
-
             try {
                 ExecutedCmd cmd = objectMapper.readValue(message.getBody(), ExecutedCmd.class);
                 log.info("[Callback]: {}-{} = {}", cmd.getJobId(), cmd.getNodePath(), cmd.getStatus());
@@ -105,11 +99,6 @@ public class JobEventServiceImpl implements JobEventService {
     public void startJobTimeoutQueueConsumer(ContextRefreshedEvent ignore) {
         String deadLetterQueue = rabbitProperties.getJobDlQueue();
         jobsQueueManager.startConsumer(deadLetterQueue, true, message -> {
-            if (message == RabbitOperations.Message.STOP_SIGN) {
-                log.info("[Job Timeout Consumer] will be stopped");
-                return true;
-            }
-
             String jobId = new String(message.getBody());
             Job job = jobService.get(jobId);
             jobActionService.toTimeout(job);
@@ -172,11 +161,17 @@ public class JobEventServiceImpl implements JobEventService {
 
     private void declareJobQueueAndStartConsumer(Flow flow) {
         try {
-            String queue = flow.getQueueName();
+            final String queue = flow.getQueueName();
             jobsQueueManager.declare(flow.getQueueName(), true, 255, rabbitProperties.getJobDlExchange());
 
-            JobMessageHandler handler = new JobMessageHandler(queue);
-            jobsQueueManager.startConsumer(queue, false, handler);
+            jobsQueueManager.startConsumer(queue, false, message -> {
+                String jobId = new String(message.getBody());
+                Job job = jobService.get(jobId);
+                logInfo(job, "received from queue");
+
+                jobActionService.toRun(job);
+                return message.sendAck();
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -186,33 +181,5 @@ public class JobEventServiceImpl implements JobEventService {
         String queue = flow.getQueueName();
         jobsQueueManager.removeConsumer(queue);
         eventManager.publish(new StopJobConsumerEvent(this, flow.getId()));
-    }
-
-    /**
-     * Job queue consumer for each flow
-     */
-    private class JobMessageHandler implements Function<RabbitOperations.Message, Boolean> {
-
-        @Getter
-        private final String queueName;
-
-        JobMessageHandler(String queueName) {
-            this.queueName = queueName;
-        }
-
-        @Override
-        public Boolean apply(RabbitOperations.Message message) {
-            if (message == RabbitOperations.Message.STOP_SIGN) {
-                log.info("[Job Consumer] {} will be stopped", queueName);
-                return true;
-            }
-
-            String jobId = new String(message.getBody());
-            Job job = jobService.get(jobId);
-            logInfo(job, "received from queue");
-
-            jobActionService.toRun(job);
-            return message.sendAck();
-        }
     }
 }

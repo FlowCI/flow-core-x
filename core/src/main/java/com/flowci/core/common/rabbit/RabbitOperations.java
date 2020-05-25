@@ -18,12 +18,10 @@
 package com.flowci.core.common.rabbit;
 
 import com.flowci.core.common.config.QueueConfig;
-import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.util.StringHelper;
 import com.rabbitmq.client.*;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -44,8 +42,6 @@ public class RabbitOperations implements AutoCloseable {
 
     private final Integer concurrency;
 
-    private final ThreadPoolTaskExecutor executor;
-
     // key as queue name, value as instance
     private final ConcurrentHashMap<String, QueueConsumer> consumers = new ConcurrentHashMap<>();
 
@@ -53,8 +49,7 @@ public class RabbitOperations implements AutoCloseable {
         this.conn = conn;
         this.concurrency = concurrency;
         this.channel = conn.createChannel();
-        this.channel.basicQos(0, concurrency, false);
-        this.executor = ThreadHelper.createTaskExecutor(concurrency, concurrency, ExecutorQueueSize, "rabbit-oper-");
+        this.channel.basicQos(1);
     }
 
     public void declareExchangeAndBind(String exchange, BuiltinExchangeType type, String queue, String routingKey) throws IOException {
@@ -78,7 +73,7 @@ public class RabbitOperations implements AutoCloseable {
     }
 
     public void declare(String queue, boolean durable, Integer maxPriority, String dlExName) throws IOException {
-        Map<String, Object> props = new HashMap<>(1);
+        Map<String, Object> props = new HashMap<>(3);
         props.put("x-max-priority", maxPriority);
         props.put("x-dead-letter-exchange", dlExName);
         props.put("x-dead-letter-routing-key", QueueConfig.JobDlRoutingKey);
@@ -122,7 +117,7 @@ public class RabbitOperations implements AutoCloseable {
         try {
             AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
                     .priority(priority)
-                    .expiration(Long.toString(expireInSecond * 1000))
+                    .expiration("2000")
                     .build();
 
             this.channel.basicPublish(StringHelper.EMPTY, routingKey, props, body);
@@ -153,7 +148,6 @@ public class RabbitOperations implements AutoCloseable {
     public void close() throws Exception {
         consumers.forEach((s, queueConsumer) -> queueConsumer.cancel());
         channel.close();
-        executor.shutdown();
     }
 
     private class QueueConsumer extends DefaultConsumer {
@@ -171,47 +165,34 @@ public class RabbitOperations implements AutoCloseable {
         @Override
         public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
                 throws IOException {
-            consume(body, envelope);
+            onMessageFunc.apply(new Message(getChannel(), body, envelope));
         }
 
-        void consume(byte[] body, Envelope envelope) {
-            executor.execute(() -> {
-                Boolean ignoreForNow = onMessageFunc.apply(new Message(getChannel(), body, envelope));
-            });
-        }
-
-        String start(boolean autoAck) {
+        void start(boolean autoAck) {
             try {
                 String tag = getChannel().basicConsume(queue, autoAck, this);
                 log.info("[Consumer STARTED] queue {} with tag {}", queue, tag);
-                return tag;
             } catch (IOException e) {
                 log.warn(e.getMessage());
-                return null;
             }
         }
 
-        boolean cancel() {
+        void cancel() {
             try {
                 if (Objects.isNull(getConsumerTag())) {
-                    return true; // not started
+                    return; // not started
                 }
 
-                onMessageFunc.apply(Message.STOP_SIGN);
                 getChannel().basicCancel(getConsumerTag());
                 log.info("[Consumer STOP] queue {} with tag {}", queue, getConsumerTag());
-                return true;
             } catch (IOException e) {
                 log.warn(e.getMessage());
-                return false;
             }
         }
     }
 
     @Getter
     public static class Message {
-
-        public static final Message STOP_SIGN = new Message(null, new byte[0], null);
 
         private final Channel channel;
 

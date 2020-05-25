@@ -90,10 +90,6 @@ public class LoggingServiceImpl implements LoggingService {
     @EventListener(ContextRefreshedEvent.class)
     public void onStart() {
         loggingQueueManager.startConsumer(true, message -> {
-            if (message == RabbitOperations.Message.STOP_SIGN) {
-                return true;
-            }
-
             // send JobProto.LogItem byte array to web directly
             socketPushManager.push(topicForLogs, message.getBody());
             return true;
