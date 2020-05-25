@@ -17,18 +17,20 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.common.manager.VarManager;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.YmlDao;
-import com.flowci.core.flow.domain.*;
+import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.UpdateYAMLSource;
+import com.flowci.core.flow.domain.WebhookStatus;
+import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.trigger.domain.GitPingTrigger;
 import com.flowci.core.trigger.domain.GitPushTrigger;
 import com.flowci.core.trigger.domain.GitTrigger;
 import com.flowci.core.trigger.event.GitHookEvent;
-import com.flowci.domain.Notification;
 import com.flowci.domain.StringVars;
-import com.flowci.domain.VarType;
 import com.flowci.domain.VarValue;
 import com.flowci.exception.ArgumentException;
 import com.flowci.tree.FlowNode;
@@ -42,7 +44,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -61,6 +62,9 @@ public class FlowSettingServiceImpl implements FlowSettingService {
 
     @Autowired
     private SpringEventManager eventManager;
+
+    @Autowired
+    private VarManager varManager;
 
     @Override
     public void rename(Flow flow, String newName) {
@@ -96,7 +100,7 @@ public class FlowSettingServiceImpl implements FlowSettingService {
                 throw new ArgumentException("Var value of {0} cannot be empty", name);
             }
 
-            boolean isVerified = VarType.verify(value.getType(), value.getData());
+            boolean isVerified = varManager.verify(value.getType(), value.getData());
 
             if (isVerified) {
                 flow.getLocally().put(name, value);

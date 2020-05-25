@@ -26,7 +26,7 @@ import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
-import com.flowci.core.plugin.domain.Input;
+import com.flowci.domain.Input;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.test.SpringScenario;

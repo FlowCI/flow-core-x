@@ -2,6 +2,7 @@ package com.flowci.core.task.manager;
 
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.plugin.domain.Plugin;
+import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.task.dao.TaskResultDao;
 import com.flowci.core.task.domain.LocalDockerTask;
@@ -17,8 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @Log4j2
 @Component
@@ -57,22 +56,15 @@ public class LocalTaskManager {
 
         if (task.hasPlugin()) {
             String name = task.getPlugin();
-            GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, name));
+            GetPluginEvent event = eventManager.publish(new GetPluginAndVerifySetContext(this, name, task.getInputs()));
 
             if (event.hasError()) {
-                output.setErr(String.format("The plugin %s defined in local task not found", name));
+                output.setErr(event.getError().getMessage());
                 taskResultDao.save(output);
                 return output;
             }
 
             Plugin plugin = event.getFetched();
-            Optional<String> validate = plugin.verifyInputAndSetDefaultValue(task.getInputs());
-            if (validate.isPresent()) {
-                output.setErr(String.format("The illegal input %s for plugin %s", validate.get(), plugin.getName()));
-                taskResultDao.save(output);
-                return output;
-            }
-
             task.setScript(plugin.getScript());
             task.setPluginDir(event.getDir());
 

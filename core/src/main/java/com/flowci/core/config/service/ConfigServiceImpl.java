@@ -8,6 +8,7 @@ import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.domain.ConfigParser;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.SmtpOption;
+import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.domain.SimpleAuthPair;
@@ -63,6 +64,16 @@ public class ConfigServiceImpl implements ConfigService {
             log.info("Config {} has been created", config.getName());
         } catch (IOException e) {
             log.warn(e);
+        }
+    }
+
+    @EventListener
+    public void onGetConfigEvent(GetConfigEvent event) {
+        try {
+            Config config = get(event.getName());
+            event.setFetched(config);
+        } catch (NotFoundException e) {
+            event.setError(e);
         }
     }
 
