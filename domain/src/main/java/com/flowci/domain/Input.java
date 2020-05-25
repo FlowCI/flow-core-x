@@ -17,7 +17,6 @@
 package com.flowci.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.flowci.domain.VarType;
 import com.flowci.util.StringHelper;
 import lombok.*;
 import lombok.experimental.Accessors;

@@ -22,13 +22,13 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.VarManager;
 import com.flowci.core.plugin.dao.PluginDao;
-import com.flowci.domain.Input;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.domain.PluginParser;
 import com.flowci.core.plugin.domain.PluginRepoInfo;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.plugin.event.RepoCloneEvent;
+import com.flowci.domain.Input;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
@@ -106,8 +106,11 @@ public class PluginServiceImpl implements PluginService {
             Vars<String> context = ((GetPluginAndVerifySetContext) event).getContext();
 
             Optional<String> hasInvalidInput = verifyInputAndSetDefaultValue(plugin, context);
-            hasInvalidInput.ifPresent(s ->
-                    event.setError(new ArgumentException("Illegal input {0} for plugin {1}", s, plugin.getName())));
+            hasInvalidInput.ifPresent(input -> {
+                String p = plugin.getName();
+                String value = context.get(input);
+                event.setError(new ArgumentException("Illegal input {0} = {1} for plugin {2}", input, value, p));
+            });
         }
     }
 
