@@ -47,9 +47,14 @@ public class JobConfig {
     /**
      * Consume http request
      */
+    @Bean("jobStartExecutor")
+    public ThreadPoolTaskExecutor jobStartExecutor() {
+        return ThreadHelper.createTaskExecutor(1, 1, 100, "job-start-");
+    }
+
     @Bean("jobRunExecutor")
     public ThreadPoolTaskExecutor jobRunExecutor() {
-        return ThreadHelper.createTaskExecutor(1, 1, 100, "job-run-");
+        return ThreadHelper.createTaskExecutor(100, 100, 100, "job-run-");
     }
 
     @Bean("jobDeleteExecutor")

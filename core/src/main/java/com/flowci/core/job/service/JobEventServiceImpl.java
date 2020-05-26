@@ -66,6 +66,9 @@ public class JobEventServiceImpl implements JobEventService {
     private JobActionService jobActionService;
 
     @Autowired
+    private ThreadPoolTaskExecutor jobStartExecutor;
+
+    @Autowired
     private ThreadPoolTaskExecutor jobRunExecutor;
 
     //====================================================================
@@ -92,7 +95,7 @@ public class JobEventServiceImpl implements JobEventService {
 
     @EventListener
     public void startNewJob(CreateNewJobEvent event) {
-        jobRunExecutor.execute(() -> {
+        jobStartExecutor.execute(() -> {
             Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
             jobActionService.toStart(job);
         });
@@ -171,9 +174,9 @@ public class JobEventServiceImpl implements JobEventService {
 
                 jobActionService.toRun(job);
                 return message.sendAck();
-            });
+            }, jobRunExecutor);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn(e);
         }
     }
 

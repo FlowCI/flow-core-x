@@ -18,7 +18,6 @@
 package com.flowci.core.common.rabbit;
 
 import com.flowci.core.common.config.QueueConfig;
-import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.util.StringHelper;
 import com.rabbitmq.client.*;
 import lombok.Getter;
@@ -41,8 +40,6 @@ public class RabbitOperations implements AutoCloseable {
 
     // key as queue name, value as consumer tag
     private final ConcurrentHashMap<String, String> consumers = new ConcurrentHashMap<>();
-
-    private final ThreadPoolTaskExecutor executor = ThreadHelper.createTaskExecutor(100, 100, 100, "rabbit-runner-");
 
     public RabbitOperations(Connection conn, int prefetch) throws IOException {
         this.conn = conn;
@@ -126,6 +123,13 @@ public class RabbitOperations implements AutoCloseable {
     }
 
     public void startConsumer(String queue, boolean autoAck, Function<Message, Boolean> onMessage) throws IOException {
+        startConsumer(queue, autoAck, onMessage, null);
+    }
+
+    public void startConsumer(String queue,
+                              boolean autoAck,
+                              Function<Message, Boolean> onMessage,
+                              ThreadPoolTaskExecutor executor) throws IOException {
         Consumer consumer = new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag,
@@ -133,11 +137,15 @@ public class RabbitOperations implements AutoCloseable {
                                        AMQP.BasicProperties properties,
                                        byte[] body) throws IOException {
 
-                // run from executor that don't block rabbit event
-                executor.execute(() -> {
-                    log.debug("======= {} ======", new String(body));
-                    onMessage.apply(new Message(getChannel(), body, envelope));
-                });
+                if (executor != null) {
+                    executor.execute(() -> {
+                        log.debug("======= {} ======", new String(body));
+                        onMessage.apply(new Message(getChannel(), body, envelope));
+                    });
+                    return;
+                }
+
+                onMessage.apply(new Message(getChannel(), body, envelope));
             }
         };
 
@@ -145,6 +153,7 @@ public class RabbitOperations implements AutoCloseable {
         consumers.put(queue, tag);
         log.info("[Consumer STARTED] queue {} with tag {}", queue, tag);
     }
+
 
     public void removeConsumer(String queue) {
         String consumerTag = consumers.remove(queue);
