@@ -18,15 +18,16 @@
 package com.flowci.core.common.rabbit;
 
 import com.flowci.core.common.config.QueueConfig;
+import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.util.StringHelper;
 import com.rabbitmq.client.*;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -34,14 +35,14 @@ import java.util.function.Function;
 @Getter
 public class RabbitOperations implements AutoCloseable {
 
-    private final static int ExecutorQueueSize = 1000;
-
     private final Connection conn;
 
     private final Channel channel;
 
-    // key as queue name, value as instance
-    private final ConcurrentHashMap<String, QueueConsumer> consumers = new ConcurrentHashMap<>();
+    // key as queue name, value as consumer tag
+    private final ConcurrentHashMap<String, String> consumers = new ConcurrentHashMap<>();
+
+    private final ThreadPoolTaskExecutor executor = ThreadHelper.createTaskExecutor(100, 100, 100, "rabbit-runner-");
 
     public RabbitOperations(Connection conn, int prefetch) throws IOException {
         this.conn = conn;
@@ -110,11 +111,11 @@ public class RabbitOperations implements AutoCloseable {
     /**
      * Send to routing key with default exchange and priority
      */
-    public boolean send(String routingKey, byte[] body, Integer priority, Long expireInSecond) {
+    public boolean send(String routingKey, byte[] body, Integer priority, int expireInSecond) {
         try {
             AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
                     .priority(priority)
-                    .expiration("2000")
+                    .expiration(Integer.toString(expireInSecond * 1000))
                     .build();
 
             this.channel.basicPublish(StringHelper.EMPTY, routingKey, props, body);
@@ -124,15 +125,35 @@ public class RabbitOperations implements AutoCloseable {
         }
     }
 
-    public void startConsumer(String queue, boolean autoAck, Function<Message, Boolean> onMessage) {
-        QueueConsumer consumer = consumers.computeIfAbsent(queue, s -> new QueueConsumer(queue, onMessage));
-        consumer.start(autoAck);
+    public void startConsumer(String queue, boolean autoAck, Function<Message, Boolean> onMessage) throws IOException {
+        Consumer consumer = new DefaultConsumer(channel) {
+            @Override
+            public void handleDelivery(String consumerTag,
+                                       Envelope envelope,
+                                       AMQP.BasicProperties properties,
+                                       byte[] body) throws IOException {
+
+                // run from executor that don't block rabbit event
+                executor.execute(() -> {
+                    log.debug("======= {} ======", new String(body));
+                    onMessage.apply(new Message(getChannel(), body, envelope));
+                });
+            }
+        };
+
+        String tag = getChannel().basicConsume(queue, autoAck, consumer);
+        consumers.put(queue, tag);
+        log.info("[Consumer STARTED] queue {} with tag {}", queue, tag);
     }
 
     public void removeConsumer(String queue) {
-        QueueConsumer consumer = consumers.remove(queue);
-        if (consumer != null) {
-            consumer.cancel();
+        String consumerTag = consumers.remove(queue);
+        if (consumerTag != null) {
+            try {
+                getChannel().basicCancel(consumerTag);
+            } catch (IOException e) {
+                log.warn(e);
+            }
         }
     }
 
@@ -143,49 +164,14 @@ public class RabbitOperations implements AutoCloseable {
      */
     @Override
     public void close() throws Exception {
-        consumers.forEach((s, queueConsumer) -> queueConsumer.cancel());
+        consumers.forEach((s, consumerTag) -> {
+            try {
+                getChannel().basicCancel(consumerTag);
+            } catch (IOException ignore) {
+
+            }
+        });
         channel.close();
-    }
-
-    private class QueueConsumer extends DefaultConsumer {
-
-        private final String queue;
-
-        private final Function<Message, Boolean> onMessageFunc;
-
-        QueueConsumer(String queue, Function<Message, Boolean> onMessageFunc) {
-            super(channel);
-            this.queue = queue;
-            this.onMessageFunc = onMessageFunc;
-        }
-
-        @Override
-        public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
-                throws IOException {
-            onMessageFunc.apply(new Message(getChannel(), body, envelope));
-        }
-
-        void start(boolean autoAck) {
-            try {
-                String tag = getChannel().basicConsume(queue, autoAck, this);
-                log.info("[Consumer STARTED] queue {} with tag {}", queue, tag);
-            } catch (IOException e) {
-                log.warn(e.getMessage());
-            }
-        }
-
-        void cancel() {
-            try {
-                if (Objects.isNull(getConsumerTag())) {
-                    return; // not started
-                }
-
-                getChannel().basicCancel(getConsumerTag());
-                log.info("[Consumer STOP] queue {} with tag {}", queue, getConsumerTag());
-            } catch (IOException e) {
-                log.warn(e.getMessage());
-            }
-        }
     }
 
     @Getter

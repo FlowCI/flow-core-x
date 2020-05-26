@@ -47,7 +47,7 @@ public class QueueConfig {
 
     @Bean
     public ThreadPoolTaskExecutor rabbitConsumerExecutor() {
-        return ThreadHelper.createTaskExecutor(10, 10, 50, "rabbit-t-");
+        return ThreadHelper.createTaskExecutor(10, 10, 50, "rabbit-event-");
     }
 
     @Bean
@@ -94,12 +94,6 @@ public class QueueConfig {
         manager.declareExchangeAndBind(exchange, BuiltinExchangeType.DIRECT, true, false, args, queue, JobDlRoutingKey);
 
         return manager;
-    }
-
-    @Bean("jobDeadLetterManager")
-    public QueueOperations jobDeadLetterManager(Connection rabbitConnection) throws IOException {
-        String queue = rabbitProperties.getJobDlQueue();
-        return new QueueOperations(rabbitConnection, 1, queue);
     }
 
     @Bean("agentQueueManager")

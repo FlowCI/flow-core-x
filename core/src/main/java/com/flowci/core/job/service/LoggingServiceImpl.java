@@ -88,7 +88,7 @@ public class LoggingServiceImpl implements LoggingService {
     private StepService stepService;
 
     @EventListener(ContextRefreshedEvent.class)
-    public void onStart() {
+    public void onStart() throws IOException {
         loggingQueueManager.startConsumer(true, message -> {
             // send JobProto.LogItem byte array to web directly
             socketPushManager.push(topicForLogs, message.getBody());
