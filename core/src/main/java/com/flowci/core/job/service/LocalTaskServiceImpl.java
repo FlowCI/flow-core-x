@@ -5,13 +5,13 @@ import com.flowci.core.job.dao.ExecutedLocalTaskDao;
 import com.flowci.core.job.domain.Executed;
 import com.flowci.core.job.domain.ExecutedLocalTask;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.job.domain.LocalDockerTask;
 import com.flowci.core.job.manager.DockerManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
-import com.flowci.domain.Notification;
+import com.flowci.domain.LocalTask;
+import com.flowci.domain.StringVars;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.StatusException;
 import com.flowci.tree.NodeTree;
@@ -29,6 +29,9 @@ import java.util.Optional;
 @Log4j2
 @Service
 public class LocalTaskServiceImpl implements LocalTaskService {
+
+    private final static String DefaultImage = "flowci/plugin-runtime";
+    private final static int DefaultTimeout = 60; // seconds
 
     @Autowired
     private ExecutedLocalTaskDao executedLocalTaskDao;
@@ -48,19 +51,15 @@ public class LocalTaskServiceImpl implements LocalTaskService {
     @Override
     public void init(Job job) {
         NodeTree tree = ymlManager.getTree(job);
-        List<Notification> list = tree.getRoot().getNotifications();
+        List<LocalTask> list = tree.getRoot().getNotifications();
         if (list.isEmpty()) {
             return;
         }
 
         List<ExecutedLocalTask> tasks = new ArrayList<>(list.size());
-        for (Notification n : list) {
-            if (!n.isEnabled()) {
-                continue;
-            }
-
+        for (LocalTask n : list) {
             ExecutedLocalTask t = new ExecutedLocalTask();
-            t.setName(n.getPlugin());
+            t.setName(n.getPlugin()); // name is plugin name
             t.setJobId(job.getId());
             tasks.add(t);
         }
@@ -73,14 +72,14 @@ public class LocalTaskServiceImpl implements LocalTaskService {
     }
 
     @Override
-    public void executeAsync(LocalDockerTask task) {
-        localTaskExecutor.execute(() -> execute(task));
+    public void executeAsync(Job job, LocalTask task) {
+        localTaskExecutor.execute(() -> execute(job, task));
     }
 
     @Override
-    public ExecutedLocalTask execute(LocalDockerTask task) {
+    public ExecutedLocalTask execute(Job job, LocalTask task) {
         Optional<ExecutedLocalTask> optional =
-                executedLocalTaskDao.findByJobIdAndAndName(task.getJobId(), task.getName());
+                executedLocalTaskDao.findByJobIdAndAndName(job.getId(), task.getPlugin());
 
         if (!optional.isPresent()) {
             throw new StatusException("Executed local task should be init() before execute");
@@ -91,12 +90,19 @@ public class LocalTaskServiceImpl implements LocalTaskService {
         exec.setStatus(Executed.Status.RUNNING);
         executedLocalTaskDao.save(exec);
 
+        DockerManager.Option option = new DockerManager.Option();
+        option.setImage(DefaultImage);
+        option.setInputs(new StringVars(job.getContext()).merge(task.getEnvs()));
+
         if (task.hasPlugin()) {
             String name = task.getPlugin();
-            GetPluginEvent event = eventManager.publish(new GetPluginAndVerifySetContext(this, name, task.getInputs()));
+            GetPluginEvent event = eventManager.publish(new GetPluginAndVerifySetContext(this, name, option.getInputs()));
 
             if (event.hasError()) {
-                exec.setError(event.getError().getMessage());
+                String message = event.getError().getMessage();
+                log.warn(message);
+
+                exec.setError(message);
                 exec.setStatus(Executed.Status.EXCEPTION);
                 exec.setFinishAt(new Date());
                 executedLocalTaskDao.save(exec);
@@ -104,34 +110,35 @@ public class LocalTaskServiceImpl implements LocalTaskService {
             }
 
             Plugin plugin = event.getFetched();
-            task.setScript(plugin.getScript());
-            task.setPluginDir(event.getDir());
+
+            option.setScript(plugin.getScript());
+            option.setPlugin(plugin.getName());
+            option.setPluginDir(event.getDir().toString());
 
             // apply docker image only from plugin if it's specified
             ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> {
-                task.setImage(plugin.getDocker().getImage());
+                option.setImage(plugin.getDocker().getImage());
             });
         }
 
-        log.info("Start local task {} image = {} for job {}", task.getName(), task.getImage(), task.getJobId());
-        executedLocalTaskDao.save(runDockerTask(task, exec));
+        log.info("Start local task {} image = {} for job {}", task.getPlugin(), option.getImage(), job.getId());
+        executedLocalTaskDao.save(runDockerTask(option, exec));
         return exec;
     }
 
-    private ExecutedLocalTask runDockerTask(LocalDockerTask task, ExecutedLocalTask r) {
+    private ExecutedLocalTask runDockerTask(DockerManager.Option option, ExecutedLocalTask r) {
         try {
-            String image = task.getImage();
-
+            String image = option.getImage();
             boolean isSuccess = dockerManager.pullImage(image);
             if (!isSuccess) {
                 throw new NotAvailableException("Docker image {0} not available", image);
             }
 
-            String cid = dockerManager.createAndStartContainer(task);
+            String cid = dockerManager.createAndStartContainer(option);
             r.setContainerId(cid);
             dockerManager.printContainerLog(cid);
 
-            if (!dockerManager.waitContainer(cid, task.getTimeoutInSecond())) {
+            if (!dockerManager.waitContainer(cid, DefaultTimeout)) {
                 dockerManager.killContainer(cid);
             }
 

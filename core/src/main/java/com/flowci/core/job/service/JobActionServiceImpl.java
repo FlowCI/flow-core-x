@@ -8,7 +8,6 @@ import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.job.domain.LocalDockerTask;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.manager.CmdManager;
@@ -807,21 +806,8 @@ public class JobActionServiceImpl implements JobActionService {
             Job job = context.job;
             NodeTree tree = ymlManager.getTree(job);
 
-            for (Notification n : tree.getRoot().getNotifications()) {
-                if (!n.isEnabled()) {
-                    continue;
-                }
-
-                StringVars input = new StringVars(job.getContext());
-                input.merge(n.getInputs());
-
-                LocalDockerTask task = new LocalDockerTask();
-                task.setName(n.getPlugin()); // plugin name as task name
-                task.setPlugin(n.getPlugin());
-                task.setJobId(job.getId());
-                task.setInputs(input);
-
-                localTaskService.executeAsync(task);
+            for (LocalTask t : tree.getRoot().getNotifications()) {
+                localTaskService.executeAsync(job, t);
             }
         };
     }

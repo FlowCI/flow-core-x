@@ -23,7 +23,7 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.plugin.event.GetPluginEvent;
-import com.flowci.domain.Notification;
+import com.flowci.domain.LocalTask;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
@@ -146,8 +146,8 @@ public class YmlServiceImpl implements YmlService {
             }
         }
 
-        for (Notification n : flowNode.getNotifications()) {
-            plugins.add(n.getPlugin());
+        for (LocalTask t : flowNode.getNotifications()) {
+            plugins.add(t.getPlugin());
         }
 
         for (String plugin : plugins) {

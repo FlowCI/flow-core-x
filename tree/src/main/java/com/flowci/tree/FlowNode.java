@@ -1,7 +1,7 @@
 package com.flowci.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.flowci.domain.Notification;
+import com.flowci.domain.LocalTask;
 import com.google.common.base.Strings;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -33,7 +33,7 @@ public class FlowNode extends Node {
     /**
      * Notification list that run locally
      */
-    private List<Notification> notifications = new LinkedList<>();
+    private List<LocalTask> notifications = new LinkedList<>();
 
     public FlowNode(String name) {
         super(name);

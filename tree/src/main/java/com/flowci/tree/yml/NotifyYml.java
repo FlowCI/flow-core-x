@@ -1,6 +1,6 @@
 package com.flowci.tree.yml;
 
-import com.flowci.domain.Notification;
+import com.flowci.domain.LocalTask;
 import com.flowci.domain.StringVars;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,13 +16,10 @@ public class NotifyYml {
 
     private Map<String, String> envs = new LinkedHashMap<>();
 
-    private Boolean enabled;
-
-    public Notification toObj() {
-        Notification n = new Notification();
+    public LocalTask toObj() {
+        LocalTask n = new LocalTask();
         n.setPlugin(plugin);
-        n.setEnabled(enabled == null ? true : enabled);
-        n.setInputs(new StringVars(envs));
+        n.setEnvs(new StringVars(envs));
         return n;
     }
 }
