@@ -79,33 +79,6 @@ public class JobEventServiceImpl implements JobEventService {
         }
     }
 
-    @EventListener(value = ContextRefreshedEvent.class)
-    public void startCallbackQueueConsumer(ContextRefreshedEvent ignore) throws IOException {
-        callbackQueueManager.startConsumer(false, message -> {
-            try {
-                ExecutedCmd cmd = objectMapper.readValue(message.getBody(), ExecutedCmd.class);
-                log.info("[Callback]: {}-{} = {}", cmd.getJobId(), cmd.getNodePath(), cmd.getStatus());
-
-                handleCallback(cmd);
-                return message.sendAck();
-            } catch (IOException e) {
-                log.error(e.getMessage());
-                return false;
-            }
-        });
-    }
-
-    @EventListener(value = ContextRefreshedEvent.class)
-    public void startJobDeadLetterConsumer(ContextRefreshedEvent ignore) throws IOException {
-        String deadLetterQueue = rabbitProperties.getJobDlQueue();
-        jobsQueueManager.startConsumer(deadLetterQueue, true, message -> {
-            String jobId = new String(message.getBody());
-            Job job = jobService.get(jobId);
-            jobActionService.toTimeout(job);
-            return true;
-        });
-    }
-
     @EventListener
     public void onFlowCreated(FlowCreatedEvent event) {
         declareJobQueueAndStartConsumer(event.getFlow());
@@ -141,14 +114,41 @@ public class JobEventServiceImpl implements JobEventService {
         jobActionService.toCancelled(job, "Agent unexpected offline");
     }
 
-    //====================================================================
-    //        %% Rabbit events
-    //====================================================================
-
     @Override
     public void handleCallback(ExecutedCmd step) {
         Job job = jobService.get(step.getJobId());
         jobActionService.toContinue(job, step);
+    }
+
+    //====================================================================
+    //        %% Rabbit events
+    //====================================================================
+
+    @EventListener(value = ContextRefreshedEvent.class)
+    public void startCallbackQueueConsumer(ContextRefreshedEvent ignore) throws IOException {
+        callbackQueueManager.startConsumer(false, message -> {
+            try {
+                ExecutedCmd cmd = objectMapper.readValue(message.getBody(), ExecutedCmd.class);
+                log.info("[Callback]: {}-{} = {}", cmd.getJobId(), cmd.getNodePath(), cmd.getStatus());
+
+                handleCallback(cmd);
+                return message.sendAck();
+            } catch (IOException e) {
+                log.error(e.getMessage());
+                return false;
+            }
+        });
+    }
+
+    @EventListener(value = ContextRefreshedEvent.class)
+    public void startJobDeadLetterConsumer(ContextRefreshedEvent ignore) throws IOException {
+        String deadLetterQueue = rabbitProperties.getJobDlQueue();
+        jobsQueueManager.startConsumer(deadLetterQueue, true, message -> {
+            String jobId = new String(message.getBody());
+            Job job = jobService.get(jobId);
+            jobActionService.toTimeout(job);
+            return true;
+        });
     }
 
     //====================================================================
