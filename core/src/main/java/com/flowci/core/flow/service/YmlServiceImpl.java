@@ -17,6 +17,7 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
@@ -54,6 +55,9 @@ public class YmlServiceImpl implements YmlService {
 
     @Autowired
     private YmlDao ymlDao;
+
+    @Autowired
+    private FlowDao flowDao;
 
     @Autowired
     private SpringEventManager eventManager;
@@ -102,6 +106,7 @@ public class YmlServiceImpl implements YmlService {
         Vars<String> vars = flow.getVariables();
         vars.clear();
         vars.merge(root.getEnvironments());
+        flowDao.save(flow);
 
         // update cron task
         cronService.update(flow, root, ymlObj);
