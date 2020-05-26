@@ -1,6 +1,5 @@
 package com.flowci.core.job.domain;
 
-import com.flowci.core.common.domain.Mongoable;
 import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.NonNull;
@@ -11,7 +10,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @Getter
 @Document("local_task_result")
-public final class TaskResult extends Mongoable {
+public final class ExecutedLocalTask {
+
+    private String id;
 
     @NonNull
     private String name;
@@ -20,7 +21,7 @@ public final class TaskResult extends Mongoable {
     @Indexed(name = "index_task_job_id")
     private String jobId;
 
-    private int exitCode = -1;
+    private int code = -1;
 
     private String containerId;
 

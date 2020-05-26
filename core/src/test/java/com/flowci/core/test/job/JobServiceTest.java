@@ -23,6 +23,7 @@ import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.job.manager.LocalTaskManager;
 import com.flowci.domain.Notification;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
@@ -51,7 +52,11 @@ import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationListener;
 
 import java.io.IOException;
@@ -102,6 +107,9 @@ public class JobServiceTest extends ZookeeperScenario {
 
     @Autowired
     private YmlManager ymlManager;
+
+    @MockBean
+    private LocalTaskManager localTaskManager;
 
     private Flow flow;
 
@@ -216,6 +224,11 @@ public class JobServiceTest extends ZookeeperScenario {
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
 
         CountDownLatch localTaskCountDown = new CountDownLatch(1);
+        Mockito.doAnswer((Answer<Void>) invocation -> {
+            localTaskCountDown.countDown();
+            return null;
+        }).when(localTaskManager).executeAsync(Mockito.any());
+
         addEventListener((ApplicationListener<StartAsyncLocalTaskEvent>) event -> localTaskCountDown.countDown());
 
         FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());

@@ -1,8 +1,8 @@
 package com.flowci.core.test.job;
 
 import com.flowci.core.job.domain.LocalDockerTask;
-import com.flowci.core.job.domain.TaskResult;
-import com.flowci.core.job.manager.LocalTaskManager;
+import com.flowci.core.job.domain.ExecutedLocalTask;
+import com.flowci.core.job.manager.LocalTaskManagerImpl;
 import com.flowci.core.test.SpringScenario;
 import org.junit.Assert;
 import org.junit.Test;
@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class LocalTaskManagerTest extends SpringScenario {
 
     @Autowired
-    private LocalTaskManager localTaskManager;
+    private LocalTaskManagerImpl localTaskManager;
 
     @Test
     public void should_execute_local_task() {
@@ -22,8 +22,8 @@ public class LocalTaskManagerTest extends SpringScenario {
         task.setScript("echo aaa \n echo bbb");
         task.setTimeoutInSecond(30);
 
-        TaskResult result = localTaskManager.execute(task);
-        Assert.assertEquals(0, result.getExitCode());
+        ExecutedLocalTask result = localTaskManager.execute(task);
+        Assert.assertEquals(0, result.getCode());
         Assert.assertNotNull(result.getContainerId());
         Assert.assertNull(result.getErr());
         Assert.assertNotNull(result);

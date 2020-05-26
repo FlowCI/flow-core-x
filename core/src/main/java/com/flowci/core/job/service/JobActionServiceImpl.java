@@ -8,15 +8,15 @@ import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.LocalDockerTask;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.manager.CmdManager;
+import com.flowci.core.job.manager.LocalTaskManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.core.job.domain.LocalDockerTask;
-import com.flowci.core.job.event.StartAsyncLocalTaskEvent;
 import com.flowci.domain.*;
 import com.flowci.exception.CIException;
 import com.flowci.exception.NotAvailableException;
@@ -118,6 +118,9 @@ public class JobActionServiceImpl implements JobActionService {
 
     @Autowired
     private RabbitOperations jobsQueueManager;
+
+    @Autowired
+    private LocalTaskManager localTaskManager;
 
     @Autowired
     private AgentService agentService;
@@ -816,7 +819,7 @@ public class JobActionServiceImpl implements JobActionService {
                 task.setJobId(job.getId());
                 task.setInputs(input);
 
-                eventManager.publish(new StartAsyncLocalTaskEvent(this, task));
+                localTaskManager.executeAsync(task);
             }
         };
     }
