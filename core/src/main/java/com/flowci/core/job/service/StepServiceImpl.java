@@ -19,8 +19,10 @@ package com.flowci.core.job.service;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.ExecutedCmdDao;
+import com.flowci.core.job.dao.ExecutedLocalTaskDao;
 import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.ExecutedCmd.Status;
+import com.flowci.core.job.domain.ExecutedLocalTask;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.StepInitializedEvent;
 import com.flowci.core.job.event.StepStatusChangeEvent;
@@ -55,6 +57,9 @@ public class StepServiceImpl implements StepService {
 
     @Autowired
     private ExecutedCmdDao executedCmdDao;
+
+    @Autowired
+    private ExecutedLocalTaskDao executedLocalTaskDao;
 
     @Autowired
     private YmlManager ymlManager;
@@ -109,6 +114,11 @@ public class StepServiceImpl implements StepService {
     @Override
     public List<ExecutedCmd> list(Job job) {
         return list(job.getId(), job.getFlowId(), job.getBuildNumber());
+    }
+
+    @Override
+    public List<ExecutedLocalTask> listTasks(Job job) {
+        return executedLocalTaskDao.findAllByJobId(job.getId());
     }
 
     @Override

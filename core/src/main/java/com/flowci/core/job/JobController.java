@@ -130,6 +130,14 @@ public class JobController {
         return stepService.list(job);
     }
 
+    @GetMapping("/{flow}/{buildNumberOrLatest}/tasks")
+    @Action(JobAction.LIST_STEPS)
+    public List<ExecutedLocalTask> listTasks(@PathVariable String flow,
+                                             @PathVariable String buildNumberOrLatest) {
+        Job job = get(flow, buildNumberOrLatest);
+        return stepService.listTasks(job);
+    }
+
     @GetMapping("/logs/{executedCmdId}")
     @Action(JobAction.GET_STEP_LOG)
     public Page<String> getStepLog(@PathVariable String executedCmdId,
