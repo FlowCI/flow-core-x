@@ -16,9 +16,9 @@
 
 package com.flowci.core.job.util;
 
+import com.flowci.core.job.domain.Executed.Status;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.ExecutedCmd;
-import com.flowci.core.job.domain.ExecutedCmd.Status;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 

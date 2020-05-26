@@ -13,6 +13,7 @@ steps:
 - name: plugin-test
   envs:
     GIT_STR_VAL: "test"
+    GIT_DEFAULT_VAL: "60"
   plugin: gittest
   script: |
     echo "plugin-test"

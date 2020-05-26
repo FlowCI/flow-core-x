@@ -76,6 +76,9 @@ public class JobController {
     private StepService stepService;
 
     @Autowired
+    private LocalTaskService localTaskService;
+
+    @Autowired
     private LoggingService loggingService;
 
     @Autowired
@@ -135,7 +138,7 @@ public class JobController {
     public List<ExecutedLocalTask> listTasks(@PathVariable String flow,
                                              @PathVariable String buildNumberOrLatest) {
         Job job = get(flow, buildNumberOrLatest);
-        return stepService.listTasks(job);
+        return localTaskService.list(job);
     }
 
     @GetMapping("/logs/{executedCmdId}")

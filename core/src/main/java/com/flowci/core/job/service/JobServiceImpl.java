@@ -251,7 +251,6 @@ public class JobServiceImpl implements JobService {
         job.setExpire(jobProperties.getExpireInSeconds());
         job.setYamlFromRepo(flow.isYamlFromRepo());
         job.setYamlRepoBranch(flow.getYamlRepoBranch());
-        job.setNotifications(flow.getNotifications());
         setExpireTime(job);
 
         // init job context

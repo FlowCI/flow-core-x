@@ -17,9 +17,8 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.domain.ExecutedLocalTask;
-import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Job;
 import com.flowci.tree.StepNode;
 
 import java.util.List;
@@ -29,7 +28,7 @@ import java.util.List;
  */
 public interface StepService {
 
-    List<ExecutedCmd> init(Job job);
+    void init(Job job);
 
     /**
      * Get executed cmd for job and node
@@ -45,11 +44,6 @@ public interface StepService {
      * List step of executed cmd for job
      */
     List<ExecutedCmd> list(Job job);
-
-    /**
-     * List executed local tasks for job
-     */
-    List<ExecutedLocalTask> listTasks(Job job);
 
     /**
      * Get step list in string, {name}={stats};{name}={stats}

@@ -19,10 +19,8 @@ package com.flowci.core.job.service;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.ExecutedCmdDao;
-import com.flowci.core.job.dao.ExecutedLocalTaskDao;
+import com.flowci.core.job.domain.Executed;
 import com.flowci.core.job.domain.ExecutedCmd;
-import com.flowci.core.job.domain.ExecutedCmd.Status;
-import com.flowci.core.job.domain.ExecutedLocalTask;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.StepInitializedEvent;
 import com.flowci.core.job.event.StepStatusChangeEvent;
@@ -59,16 +57,13 @@ public class StepServiceImpl implements StepService {
     private ExecutedCmdDao executedCmdDao;
 
     @Autowired
-    private ExecutedLocalTaskDao executedLocalTaskDao;
-
-    @Autowired
     private YmlManager ymlManager;
 
     @Autowired
     private SpringEventManager eventManager;
 
     @Override
-    public List<ExecutedCmd> init(Job job) {
+    public void init(Job job) {
         NodeTree tree = ymlManager.getTree(job);
         List<ExecutedCmd> steps = new LinkedList<>();
 
@@ -78,15 +73,8 @@ public class StepServiceImpl implements StepService {
             steps.add(cmd);
         }
 
-        for (StepNode node : tree.getAfter()) {
-            ExecutedCmd cmd = newInstance(job, node);
-            cmd.setAfter(true);
-            steps.add(cmd);
-        }
-
         executedCmdDao.insert(steps);
         eventManager.publish(new StepInitializedEvent(this, job.getId(), steps));
-        return steps;
     }
 
     @Override
@@ -117,11 +105,6 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public List<ExecutedLocalTask> listTasks(Job job) {
-        return executedLocalTaskDao.findAllByJobId(job.getId());
-    }
-
-    @Override
     public String toVarString(Job job, StepNode current) {
         StringBuilder builder = new StringBuilder();
         for (ExecutedCmd step : list(job)) {
@@ -147,7 +130,7 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public ExecutedCmd toStatus(ExecutedCmd entity, Status status, String err) {
+    public ExecutedCmd toStatus(ExecutedCmd entity, Executed.Status status, String err) {
         if (entity.getStatus() == status) {
             return entity;
         }

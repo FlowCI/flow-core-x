@@ -12,7 +12,6 @@ import com.flowci.core.job.domain.LocalDockerTask;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.manager.CmdManager;
-import com.flowci.core.job.manager.LocalTaskManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
@@ -35,7 +34,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -121,7 +119,7 @@ public class JobActionServiceImpl implements JobActionService {
     private RabbitOperations jobsQueueManager;
 
     @Autowired
-    private LocalTaskManager localTaskManager;
+    private LocalTaskService localTaskService;
 
     @Autowired
     private AgentService agentService;
@@ -557,6 +555,7 @@ public class JobActionServiceImpl implements JobActionService {
 
         ymlManager.create(job, yml);
         stepService.init(job);
+        localTaskService.init(job);
     }
 
     private void setRestStepsToSkipped(Job job) {
@@ -806,7 +805,9 @@ public class JobActionServiceImpl implements JobActionService {
     private Consumer<JobSmContext> notificationConsumer() {
         return context -> {
             Job job = context.job;
-            for (Notification n : job.getNotifications()) {
+            NodeTree tree = ymlManager.getTree(job);
+
+            for (Notification n : tree.getRoot().getNotifications()) {
                 if (!n.isEnabled()) {
                     continue;
                 }
@@ -820,7 +821,7 @@ public class JobActionServiceImpl implements JobActionService {
                 task.setJobId(job.getId());
                 task.setInputs(input);
 
-                localTaskManager.executeAsync(task);
+                localTaskService.executeAsync(task);
             }
         };
     }

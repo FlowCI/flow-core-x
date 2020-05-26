@@ -40,9 +40,6 @@ public class NodeTree {
     private final List<StepNode> steps = new ArrayList<>(DEFAULT_SIZE);
 
     @Getter
-    private final List<StepNode> after = new ArrayList<>(DEFAULT_SIZE);
-
-    @Getter
     private final FlowNode root;
 
     public NodeTree(FlowNode root) {
@@ -65,12 +62,7 @@ public class NodeTree {
         }
 
         StepNode step = get(path);
-        StepNode next = findNext(step, steps);
-        if (next != null) {
-            return next;
-        }
-
-        return findNext(null, after);
+        return findNext(step, steps);
     }
 
     /**
@@ -107,12 +99,6 @@ public class NodeTree {
     private void buildCacheWithIndex() {
         for (int i = 0; i < steps.size(); i++) {
             StepNode step = steps.get(i);
-            step.setOrder(i);
-            cached.put(step.getPath(), step);
-        }
-
-        for (int i = 0; i < after.size(); i++) {
-            StepNode step = after.get(i);
             step.setOrder(i);
             cached.put(step.getPath(), step);
         }

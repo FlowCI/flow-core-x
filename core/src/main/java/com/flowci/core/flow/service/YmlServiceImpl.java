@@ -17,7 +17,6 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
@@ -40,7 +39,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author yang
@@ -55,9 +56,6 @@ public class YmlServiceImpl implements YmlService {
     private YmlDao ymlDao;
 
     @Autowired
-    private FlowDao flowDao;
-
-    @Autowired
     private SpringEventManager eventManager;
 
     @Autowired
@@ -68,14 +66,12 @@ public class YmlServiceImpl implements YmlService {
     //====================================================================
 
     @Override
-    public List<StepNode> ListChildren(Flow flow) {
+    public FlowNode getRaw(Flow flow) {
         Optional<Yml> optional = ymlDao.findById(flow.getId());
-        if (!optional.isPresent()) {
-            return Collections.emptyList();
+        if (optional.isPresent()) {
+            return YmlParser.load(flow.getName(), optional.get().getRaw());
         }
-
-        FlowNode root = YmlParser.load(flow.getName(), optional.get().getRaw());
-        return root.getChildren();
+        throw new NotFoundException("No yml defined for flow {0}", flow.getName());
     }
 
     @Override
@@ -106,10 +102,6 @@ public class YmlServiceImpl implements YmlService {
         Vars<String> vars = flow.getVariables();
         vars.clear();
         vars.merge(root.getEnvironments());
-
-        // set notifications from yml
-        flow.setNotifications(root.getNotifications());
-        flowDao.save(flow);
 
         // update cron task
         cronService.update(flow, root, ymlObj);
