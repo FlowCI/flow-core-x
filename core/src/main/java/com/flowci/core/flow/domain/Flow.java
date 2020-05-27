@@ -73,6 +73,10 @@ public final class Flow extends Mongoable implements Pathable {
 
     private String yamlRepoBranch = "master";
 
+    private int jobTimeout = 1800; // whole job timeout second
+
+    private int stepTimeout = 900; // job step timeout in second;
+
     // variables from yml
     @NonNull
     private Vars<String> variables = new StringVars();
