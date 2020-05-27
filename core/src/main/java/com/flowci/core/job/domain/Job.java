@@ -220,7 +220,7 @@ public class Job extends Mongoable implements Pathable {
     private String yamlRepoBranch;
 
     /**
-     * Execution timeout in seconds
+     * Step timeout in seconds
      */
     private int timeout = 1800;
 

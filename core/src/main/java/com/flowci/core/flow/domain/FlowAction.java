@@ -25,9 +25,7 @@ public abstract class FlowAction {
 
     public static final String CONFIRM = "confirm_flow";
 
-    public static final String RENAME = "rename_flow";
-
-    public static final String YAML_SOURCE = "update_flow_yaml_source";
+    public static final String UPDATE = "update_flow_settings";
 
     public static final String DELETE = "delete_flow";
 
@@ -36,10 +34,6 @@ public abstract class FlowAction {
     public static final String LIST_BY_CREDENTIAL = "list_flow_by_credential";
 
     public static final String GET = "get_flow";
-
-    public static final String ADD_VARS = "add_flow_vars";
-
-    public static final String REMOVE_VARS = "remove_flow_vars";
 
     public static final String GET_YML = "get_yml";
 
@@ -63,14 +57,10 @@ public abstract class FlowAction {
             CREATE,
             CHECK_NAME,
             CONFIRM,
-            RENAME,
-            YAML_SOURCE,
             DELETE,
             LIST,
             LIST_BY_CREDENTIAL,
             GET,
-            ADD_VARS,
-            REMOVE_VARS,
             GET_YML,
             SET_YML,
             GIT_TEST,

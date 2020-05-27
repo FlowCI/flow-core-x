@@ -21,7 +21,7 @@ import com.flowci.core.common.manager.VarManager;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.UpdateYAMLSource;
+import com.flowci.core.flow.domain.Settings;
 import com.flowci.core.flow.domain.WebhookStatus;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.job.domain.Job;
@@ -74,9 +74,16 @@ public class FlowSettingServiceImpl implements FlowSettingService {
     }
 
     @Override
-    public void set(Flow flow, UpdateYAMLSource source) {
-        flow.setYamlFromRepo(source.getIsYamlFromRepo());
-        flow.setYamlRepoBranch(source.getYamlRepoBranch());
+    public void set(Flow flow, Settings.UpdateYAMLSource options) {
+        flow.setYamlFromRepo(options.getIsYamlFromRepo());
+        flow.setYamlRepoBranch(options.getYamlRepoBranch());
+        flowDao.save(flow);
+    }
+
+    @Override
+    public void set(Flow flow, Settings.UpdateTimeout options) {
+        flow.setJobTimeout(options.getJobTimeout());
+        flow.setStepTimeout(options.getStepTimeout());
         flowDao.save(flow);
     }
 

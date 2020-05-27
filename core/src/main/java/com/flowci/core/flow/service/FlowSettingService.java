@@ -17,7 +17,7 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.UpdateYAMLSource;
+import com.flowci.core.flow.domain.Settings;
 import com.flowci.core.flow.domain.WebhookStatus;
 import com.flowci.domain.VarValue;
 
@@ -34,7 +34,12 @@ public interface FlowSettingService {
     /**
      * Set flow YAML source
      */
-    void set(Flow flow, UpdateYAMLSource source);
+    void set(Flow flow, Settings.UpdateYAMLSource options);
+
+    /**
+     * Set flow timeout
+     */
+    void set(Flow flow, Settings.UpdateTimeout options);
 
     /**
      * Set flow webhook status

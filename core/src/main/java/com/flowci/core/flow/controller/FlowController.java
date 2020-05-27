@@ -17,22 +17,20 @@
 package com.flowci.core.flow.controller;
 
 import com.flowci.core.auth.annotation.Action;
-import com.flowci.core.flow.domain.*;
+import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
+import com.flowci.core.flow.domain.FlowAction;
+import com.flowci.core.flow.domain.GitSettings;
 import com.flowci.core.flow.service.FlowService;
-import com.flowci.core.flow.service.FlowSettingService;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
-import com.flowci.domain.VarValue;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -47,9 +45,6 @@ public class FlowController {
 
     @Autowired
     private FlowService flowService;
-
-    @Autowired
-    private FlowSettingService flowSettingService;
 
     @GetMapping
     @Action(FlowAction.LIST)
@@ -82,22 +77,6 @@ public class FlowController {
             gitSettings = new GitSettings();
         }
         return flowService.confirm(name, gitSettings.getGitUrl(), gitSettings.getCredential());
-    }
-
-    @PostMapping(value = "/{name}/sourceOfYaml")
-    @Action(FlowAction.YAML_SOURCE)
-    public Flow updateYAMLSource(@PathVariable String name, @RequestBody UpdateYAMLSource body) {
-        Flow flow = flowService.get(name);
-        flowSettingService.set(flow, body);
-        return flow;
-    }
-
-    @PostMapping(value = "/{name}/rename")
-    @Action(FlowAction.RENAME)
-    public Flow rename(@PathVariable String name, @RequestBody RenameFlow body) {
-        Flow flow = flowService.get(name);
-        flowSettingService.rename(flow, body.getName());
-        return flow;
     }
 
     @DeleteMapping("/{name}")
@@ -143,21 +122,6 @@ public class FlowController {
         Flow flow = flowService.get(name);
         List<String> emails = flowService.listUsers(flow);
         return userService.list(emails);
-    }
-
-    @PostMapping("/{name}/variables")
-    @Action(FlowAction.ADD_VARS)
-    public void addVariables(@PathVariable String name,
-                             @Validated @RequestBody Map<String, VarValue> variables) {
-        Flow flow = flowService.get(name);
-        flowSettingService.add(flow, variables);
-    }
-
-    @DeleteMapping("/{name}/variables")
-    @Action(FlowAction.REMOVE_VARS)
-    public void removeVariables(@PathVariable String name, @RequestBody List<String> vars) {
-        Flow flow = flowService.get(name);
-        flowSettingService.remove(flow, vars);
     }
 
     @GetMapping("/secret/{name}")
