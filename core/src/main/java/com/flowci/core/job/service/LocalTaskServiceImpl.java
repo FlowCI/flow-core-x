@@ -5,6 +5,7 @@ import com.flowci.core.job.dao.ExecutedLocalTaskDao;
 import com.flowci.core.job.domain.Executed;
 import com.flowci.core.job.domain.ExecutedLocalTask;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.event.TaskStatusChangeEvent;
 import com.flowci.core.job.manager.DockerManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.plugin.domain.Plugin;
@@ -72,8 +73,13 @@ public class LocalTaskServiceImpl implements LocalTaskService {
     }
 
     @Override
-    public void executeAsync(Job job, LocalTask task) {
-        localTaskExecutor.execute(() -> execute(job, task));
+    public void executeAsync(Job job) {
+        localTaskExecutor.execute(() -> {
+            NodeTree tree = ymlManager.getTree(job);
+            for (LocalTask t : tree.getRoot().getNotifications()) {
+                execute(job, t);
+            }
+        });
     }
 
     @Override
@@ -86,9 +92,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
         }
 
         ExecutedLocalTask exec = optional.get();
-        exec.setStartAt(new Date());
-        exec.setStatus(Executed.Status.RUNNING);
-        executedLocalTaskDao.save(exec);
+        updateStatusTimeAndSave(exec, Executed.Status.RUNNING, null);
 
         DockerManager.Option option = new DockerManager.Option();
         option.setImage(DefaultImage);
@@ -101,11 +105,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
             if (event.hasError()) {
                 String message = event.getError().getMessage();
                 log.warn(message);
-
-                exec.setError(message);
-                exec.setStatus(Executed.Status.EXCEPTION);
-                exec.setFinishAt(new Date());
-                executedLocalTaskDao.save(exec);
+                updateStatusTimeAndSave(exec, Executed.Status.EXCEPTION, message);;
                 return exec;
             }
 
@@ -121,12 +121,41 @@ public class LocalTaskServiceImpl implements LocalTaskService {
             });
         }
 
-        log.info("Start local task {} image = {} for job {}", task.getPlugin(), option.getImage(), job.getId());
-        executedLocalTaskDao.save(runDockerTask(option, exec));
+        try {
+            log.info("Start local task {} image = {} for job {}", task.getPlugin(), option.getImage(), job.getId());
+            runDockerTask(option, exec);
+            updateStatusTimeAndSave(exec, Executed.Status.SUCCESS, null);
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+            updateStatusTimeAndSave(exec, Executed.Status.EXCEPTION, e.getMessage());
+        }
+
         return exec;
     }
 
-    private ExecutedLocalTask runDockerTask(DockerManager.Option option, ExecutedLocalTask r) {
+    private void updateStatusTimeAndSave(ExecutedLocalTask t, Executed.Status status, String error) {
+        if (t.getStatus() == status) {
+            return;
+        }
+
+        if (Executed.Status.RUNNING == status) {
+            t.setStartAt(new Date());
+        }
+
+        if (Executed.FinishStatus.contains(status)) {
+            t.setFinishAt(new Date());
+        }
+
+        t.setStatus(status);
+        t.setError(error);
+        executedLocalTaskDao.save(t);
+
+        String jobId = t.getJobId();
+        List<ExecutedLocalTask> list = executedLocalTaskDao.findAllByJobId(jobId);
+        eventManager.publish(new TaskStatusChangeEvent(this, t.getJobId(), list));
+    }
+
+    private void runDockerTask(DockerManager.Option option, ExecutedLocalTask r) throws InterruptedException, RuntimeException {
         try {
             String image = option.getImage();
             boolean isSuccess = dockerManager.pullImage(image);
@@ -143,19 +172,10 @@ public class LocalTaskServiceImpl implements LocalTaskService {
             }
 
             r.setCode(dockerManager.getContainerExitCode(cid));
-        } catch (InterruptedException | RuntimeException e) {
-            log.warn(e.getMessage());
-            r.setError(e.getMessage());
-            r.setStatus(Executed.Status.EXCEPTION);
         } finally {
-            r.setStatus(Executed.Status.SUCCESS);
-            r.setFinishAt(new Date());
-
             if (r.hasContainerId()) {
                 dockerManager.removeContainer(r.getContainerId());
             }
         }
-
-        return r;
     }
 }

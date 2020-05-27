@@ -12,7 +12,7 @@ public interface LocalTaskService {
 
     List<ExecutedLocalTask> list(Job job);
 
-    void executeAsync(Job job, LocalTask task);
+    void executeAsync(Job job);
 
     ExecutedLocalTask execute(Job job, LocalTask task);
 }

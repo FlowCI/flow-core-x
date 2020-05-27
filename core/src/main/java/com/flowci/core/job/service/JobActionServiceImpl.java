@@ -804,11 +804,7 @@ public class JobActionServiceImpl implements JobActionService {
     private Consumer<JobSmContext> notificationConsumer() {
         return context -> {
             Job job = context.job;
-            NodeTree tree = ymlManager.getTree(job);
-
-            for (LocalTask t : tree.getRoot().getNotifications()) {
-                localTaskService.executeAsync(job, t);
-            }
+            localTaskService.executeAsync(job);
         };
     }
 

@@ -19,6 +19,14 @@ public interface Executed {
             Status.SKIPPED
     );
 
+    Set<Status> FinishStatus = ImmutableSet.of(
+            Status.SUCCESS,
+            Status.SKIPPED,
+            Status.EXCEPTION,
+            Status.KILLED,
+            Status.TIMEOUT
+    );
+
     enum Status {
 
         PENDING(-1),
