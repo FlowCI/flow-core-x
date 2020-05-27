@@ -66,9 +66,8 @@ public class YmlParserTest {
 
         // verify notifications
         Assert.assertEquals(1, root.getNotifications().size());
-        Assert.assertTrue(root.getNotifications().get(0).isEnabled());
         Assert.assertEquals("email-notify", root.getNotifications().get(0).getPlugin());
-        Assert.assertEquals("test-config", root.getNotifications().get(0).getInputs().get("FLOWCI_SMTP_CONFIG"));
+        Assert.assertEquals("test-config", root.getNotifications().get(0).getEnvs().get("FLOWCI_SMTP_CONFIG"));
 
         // verify steps
         List<StepNode> steps = root.getChildren();

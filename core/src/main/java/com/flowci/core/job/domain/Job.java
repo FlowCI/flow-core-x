@@ -19,7 +19,6 @@ package com.flowci.core.job.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.domain.Variables;
-import com.flowci.domain.Notification;
 import com.flowci.domain.Agent;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
@@ -34,7 +33,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.*;
+import java.util.Date;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author yang
@@ -221,12 +222,12 @@ public class Job extends Mongoable implements Pathable {
     /**
      * Execution timeout in seconds
      */
-    private Long timeout = 1800L;
+    private int timeout = 1800;
 
     /**
      * Expire while queue up
      */
-    private Long expire = 1800L;
+    private int expire = 1800;
 
     /**
      * Total expire from expire and timeout
@@ -242,8 +243,6 @@ public class Job extends Mongoable implements Pathable {
      * Real execution finish at
      */
     private Date finishAt;
-
-    private List<Notification> notifications = new LinkedList<>();
 
     @JsonIgnore
     public boolean isCancelled() {

@@ -23,7 +23,6 @@ import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.domain.Notification;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
@@ -35,12 +34,11 @@ import com.flowci.core.job.domain.Job.Status;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
+import com.flowci.core.job.event.StartAsyncLocalTaskEvent;
 import com.flowci.core.job.manager.YmlManager;
-import com.flowci.core.job.service.JobActionService;
-import com.flowci.core.job.service.JobEventService;
-import com.flowci.core.job.service.JobService;
-import com.flowci.core.job.service.StepService;
-import com.flowci.core.task.event.StartAsyncLocalTaskEvent;
+import com.flowci.core.job.service.*;
+import com.flowci.core.plugin.dao.PluginDao;
+import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.test.ZookeeperScenario;
 import com.flowci.domain.*;
 import com.flowci.tree.*;
@@ -51,7 +49,10 @@ import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationListener;
 
 import java.io.IOException;
@@ -80,6 +81,9 @@ public class JobServiceTest extends ZookeeperScenario {
     private ExecutedCmdDao executedCmdDao;
 
     @Autowired
+    private PluginDao pluginDao;
+
+    @Autowired
     private FlowService flowService;
 
     @Autowired
@@ -103,6 +107,9 @@ public class JobServiceTest extends ZookeeperScenario {
     @Autowired
     private YmlManager ymlManager;
 
+    @MockBean
+    private LocalTaskService localTaskManager;
+
     private Flow flow;
 
     private Yml yml;
@@ -110,7 +117,6 @@ public class JobServiceTest extends ZookeeperScenario {
     @Before
     public void mockFlowAndYml() throws IOException {
         mockLogin();
-
         flow = flowService.create("hello");
         yml = ymlService.saveYml(flow, StringHelper.toString(load("flow.yml")));
     }
@@ -119,7 +125,6 @@ public class JobServiceTest extends ZookeeperScenario {
     public void should_create_job_with_expected_context() {
         // init:
         flow.getLocally().put("LOCAL_VAR", VarValue.of("local", VarType.STRING));
-        flow.getNotifications().add(new Notification().setPlugin("email"));
         flowDao.save(flow);
         flow = flowService.get(flow.getName());
 
@@ -147,10 +152,6 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertTrue(context.containsKey("INPUT_VAR"));
         Assert.assertTrue(context.containsKey("FLOW_WORKSPACE"));
         Assert.assertTrue(context.containsKey("FLOW_VERSION"));
-
-        // then: notification should be added
-        Assert.assertEquals(1, job.getNotifications().size());
-        Assert.assertEquals("email", job.getNotifications().get(0).getPlugin());
     }
 
     @Test
@@ -206,16 +207,26 @@ public class JobServiceTest extends ZookeeperScenario {
     }
 
     @Test
-    public void should_finish_whole_job() throws InterruptedException {
+    public void should_finish_whole_job() throws InterruptedException, IOException {
         // init:
+        Plugin p = new Plugin();
+        p.setName("email"); // from yaml
+        p.setVersion(Version.parse("0.1.1"));
+        pluginDao.save(p);
+
+        yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-notify.yml")));
+
         Agent agent = agentService.create("hello.agent", null, Optional.empty());
         mockAgentOnline(agentService.getPath(agent));
 
-        Notification notify = new Notification().setPlugin("email").setEnabled(true);
-        flow.getNotifications().add(notify);
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
 
         CountDownLatch localTaskCountDown = new CountDownLatch(1);
+        Mockito.doAnswer((Answer<Void>) invocation -> {
+            localTaskCountDown.countDown();
+            return null;
+        }).when(localTaskManager).executeAsync(Mockito.any());
+
         addEventListener((ApplicationListener<StartAsyncLocalTaskEvent>) event -> localTaskCountDown.countDown());
 
         FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
@@ -393,7 +404,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals("hello.timeout", job.getContext().get("HELLO_TIMEOUT"));
     }
 
-    @Test
+    @Test(timeout = 30 * 1000)
     public void should_cancel_job_if_agent_offline() throws IOException, InterruptedException {
         // init:
         yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-before.yml")));
@@ -413,7 +424,7 @@ public class JobServiceTest extends ZookeeperScenario {
             }
         });
 
-        waitForRunning.await(10, TimeUnit.SECONDS);
+        waitForRunning.await();
         job = jobService.get(job.getId());
         Assert.assertEquals(Status.RUNNING, job.getStatus());
         Assert.assertEquals(agent.getId(), job.getAgentId());

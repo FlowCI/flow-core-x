@@ -20,14 +20,19 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.git.GitClient;
+import com.flowci.core.common.manager.VarManager;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.domain.PluginParser;
 import com.flowci.core.plugin.domain.PluginRepoInfo;
+import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.plugin.event.RepoCloneEvent;
+import com.flowci.domain.Input;
+import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
+import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -80,6 +85,9 @@ public class PluginServiceImpl implements PluginService {
     @Autowired
     private PluginDao pluginDao;
 
+    @Autowired
+    private VarManager varManager;
+
     private final Object reloadLock = new Object();
 
     @EventListener
@@ -90,7 +98,45 @@ public class PluginServiceImpl implements PluginService {
             event.setDir(getDir(plugin));
         } catch (NotFoundException e) {
             event.setError(e);
+            return;
         }
+
+        if (event instanceof GetPluginAndVerifySetContext) {
+            Plugin plugin = event.getFetched();
+            Vars<String> context = ((GetPluginAndVerifySetContext) event).getContext();
+
+            Optional<String> hasInvalidInput = verifyInputAndSetDefaultValue(plugin, context);
+            hasInvalidInput.ifPresent(input -> {
+                String p = plugin.getName();
+                String value = context.get(input);
+                event.setError(new ArgumentException("Illegal input {0} = {1} for plugin {2}", input, value, p));
+            });
+        }
+    }
+
+    /**
+     * Verify input from context
+     *
+     * @return invalid input name, or empty if all inputs are validated
+     */
+    @Override
+    public Optional<String> verifyInputAndSetDefaultValue(Plugin plugin, Vars<String> context) {
+        for (Input input : plugin.getInputs()) {
+            String value = context.get(input.getName());
+
+            // set default value to context
+            if (!StringHelper.hasValue(value) && input.hasDefaultValue()) {
+                context.put(input.getName(), input.getValue());
+                value = input.getValue();
+            }
+
+            // verify value
+            if (!varManager.verify(input, value)) {
+                return Optional.of(input.getName());
+            }
+        }
+
+        return Optional.empty();
     }
 
     @Override

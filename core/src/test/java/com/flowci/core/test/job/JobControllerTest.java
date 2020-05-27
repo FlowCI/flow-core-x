@@ -16,27 +16,21 @@
 
 package com.flowci.core.test.job;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.JsonablePage;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.job.domain.CreateJob;
+import com.flowci.core.job.domain.Executed.Status;
+import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobItem;
+import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.test.flow.FlowMockHelper;
-import com.flowci.core.job.domain.ExecutedCmd;
-import com.flowci.core.job.domain.ExecutedCmd.Status;
 import com.flowci.domain.http.ResponseMessage;
 import com.flowci.util.StringHelper;
-
-import java.util.Base64;
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -45,6 +39,12 @@ import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
+
+import java.util.Base64;
+import java.util.List;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 /**
  * @author yang
@@ -67,6 +67,9 @@ public class JobControllerTest extends SpringScenario {
     private static final TypeReference<ResponseMessage<String>> JobYmlType =
             new TypeReference<ResponseMessage<String>>() {
             };
+
+    @Autowired
+    private PluginDao pluginDao;
 
     @Autowired
     private FlowMockHelper flowMockHelper;

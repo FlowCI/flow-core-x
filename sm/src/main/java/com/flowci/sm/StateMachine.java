@@ -68,6 +68,7 @@ public class StateMachine<T extends Context> {
         try {
             action.accept(context);
         } catch (Throwable e) {
+            log.debug(e);
             action.onException(e, context);
         } finally {
             action.onFinally(context);

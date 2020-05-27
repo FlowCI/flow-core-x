@@ -76,6 +76,9 @@ public class JobController {
     private StepService stepService;
 
     @Autowired
+    private LocalTaskService localTaskService;
+
+    @Autowired
     private LoggingService loggingService;
 
     @Autowired
@@ -85,7 +88,7 @@ public class JobController {
     private ArtifactService artifactService;
 
     @Autowired
-    private ThreadPoolTaskExecutor jobRunExecutor;
+    private ThreadPoolTaskExecutor jobStartExecutor;
 
     @GetMapping("/{flow}")
     @Action(JobAction.LIST)
@@ -130,6 +133,14 @@ public class JobController {
         return stepService.list(job);
     }
 
+    @GetMapping("/{flow}/{buildNumberOrLatest}/tasks")
+    @Action(JobAction.LIST_STEPS)
+    public List<ExecutedLocalTask> listTasks(@PathVariable String flow,
+                                             @PathVariable String buildNumberOrLatest) {
+        Job job = get(flow, buildNumberOrLatest);
+        return localTaskService.list(job);
+    }
+
     @GetMapping("/logs/{executedCmdId}")
     @Action(JobAction.GET_STEP_LOG)
     public Page<String> getStepLog(@PathVariable String executedCmdId,
@@ -165,11 +176,11 @@ public class JobController {
 
     @PostMapping("/run")
     @Action(JobAction.RUN)
-    public void createAndRun(@Validated @RequestBody CreateJob body) {
+    public void createAndStart(@Validated @RequestBody CreateJob body) {
         final User current = sessionManager.get();
 
         // start from thread since will be loading status
-        jobRunExecutor.execute(() -> {
+        jobStartExecutor.execute(() -> {
             sessionManager.set(current);
             Flow flow = flowService.get(body.getFlow());
             Yml yml = ymlService.getYml(flow);

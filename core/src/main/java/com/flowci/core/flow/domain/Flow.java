@@ -19,7 +19,10 @@ package com.flowci.core.flow.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.domain.Variables;
-import com.flowci.domain.*;
+import com.flowci.domain.StringVars;
+import com.flowci.domain.TypedVars;
+import com.flowci.domain.VarValue;
+import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.store.Pathable;
 import com.flowci.tree.NodePath;
@@ -28,8 +31,6 @@ import lombok.*;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -81,8 +82,6 @@ public final class Flow extends Mongoable implements Pathable {
     private Vars<VarValue> locally = new TypedVars();
 
     private WebhookStatus webhookStatus;
-
-    private List<Notification> notifications = new LinkedList<>();
 
     public Flow(String name) {
         this.name = name;

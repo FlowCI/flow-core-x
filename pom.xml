@@ -39,7 +39,7 @@
         <docker-java.version>3.2.1</docker-java.version>
         <cron-utils.version>7.0.5</cron-utils.version>
         <velocity-engine-core.version>2.1</velocity-engine-core.version>
-        <amqp-client.version>5.7.2</amqp-client.version>
+        <amqp-client.version>5.9.0</amqp-client.version>
         <java-jwt.version>3.8.1</java-jwt.version>
         <minio.version>6.0.11</minio.version>
         <protobuf-java.version>3.11.4</protobuf-java.version>

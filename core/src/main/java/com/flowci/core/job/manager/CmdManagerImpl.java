@@ -21,17 +21,16 @@ import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.plugin.domain.Plugin;
+import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.CmdIn;
 import com.flowci.domain.CmdType;
 import com.flowci.domain.Vars;
-import com.flowci.exception.ArgumentException;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -80,17 +79,12 @@ public class CmdManagerImpl implements CmdManager {
     }
 
     private void setPlugin(String name, CmdIn cmd) {
-        GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, name));
+        GetPluginEvent event = eventManager.publish(new GetPluginAndVerifySetContext(this, name, cmd.getInputs()));
         if (event.hasError()) {
             throw event.getError();
         }
 
         Plugin plugin = event.getFetched();
-        Optional<String> validate = plugin.verifyInputAndSetDefaultValue(cmd.getInputs());
-        if (validate.isPresent()) {
-            throw new ArgumentException("The illegal input {0} for plugin {1}", validate.get(), plugin.getName());
-        }
-
         cmd.setPlugin(name);
         cmd.setAllowFailure(plugin.isAllowFailure());
         cmd.addEnvFilters(plugin.getExports());

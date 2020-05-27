@@ -1,16 +1,19 @@
-package com.flowci.core.task.manager;
+package com.flowci.core.job.manager;
 
 import com.flowci.core.api.adviser.ApiAuth;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.helper.ThreadHelper;
-import com.flowci.core.task.domain.LocalDockerTask;
 import com.flowci.domain.StringVars;
+import com.flowci.domain.Vars;
+import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.*;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -58,20 +61,20 @@ public class DockerManager {
         return callback.isSuccess;
     }
 
-    public String createAndStartContainer(LocalDockerTask task) {
+    public String createAndStartContainer(Option option) {
         StringVars defaultEnv = new StringVars(4);
         defaultEnv.put(Variables.App.Url, serverUrl);
         defaultEnv.put(Variables.Agent.Token, ApiAuth.LocalTaskToken);
         defaultEnv.put(Variables.Agent.Workspace, "/ws/");
         defaultEnv.put(Variables.Agent.PluginDir, "/ws/.plugins");
 
-        CreateContainerCmd createContainerCmd = client.createContainerCmd(task.getImage())
-                .withEnv(defaultEnv.merge(task.getInputs()).toList())
-                .withCmd("/bin/bash", "-c", task.getScript());
+        CreateContainerCmd createContainerCmd = client.createContainerCmd(option.image)
+                .withEnv(defaultEnv.merge(option.inputs).toList())
+                .withCmd("/bin/bash", "-c", option.script);
 
-        if (task.hasPlugin()) {
+        if (option.hasPlugin()) {
             createContainerCmd.withBinds(
-                    new Bind(task.getPluginDir().toString(), new Volume("/ws/.plugins/" + task.getPlugin())));
+                    new Bind(option.pluginDir, new Volume("/ws/.plugins/" + option.plugin)));
         }
 
         CreateContainerResponse container = createContainerCmd.exec();
@@ -130,6 +133,25 @@ public class DockerManager {
     public void removeContainer(String cid) {
         client.removeContainerCmd(cid).withForce(true).exec();
         log.debug("Container {} been removed", cid);
+    }
+
+    @Getter
+    @Setter
+    public static final class Option {
+
+        private String image;
+
+        private Vars<String> inputs;
+
+        private String script;
+
+        private String plugin;
+
+        private String pluginDir;
+
+        private boolean hasPlugin() {
+            return StringHelper.hasValue(plugin) && StringHelper.hasValue(pluginDir) ;
+        }
     }
 
     private static abstract class DockerCallback<T> implements ResultCallback<T> {

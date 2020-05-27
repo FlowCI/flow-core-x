@@ -17,13 +17,13 @@
 
 package com.flowci.core.flow.event;
 
+import com.flowci.core.common.event.AbstractSyncEvent;
 import com.flowci.core.flow.domain.Flow;
 import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
 
 import java.util.List;
 
-public class FlowInitEvent extends ApplicationEvent {
+public class FlowInitEvent extends AbstractSyncEvent<Void> {
 
     @Getter
     private final List<Flow> flows;

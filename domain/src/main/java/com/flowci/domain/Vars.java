@@ -51,6 +51,11 @@ public abstract class Vars<V> extends LinkedHashMap<String, V> implements Serial
         return Objects.isNull(value) ? defaultValue : value;
     }
 
+    public Vars<V> putAndReturn(String k, V v) {
+        put(k, v);
+        return this;
+    }
+
     public Vars<V> merge(Vars<V> other) {
         return merge(other, true);
     }

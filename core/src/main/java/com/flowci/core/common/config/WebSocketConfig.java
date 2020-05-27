@@ -48,6 +48,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final String stepsTopic = "/topic/steps";
 
     /**
+     * To subscribe task update for job
+     * Ex: /topic/tasks/{job id}
+     */
+    private final String tasksTopic = "/topic/tasks";
+
+    /**
      * To subscribe real time logging for all jobs.
      * Ex: /topic/logs
      */
@@ -70,7 +76,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker(jobsTopic, stepsTopic, logsTopic, agentsTopic, agentHostTopic, gitTestTopic);
+        registry.enableSimpleBroker(
+                jobsTopic,
+                stepsTopic,
+                tasksTopic,
+                logsTopic,
+                agentsTopic,
+                agentHostTopic,
+                gitTestTopic
+        );
         registry.setApplicationDestinationPrefixes("/app");
     }
 
@@ -87,6 +101,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Bean("topicForSteps")
     public String topicForSteps() {
         return stepsTopic;
+    }
+
+    @Bean("topicForTasks")
+    public String topicForTasks() {
+        return tasksTopic;
     }
 
     @Bean("topicForLogs")

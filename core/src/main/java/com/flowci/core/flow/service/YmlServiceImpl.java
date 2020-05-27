@@ -23,7 +23,7 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.plugin.event.GetPluginEvent;
-import com.flowci.domain.Notification;
+import com.flowci.domain.LocalTask;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
@@ -40,7 +40,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author yang
@@ -68,14 +70,12 @@ public class YmlServiceImpl implements YmlService {
     //====================================================================
 
     @Override
-    public List<StepNode> ListChildren(Flow flow) {
+    public FlowNode getRaw(Flow flow) {
         Optional<Yml> optional = ymlDao.findById(flow.getId());
-        if (!optional.isPresent()) {
-            return Collections.emptyList();
+        if (optional.isPresent()) {
+            return YmlParser.load(flow.getName(), optional.get().getRaw());
         }
-
-        FlowNode root = YmlParser.load(flow.getName(), optional.get().getRaw());
-        return root.getChildren();
+        throw new NotFoundException("No yml defined for flow {0}", flow.getName());
     }
 
     @Override
@@ -106,9 +106,6 @@ public class YmlServiceImpl implements YmlService {
         Vars<String> vars = flow.getVariables();
         vars.clear();
         vars.merge(root.getEnvironments());
-
-        // set notifications from yml
-        flow.setNotifications(root.getNotifications());
         flowDao.save(flow);
 
         // update cron task
@@ -149,8 +146,8 @@ public class YmlServiceImpl implements YmlService {
             }
         }
 
-        for (Notification n : flowNode.getNotifications()) {
-            plugins.add(n.getPlugin());
+        for (LocalTask t : flowNode.getNotifications()) {
+            plugins.add(t.getPlugin());
         }
 
         for (String plugin : plugins) {

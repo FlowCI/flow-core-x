@@ -18,6 +18,7 @@ package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
+import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
 import com.flowci.tree.StepNode;
 
@@ -29,9 +30,9 @@ import java.util.List;
 public interface YmlService {
 
     /**
-     * List all children node from YAML
+     * Get FlowNode that represent yaml in obj
      */
-    List<StepNode> ListChildren(Flow flow);
+    FlowNode getRaw(Flow flow);
 
     /**
      * Get yml by flow

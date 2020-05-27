@@ -2,6 +2,11 @@ envs:
   FLOW_WORKSPACE: "echo hello"
   FLOW_VERSION: "echo version"
 
+notifications:
+  - plugin: "email"
+    envs:
+      PLUGIN_VAR: "send"
+
 steps:
   - envs:
       FLOW_WORKSPACE: "echo step"

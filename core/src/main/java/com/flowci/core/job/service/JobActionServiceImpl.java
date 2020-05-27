@@ -15,8 +15,6 @@ import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.core.task.domain.LocalDockerTask;
-import com.flowci.core.task.event.StartAsyncLocalTaskEvent;
 import com.flowci.domain.*;
 import com.flowci.exception.CIException;
 import com.flowci.exception.NotAvailableException;
@@ -118,6 +116,9 @@ public class JobActionServiceImpl implements JobActionService {
 
     @Autowired
     private RabbitOperations jobsQueueManager;
+
+    @Autowired
+    private LocalTaskService localTaskService;
 
     @Autowired
     private AgentService agentService;
@@ -318,8 +319,7 @@ public class JobActionServiceImpl implements JobActionService {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                Throwable err = context.getError();
-                setJobStatusAndSave(job, Job.Status.TIMEOUT, err.getMessage());
+                setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
             }
         });
 
@@ -554,6 +554,7 @@ public class JobActionServiceImpl implements JobActionService {
 
         ymlManager.create(job, yml);
         stepService.init(job);
+        localTaskService.init(job);
     }
 
     private void setRestStepsToSkipped(Job job) {
@@ -803,22 +804,7 @@ public class JobActionServiceImpl implements JobActionService {
     private Consumer<JobSmContext> notificationConsumer() {
         return context -> {
             Job job = context.job;
-            for (Notification n : job.getNotifications()) {
-                if (!n.isEnabled()) {
-                    continue;
-                }
-
-                StringVars input = new StringVars(job.getContext());
-                input.merge(n.getInputs());
-
-                LocalDockerTask task = new LocalDockerTask();
-                task.setName(n.getPlugin()); // plugin name as task name
-                task.setPlugin(n.getPlugin());
-                task.setJobId(job.getId());
-                task.setInputs(input);
-
-                eventManager.publish(new StartAsyncLocalTaskEvent(this, task));
-            }
+            localTaskService.executeAsync(job);
         };
     }
 

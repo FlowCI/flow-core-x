@@ -17,7 +17,7 @@
 package com.flowci.core.test.plugin;
 
 import com.flowci.core.plugin.domain.*;
-import com.flowci.domain.DockerOption;
+import com.flowci.domain.Input;
 import com.flowci.domain.VarType;
 import com.flowci.domain.Version;
 import java.io.InputStream;

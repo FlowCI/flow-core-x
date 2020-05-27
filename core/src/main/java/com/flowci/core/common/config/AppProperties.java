@@ -115,11 +115,11 @@ public class AppProperties {
     @Data
     public static class Job {
 
-        private Long timeoutInSeconds; // job execution timeout
+        private int timeoutInSeconds; // job execution timeout
 
-        private Long expireInSeconds; // job queue up timeout
+        private int expireInSeconds; // job queue up timeout
 
-        private Long retryWaitingSeconds;
+        private int retryWaitingSeconds;
     }
 
     @Data

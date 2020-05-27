@@ -17,6 +17,7 @@
 package com.flowci.core.plugin.domain;
 
 import com.flowci.core.flow.domain.StatsType;
+import com.flowci.domain.Input;
 import com.flowci.domain.VarType;
 import com.flowci.domain.Version;
 import com.flowci.tree.yml.DockerYml;

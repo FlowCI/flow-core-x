@@ -47,7 +47,7 @@ public class QueueConfig {
 
     @Bean
     public ThreadPoolTaskExecutor rabbitConsumerExecutor() {
-        return ThreadHelper.createTaskExecutor(10, 10, 50, "rabbit-t-");
+        return ThreadHelper.createTaskExecutor(10, 10, 50, "rabbit-event-");
     }
 
     @Bean
