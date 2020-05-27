@@ -43,7 +43,7 @@ public class ZookeeperConfig {
     private LocalServer server;
 
     @Autowired
-    private ConfigProperties.Zookeeper zkProperties;
+    private AppProperties.Zookeeper zkProperties;
 
     @Bean("zkServerExecutor")
     public ThreadPoolTaskExecutor serverExecutor() {

@@ -17,6 +17,8 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.UpdateYAMLSource;
+import com.flowci.core.flow.domain.WebhookStatus;
 import com.flowci.domain.VarValue;
 
 import java.util.List;
@@ -25,7 +27,19 @@ import java.util.Map;
 /**
  * @author yang
  */
-public interface FlowVarService {
+public interface FlowSettingService {
+
+    void rename(Flow flow, String newName);
+
+    /**
+     * Set flow YAML source
+     */
+    void set(Flow flow, UpdateYAMLSource source);
+
+    /**
+     * Set flow webhook status
+     */
+    void set(Flow flow, WebhookStatus ws);
 
     /**
      * Add vars to flow locally
@@ -36,5 +50,4 @@ public interface FlowVarService {
      * Remove vars from flow locally
      */
     void remove(Flow flow, List<String> vars);
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 flow.ci
+ * Copyright 2020 flow.ci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,17 @@
  * limitations under the License.
  */
 
-package com.flowci.core.job.event;
+package com.flowci.core.flow.domain;
 
-import com.flowci.core.job.domain.ExecutedCmd;
 import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
+import lombok.Setter;
 
-import java.util.List;
+import javax.validation.constraints.NotEmpty;
 
-/**
- * @author yang
- */
 @Getter
-public class StepStatusChangeEvent extends ApplicationEvent {
+@Setter
+public class RenameFlow {
 
-    private final String jobId;
-
-    private final List<ExecutedCmd> steps;
-
-    public StepStatusChangeEvent(Object source, String jobId, List<ExecutedCmd> steps) {
-        super(source);
-        this.jobId = jobId;
-        this.steps = steps;
-    }
+    @NotEmpty
+    private String name;
 }

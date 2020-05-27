@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 flow.ci
+ * Copyright 2019 flow.ci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,11 @@
  * limitations under the License.
  */
 
-package com.flowci.core.job.event;
+package com.flowci.core.common.event;
 
-import com.flowci.core.job.domain.ExecutedCmd;
-import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
+/**
+ * @author yang
+ */
+public interface SyncEvent {
 
-import java.util.List;
-
-@Getter
-public class StepInitializedEvent extends ApplicationEvent {
-
-    private final String jobId;
-
-    private final List<ExecutedCmd> steps;
-
-    public StepInitializedEvent(Object source, String jobId, List<ExecutedCmd> steps) {
-        super(source);
-        this.jobId = jobId;
-        this.steps = steps;
-    }
 }

@@ -21,7 +21,7 @@ import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.auth.domain.PermissionMap;
 import com.flowci.core.auth.domain.Tokens;
 import com.flowci.core.auth.helper.JwtHelper;
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
 
     @Autowired
-    private ConfigProperties.Auth authProperties;
+    private AppProperties.Auth authProperties;
 
     @Autowired
     private UserService userService;

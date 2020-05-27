@@ -16,6 +16,8 @@
 
 package com.flowci.domain;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,5 +49,14 @@ public class StringVars extends Vars<String> {
         for (Map.Entry<String, VarValue> entry : typedVars.entrySet()) {
             put(entry.getKey(), entry.getValue().getData());
         }
+    }
+
+    @Override
+    public List<String> toList() {
+        List<String> list = new ArrayList<>(this.size());
+        for (Map.Entry<String, String> entry : this.entrySet()) {
+            list.add(String.format("%s=%s", entry.getKey(), entry.getValue()));
+        }
+        return list;
     }
 }

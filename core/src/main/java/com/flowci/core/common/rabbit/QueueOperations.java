@@ -25,7 +25,7 @@ public class QueueOperations extends RabbitOperations {
         super.declareExchangeAndBind(exchange, type, queue, routingKey);
     }
 
-    public void startConsumer(boolean autoAck, Function<Message, Boolean> onMessage) {
+    public void startConsumer(boolean autoAck, Function<Message, Boolean> onMessage) throws IOException {
         super.startConsumer(queue, autoAck, onMessage);
     }
 

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.flowci.core.plugin.domain;
+package com.flowci.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.flowci.domain.VarType;
 import com.flowci.util.StringHelper;
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -53,18 +52,6 @@ public class Input implements Serializable {
     public Input(String name, VarType type) {
         this.name = name;
         this.type = type;
-    }
-
-    public boolean verify(String value) {
-        if (required && !StringHelper.hasValue(value)) {
-            return false;
-        }
-
-        if (!required && !StringHelper.hasValue(value)) {
-            return true;
-        }
-
-        return VarType.verify(type, value);
     }
 
     @JsonIgnore

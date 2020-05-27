@@ -18,19 +18,19 @@ package com.flowci.core.plugin.domain;
 
 import com.flowci.core.flow.domain.StatsType;
 import com.flowci.domain.DockerOption;
+import com.flowci.domain.Input;
 import com.flowci.domain.Version;
-
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author yang
@@ -40,7 +40,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"id"}, callSuper = false)
 @Document(collection = "plugins")
-public class Plugin extends PluginRepoInfo implements PluginBody {
+public class Plugin extends PluginRepoInfo {
 
     @Id
     private String id;
@@ -57,7 +57,7 @@ public class Plugin extends PluginRepoInfo implements PluginBody {
 
     private DockerOption docker;
 
-    private PluginBody body;
+    private String script;
 
     private String icon;
 
@@ -72,7 +72,7 @@ public class Plugin extends PluginRepoInfo implements PluginBody {
         this.setInputs(src.inputs);
         this.setStatsTypes(src.statsTypes);
         this.setAllowFailure(src.allowFailure);
-        this.setBody(src.body);
+        this.setScript(src.script);
         this.setDocker(src.docker);
     }
 }

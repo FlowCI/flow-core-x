@@ -20,12 +20,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.util.LinkedList;
 import java.util.List;
 
 @Getter
 @Setter
+@Accessors(chain = true)
 public class DockerOption {
 
     private String image;

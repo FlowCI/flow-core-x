@@ -18,7 +18,6 @@ package com.flowci.core.api.adviser;
 
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.exception.AuthenticationException;
-import com.flowci.exception.NotFoundException;
 import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,6 +32,8 @@ import javax.servlet.http.HttpServletResponse;
 @Component("apiAuth")
 public class ApiAuth implements HandlerInterceptor {
 
+    public static final String LocalTaskToken = "local-task";
+
     private static final String HeaderAgentToken = "AGENT-TOKEN";
 
     @Autowired
@@ -42,8 +43,10 @@ public class ApiAuth implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String token = request.getHeader(HeaderAgentToken);
 
-        if (StringHelper.hasValue(token) && agentService.isExisted(token)) {
-            return true;
+        if (StringHelper.hasValue(token)) {
+            if (agentService.isExisted(token) || token.equals(LocalTaskToken)) {
+                return true;
+            }
         }
 
         throw new AuthenticationException("Invalid token");

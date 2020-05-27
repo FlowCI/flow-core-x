@@ -48,7 +48,7 @@ import java.util.List;
 public class MongoConfig extends AbstractMongoConfiguration {
 
     @Autowired
-    private ConfigProperties appProperties;
+    private AppProperties appProperties;
 
     @Autowired
     private MongoProperties mongoProperties;

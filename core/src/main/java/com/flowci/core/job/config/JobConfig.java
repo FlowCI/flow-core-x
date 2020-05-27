@@ -16,7 +16,7 @@
 
 package com.flowci.core.job.config;
 
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.job.domain.ExecutedCmd;
@@ -42,19 +42,29 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class JobConfig {
 
     @Autowired
-    private ConfigProperties appProperties;
+    private AppProperties appProperties;
 
     /**
      * Consume http request
      */
+    @Bean("jobStartExecutor")
+    public ThreadPoolTaskExecutor jobStartExecutor() {
+        return ThreadHelper.createTaskExecutor(1, 1, 100, "job-start-");
+    }
+
     @Bean("jobRunExecutor")
     public ThreadPoolTaskExecutor jobRunExecutor() {
-        return ThreadHelper.createTaskExecutor(1, 1, 100, "job-run-");
+        return ThreadHelper.createTaskExecutor(100, 100, 100, "job-run-");
     }
 
     @Bean("jobDeleteExecutor")
     public ThreadPoolTaskExecutor jobDeleteExecutor() {
         return ThreadHelper.createTaskExecutor(1, 1, 100, "job-delete-");
+    }
+
+    @Bean("localTaskExecutor")
+    public ThreadPoolTaskExecutor localTaskExecutor() {
+        return ThreadHelper.createTaskExecutor(5, 5, 100, "local-task-");
     }
 
     @Bean("jobTreeCache")

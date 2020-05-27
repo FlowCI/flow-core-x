@@ -1,5 +1,6 @@
 package com.flowci.core.config.service;
 
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.dao.ConfigDao;
@@ -7,6 +8,7 @@ import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.domain.ConfigParser;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.SmtpOption;
+import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.domain.SimpleAuthPair;
@@ -18,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,9 @@ public class ConfigServiceImpl implements ConfigService {
     private Resource defaultSmtpConfigYml;
 
     @Autowired
+    private AppProperties appProperties;
+
+    @Autowired
     private ConfigDao configDao;
 
     @Autowired
@@ -47,14 +51,29 @@ public class ConfigServiceImpl implements ConfigService {
             Config config = ConfigParser.parse(defaultSmtpConfigYml.getInputStream());
             Optional<Config> optional = configDao.findByName(config.getName());
 
-            if (optional.isPresent()) {
+            // delete if default smtp config is disabled
+            if (!appProperties.isDefaultSmtpConfig()) {
+                optional.ifPresent(value -> configDao.delete(value));
                 return;
             }
 
+            if (optional.isPresent()) {
+                return;
+            }
             configDao.save(config);
             log.info("Config {} has been created", config.getName());
         } catch (IOException e) {
             log.warn(e);
+        }
+    }
+
+    @EventListener
+    public void onGetConfigEvent(GetConfigEvent event) {
+        try {
+            Config config = get(event.getName());
+            event.setFetched(config);
+        } catch (NotFoundException e) {
+            event.setError(e);
         }
     }
 
@@ -106,11 +125,11 @@ public class ConfigServiceImpl implements ConfigService {
 
     private void setAuthFromSecret(SmtpConfig config) {
         GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, config.getSecret()));
-        if (!event.hasSecret()) {
-            throw new NotFoundException("The secret {0} not found", config.getSecret());
+        if (event.hasError()) {
+            throw event.getError();
         }
 
-        Secret secret = event.getSecret();
+        Secret secret = event.getFetched();
         if (secret.getCategory() != Secret.Category.AUTH) {
             throw new ArgumentException("Invalid secret type");
         }

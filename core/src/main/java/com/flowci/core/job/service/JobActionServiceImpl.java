@@ -118,6 +118,9 @@ public class JobActionServiceImpl implements JobActionService {
     private RabbitOperations jobsQueueManager;
 
     @Autowired
+    private LocalTaskService localTaskService;
+
+    @Autowired
     private AgentService agentService;
 
     @Autowired
@@ -135,12 +138,15 @@ public class JobActionServiceImpl implements JobActionService {
         fromRunning();
         fromCancelling();
 
-        Sm.addHookActionOnTargetStatus(Cancelled, context -> {
+        Sm.addHookActionOnTargetStatus(context -> {
             Job job = context.job;
             if (hasJobLock(job.getId())) {
                 throw new StatusException("Unable to cancel right now, try later");
             }
-        });
+        }, Cancelled);
+
+        // run local notification task
+        Sm.addHookActionOnTargetStatus(notificationConsumer(), Success, Failure, Timeout, Cancelled);
     }
 
     @Override
@@ -313,8 +319,7 @@ public class JobActionServiceImpl implements JobActionService {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                Throwable err = context.getError();
-                setJobStatusAndSave(job, Job.Status.TIMEOUT, err.getMessage());
+                setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
             }
         });
 
@@ -549,6 +554,7 @@ public class JobActionServiceImpl implements JobActionService {
 
         ymlManager.create(job, yml);
         stepService.init(job);
+        localTaskService.init(job);
     }
 
     private void setRestStepsToSkipped(Job job) {
@@ -655,6 +661,7 @@ public class JobActionServiceImpl implements JobActionService {
 
     /**
      * Dispatch next step to agent
+     *
      * @return true if next step dispatched, false if no more steps
      */
     private boolean toNextStep(JobSmContext context) {
@@ -742,21 +749,15 @@ public class JobActionServiceImpl implements JobActionService {
         context.put(Variables.Job.Steps, stepService.toVarString(job, node));
 
         // after status not apart of job status
-        if (!node.isAfter()) {
-            job.setStatusToContext(StatusHelper.convert(cmd));
-            job.setErrorToContext(cmd.getError());
-        }
+        job.setStatusToContext(StatusHelper.convert(cmd));
+        job.setErrorToContext(cmd.getError());
     }
 
     private Optional<StepNode> findNext(NodeTree tree, Node current, boolean isSuccess) {
         StepNode next = tree.next(current.getPath());
+
         if (Objects.isNull(next)) {
             return Optional.empty();
-        }
-
-        // find step from after
-        if (!isSuccess && !next.isAfter()) {
-            return findNext(tree, next, false);
         }
 
         return Optional.of(next);
@@ -798,6 +799,13 @@ public class JobActionServiceImpl implements JobActionService {
         } catch (Exception warn) {
             log.warn(warn);
         }
+    }
+
+    private Consumer<JobSmContext> notificationConsumer() {
+        return context -> {
+            Job job = context.job;
+            localTaskService.executeAsync(job);
+        };
     }
 
     @Getter

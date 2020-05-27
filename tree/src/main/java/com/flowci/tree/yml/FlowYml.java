@@ -18,13 +18,12 @@ package com.flowci.tree.yml;
 
 import com.flowci.exception.YmlException;
 import com.flowci.tree.*;
-
-import java.util.*;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+
+import java.util.*;
 
 /**
  * @author yang
@@ -43,10 +42,10 @@ public class FlowYml extends YmlBase<FlowNode> {
     private TriggerFilter trigger = new TriggerFilter();
 
     @NonNull
-    private List<StepYml> steps = new LinkedList<>();
+    private List<NotifyYml> notifications = new LinkedList<>();
 
     @NonNull
-    private List<StepYml> after = new LinkedList<>();
+    private List<StepYml> steps = new LinkedList<>();
 
     public FlowYml(FlowNode node) {
         setEnvs(node.getEnvironments());
@@ -68,25 +67,23 @@ public class FlowYml extends YmlBase<FlowNode> {
         node.setTrigger(trigger);
         node.setEnvironments(getVariableMap());
 
+        setupNotifications(node);
         setupSteps(node);
-        setupAfter(node);
         return node;
     }
 
-    private void setupAfter(FlowNode node) {
-        if (Objects.isNull(after) || after.isEmpty()) {
+    private void setupNotifications(FlowNode node) {
+        if (notifications.isEmpty()) {
             return;
         }
 
-        int index = 1;
-        Set<String> uniqueName = new HashSet<>(after.size());
-
-        for (StepYml child : after) {
-            StepNode step = child.toNode(index++, StepNode.Type.After);
-            if (!uniqueName.add(step.getName())) {
-                throw new YmlException("Duplicate name {0} in after", step.getName());
+        Set<String> uniqueName = new HashSet<>(notifications.size());
+        for (NotifyYml n : notifications) {
+            if (!uniqueName.add(n.getPlugin())) {
+                throw new YmlException("Duplicate plugin {0} defined in notifications", n.getPlugin());
             }
-            node.getAfter().add(step);
+
+            node.getNotifications().add(n.toObj());
         }
     }
 
@@ -99,7 +96,7 @@ public class FlowYml extends YmlBase<FlowNode> {
         Set<String> uniqueName = new HashSet<>(steps.size());
 
         for (StepYml child : steps) {
-            StepNode step = child.toNode(index++, StepNode.Type.Step);
+            StepNode step = child.toNode(index++);
             if (!uniqueName.add(step.getName())) {
                 throw new YmlException("Duplicate name {0} in step", step.getName());
             }

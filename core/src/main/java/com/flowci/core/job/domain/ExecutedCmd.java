@@ -20,18 +20,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.domain.CmdBase;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
-import com.google.common.collect.ImmutableSet;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
-import java.util.Set;
 
-import static com.flowci.core.job.domain.ExecutedCmd.Status.*;
 
 /**
  * ExecutedCmd == Step node with executed status and data
@@ -47,46 +43,7 @@ import static com.flowci.core.job.domain.ExecutedCmd.Status.*;
         def = "{'jobId': 1, 'nodePath': 1}",
         unique = true
 )
-public class ExecutedCmd extends CmdBase {
-
-    public final static Integer CODE_TIMEOUT = -100;
-
-    public final static Integer CODE_SUCCESS = 0;
-
-    private final static Set<Status> FailureStatus = ImmutableSet.of(
-            EXCEPTION,
-            KILLED,
-            TIMEOUT
-    );
-
-    private final static Set<Status> SuccessStatus = ImmutableSet.of(
-            SUCCESS,
-            SKIPPED
-    );
-
-    public enum Status {
-
-        PENDING(-1),
-
-        RUNNING(1),
-
-        SUCCESS(2),
-
-        SKIPPED(2),
-
-        EXCEPTION(3),
-
-        KILLED(3),
-
-        TIMEOUT(4);
-
-        @Getter
-        private Integer level;
-
-        Status(Integer level) {
-            this.level = level;
-        }
-    }
+public class ExecutedCmd extends CmdBase implements Executed {
 
     /**
      * Process id
@@ -142,11 +99,11 @@ public class ExecutedCmd extends CmdBase {
 
     @JsonIgnore
     public boolean isRunning() {
-        return status == RUNNING;
+        return status == Status.RUNNING;
     }
 
     @JsonIgnore
     public boolean isPending() {
-        return status == PENDING;
+        return status == Status.PENDING;
     }
 }

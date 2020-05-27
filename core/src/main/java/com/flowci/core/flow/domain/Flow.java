@@ -23,18 +23,15 @@ import com.flowci.domain.StringVars;
 import com.flowci.domain.TypedVars;
 import com.flowci.domain.VarValue;
 import com.flowci.domain.Vars;
+import com.flowci.exception.ArgumentException;
 import com.flowci.store.Pathable;
+import com.flowci.tree.NodePath;
 import com.flowci.util.StringHelper;
-import java.util.Objects;
-import java.util.Set;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.Objects;
 
 /**
  * @author yang
@@ -50,6 +47,13 @@ public final class Flow extends Mongoable implements Pathable {
         Flow flow = new Flow();
         flow.setId(id);
         return flow;
+    }
+
+    public static void validateName(String name) {
+        if (!NodePath.validate(name)) {
+            String message = "Illegal flow name {0}, the length cannot over 100 and '*' ',' is not available";
+            throw new ArgumentException(message, name);
+        }
     }
 
     public enum Status {
@@ -117,15 +121,5 @@ public final class Flow extends Mongoable implements Pathable {
         }
 
         return StringHelper.EMPTY;
-    }
-
-    @Data
-    public static class WebhookStatus {
-
-        private boolean added;
-
-        private String createdAt;
-
-        private Set<String> events;
     }
 }

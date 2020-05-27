@@ -16,11 +16,6 @@
 
 package com.flowci.domain;
 
-import com.flowci.util.ObjectsHelper;
-import com.flowci.util.PatternHelper;
-
-import java.util.Objects;
-
 /**
  * @author yang
  */
@@ -36,26 +31,9 @@ public enum VarType {
 
     GIT_URL,
 
-    EMAIL;
+    EMAIL,
 
-    public static boolean verify(VarType type, String value) {
-        switch (type) {
-            case INT:
-                return ObjectsHelper.tryParseInt(value);
+    CONFIG,
 
-            case BOOL:
-                return Objects.equals(value, "true") || Objects.equals(value, "false");
-
-            case HTTP_URL:
-                return PatternHelper.isWebURL(value);
-
-            case GIT_URL:
-                return PatternHelper.isGitURL(value);
-
-            case EMAIL:
-                return PatternHelper.isEmail(value);
-        }
-
-        return true;
-    }
+    SECRET;
 }

@@ -22,6 +22,7 @@ import com.flowci.core.flow.domain.FlowAction;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.domain.http.RequestMessage;
+import com.flowci.tree.FlowNode;
 import com.flowci.tree.StepNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -43,10 +44,10 @@ public class YmlController {
     @Autowired
     private YmlService ymlService;
 
-    @GetMapping("/{name}/yml/steps")
-    public List<StepNode> listSteps(@PathVariable String name) {
+    @GetMapping("/{name}/yml/obj")
+    public FlowNode listSteps(@PathVariable String name) {
         Flow flow = flowService.get(name);
-        return ymlService.ListChildren(flow);
+        return ymlService.getRaw(flow);
     }
 
     @PostMapping("/{name}/yml")

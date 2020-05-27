@@ -35,11 +35,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -124,8 +121,9 @@ public class SecretServiceImpl implements SecretService {
     public void onGetCredentialEvent(GetSecretEvent event) {
         try {
             Secret c = get(event.getName());
-            event.setSecret(c);
-        } catch (NotFoundException ignore) {
+            event.setFetched(c);
+        } catch (NotFoundException e) {
+            event.setError(e);
         }
     }
 

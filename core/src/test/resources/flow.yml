@@ -3,13 +3,13 @@ envs:
   FLOW_VERSION: "echo version"
 
 steps:
-- envs:
-    FLOW_WORKSPACE: "echo step"
-    FLOW_VERSION: "echo step version"
-  allow_failure: true
-  script: |
-    echo hello
+  - envs:
+      FLOW_WORKSPACE: "echo step"
+      FLOW_VERSION: "echo step version"
+    allow_failure: true
+    script: |
+      echo hello
 
-- name: step2
-  allow_failure: false
-  script: "echo 2"
+  - name: step2
+    allow_failure: false
+    script: "echo 2"

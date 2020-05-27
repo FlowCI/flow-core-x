@@ -18,9 +18,13 @@ package com.flowci.core.plugin.service;
 
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.domain.PluginRepoInfo;
+import com.flowci.domain.Vars;
+
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author yang
@@ -28,9 +32,21 @@ import java.util.List;
 public interface PluginService {
 
     /**
+     * Verify input from context, and set default value to context
+     *
+     * @return invalid input name, or empty if all inputs are validated
+     */
+    Optional<String> verifyInputAndSetDefaultValue(Plugin plugin, Vars<String> context);
+
+    /**
      * List all installed plugin
      */
     Collection<Plugin> list();
+
+    /**
+     * List installed plugins by tag filter
+     */
+    Collection<Plugin> list(Set<String> tags);
 
     /**
      * Get plugin by name

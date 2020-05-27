@@ -17,6 +17,7 @@
 package com.flowci.core.plugin.domain;
 
 import com.flowci.core.flow.domain.StatsType;
+import com.flowci.domain.Input;
 import com.flowci.domain.VarType;
 import com.flowci.domain.Version;
 import com.flowci.tree.yml.DockerYml;
@@ -24,11 +25,12 @@ import com.flowci.util.ObjectsHelper;
 import com.flowci.util.YamlHelper;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import org.omg.CORBA.ObjectHelper;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author yang
@@ -62,19 +64,12 @@ public class PluginParser {
 
         public String script;
 
-        public ParentWrapper parent;
-
         public DockerYml docker;
 
         public Plugin toPlugin() {
             Plugin plugin = new Plugin(name, Version.parse(version));
             plugin.setIcon(icon);
-
-            if (Objects.isNull(parent)) {
-                plugin.setBody(new ScriptBody(script));
-            } else {
-                plugin.setBody(parent.toParentBody());
-            }
+            plugin.setScript(script);
 
             ObjectsHelper.ifNotNull(docker, val -> plugin.setDocker(val.toDockerOption()));
             ObjectsHelper.ifNotNull(exports, plugin::setExports);
@@ -91,26 +86,6 @@ public class PluginParser {
             });
 
             return plugin;
-        }
-    }
-
-    @NoArgsConstructor
-    private static class ParentWrapper {
-
-        @NonNull
-        public String name;
-
-        @NonNull
-        public String version;
-
-        public Map<String, String> envs = new LinkedHashMap<>();
-
-        public PluginBody toParentBody() {
-            ParentBody body = new ParentBody();
-            body.setName(name);
-            body.setVersion(version);
-            body.getEnvs().putAll(envs);
-            return body;
         }
     }
 
@@ -159,5 +134,4 @@ public class PluginParser {
             return var;
         }
     }
-
 }

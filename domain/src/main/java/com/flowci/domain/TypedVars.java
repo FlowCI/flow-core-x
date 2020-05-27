@@ -16,13 +16,22 @@
 
 package com.flowci.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 public class TypedVars extends Vars<VarValue> {
 
     public TypedVars() {
         super();
     }
 
-    public TypedVars(int size) {
-        super(size);
+    @Override
+    public List<String> toList() {
+        List<String> list = new ArrayList<>(this.size());
+        for (Map.Entry<String, VarValue> entry : this.entrySet()) {
+            list.add(String.format("%s=%s", entry.getKey(), entry.getValue().getData()));
+        }
+        return list;
     }
 }

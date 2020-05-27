@@ -17,7 +17,7 @@
 package com.flowci.core.test;
 
 import com.flowci.core.agent.event.AgentStatusEvent;
-import com.flowci.core.common.config.ConfigProperties;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.domain.Agent;
 import com.flowci.domain.Agent.Status;
 import com.flowci.domain.ObjectWrapper;
@@ -44,7 +44,7 @@ public abstract class ZookeeperScenario extends SpringScenario {
     private ZookeeperClient zk;
 
     @Autowired
-    private ConfigProperties.Zookeeper zkProperties;
+    private AppProperties.Zookeeper zkProperties;
 
     @ClassRule
     public static TemporaryFolder temp = new TemporaryFolder();

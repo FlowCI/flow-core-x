@@ -40,9 +40,6 @@ public class NodeTree {
     private final List<StepNode> steps = new ArrayList<>(DEFAULT_SIZE);
 
     @Getter
-    private final List<StepNode> after = new ArrayList<>(DEFAULT_SIZE);
-
-    @Getter
     private final FlowNode root;
 
     public NodeTree(FlowNode root) {
@@ -65,16 +62,7 @@ public class NodeTree {
         }
 
         StepNode step = get(path);
-        if (step.isAfter()) {
-            return findNext(step, after);
-        }
-
-        StepNode next = findNext(step, steps);
-        if (next != null) {
-            return next;
-        }
-
-        return findNext(null, after);
+        return findNext(step, steps);
     }
 
     /**
@@ -114,28 +102,12 @@ public class NodeTree {
             step.setOrder(i);
             cached.put(step.getPath(), step);
         }
-
-        for (int i = 0; i < after.size(); i++) {
-            StepNode step = after.get(i);
-            step.setOrder(i);
-            cached.put(step.getPath(), step);
-        }
     }
 
     /**
      * Reset node path and parent reference and put to cache
      */
     private void buildTree(Node root) {
-        if (root instanceof FlowNode) {
-            FlowNode flow = (FlowNode) root;
-            for (StepNode step : flow.getAfter()) {
-                step.setPath(NodePath.create(root.getPath(), step.getName()));
-                step.setParent(root);
-                step.setAllowFailure(true);
-                after.add(step);
-            }
-        }
-
         for (StepNode step : root.getChildren()) {
             step.setPath(NodePath.create(root.getPath(), step.getName()));
             step.setParent(root);

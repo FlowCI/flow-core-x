@@ -88,13 +88,10 @@ public class FlowMockHelper {
     }
 
     void addUsers(String name, User... users) throws Exception {
-        List<String> ids = toUserIdList(users);
-
-        ResponseMessage message = mockMvcHelper.expectSuccessAndReturnClass(
+        ResponseMessage<?> message = mockMvcHelper.expectSuccessAndReturnClass(
                 post("/flows/" + name + "/users")
-                        .content(objectMapper.writeValueAsBytes(ids))
+                        .content(objectMapper.writeValueAsBytes(toUserEmailList(users)))
                         .contentType(MediaType.APPLICATION_JSON), ResponseMessage.class);
-
         Assert.assertEquals(StatusCode.OK, message.getCode());
     }
 
@@ -107,13 +104,10 @@ public class FlowMockHelper {
     }
 
     void removeUsers(String name, User... users) throws Exception {
-        List<String> ids = toUserIdList(users);
-
-        ResponseMessage message = mockMvcHelper.expectSuccessAndReturnClass(
+        ResponseMessage<?> message = mockMvcHelper.expectSuccessAndReturnClass(
                 delete("/flows/" + name + "/users")
-                        .content(objectMapper.writeValueAsBytes(ids))
+                        .content(objectMapper.writeValueAsBytes(toUserEmailList(users)))
                         .contentType(MediaType.APPLICATION_JSON), ResponseMessage.class);
-
         Assert.assertEquals(StatusCode.OK, message.getCode());
     }
 
@@ -131,13 +125,11 @@ public class FlowMockHelper {
                         .contentType(MediaType.APPLICATION_JSON), ResponseMessage.class);
     }
 
-    private List<String> toUserIdList(User... users) {
+    private List<String> toUserEmailList(User... users) {
         List<String> ids = new ArrayList<>(users.length);
-
         for (User item : users) {
-            ids.add(item.getId());
+            ids.add(item.getEmail());
         }
-
         return ids;
     }
 }

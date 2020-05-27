@@ -16,6 +16,7 @@
 
 package com.flowci.core.test.job;
 
+import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
@@ -25,11 +26,9 @@ import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
-import com.flowci.core.plugin.domain.Input;
-import com.flowci.core.plugin.domain.ParentBody;
+import com.flowci.domain.Input;
 import com.flowci.core.plugin.domain.Plugin;
-import com.flowci.core.plugin.domain.ScriptBody;
-import com.flowci.core.plugin.service.PluginService;
+import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.*;
 import com.flowci.tree.*;
@@ -59,11 +58,11 @@ public class CmdManagerTest extends SpringScenario {
     @Autowired
     private StepService stepService;
 
-    @MockBean
-    private PluginService pluginService;
-
     @Autowired
     private CmdManager cmdManager;
+
+    @MockBean
+    private SpringEventManager eventManager;
 
     @Before
     public void login() {
@@ -74,10 +73,9 @@ public class CmdManagerTest extends SpringScenario {
     public void should_create_cmd_in_with_default_plugin_value() throws IOException {
         // init: setup mock plugin service
         Plugin plugin = createDummyPlugin();
-        Mockito.when(pluginService.get(plugin.getName())).thenReturn(plugin);
-
-        Plugin parent = createDummyParentPlugin();
-        Mockito.when(pluginService.get(parent.getName())).thenReturn(parent);
+        GetPluginEvent event = new GetPluginEvent(this, plugin.getName());
+        event.setFetched(plugin);
+        Mockito.when(eventManager.publish(Mockito.any())).thenReturn(event);
 
         // given: flow and job
         Flow flow = flowService.create("hello");
@@ -103,12 +101,6 @@ public class CmdManagerTest extends SpringScenario {
         Assert.assertEquals("test", inputs.get("GIT_STR_VAL"));
         Assert.assertEquals("60", inputs.get("GIT_DEFAULT_VAL"));
 
-        // then: script should from self and parent, two inputs for parent
-        Assert.assertEquals("echo \"plugin-test\"", scripts.get(0));
-        Assert.assertEquals("echo ${P_VAR_1} ${P_VAR_2}", scripts.get(1));
-        Assert.assertEquals("hello", inputs.get("P_VAR_1"));
-        Assert.assertEquals("world", inputs.get("P_VAR_2"));
-
         // then: docker option should from step
         DockerOption docker = plugin.getDocker();
         Assert.assertNotNull(docker);
@@ -128,45 +120,14 @@ public class CmdManagerTest extends SpringScenario {
         strInput.setType(VarType.STRING);
         strInput.setRequired(true);
 
-        StringVars varsForParent = new StringVars();
-        varsForParent.put("P_VAR_1", "hello");
-        varsForParent.put("P_VAR_2", "world");
-
-        ParentBody parent = new ParentBody();
-        parent.setName("parent");
-        parent.setEnvs(varsForParent);
-
         DockerOption option = new DockerOption();
         option.setImage("ubuntu:19.04");
 
         Plugin plugin = new Plugin();
         plugin.setName("gittest");
         plugin.setInputs(Lists.newArrayList(intInput, strInput));
-        plugin.setBody(parent);
         plugin.setDocker(option);
-
-        return plugin;
-    }
-
-    private Plugin createDummyParentPlugin() {
-        Input input1 = new Input();
-        input1.setName("P_VAR_1");
-        input1.setType(VarType.STRING);
-        input1.setRequired(true);
-
-        Input input2 = new Input();
-        input2.setName("P_VAR_2");
-        input2.setType(VarType.STRING);
-        input2.setRequired(true);
-
-        DockerOption option = new DockerOption();
-        option.setImage("ubuntu:latest");
-
-        Plugin plugin = new Plugin();
-        plugin.setName("parent");
-        plugin.setInputs(Lists.newArrayList(input1, input2));
-        plugin.setBody(new ScriptBody("echo ${P_VAR_1} ${P_VAR_2}"));
-        plugin.setDocker(option);
+        plugin.setScript("echo ${GIT_DEFAULT_VAL} ${GIT_STR_VAL}");
 
         return plugin;
     }
