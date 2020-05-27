@@ -5,7 +5,7 @@ import com.flowci.core.job.dao.ExecutedLocalTaskDao;
 import com.flowci.core.job.domain.Executed;
 import com.flowci.core.job.domain.ExecutedLocalTask;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.job.event.TaskStatusChangeEvent;
+import com.flowci.core.job.event.TaskUpdateEvent;
 import com.flowci.core.job.manager.DockerManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.plugin.domain.Plugin;
@@ -64,7 +64,9 @@ public class LocalTaskServiceImpl implements LocalTaskService {
             t.setJobId(job.getId());
             tasks.add(t);
         }
+
         executedLocalTaskDao.insert(tasks);
+        eventManager.publish(new TaskUpdateEvent(this, job.getId(), tasks, true));
     }
 
     @Override
@@ -105,7 +107,8 @@ public class LocalTaskServiceImpl implements LocalTaskService {
             if (event.hasError()) {
                 String message = event.getError().getMessage();
                 log.warn(message);
-                updateStatusTimeAndSave(exec, Executed.Status.EXCEPTION, message);;
+                updateStatusTimeAndSave(exec, Executed.Status.EXCEPTION, message);
+                ;
                 return exec;
             }
 
@@ -152,7 +155,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
 
         String jobId = t.getJobId();
         List<ExecutedLocalTask> list = executedLocalTaskDao.findAllByJobId(jobId);
-        eventManager.publish(new TaskStatusChangeEvent(this, t.getJobId(), list));
+        eventManager.publish(new TaskUpdateEvent(this, t.getJobId(), list, false));
     }
 
     private void runDockerTask(DockerManager.Option option, ExecutedLocalTask r) throws InterruptedException, RuntimeException {

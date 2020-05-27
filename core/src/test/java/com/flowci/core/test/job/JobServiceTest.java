@@ -225,7 +225,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Mockito.doAnswer((Answer<Void>) invocation -> {
             localTaskCountDown.countDown();
             return null;
-        }).when(localTaskManager).executeAsync(Mockito.any(), Mockito.any());
+        }).when(localTaskManager).executeAsync(Mockito.any());
 
         addEventListener((ApplicationListener<StartAsyncLocalTaskEvent>) event -> localTaskCountDown.countDown());
 

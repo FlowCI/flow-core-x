@@ -21,8 +21,8 @@ import com.flowci.core.common.manager.SocketPushManager;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
-import com.flowci.core.job.event.StepInitializedEvent;
-import com.flowci.core.job.event.StepStatusChangeEvent;
+import com.flowci.core.job.event.StepUpdateEvent;
+import com.flowci.core.job.event.TaskUpdateEvent;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -62,15 +62,18 @@ public class PushServiceImpl implements PushService {
 
     @Override
     @EventListener
-    public void onStepStatusChange(StepStatusChangeEvent event) {
+    public void onStepStatusChange(StepUpdateEvent event) {
         String topic = topicForSteps + "/" + event.getJobId();
-        socketPushManager.push(topic, PushEvent.STATUS_CHANGE, event.getSteps());
+        if (event.isInit()) {
+            socketPushManager.push(topic, PushEvent.NEW_CREATED, event.getItems());
+            return;
+        }
+        socketPushManager.push(topic, PushEvent.STATUS_CHANGE, event.getItems());
     }
 
     @Override
     @EventListener
-    public void onStepInitialized(StepInitializedEvent event) {
-        String topic = topicForSteps + "/" + event.getJobId();
-        socketPushManager.push(topic, PushEvent.NEW_CREATED, event.getSteps());
+    public void onTaskStatusChange(TaskUpdateEvent event) {
+
     }
 }

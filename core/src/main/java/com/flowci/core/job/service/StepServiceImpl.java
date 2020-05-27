@@ -22,8 +22,7 @@ import com.flowci.core.job.dao.ExecutedCmdDao;
 import com.flowci.core.job.domain.Executed;
 import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.job.event.StepInitializedEvent;
-import com.flowci.core.job.event.StepStatusChangeEvent;
+import com.flowci.core.job.event.StepUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.NodePath;
@@ -74,7 +73,7 @@ public class StepServiceImpl implements StepService {
         }
 
         executedCmdDao.insert(steps);
-        eventManager.publish(new StepInitializedEvent(this, job.getId(), steps));
+        eventManager.publish(new StepUpdateEvent(this, job.getId(), steps, true));
     }
 
     @Override
@@ -143,7 +142,7 @@ public class StepServiceImpl implements StepService {
         jobStepCache.invalidate(jobId);
 
         List<ExecutedCmd> steps = list(jobId, entity.getFlowId(), entity.getBuildNumber());
-        eventManager.publish(new StepStatusChangeEvent(this, jobId, steps));
+        eventManager.publish(new StepUpdateEvent(this, jobId, steps, false));
         return entity;
     }
 
