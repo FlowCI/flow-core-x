@@ -48,6 +48,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final String stepsTopic = "/topic/steps";
 
     /**
+     * To subscribe task update for job
+     * Ex: /topic/tasks/{job id}
+     */
+    private final String tasksTopic = "/topic/tasks";
+
+    /**
      * To subscribe real time logging for all jobs.
      * Ex: /topic/logs
      */
@@ -87,6 +93,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Bean("topicForSteps")
     public String topicForSteps() {
         return stepsTopic;
+    }
+
+    @Bean("topicForTasks")
+    public String topicForTasks() {
+        return tasksTopic;
     }
 
     @Bean("topicForLogs")

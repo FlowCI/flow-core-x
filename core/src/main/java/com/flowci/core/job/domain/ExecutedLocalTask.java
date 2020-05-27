@@ -28,6 +28,10 @@ public final class ExecutedLocalTask implements Executed {
     private String jobId;
 
     @NonNull
+    @Indexed(name = "index_task_flow_id")
+    private String flowId;
+
+    @NonNull
     private String name;
 
     private Status status = Status.PENDING;

@@ -110,6 +110,9 @@ public class JobServiceImpl implements JobService {
     @Autowired
     private StepService stepService;
 
+    @Autowired
+    private LocalTaskService localTaskService;
+
     //====================================================================
     //        %% Public functions
     //====================================================================
@@ -209,6 +212,7 @@ public class JobServiceImpl implements JobService {
 
         // cleanup
         stepService.delete(job);
+        localTaskService.delete(job);
         ymlManager.delete(job);
 
         jobActionService.toCreated(job, yml.getRaw());
@@ -227,6 +231,9 @@ public class JobServiceImpl implements JobService {
 
             Long numOfStepDeleted = stepService.delete(flow);
             log.info("Deleted: {} steps of flow {}", numOfStepDeleted, flow.getName());
+
+            Long numOfTaskDeleted = localTaskService.delete(flow);
+            log.info("Deleted: {} tasks of flow {}", numOfTaskDeleted, flow.getName());
 
             eventManager.publish(new JobDeletedEvent(this, flow, numOfJobDeleted));
         });

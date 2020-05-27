@@ -1,5 +1,6 @@
 package com.flowci.core.job.service;
 
+import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.ExecutedLocalTask;
 import com.flowci.core.job.domain.Job;
 import com.flowci.domain.LocalTask;
@@ -11,6 +12,10 @@ public interface LocalTaskService {
     void init(Job job);
 
     List<ExecutedLocalTask> list(Job job);
+
+    Long delete(Job job);
+
+    Long delete(Flow flow);
 
     void executeAsync(Job job);
 

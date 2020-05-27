@@ -42,6 +42,9 @@ public class PushServiceImpl implements PushService {
     private String topicForSteps;
 
     @Autowired
+    private String topicForTasks;
+
+    @Autowired
     private SocketPushManager socketPushManager;
 
     @Override
@@ -74,6 +77,11 @@ public class PushServiceImpl implements PushService {
     @Override
     @EventListener
     public void onTaskStatusChange(TaskUpdateEvent event) {
-
+        String topic = topicForTasks + "/" + event.getJobId();
+        if (event.isInit()) {
+            socketPushManager.push(topic, PushEvent.NEW_CREATED, event.getItems());
+            return;
+        }
+        socketPushManager.push(topic, PushEvent.STATUS_CHANGE, event.getItems());
     }
 }

@@ -13,4 +13,8 @@ public interface ExecutedLocalTaskDao extends MongoRepository<ExecutedLocalTask,
     List<ExecutedLocalTask> findAllByJobId(String jobId);
 
     Optional<ExecutedLocalTask> findByJobIdAndAndName(String jobId, String name);
+
+    Long deleteAllByJobId(String jobId);
+
+    Long deleteAllByFlowId(String flowId);
 }

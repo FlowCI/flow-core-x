@@ -1,6 +1,7 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.ExecutedLocalTaskDao;
 import com.flowci.core.job.domain.Executed;
 import com.flowci.core.job.domain.ExecutedLocalTask;
@@ -62,6 +63,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
             ExecutedLocalTask t = new ExecutedLocalTask();
             t.setName(n.getPlugin()); // name is plugin name
             t.setJobId(job.getId());
+            t.setFlowId(job.getFlowId());
             tasks.add(t);
         }
 
@@ -72,6 +74,16 @@ public class LocalTaskServiceImpl implements LocalTaskService {
     @Override
     public List<ExecutedLocalTask> list(Job job) {
         return executedLocalTaskDao.findAllByJobId(job.getId());
+    }
+
+    @Override
+    public Long delete(Job job) {
+        return executedLocalTaskDao.deleteAllByJobId(job.getId());
+    }
+
+    @Override
+    public Long delete(Flow flow) {
+        return executedLocalTaskDao.deleteAllByFlowId(flow.getId());
     }
 
     @Override
