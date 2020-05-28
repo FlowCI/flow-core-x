@@ -17,6 +17,10 @@
 
 package com.flowci.core.secret.domain;
 
+import com.google.common.collect.ImmutableList;
+
+import java.util.List;
+
 public abstract class SecretAction {
 
     public static final String LIST = "list_credential";
@@ -31,13 +35,12 @@ public abstract class SecretAction {
 
     public static final String DELETE = "delete_credential";
 
-    public static final String[] ALL = {
-        LIST,
-        LIST_NAME,
-        GET,
-        CREATE,
-        GENERATE_RSA,
-        DELETE
-    };
-
+    public static final List<String> ALL = ImmutableList.of(
+            LIST,
+            LIST_NAME,
+            GET,
+            CREATE,
+            GENERATE_RSA,
+            DELETE
+    );
 }

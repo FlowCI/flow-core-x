@@ -16,6 +16,10 @@
 
 package com.flowci.core.agent.domain;
 
+import com.google.common.collect.ImmutableList;
+
+import java.util.List;
+
 public abstract class AgentHostAction {
 
     public static final String GET = "get_agent_host";
@@ -26,11 +30,10 @@ public abstract class AgentHostAction {
 
     public static final String DELETE = "delete_agent_host";
 
-    public static final String[] ALL = {
+    public static final List<String> ALL = ImmutableList.of(
             GET,
             LIST,
             CREATE_UPDATE,
             DELETE
-    };
-
+    );
 }
