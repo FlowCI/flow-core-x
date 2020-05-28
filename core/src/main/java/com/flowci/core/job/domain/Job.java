@@ -226,7 +226,7 @@ public class Job extends Mongoable implements Pathable {
     private int timeout = 1800;
 
     /**
-     * Whole job timeout in seconds
+     * Timeout while job queuing
      */
     private int expire = 1800;
 
