@@ -16,7 +16,6 @@
 
 package com.flowci.core.job.service;
 
-import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -52,7 +51,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
@@ -75,9 +73,6 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private String serverUrl;
-
-    @Autowired
-    private AppProperties.Job jobProperties;
 
     @Autowired
     private JobDao jobDao;
@@ -189,7 +184,8 @@ public class JobServiceImpl implements JobService {
         FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
 
         // reset
-        setExpireTime(job);
+        job.setTimeout(flow.getStepTimeout());
+        job.setExpire(flow.getStepTimeout());
         job.setCreatedAt(Date.from(Instant.now()));
         job.setFinishAt(null);
         job.setStartAt(null);
@@ -254,11 +250,10 @@ public class JobServiceImpl implements JobService {
         job.setFlowName(flow.getName());
         job.setTrigger(trigger);
         job.setBuildNumber(jobNumber.getNumber());
-        job.setTimeout(jobProperties.getTimeoutInSeconds());
-        job.setExpire(jobProperties.getExpireInSeconds());
+        job.setTimeout(flow.getStepTimeout());
+        job.setExpire(flow.getJobTimeout());
         job.setYamlFromRepo(flow.isYamlFromRepo());
         job.setYamlRepoBranch(flow.getYamlRepoBranch());
-        setExpireTime(job);
 
         // init job context
         initJobContext(job, flow, input);
@@ -281,12 +276,6 @@ public class JobServiceImpl implements JobService {
 
         // save
         return jobDao.insert(job);
-    }
-
-    private void setExpireTime(Job job) {
-        long totalExpire = job.getExpire() + job.getTimeout();
-        Instant expireAt = Instant.now().plus(totalExpire, ChronoUnit.SECONDS);
-        job.setExpireAt(Date.from(expireAt));
     }
 
     private void initJobContext(Job job, Flow flow, Vars<String> inputs) {

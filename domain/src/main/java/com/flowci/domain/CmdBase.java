@@ -45,8 +45,6 @@ public abstract class CmdBase implements Serializable {
     @NonNull
     private Long buildNumber;
 
-    private boolean isAfter;
-
     /**
      * Container id if ran from docker
      */

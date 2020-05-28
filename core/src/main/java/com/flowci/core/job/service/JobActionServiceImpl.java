@@ -267,18 +267,6 @@ public class JobActionServiceImpl implements JobActionService {
         Sm.add(CreatedToQueued, new Action<JobSmContext>() {
 
             @Override
-            public boolean canRun(JobSmContext context) {
-                Job job = context.job;
-
-                if (job.isExpired()) {
-                    Sm.execute(context.getCurrent(), Timeout, context);
-                    return false;
-                }
-
-                return true;
-            }
-
-            @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 setJobStatusAndSave(job, Job.Status.QUEUED, null);
@@ -464,9 +452,7 @@ public class JobActionServiceImpl implements JobActionService {
                 ExecutedCmd step = context.step;
                 Throwable err = context.getError();
 
-                if (!step.isAfter()) {
-                    stepService.toStatus(job.getId(), step.getNodePath(), ExecutedCmd.Status.EXCEPTION, null);
-                }
+                stepService.toStatus(job.getId(), step.getNodePath(), ExecutedCmd.Status.EXCEPTION, null);
 
                 Agent agent = agentService.get(job.getAgentId());
                 agentService.tryRelease(agent.getId());
@@ -530,11 +516,6 @@ public class JobActionServiceImpl implements JobActionService {
         Sm.add(CancellingToCancelled, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) {
-                // run after steps
-                if (toNextStep(context)) {
-                    return;
-                }
-
                 Job job = context.job;
                 Agent agent = agentService.get(job.getAgentId());
                 agentService.tryRelease(agent.getId());
@@ -748,7 +729,6 @@ public class JobActionServiceImpl implements JobActionService {
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
         context.put(Variables.Job.Steps, stepService.toVarString(job, node));
 
-        // after status not apart of job status
         job.setStatusToContext(StatusHelper.convert(cmd));
         job.setErrorToContext(cmd.getError());
     }
@@ -766,10 +746,6 @@ public class JobActionServiceImpl implements JobActionService {
     private boolean canContinue(String jobId, ObjectWrapper<Job> out) {
         Job job = jobDao.findById(jobId).get();
         out.setValue(job);
-
-        if (job.isExpired()) {
-            return false;
-        }
 
         if (job.isCancelling()) {
             return false;

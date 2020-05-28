@@ -48,7 +48,7 @@ public class CmdManagerImpl implements CmdManager {
         in.setFlowId(cmd.getFlowId()); // default work dir is {agent dir}/{flow id}
         in.setJobId(cmd.getJobId());
         in.setBuildNumber(cmd.getBuildNumber());
-        in.setAfter(cmd.isAfter());
+        in.setTimeout(job.getTimeout());
 
         // load setting from yaml StepNode
         in.setNodePath(node.getPathAsString());

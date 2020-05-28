@@ -17,7 +17,7 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.UpdateYAMLSource;
+import com.flowci.core.flow.domain.Settings;
 import com.flowci.core.flow.domain.WebhookStatus;
 import com.flowci.domain.VarValue;
 
@@ -29,12 +29,10 @@ import java.util.Map;
  */
 public interface FlowSettingService {
 
-    void rename(Flow flow, String newName);
-
     /**
      * Set flow YAML source
      */
-    void set(Flow flow, UpdateYAMLSource source);
+    void set(Flow flow, Settings settings);
 
     /**
      * Set flow webhook status

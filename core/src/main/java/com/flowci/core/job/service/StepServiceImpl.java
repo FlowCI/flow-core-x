@@ -68,7 +68,6 @@ public class StepServiceImpl implements StepService {
 
         for (StepNode node : tree.getSteps()) {
             ExecutedCmd cmd = newInstance(job, node);
-            cmd.setAfter(false);
             steps.add(cmd);
         }
 
