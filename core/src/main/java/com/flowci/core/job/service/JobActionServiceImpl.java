@@ -267,18 +267,6 @@ public class JobActionServiceImpl implements JobActionService {
         Sm.add(CreatedToQueued, new Action<JobSmContext>() {
 
             @Override
-            public boolean canRun(JobSmContext context) {
-                Job job = context.job;
-
-                if (job.isExpired()) {
-                    Sm.execute(context.getCurrent(), Timeout, context);
-                    return false;
-                }
-
-                return true;
-            }
-
-            @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 setJobStatusAndSave(job, Job.Status.QUEUED, null);
@@ -758,10 +746,6 @@ public class JobActionServiceImpl implements JobActionService {
     private boolean canContinue(String jobId, ObjectWrapper<Job> out) {
         Job job = jobDao.findById(jobId).get();
         out.setValue(job);
-
-        if (job.isExpired()) {
-            return false;
-        }
 
         if (job.isCancelling()) {
             return false;
