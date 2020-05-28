@@ -464,9 +464,7 @@ public class JobActionServiceImpl implements JobActionService {
                 ExecutedCmd step = context.step;
                 Throwable err = context.getError();
 
-                if (!step.isAfter()) {
-                    stepService.toStatus(job.getId(), step.getNodePath(), ExecutedCmd.Status.EXCEPTION, null);
-                }
+                stepService.toStatus(job.getId(), step.getNodePath(), ExecutedCmd.Status.EXCEPTION, null);
 
                 Agent agent = agentService.get(job.getAgentId());
                 agentService.tryRelease(agent.getId());
@@ -530,11 +528,6 @@ public class JobActionServiceImpl implements JobActionService {
         Sm.add(CancellingToCancelled, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) {
-                // run after steps
-                if (toNextStep(context)) {
-                    return;
-                }
-
                 Job job = context.job;
                 Agent agent = agentService.get(job.getAgentId());
                 agentService.tryRelease(agent.getId());
