@@ -33,6 +33,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
@@ -225,12 +226,12 @@ public class Job extends Mongoable implements Pathable {
     private int timeout = 1800;
 
     /**
-     * Expire while queue up
+     * Whole job timeout in seconds
      */
     private int expire = 1800;
 
     /**
-     * Total expire from expire and timeout
+     * Date that job will expired at
      */
     private Date expireAt;
 
@@ -243,6 +244,12 @@ public class Job extends Mongoable implements Pathable {
      * Real execution finish at
      */
     private Date finishAt;
+
+    public void setExpire(int expire) {
+        this.expire = expire;
+        Instant expireAt = Instant.now().plus(expire, ChronoUnit.SECONDS);
+        this.expireAt = (Date.from(expireAt));
+    }
 
     @JsonIgnore
     public boolean isCancelled() {
