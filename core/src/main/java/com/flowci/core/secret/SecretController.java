@@ -17,8 +17,7 @@
 package com.flowci.core.secret;
 
 import com.flowci.core.auth.annotation.Action;
-import com.flowci.core.secret.domain.CreateAuth;
-import com.flowci.core.secret.domain.CreateRSA;
+import com.flowci.core.secret.domain.Request;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.domain.SecretAction;
 import com.flowci.core.secret.service.SecretService;
@@ -65,7 +64,7 @@ public class SecretController {
 
     @PostMapping("/rsa")
     @Action(SecretAction.CREATE_RSA)
-    public Secret create(@Validated @RequestBody CreateRSA body) {
+    public Secret create(@Validated @RequestBody Request.CreateRSA body) {
         if (body.hasKeyPair()) {
             return secretService.createRSA(body.getName(), body.getKeyPair());
         }
@@ -75,7 +74,7 @@ public class SecretController {
 
     @PostMapping("/auth")
     @Action(SecretAction.CREATE_AUTH)
-    public Secret create(@Validated @RequestBody CreateAuth body) {
+    public Secret create(@Validated @RequestBody Request.CreateAuth body) {
         return secretService.createAuth(body.getName(), body.getAuthPair());
     }
 
