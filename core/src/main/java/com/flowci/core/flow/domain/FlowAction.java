@@ -17,6 +17,10 @@
 
 package com.flowci.core.flow.domain;
 
+import com.google.common.collect.ImmutableList;
+
+import java.util.List;
+
 public abstract class FlowAction {
 
     public static final String CREATE = "create_flow";
@@ -53,7 +57,7 @@ public abstract class FlowAction {
 
     public static final String LIST_PLUGINS = "list_plugins";
 
-    public static final String[] ALL = {
+    public static final List<String> ALL = ImmutableList.of(
             CREATE,
             CHECK_NAME,
             CONFIRM,
@@ -70,7 +74,7 @@ public abstract class FlowAction {
             ADD_USER,
             REMOVE_USER,
             LIST_USER,
-            LIST_PLUGINS,
-    };
+            LIST_PLUGINS
+    );
 
 }

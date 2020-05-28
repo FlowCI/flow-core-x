@@ -17,6 +17,10 @@
 
 package com.flowci.core.job.domain;
 
+import com.google.common.collect.ImmutableList;
+
+import java.util.List;
+
 public abstract class JobAction {
 
     public static final String LIST = "list_job";
@@ -45,7 +49,7 @@ public abstract class JobAction {
 
     public static final String DOWNLOAD_ARTIFACT = "fetch_job_artifact";
 
-    public static final String[] ALL = {
+    public static final List<String> ALL = ImmutableList.of(
             LIST,
             GET,
             GET_YML,
@@ -59,5 +63,5 @@ public abstract class JobAction {
             FETCH_REPORT,
             LIST_ARTIFACTS,
             DOWNLOAD_ARTIFACT
-    };
+    );
 }

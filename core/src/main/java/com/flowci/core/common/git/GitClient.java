@@ -170,7 +170,7 @@ public class GitClient {
 
     private class PrivateKeySessionFactory extends JschConfigSessionFactory implements AutoCloseable {
 
-        private Path tmpPrivateKeyFile = Paths.get(tmpDir.toString(), UUID.randomUUID().toString());
+        private final Path tmpPrivateKeyFile = Paths.get(tmpDir.toString(), UUID.randomUUID().toString());
 
         PrivateKeySessionFactory(String privateKey) throws IOException {
             Files.write(tmpPrivateKeyFile, privateKey.getBytes());
