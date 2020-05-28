@@ -4,16 +4,22 @@ import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
 import com.google.common.base.Strings;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.NotEmpty;
 
 public abstract class Request {
 
     @Data
-    public static class CreateAuth {
+    public abstract static class Base {
 
         @NotEmpty
         private String name;
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    public static class CreateAuth extends Base {
 
         @NotEmpty
         private String username;
@@ -27,10 +33,8 @@ public abstract class Request {
     }
 
     @Data
-    public class CreateRSA {
-
-        @NotEmpty
-        private String name;
+    @EqualsAndHashCode(callSuper = true)
+    public static class CreateRSA extends Base {
 
         @NotEmpty
         private String publicKey;
@@ -45,6 +49,14 @@ public abstract class Request {
         public SimpleKeyPair getKeyPair() {
             return SimpleKeyPair.of(publicKey, privateKey);
         }
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    public static class CreateToken extends Base {
+
+        @NotEmpty
+        public String token;
 
     }
 }
