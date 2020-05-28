@@ -58,6 +58,7 @@ public abstract class FlowAction {
             CHECK_NAME,
             CONFIRM,
             DELETE,
+            UPDATE,
             LIST,
             LIST_BY_CREDENTIAL,
             GET,

@@ -24,27 +24,11 @@ public class SettingController {
     @Autowired
     private FlowSettingService flowSettingService;
 
-    @PostMapping(value = "/{name}/sourceOfYaml")
+    @PostMapping(value = "/{name}/settings")
     @Action(FlowAction.UPDATE)
-    public Flow updateYAMLSource(@PathVariable String name, @RequestBody Settings.UpdateYAMLSource body) {
+    public Flow updateSettings(@PathVariable String name, @Validated @RequestBody Settings body) {
         Flow flow = flowService.get(name);
         flowSettingService.set(flow, body);
-        return flow;
-    }
-
-    @PostMapping(value = "/{name}/timeout")
-    @Action(FlowAction.UPDATE)
-    public Flow updateTimeout(@PathVariable String name, @RequestBody Settings.UpdateTimeout body) {
-        Flow flow = flowService.get(name);
-        flowSettingService.set(flow, body);
-        return flow;
-    }
-
-    @PostMapping(value = "/{name}/rename")
-    @Action(FlowAction.UPDATE)
-    public Flow rename(@PathVariable String name, @RequestBody Settings.RenameFlow body) {
-        Flow flow = flowService.get(name);
-        flowSettingService.rename(flow, body.getName());
         return flow;
     }
 
@@ -62,5 +46,4 @@ public class SettingController {
         Flow flow = flowService.get(name);
         flowSettingService.remove(flow, vars);
     }
-
 }
