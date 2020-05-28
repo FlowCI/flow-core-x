@@ -23,6 +23,7 @@ import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.job.domain.JobItem;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.domain.RSASecret;
+import com.flowci.core.secret.domain.TokenSecret;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import lombok.extern.log4j.Log4j2;
@@ -79,6 +80,7 @@ public class MongoConfig extends AbstractMongoConfiguration {
         context.addEntity(SmtpConfig.class);
         context.addEntity(AuthSecret.class);
         context.addEntity(RSASecret.class);
+        context.addEntity(TokenSecret.class);
 
         return context;
     }
@@ -96,6 +98,8 @@ public class MongoConfig extends AbstractMongoConfiguration {
         converters.add(encryptConverter.new SimpleKeyPairWriter());
         converters.add(encryptConverter.new SimpleAuthPairReader());
         converters.add(encryptConverter.new SimpleAuthPairWriter());
+        converters.add(encryptConverter.new SimpleTokenReader());
+        converters.add(encryptConverter.new SimpleTokenWriter());
 
         converters.add(new JobItem.ContextReader());
         return new MongoCustomConversions(converters);

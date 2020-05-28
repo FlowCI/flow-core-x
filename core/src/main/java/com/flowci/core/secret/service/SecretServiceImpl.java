@@ -23,6 +23,7 @@ import com.flowci.core.secret.dao.SecretDao;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
+import com.flowci.core.secret.domain.TokenSecret;
 import com.flowci.core.secret.event.CreateAuthEvent;
 import com.flowci.core.secret.event.CreateRsaEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
@@ -115,6 +116,14 @@ public class SecretServiceImpl implements SecretService {
         auth.setName(name);
         auth.setPair(pair);
         return save(auth);
+    }
+
+    @Override
+    public TokenSecret createToken(String name, String token) {
+        TokenSecret t = new TokenSecret();
+        t.setName(name);
+        t.setTokenData(token);
+        return save(t);
     }
 
     @EventListener

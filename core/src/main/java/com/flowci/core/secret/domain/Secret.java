@@ -39,7 +39,9 @@ public class Secret extends Mongoable {
 
 //        SSH_DSS,
 //
-//        SSH_ED25519
+//        SSH_ED25519,
+
+        TOKEN
     }
 
     @Indexed(name = "index_secret_name", unique = true)
