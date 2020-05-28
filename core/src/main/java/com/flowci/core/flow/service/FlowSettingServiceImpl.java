@@ -67,23 +67,11 @@ public class FlowSettingServiceImpl implements FlowSettingService {
     private VarManager varManager;
 
     @Override
-    public void rename(Flow flow, String newName) {
-        Flow.validateName(newName);
-        flow.setName(newName);
-        flowDao.save(flow);
-    }
-
-    @Override
-    public void set(Flow flow, Settings.UpdateYAMLSource options) {
-        flow.setYamlFromRepo(options.getIsYamlFromRepo());
-        flow.setYamlRepoBranch(options.getYamlRepoBranch());
-        flowDao.save(flow);
-    }
-
-    @Override
-    public void set(Flow flow, Settings.UpdateTimeout options) {
-        flow.setJobTimeout(options.getJobTimeout());
-        flow.setStepTimeout(options.getStepTimeout());
+    public void set(Flow flow, Settings settings) {
+        flow.setYamlFromRepo(settings.getIsYamlFromRepo());
+        flow.setYamlRepoBranch(settings.getYamlRepoBranch());
+        flow.setJobTimeout(settings.getJobTimeout());
+        flow.setStepTimeout(settings.getStepTimeout());
         flowDao.save(flow);
     }
 

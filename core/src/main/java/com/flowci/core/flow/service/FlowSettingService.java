@@ -29,17 +29,10 @@ import java.util.Map;
  */
 public interface FlowSettingService {
 
-    void rename(Flow flow, String newName);
-
     /**
      * Set flow YAML source
      */
-    void set(Flow flow, Settings.UpdateYAMLSource options);
-
-    /**
-     * Set flow timeout
-     */
-    void set(Flow flow, Settings.UpdateTimeout options);
+    void set(Flow flow, Settings settings);
 
     /**
      * Set flow webhook status
