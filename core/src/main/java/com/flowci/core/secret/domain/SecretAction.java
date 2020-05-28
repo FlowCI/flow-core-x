@@ -25,9 +25,7 @@ public abstract class SecretAction {
 
     public static final String GET = "get_credential";
 
-    public static final String CREATE_RSA = "create_credential_rsa";
-
-    public static final String CREATE_AUTH = "create_credential_auth";
+    public static final String CREATE = "create_credential_rsa";
 
     public static final String GENERATE_RSA = "generate_rsa";
 
@@ -37,8 +35,7 @@ public abstract class SecretAction {
         LIST,
         LIST_NAME,
         GET,
-        CREATE_RSA,
-        CREATE_AUTH,
+        CREATE,
         GENERATE_RSA,
         DELETE
     };
