@@ -4,10 +4,7 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.dao.ConfigDao;
-import com.flowci.core.config.domain.Config;
-import com.flowci.core.config.domain.ConfigParser;
-import com.flowci.core.config.domain.SmtpConfig;
-import com.flowci.core.config.domain.SmtpOption;
+import com.flowci.core.config.domain.*;
 import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
@@ -98,10 +95,7 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Override
     public Config save(String name, SmtpOption option) {
-        Objects.requireNonNull(name, "Config name is required");
-
         SmtpConfig config;
-
         Optional<Config> optional = configDao.findByName(name);
         if (optional.isPresent()) {
             config = (SmtpConfig) optional.get();
@@ -116,6 +110,26 @@ public class ConfigServiceImpl implements ConfigService {
             setAuthFromSecret(config);
         }
 
+        return save(config);
+    }
+
+    @Override
+    public Config save(String name, String text) {
+        TextConfig config;
+        Optional<Config> optional = configDao.findByName(name);
+
+        if (optional.isPresent()) {
+            config = (TextConfig) optional.get();
+        } else {
+            config = new TextConfig();
+            config.setName(name);
+        }
+
+        config.setText(text);
+        return save(config);
+    }
+
+    private <T extends Config> T save(T config) {
         try {
             return configDao.save(config);
         } catch (DuplicateKeyException e) {
