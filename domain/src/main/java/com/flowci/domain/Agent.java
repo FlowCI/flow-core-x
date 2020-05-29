@@ -39,7 +39,7 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(of = {"id"})
 public class Agent implements Serializable {
 
-    public final static String PATH_SLASH = "/";
+    public static final String PATH_SLASH = "/";
 
     public enum Status {
 

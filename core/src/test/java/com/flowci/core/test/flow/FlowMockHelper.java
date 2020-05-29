@@ -41,19 +41,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  */
 public class FlowMockHelper {
 
-    final static TypeReference<ResponseMessage<Flow>> FlowType =
+    static final TypeReference<ResponseMessage<Flow>> FlowType =
             new TypeReference<ResponseMessage<Flow>>() {
             };
 
-    final static TypeReference<ResponseMessage<List<Flow>>> ListFlowType =
+    static final TypeReference<ResponseMessage<List<Flow>>> ListFlowType =
             new TypeReference<ResponseMessage<List<Flow>>>() {
             };
 
-    final static TypeReference<ResponseMessage<String>> FlowYmlType =
+    static final TypeReference<ResponseMessage<String>> FlowYmlType =
             new TypeReference<ResponseMessage<String>>() {
             };
 
-    private final static TypeReference<ResponseMessage<List<User>>> UserListType =
+    private static final TypeReference<ResponseMessage<List<User>>> UserListType =
             new TypeReference<ResponseMessage<List<User>>>() {
             };
 

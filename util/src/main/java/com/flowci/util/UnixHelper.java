@@ -28,11 +28,11 @@ import java.util.regex.Pattern;
  */
 public abstract class UnixHelper {
 
-    private final static char EnvStart = '$';
+    private static final char EnvStart = '$';
 
-    private final static char EnvLeftBracket = '{';
+    private static final char EnvLeftBracket = '{';
 
-    private final static char EnvRightBracket = '}';
+    private static final char EnvRightBracket = '}';
 
     /**
      * Parse path with ${xxx} variable to absolute path

@@ -80,9 +80,9 @@ public class GitLabConverter extends TriggerConverter {
 
     private static class PushOrTagEvent extends Event {
 
-        final static String PushEvent = "push";
+        static final String PushEvent = "push";
 
-        final static String TagEvent = "tag_push";
+        static final String TagEvent = "tag_push";
 
         public String before;
 
@@ -170,9 +170,9 @@ public class GitLabConverter extends TriggerConverter {
 
     private static class PrEvent extends Event {
 
-        final static String PrOpened = "opened";
+        static final String PrOpened = "opened";
 
-        final static String PrMerged = "merged";
+        static final String PrMerged = "merged";
 
         public GitLabUser user;
 

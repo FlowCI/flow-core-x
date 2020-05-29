@@ -15,7 +15,7 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 public class StepNode extends Node {
 
-    public final static boolean ALLOW_FAILURE_DEFAULT = false;
+    public static final boolean ALLOW_FAILURE_DEFAULT = false;
 
     private DockerOption docker;
 

@@ -32,8 +32,8 @@ import java.util.Optional;
 @Service
 public class LocalTaskServiceImpl implements LocalTaskService {
 
-    private final static String DefaultImage = "flowci/plugin-runtime";
-    private final static int DefaultTimeout = 60; // seconds
+    private static final String DefaultImage = "flowci/plugin-runtime";
+    private static final int DefaultTimeout = 60; // seconds
 
     @Autowired
     private ExecutedLocalTaskDao executedLocalTaskDao;

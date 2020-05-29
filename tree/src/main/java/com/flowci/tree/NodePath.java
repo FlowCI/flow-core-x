@@ -35,13 +35,13 @@ import org.yaml.snakeyaml.error.YAMLException;
 @EqualsAndHashCode(of = {"pathInStr"})
 public final class NodePath implements Serializable {
 
-    private final static String PathSeparator = "/";
+    private static final String PathSeparator = "/";
 
-    private final static Set<String> Reserved = Sets.newHashSet("*", ";", ".", "/");
+    private static final Set<String> Reserved = Sets.newHashSet("*", ";", ".", "/");
 
-    private final static int MaxDepth = 10;
+    private static final int MaxDepth = 10;
 
-    private final static Range<Integer> NameLengthRange = Range.closed(1, 100);
+    private static final Range<Integer> NameLengthRange = Range.closed(1, 100);
 
     private final List<String> paths = new ArrayList<>(MaxDepth);
 

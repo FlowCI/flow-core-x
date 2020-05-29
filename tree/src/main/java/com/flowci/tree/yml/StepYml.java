@@ -38,7 +38,7 @@ import java.util.List;
 @NoArgsConstructor
 public class StepYml extends YmlBase<StepNode> {
 
-    private final static String DefaultStepPrefix = "step-";
+    private static final String DefaultStepPrefix = "step-";
 
     private DockerYml docker;
 
