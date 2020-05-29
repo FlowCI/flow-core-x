@@ -32,9 +32,9 @@ import java.util.Map;
  */
 public class YmlParser {
 
-    private final static LineBreak LINE_BREAK = LineBreak.getPlatformLineBreak();
+    private static final LineBreak LINE_BREAK = LineBreak.getPlatformLineBreak();
 
-    private final static Map<String, Integer> FieldsOrder = ImmutableMap.<String, Integer>builder()
+    private static final Map<String, Integer> FieldsOrder = ImmutableMap.<String, Integer>builder()
         .put("envs", 1)
         .put("trigger", 2)
         .put("selector", 3)

@@ -172,18 +172,18 @@ public class Job extends Mongoable implements Pathable {
         return job;
     }
 
-    public final static Set<Status> FINISH_STATUS = ImmutableSet.<Status>builder()
+    public static final Set<Status> FINISH_STATUS = ImmutableSet.<Status>builder()
             .add(Status.TIMEOUT)
             .add(Status.CANCELLED)
             .add(Status.FAILURE)
             .add(Status.SUCCESS)
             .build();
 
-    private final static SimpleDateFormat DateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final SimpleDateFormat DateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
-    private final static Integer MinPriority = 1;
+    private static final Integer MinPriority = 1;
 
-    private final static Integer MaxPriority = 255;
+    private static final Integer MaxPriority = 255;
 
     /**
      * Job key is generated from {flow id}-{build number}

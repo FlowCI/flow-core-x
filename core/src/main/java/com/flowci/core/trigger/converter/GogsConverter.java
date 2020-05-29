@@ -130,9 +130,9 @@ public class GogsConverter extends TriggerConverter {
 
     private static class PrEvent implements GitTriggerable {
 
-        final static String ACTION_OPENED = "opened";
+        static final String ACTION_OPENED = "opened";
 
-        final static String ACTION_CLOSED = "closed";
+        static final String ACTION_CLOSED = "closed";
 
         public String action;
 

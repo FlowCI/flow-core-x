@@ -30,7 +30,7 @@ import java.util.Base64;
  */
 public abstract class StringHelper {
 
-    public final static String EMPTY = "";
+    public static final String EMPTY = "";
 
     private static final SecureRandom random = new SecureRandom();
     

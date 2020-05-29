@@ -25,7 +25,7 @@ import java.util.*;
  */
 public class NodeTree {
 
-    private final static int DEFAULT_SIZE = 20;
+    private static final int DEFAULT_SIZE = 20;
 
     /**
      * Create node tree from FlowNode object

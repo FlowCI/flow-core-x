@@ -30,9 +30,9 @@ import org.yaml.snakeyaml.representer.Representer;
  */
 public abstract class YamlHelper {
 
-    private final static DumperOptions DUMPER_OPTIONS = new DumperOptions();
+    private static final DumperOptions DUMPER_OPTIONS = new DumperOptions();
 
-    private final static LineBreak LINE_BREAK = LineBreak.getPlatformLineBreak();
+    private static final LineBreak LINE_BREAK = LineBreak.getPlatformLineBreak();
 
     static {
         DUMPER_OPTIONS.setIndent(2);

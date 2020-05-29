@@ -45,9 +45,9 @@ public abstract class CipherHelper {
 
     public static abstract class RSA {
 
-        private final static String RsaPrivateKeyStart = "-----BEGIN RSA PRIVATE KEY-----";
+        private static final String RsaPrivateKeyStart = "-----BEGIN RSA PRIVATE KEY-----";
 
-        private final static String RsaPrivateKeyEnd = "-----END RSA PRIVATE KEY-----";
+        private static final String RsaPrivateKeyEnd = "-----END RSA PRIVATE KEY-----";
 
         public static boolean isPrivateKey(String src) {
             src = src.trim();

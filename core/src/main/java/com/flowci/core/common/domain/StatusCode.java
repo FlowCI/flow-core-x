@@ -21,9 +21,9 @@ package com.flowci.core.common.domain;
  */
 public final class StatusCode {
 
-    public final static Integer OK = 200;
+    public static final Integer OK = 200;
 
-    public final static Integer FATAL = 500;
+    public static final Integer FATAL = 500;
 
     private StatusCode() {
     }

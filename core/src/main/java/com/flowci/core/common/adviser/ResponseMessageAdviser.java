@@ -42,7 +42,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 })
 public class ResponseMessageAdviser implements ResponseBodyAdvice {
 
-    private final static String SUCCESS_MESSAGE = "success";
+    private static final String SUCCESS_MESSAGE = "success";
 
     @Override
     public boolean supports(MethodParameter returnType, Class converterType) {
