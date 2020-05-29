@@ -15,9 +15,7 @@ public abstract class Config extends Mongoable {
 
         SMTP,
 
-        FILE,
-
-        JSON
+        TEXT
     }
 
     @Indexed(name = "index_config_name", unique = true)
