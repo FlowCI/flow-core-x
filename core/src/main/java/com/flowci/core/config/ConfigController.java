@@ -5,6 +5,7 @@ import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.domain.ConfigAction;
 import com.flowci.core.config.domain.SmtpOption;
 import com.flowci.core.config.service.ConfigService;
+import com.flowci.domain.http.RequestMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,12 @@ public class ConfigController {
     @Action(ConfigAction.SAVE)
     public Config save(@PathVariable String name, @Validated @RequestBody SmtpOption option) {
         return configService.save(name, option);
+    }
+
+    @PostMapping("/{name}/text")
+    @Action(ConfigAction.SAVE)
+    public Config save(@PathVariable String name, @RequestBody RequestMessage<String> body) {
+        return configService.save(name, body.getData());
     }
 
     @GetMapping("/{name}")
