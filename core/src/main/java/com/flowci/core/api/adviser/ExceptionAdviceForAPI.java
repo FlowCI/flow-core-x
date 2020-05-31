@@ -18,7 +18,7 @@
 package com.flowci.core.api.adviser;
 
 import com.flowci.core.common.domain.StatusCode;
-import com.flowci.domain.http.ResponseMessage;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.exception.CIException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;

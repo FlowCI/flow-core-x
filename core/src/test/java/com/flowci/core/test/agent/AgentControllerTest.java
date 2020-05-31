@@ -28,7 +28,7 @@ import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.Agent;
 import com.flowci.domain.Settings;
-import com.flowci.domain.http.ResponseMessage;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.exception.ErrorCode;
 import com.google.common.collect.Sets;
 import org.junit.Assert;

@@ -21,7 +21,7 @@ import com.flowci.core.auth.domain.Tokens;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.User;
-import com.flowci.domain.http.ResponseMessage;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.exception.ErrorCode;
 import org.junit.After;
 import org.junit.Assert;

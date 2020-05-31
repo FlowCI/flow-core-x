@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.auth.domain.Tokens;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.test.MockMvcHelper;
-import com.flowci.domain.http.ResponseMessage;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Autowired;
