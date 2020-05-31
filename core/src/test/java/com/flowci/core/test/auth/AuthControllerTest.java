@@ -23,7 +23,7 @@ import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.User;
-import com.flowci.domain.http.ResponseMessage;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.exception.AuthenticationException;
 import com.flowci.exception.ErrorCode;
 import org.junit.After;

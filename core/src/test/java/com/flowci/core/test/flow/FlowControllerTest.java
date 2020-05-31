@@ -23,7 +23,7 @@ import com.flowci.domain.VarValue;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.User;
-import com.flowci.domain.http.ResponseMessage;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.exception.ErrorCode;
 import com.flowci.util.StringHelper;
 import org.assertj.core.util.Lists;
