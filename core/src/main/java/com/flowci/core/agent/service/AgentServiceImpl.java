@@ -219,10 +219,8 @@ public class AgentServiceImpl implements AgentService {
                 return Optional.empty();
             }
 
-            synchronized (lock.lockObj) {
-                log.debug("Job {} is waiting for agent", jobId);
-                ThreadHelper.wait(lock, RetryIntervalOnNotFound);
-            }
+            log.debug("Job {} is waiting for agent", jobId);
+            ThreadHelper.wait(lock, RetryIntervalOnNotFound);
         }
     }
 
@@ -346,9 +344,7 @@ public class AgentServiceImpl implements AgentService {
 
         // notify all consumer to find agent
         acquireLocks.computeIfPresent(agent.getJobId(), (s, lock) -> {
-            synchronized (lock.lockObj) {
-                lock.notifyAll();
-            }
+            ThreadHelper.notifyAll(lock);
             return lock;
         });
     }
@@ -361,9 +357,7 @@ public class AgentServiceImpl implements AgentService {
         }
 
         lock.stop = true;
-        synchronized (lock.lockObj) {
-            lock.notifyAll();
-        }
+        ThreadHelper.notifyAll(lock);
     }
 
     //====================================================================
@@ -508,9 +502,6 @@ public class AgentServiceImpl implements AgentService {
     private static class AcquireLock {
 
         private boolean stop = false;
-
-        private final Object lockObj = new Object();
-
     }
 
     private class RootNodeListener implements PathChildrenCacheListener {
