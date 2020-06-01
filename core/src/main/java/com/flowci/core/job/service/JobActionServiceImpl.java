@@ -288,19 +288,20 @@ public class JobActionServiceImpl implements JobActionService {
 
     private void fromQueued() {
         Function<String, Boolean> canAcquireAgent = (jobId) -> {
-            ObjectWrapper<Job> out = new ObjectWrapper<>();
-            boolean canContinue = canContinue(jobId, out);
-            Job job = out.getValue();
+            Job job = jobDao.findById(jobId).get();
 
             if (job.isExpired()) {
                 JobSmContext context = new JobSmContext();
                 context.setJob(job);
-                context.setError(new CIException("expired while waiting for agent"));
                 Sm.execute(Queued, Timeout, context);
                 return false;
             }
 
-            return canContinue;
+            if (job.isCancelling()) {
+                return false;
+            }
+
+            return !job.isDone();
         };
 
         Sm.add(QueuedToTimeout, new Action<JobSmContext>() {
@@ -741,17 +742,6 @@ public class JobActionServiceImpl implements JobActionService {
         }
 
         return Optional.of(next);
-    }
-
-    private boolean canContinue(String jobId, ObjectWrapper<Job> out) {
-        Job job = jobDao.findById(jobId).get();
-        out.setValue(job);
-
-        if (job.isCancelling()) {
-            return false;
-        }
-
-        return !job.isDone();
     }
 
     private void logInfo(Job job, String message, Object... params) {
