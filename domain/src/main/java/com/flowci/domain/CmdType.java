@@ -32,7 +32,7 @@ public enum CmdType {
     KILL,
 
     /**
-     * Close agent
+     * Stream cmd
      */
-    CLOSE;
+    Stream;
 }
