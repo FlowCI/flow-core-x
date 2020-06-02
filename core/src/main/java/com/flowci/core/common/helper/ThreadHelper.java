@@ -47,10 +47,18 @@ public abstract class ThreadHelper {
     }
 
     public static void wait(Object o, long millis) {
-        try {
-            o.wait(millis);
-        } catch (InterruptedException ignore) {
+        synchronized (o) {
+            try {
+                o.wait(millis);
+            } catch (InterruptedException ignore) {
 
+            }
+        }
+    }
+
+    public static void notifyAll(Object o) {
+        synchronized (o) {
+            o.notifyAll();
         }
     }
 }

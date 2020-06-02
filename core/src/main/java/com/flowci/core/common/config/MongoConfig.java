@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.mongo.EncryptConverter;
 import com.flowci.core.common.mongo.VariableMapConverter;
 import com.flowci.core.config.domain.SmtpConfig;
+import com.flowci.core.config.domain.TextConfig;
 import com.flowci.core.job.domain.JobItem;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.domain.RSASecret;
@@ -78,6 +79,7 @@ public class MongoConfig extends AbstractMongoConfiguration {
 
         // add addPersistentEntity for sub types since not registered if called within same thread
         context.addEntity(SmtpConfig.class);
+        context.addEntity(TextConfig.class);
         context.addEntity(AuthSecret.class);
         context.addEntity(RSASecret.class);
         context.addEntity(TokenSecret.class);

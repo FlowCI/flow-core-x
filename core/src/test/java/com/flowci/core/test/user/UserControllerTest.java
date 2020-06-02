@@ -24,7 +24,7 @@ import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.*;
 import com.flowci.core.user.event.UserDeletedEvent;
-import com.flowci.domain.http.ResponseMessage;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.exception.AuthenticationException;
 import com.flowci.exception.ErrorCode;
 import com.flowci.exception.NotFoundException;
@@ -33,7 +33,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.http.MediaType;
 

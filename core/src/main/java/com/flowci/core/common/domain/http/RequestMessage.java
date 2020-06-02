@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package com.flowci.domain.http;
+package com.flowci.core.common.domain.http;
 
-import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.NotEmpty;
+import java.io.Serializable;
+
 /**
  * @author yang
  */
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class RequestMessage<T> implements Serializable {
 
-    @Getter
-    @Setter
+    @NotEmpty
     private T data;
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flowci.domain.http;
+package com.flowci.core.common.domain.http;
 
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
