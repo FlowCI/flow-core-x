@@ -36,6 +36,8 @@ public class DockerOption {
 
     private String networkMode = "host";
 
+    private String user = "root"; // default user
+
     /**
      * List of port like "HOST:CONTAINER 5672:5672"
      */
