@@ -18,6 +18,7 @@ package com.flowci.core.common.config;
 
 import com.flowci.core.job.service.SessionCmdService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -99,6 +100,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
     }
 
     @Bean
+    @ConditionalOnProperty(prefix = "app", name = "socket-container", havingValue = "true")
     public ServletServerContainerFactoryBean createWebSocketContainer() {
         ServletServerContainerFactoryBean c = new ServletServerContainerFactoryBean();
         c.setMaxTextMessageBufferSize(8192);

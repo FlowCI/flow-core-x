@@ -1,5 +1,6 @@
 package com.flowci.core.job.service;
 
+import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.git.GitClient;

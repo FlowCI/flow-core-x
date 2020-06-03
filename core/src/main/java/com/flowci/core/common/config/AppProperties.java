@@ -58,6 +58,8 @@ public class AppProperties {
 
     private boolean defaultSmtpConfig;
 
+    private boolean socketContainer;
+
     @Bean("adminProperties")
     @ConfigurationProperties(prefix = "app.admin")
     public Admin admin() {

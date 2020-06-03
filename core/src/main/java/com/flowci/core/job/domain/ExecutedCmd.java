@@ -17,12 +17,13 @@
 package com.flowci.core.job.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.flowci.domain.CmdBase;
+import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -36,19 +37,41 @@ import java.util.Date;
  */
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 @Document(collection = "executed_cmd")
+@Accessors(chain = true)
 @CompoundIndex(
         name = "index_job_id_and_node_path",
         def = "{'jobId': 1, 'nodePath': 1}",
         unique = true
 )
-public class ExecutedCmd extends CmdBase implements Executed {
+public class ExecutedCmd implements Executed {
+
+    @Id
+    private String id;
+
+    private String flowId;
+
+    private Long buildNumber;
+
+    private String jobId;
+
+    private String nodePath;
+
+    private boolean allowFailure;
+
+    private String plugin;
+
+    private DockerOption docker;
 
     /**
      * Process id
      */
     private Integer processId;
+
+    /**
+     * Container id if executed from container
+     */
+    private String containerId;
 
     /**
      * Cmd execution status
@@ -84,13 +107,6 @@ public class ExecutedCmd extends CmdBase implements Executed {
      * Num of line of the log
      */
     private Long logSize = -1L;
-
-    public ExecutedCmd(String flowId, String jobId, String nodePath, boolean allowFailure) {
-        setFlowId(flowId);
-        setJobId(jobId);
-        setNodePath(nodePath);
-        setAllowFailure(allowFailure);
-    }
 
     @JsonIgnore
     public boolean isSuccess() {

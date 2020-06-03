@@ -17,6 +17,8 @@
 package com.flowci.core.test.job;
 
 import com.flowci.core.agent.dao.AgentDao;
+import com.flowci.core.agent.domain.CmdIn;
+import com.flowci.core.agent.domain.ShellCmd;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.service.AgentService;
@@ -244,10 +246,15 @@ public class JobServiceTest extends ZookeeperScenario {
         CountDownLatch counterForStep1 = new CountDownLatch(1);
 
         addEventListener((ApplicationListener<CmdSentEvent>) event -> {
-            if (event.getCmd().getId().equals(firstStep.getId())) {
-                agentForStep1.setValue(event.getAgent());
-                cmdForStep1.setValue(event.getCmd());
-                counterForStep1.countDown();
+            CmdIn in = event.getCmd();
+            if (in instanceof ShellCmd) {
+                ShellCmd shellCmd = (ShellCmd) in;
+
+                if (shellCmd.getId().equals(firstStep.getId())) {
+                    agentForStep1.setValue(event.getAgent());
+                    cmdForStep1.setValue(event.getCmd());
+                    counterForStep1.countDown();
+                }
             }
         });
 
@@ -256,10 +263,14 @@ public class JobServiceTest extends ZookeeperScenario {
         CountDownLatch counterForStep2 = new CountDownLatch(1);
 
         addEventListener((ApplicationListener<CmdSentEvent>) event -> {
-            if (event.getCmd().getId().equals(secondStep.getId())) {
-                agentForStep2.setValue(event.getAgent());
-                cmdForStep2.setValue(event.getCmd());
-                counterForStep2.countDown();
+            CmdIn in = event.getCmd();
+            if (in instanceof ShellCmd) {
+                ShellCmd shellCmd = (ShellCmd) in;
+                if (shellCmd.getId().equals(secondStep.getId())) {
+                    agentForStep2.setValue(event.getAgent());
+                    cmdForStep2.setValue(event.getCmd());
+                    counterForStep2.countDown();
+                }
             }
         });
 
@@ -277,7 +288,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals(firstStep.getNodePath(), job.getCurrentPath());
 
         // then: verify step 1 cmd has been sent
-        CmdIn cmd = cmdForStep1.getValue();
+        ShellCmd cmd = (ShellCmd) cmdForStep1.getValue();
         Assert.assertEquals(firstStep.getId(), cmd.getId());
         Assert.assertTrue(cmd.isAllowFailure());
         Assert.assertEquals("echo step version", cmd.getInputs().get("FLOW_VERSION"));
@@ -302,7 +313,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals(secondStep.getNodePath(), job.getCurrentPath());
 
         // then: verify step 1 cmd has been sent
-        cmd = cmdForStep2.getValue();
+        cmd = (ShellCmd) cmdForStep2.getValue();
         Assert.assertEquals(secondStep.getId(), cmd.getId());
         Assert.assertFalse(cmd.isAllowFailure());
         Assert.assertEquals("echo 2", cmd.getScripts().get(0));

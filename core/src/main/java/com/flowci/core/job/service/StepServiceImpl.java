@@ -180,9 +180,14 @@ public class StepServiceImpl implements StepService {
     private static ExecutedCmd newInstance(Job job, StepNode node) {
         String cmdId = job.getId() + node.getPathAsString();
 
-        ExecutedCmd cmd = new ExecutedCmd(job.getFlowId(), job.getId(), node.getPathAsString(), node.isAllowFailure());
-        cmd.setId(Base64.getEncoder().encodeToString(cmdId.getBytes()));
-        cmd.setBuildNumber(job.getBuildNumber());
-        return cmd;
+        return new ExecutedCmd()
+                .setId(Base64.getEncoder().encodeToString(cmdId.getBytes()))
+                .setFlowId(job.getFlowId())
+                .setBuildNumber(job.getBuildNumber())
+                .setJobId(job.getId())
+                .setNodePath(node.getPathAsString())
+                .setAllowFailure(node.isAllowFailure())
+                .setPlugin(node.getPlugin())
+                .setDocker(node.getDocker());
     }
 }
