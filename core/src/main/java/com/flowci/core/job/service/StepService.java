@@ -17,7 +17,7 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 import com.flowci.tree.StepNode;
 
@@ -33,17 +33,17 @@ public interface StepService {
     /**
      * Get executed cmd for job and node
      */
-    ExecutedCmd get(String jobId, String nodePath);
+    Step get(String jobId, String nodePath);
 
     /**
      * Get executed cmd from cmd id
      */
-    ExecutedCmd get(String id);
+    Step get(String id);
 
     /**
      * List step of executed cmd for job
      */
-    List<ExecutedCmd> list(Job job);
+    List<Step> list(Job job);
 
     /**
      * Get step list in string, {name}={stats};{name}={stats}
@@ -54,14 +54,14 @@ public interface StepService {
     /**
      * Change step status, and put steps string to job context
      */
-    ExecutedCmd toStatus(String jobId, String nodePath, ExecutedCmd.Status status, String err);
+    Step toStatus(String jobId, String nodePath, Step.Status status, String err);
 
-    ExecutedCmd toStatus(ExecutedCmd entity, ExecutedCmd.Status status, String err);
+    Step toStatus(Step entity, Step.Status status, String err);
 
     /**
      * To update properties are related with cmd executed result
      */
-    void resultUpdate(ExecutedCmd result);
+    void resultUpdate(Step result);
 
     /**
      * Delete steps by flow id

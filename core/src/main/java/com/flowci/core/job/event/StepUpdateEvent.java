@@ -1,12 +1,12 @@
 package com.flowci.core.job.event;
 
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 
 import java.util.List;
 
-public class StepUpdateEvent extends ExecutedEvent<ExecutedCmd> {
+public class StepUpdateEvent extends ExecutedEvent<Step> {
 
-    public StepUpdateEvent(Object source, String jobId, List<ExecutedCmd> items, boolean init) {
+    public StepUpdateEvent(Object source, String jobId, List<Step> items, boolean init) {
         super(source, jobId, items, init);
     }
 }

@@ -38,14 +38,14 @@ import java.util.Date;
  */
 @Data
 @NoArgsConstructor
-@Document(collection = "executed_cmd")
+@Document(collection = "step")
 @Accessors(chain = true)
 @CompoundIndex(
         name = "index_job_id_and_node_path",
         def = "{'jobId': 1, 'nodePath': 1}",
         unique = true
 )
-public class ExecutedCmd implements Executed {
+public class Step implements Executed {
 
     @Id
     private String id;

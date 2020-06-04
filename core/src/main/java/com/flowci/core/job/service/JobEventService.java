@@ -16,12 +16,12 @@
 
 package com.flowci.core.job.service;
 
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 
 public interface JobEventService {
 
     /**
      * Handle the executed cmd form callback queue
      */
-    void handleCallback(ExecutedCmd execCmd);
+    void handleCallback(Step execCmd);
 }

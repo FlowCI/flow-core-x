@@ -27,7 +27,7 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
@@ -123,7 +123,7 @@ public class JobEventServiceImpl implements JobEventService {
     }
 
     @Override
-    public void handleCallback(ExecutedCmd step) {
+    public void handleCallback(Step step) {
         Job job = jobService.get(step.getJobId());
         jobActionService.toContinue(job, step);
     }
@@ -138,7 +138,7 @@ public class JobEventServiceImpl implements JobEventService {
             try {
                 ShellOut out = objectMapper.readValue(message.getBody(), ShellOut.class);
 
-                ExecutedCmd step = stepService.get(out.getId());
+                Step step = stepService.get(out.getId());
                 step.setFrom(out);
                 log.info("[Callback]: {}-{} = {}", step.getJobId(), step.getNodePath(), step.getStatus());
 

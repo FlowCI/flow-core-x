@@ -30,7 +30,7 @@ import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.dao.ExecutedCmdDao;
 import com.flowci.core.job.dao.JobDao;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Job.Status;
 import com.flowci.core.job.domain.Job.Trigger;
@@ -160,11 +160,11 @@ public class JobServiceTest extends ZookeeperScenario {
     public void should_init_steps_cmd_after_job_created() {
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
 
-        List<ExecutedCmd> steps = stepService.list(job);
+        List<Step> steps = stepService.list(job);
         Assert.assertNotNull(steps);
         Assert.assertEquals(2, steps.size());
 
-        for (ExecutedCmd step : steps) {
+        for (Step step : steps) {
             Assert.assertNotNull(step.getFlowId());
             Assert.assertNotNull(step.getJobId());
             Assert.assertNotNull(step.getNodePath());
@@ -235,10 +235,10 @@ public class JobServiceTest extends ZookeeperScenario {
         NodeTree tree = NodeTree.create(root);
 
         StepNode firstNode = tree.next(tree.getRoot().getPath());
-        ExecutedCmd firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
+        Step firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
 
         StepNode secondNode = tree.next(firstNode.getPath());
-        ExecutedCmd secondStep = stepService.get(job.getId(), secondNode.getPathAsString());
+        Step secondStep = stepService.get(job.getId(), secondNode.getPathAsString());
 
         // when:
         ObjectWrapper<Agent> agentForStep1 = new ObjectWrapper<>();
@@ -296,7 +296,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals("echo hello\n", cmd.getScripts().get(0));
 
         // when: make dummy response from agent for step 1
-        firstStep.setStatus(ExecutedCmd.Status.SUCCESS);
+        firstStep.setStatus(Step.Status.SUCCESS);
         executedCmdDao.save(firstStep);
         jobEventService.handleCallback(firstStep);
 
@@ -319,7 +319,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals("echo 2", cmd.getScripts().get(0));
 
         // when: make dummy response from agent for step 2
-        secondStep.setStatus(ExecutedCmd.Status.SUCCESS);
+        secondStep.setStatus(Step.Status.SUCCESS);
         executedCmdDao.save(secondStep);
         jobEventService.handleCallback(secondStep);
 
@@ -336,13 +336,13 @@ public class JobServiceTest extends ZookeeperScenario {
 
         NodeTree tree = ymlManager.getTree(job);
         StepNode firstNode = tree.next(tree.getRoot().getPath());
-        ExecutedCmd firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
+        Step firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
 
         // when: cmd of first node been executed
         StringVars output = new StringVars();
         output.put("HELLO_WORLD", "hello.world");
 
-        firstStep.setStatus(ExecutedCmd.Status.SUCCESS);
+        firstStep.setStatus(Step.Status.SUCCESS);
         firstStep.setOutput(output);
         executedCmdDao.save(firstStep);
         jobEventService.handleCallback(firstStep);
@@ -354,12 +354,12 @@ public class JobServiceTest extends ZookeeperScenario {
         // then: job current context should be updated
         StepNode secondNode = tree.next(firstNode.getPath());
         Assert.assertEquals(secondNode.getPath(), NodePath.create(job.getCurrentPath()));
-        ExecutedCmd secondStep = stepService.get(job.getId(), secondNode.getPathAsString());
+        Step secondStep = stepService.get(job.getId(), secondNode.getPathAsString());
 
         // when: cmd of second node been executed
         output = new StringVars();
         output.put("HELLO_JAVA", "hello.java");
-        secondStep.setStatus(ExecutedCmd.Status.SUCCESS);
+        secondStep.setStatus(Step.Status.SUCCESS);
         secondStep.setOutput(output);
         executedCmdDao.save(secondStep);
         jobEventService.handleCallback(secondStep);
@@ -380,13 +380,13 @@ public class JobServiceTest extends ZookeeperScenario {
 
         NodeTree tree = ymlManager.getTree(job);
         StepNode firstNode = tree.next(tree.getRoot().getPath());
-        ExecutedCmd firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
+        Step firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
 
         // when: cmd of first node with failure
         StringVars output = new StringVars();
         output.put("HELLO_WORLD", "hello.world");
 
-        firstStep.setStatus(ExecutedCmd.Status.EXCEPTION);
+        firstStep.setStatus(Step.Status.EXCEPTION);
         firstStep.setOutput(output);
         executedCmdDao.save(firstStep);
         jobEventService.handleCallback(firstStep);
@@ -394,7 +394,7 @@ public class JobServiceTest extends ZookeeperScenario {
         // then: job status should be running and current path should be change to second node
         job = jobDao.findById(job.getId()).get();
         StepNode secondNode = tree.next(firstNode.getPath());
-        ExecutedCmd secondCmd = stepService.get(job.getId(), secondNode.getPathAsString());
+        Step secondCmd = stepService.get(job.getId(), secondNode.getPathAsString());
 
         Assert.assertEquals(Status.RUNNING, job.getStatus());
         Assert.assertEquals(secondNode.getPathAsString(), job.getCurrentPath());
@@ -404,7 +404,7 @@ public class JobServiceTest extends ZookeeperScenario {
         output = new StringVars();
         output.put("HELLO_TIMEOUT", "hello.timeout");
 
-        secondCmd.setStatus(ExecutedCmd.Status.TIMEOUT);
+        secondCmd.setStatus(Step.Status.TIMEOUT);
         secondCmd.setOutput(output);
         executedCmdDao.save(secondCmd);
         jobEventService.handleCallback(secondCmd);
@@ -460,8 +460,8 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals(Status.CANCELLED, job.getStatus());
 
         // then: step should be skipped
-        for (ExecutedCmd cmd : stepService.list(job)) {
-            Assert.assertEquals(ExecutedCmd.Status.SKIPPED, cmd.getStatus());
+        for (Step cmd : stepService.list(job)) {
+            Assert.assertEquals(Step.Status.SKIPPED, cmd.getStatus());
         }
     }
 

@@ -21,7 +21,7 @@ import com.flowci.core.agent.domain.ShellKill;
 import com.flowci.core.agent.domain.ShellCmd;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
@@ -42,7 +42,7 @@ public class CmdManagerImpl implements CmdManager {
     private SpringEventManager eventManager;
 
     @Override
-    public CmdIn createShellCmd(Job job, StepNode node, ExecutedCmd step) {
+    public CmdIn createShellCmd(Job job, StepNode node, Step step) {
         ShellCmd in = new ShellCmd()
                 .setId(step.getId())
                 .setFlowId(job.getFlowId())

@@ -16,7 +16,7 @@
 
 package com.flowci.core.api.domain;
 
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Executed;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,5 +30,5 @@ public class Step {
 
     private final String name;
 
-    private final ExecutedCmd.Status status;
+    private final Executed.Status status;
 }

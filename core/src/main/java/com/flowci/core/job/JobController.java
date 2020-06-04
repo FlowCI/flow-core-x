@@ -127,8 +127,8 @@ public class JobController {
 
     @GetMapping("/{flow}/{buildNumberOrLatest}/steps")
     @Action(JobAction.LIST_STEPS)
-    public List<ExecutedCmd> listSteps(@PathVariable String flow,
-                                       @PathVariable String buildNumberOrLatest) {
+    public List<Step> listSteps(@PathVariable String flow,
+                                @PathVariable String buildNumberOrLatest) {
         Job job = get(flow, buildNumberOrLatest);
         return stepService.list(job);
     }
@@ -153,7 +153,7 @@ public class JobController {
     @GetMapping("/logs/{cmdId}/download")
     @Action(JobAction.DOWNLOAD_STEP_LOG)
     public ResponseEntity<Resource> downloadStepLog(@PathVariable String cmdId) {
-        ExecutedCmd cmd = stepService.get(cmdId);
+        Step cmd = stepService.get(cmdId);
         Resource resource = loggingService.get(cmdId);
         Flow flow = flowService.getById(cmd.getFlowId());
 

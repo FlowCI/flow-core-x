@@ -22,7 +22,7 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.service.JobService;
@@ -88,7 +88,7 @@ public class CmdManagerTest extends SpringScenario {
         FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
         NodeTree tree = NodeTree.create(root);
         StepNode node = tree.get(NodePath.create(flow.getName(), "plugin-test"));
-        ExecutedCmd step = stepService.get(job.getId(), node.getPathAsString());
+        Step step = stepService.get(job.getId(), node.getPathAsString());
         ShellCmd cmdIn = (ShellCmd) cmdManager.createShellCmd(job, node, step);
         Assert.assertNotNull(cmdIn);
 

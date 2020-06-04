@@ -19,9 +19,8 @@ package com.flowci.core.job.service;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SocketPushManager;
 import com.flowci.core.common.rabbit.QueueOperations;
-import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 import com.flowci.exception.NotFoundException;
 import com.flowci.store.FileManager;
@@ -97,7 +96,7 @@ public class LoggingServiceImpl implements LoggingService {
     }
 
     @Override
-    public Page<String> read(ExecutedCmd cmd, Pageable pageable) {
+    public Page<String> read(Step cmd, Pageable pageable) {
         BufferedReader reader = getReader(cmd.getId());
 
         if (Objects.isNull(reader)) {
@@ -156,7 +155,7 @@ public class LoggingServiceImpl implements LoggingService {
     }
 
     private Pathable[] getLogDir(String cmdId) {
-        ExecutedCmd cmd = stepService.get(cmdId);
+        Step cmd = stepService.get(cmdId);
 
         return new Pathable[]{
                 Flow.path(cmd.getFlowId()),
