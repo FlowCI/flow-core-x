@@ -17,6 +17,7 @@
 package com.flowci.core.job.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.core.agent.domain.ShellOut;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -31,6 +32,7 @@ import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
 import com.flowci.domain.Agent;
+import com.flowci.exception.NotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -61,6 +63,9 @@ public class JobEventServiceImpl implements JobEventService {
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private StepService stepService;
 
     @Autowired
     private JobActionService jobActionService;
@@ -131,12 +136,15 @@ public class JobEventServiceImpl implements JobEventService {
     public void startCallbackQueueConsumer(ContextRefreshedEvent ignore) throws IOException {
         callbackQueueManager.startConsumer(false, message -> {
             try {
-                ExecutedCmd cmd = objectMapper.readValue(message.getBody(), ExecutedCmd.class);
-                log.info("[Callback]: {}-{} = {}", cmd.getJobId(), cmd.getNodePath(), cmd.getStatus());
+                ShellOut out = objectMapper.readValue(message.getBody(), ShellOut.class);
 
-                handleCallback(cmd);
+                ExecutedCmd step = stepService.get(out.getId());
+                step.setFrom(out);
+                log.info("[Callback]: {}-{} = {}", step.getJobId(), step.getNodePath(), step.getStatus());
+
+                handleCallback(step);
                 return message.sendAck();
-            } catch (IOException e) {
+            } catch (IOException | NotFoundException e) {
                 log.error(e.getMessage());
                 return false;
             }

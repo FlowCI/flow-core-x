@@ -17,7 +17,7 @@
 package com.flowci.core.job.manager;
 
 import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.agent.domain.KillCmd;
+import com.flowci.core.agent.domain.ShellKill;
 import com.flowci.core.agent.domain.ShellCmd;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -73,7 +73,7 @@ public class CmdManagerImpl implements CmdManager {
 
     @Override
     public CmdIn createKillCmd() {
-        return new KillCmd();
+        return new ShellKill();
     }
 
     private void setPlugin(String name, ShellCmd cmd) {

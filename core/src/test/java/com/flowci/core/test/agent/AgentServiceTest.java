@@ -29,12 +29,10 @@ import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import jdk.nashorn.tools.Shell;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -17,6 +17,7 @@
 package com.flowci.core.job.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.core.agent.domain.ShellOut;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
@@ -121,5 +122,17 @@ public class ExecutedCmd implements Executed {
     @JsonIgnore
     public boolean isPending() {
         return status == Status.PENDING;
+    }
+
+    public void setFrom(ShellOut out) {
+        this.processId = out.getProcessId();
+        this.containerId = out.getContainerId();
+        this.status = out.getStatus();
+        this.code = out.getCode();
+        this.output = out.getOutput();
+        this.startAt = out.getStartAt();
+        this.finishAt = out.getFinishAt();
+        this.error = out.getError();
+        this.logSize = out.getLogSize();
     }
 }
