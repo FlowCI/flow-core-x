@@ -16,7 +16,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Accessors(chain = true)
-public final class ShellCmd extends CmdIn {
+public final class ShellIn extends CmdIn {
 
     // from ExecutedCmd id
     private String id;
@@ -37,7 +37,7 @@ public final class ShellCmd extends CmdIn {
 
     private Set<String> envFilters = new LinkedHashSet<>();
 
-    public ShellCmd() {
+    public ShellIn() {
         super(Type.SHELL);
     }
 

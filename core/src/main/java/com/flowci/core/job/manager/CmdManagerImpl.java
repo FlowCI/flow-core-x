@@ -18,7 +18,7 @@ package com.flowci.core.job.manager;
 
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellKill;
-import com.flowci.core.agent.domain.ShellCmd;
+import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.job.domain.Step;
@@ -43,7 +43,7 @@ public class CmdManagerImpl implements CmdManager {
 
     @Override
     public CmdIn createShellCmd(Job job, StepNode node, Step step) {
-        ShellCmd in = new ShellCmd()
+        ShellIn in = new ShellIn()
                 .setId(step.getId())
                 .setFlowId(job.getFlowId())
                 .setAllowFailure(node.isAllowFailure())
@@ -76,7 +76,7 @@ public class CmdManagerImpl implements CmdManager {
         return new ShellKill();
     }
 
-    private void setPlugin(String name, ShellCmd cmd) {
+    private void setPlugin(String name, ShellIn cmd) {
         GetPluginEvent event = eventManager.publish(new GetPluginAndVerifySetContext(this, name, cmd.getInputs()));
         if (event.hasError()) {
             throw event.getError();

@@ -17,7 +17,7 @@
 package com.flowci.core.test.agent;
 
 import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.agent.domain.ShellCmd;
+import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.config.AppProperties;
@@ -138,7 +138,7 @@ public class AgentServiceTest extends ZookeeperScenario {
     @Test
     public void should_dispatch_cmd_to_agent() throws InterruptedException {
         // init:
-        CmdIn cmd = new ShellCmd();
+        CmdIn cmd = new ShellIn();
         Agent agent = agentService.create("hello.agent", null, Optional.empty());
 
         // when:

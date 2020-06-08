@@ -16,7 +16,7 @@
 
 package com.flowci.core.test.job;
 
-import com.flowci.core.agent.domain.ShellCmd;
+import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
@@ -89,7 +89,7 @@ public class CmdManagerTest extends SpringScenario {
         NodeTree tree = NodeTree.create(root);
         StepNode node = tree.get(NodePath.create(flow.getName(), "plugin-test"));
         Step step = stepService.get(job.getId(), node.getPathAsString());
-        ShellCmd cmdIn = (ShellCmd) cmdManager.createShellCmd(job, node, step);
+        ShellIn cmdIn = (ShellIn) cmdManager.createShellCmd(job, node, step);
         Assert.assertNotNull(cmdIn);
 
         // then:
