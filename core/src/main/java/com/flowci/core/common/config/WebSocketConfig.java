@@ -16,22 +16,19 @@
 
 package com.flowci.core.common.config;
 
-import com.flowci.core.job.service.SessionCmdService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.*;
-import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 /**
  * @author yang
  */
 @Configuration
-@EnableWebSocket
 @EnableWebSocketMessageBroker
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSocketConfigurer {
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     /**
      * To subscribe git test status update for flow
@@ -57,6 +54,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
     private final String tasksTopic = "/topic/tasks";
 
     /**
+     * To subscribe tty action
+     * Ex: /topic/tty/action/{job id}
+     */
+    private final String ttyActionTopic = "/topic/tty/action";
+
+    /**
+     * To subscribe tty logs
+     * Ex: /topic/tty/logs/{job id}
+     */
+    private final String ttyLogsTopic = "/topic/tty/logs";
+
+    /**
      * To subscribe real time logging for all jobs.
      * Ex: /topic/logs
      */
@@ -72,9 +81,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
      */
     private final String agentHostTopic = "/topic/hosts";
 
-    @Autowired
-    private SessionCmdService sessionCmdService;
-
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws").setAllowedOrigins("*");
@@ -86,27 +92,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
                 jobsTopic,
                 stepsTopic,
                 tasksTopic,
+                ttyActionTopic,
+                ttyLogsTopic,
                 logsTopic,
                 agentsTopic,
                 agentHostTopic,
                 gitTestTopic
         );
         registry.setApplicationDestinationPrefixes("/app");
-    }
-
-    @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(sessionCmdService, "/session").setAllowedOrigins("*");
-    }
-
-    @Bean
-    @ConditionalOnProperty(prefix = "app", name = "socket-container", havingValue = "true")
-    public ServletServerContainerFactoryBean createWebSocketContainer() {
-        ServletServerContainerFactoryBean c = new ServletServerContainerFactoryBean();
-        c.setMaxTextMessageBufferSize(8192);
-        c.setMaxBinaryMessageBufferSize(8192);
-        c.setMaxSessionIdleTimeout(30L * 1000);
-        return c;
     }
 
     @Bean("topicForGitTest")
@@ -122,6 +115,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
     @Bean("topicForSteps")
     public String topicForSteps() {
         return stepsTopic;
+    }
+
+    @Bean("topicForTtyAction")
+    public String topicForTtyAction() {
+        return ttyActionTopic;
+    }
+
+    @Bean("topicForTtyLogs")
+    public String topicForTtyLogs() {
+        return ttyLogsTopic;
     }
 
     @Bean("topicForTasks")

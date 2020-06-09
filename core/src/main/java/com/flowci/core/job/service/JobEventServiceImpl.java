@@ -17,7 +17,9 @@
 package com.flowci.core.job.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.core.agent.domain.CmdOut;
 import com.flowci.core.agent.domain.ShellOut;
+import com.flowci.core.agent.domain.TtyCmd;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -27,12 +29,12 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
-import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
+import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.domain.Agent;
-import com.flowci.exception.NotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -41,6 +43,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Optional;
 
 @Log4j2
 @Service
@@ -135,19 +139,32 @@ public class JobEventServiceImpl implements JobEventService {
     @EventListener(value = ContextRefreshedEvent.class)
     public void startCallbackQueueConsumer(ContextRefreshedEvent ignore) throws IOException {
         callbackQueueManager.startConsumer(false, message -> {
+            byte[] raw = message.getBody();
+            byte ind = raw[0];
+            byte[] body = Arrays.copyOfRange(raw, 1, raw.length);
+
             try {
-                ShellOut out = objectMapper.readValue(message.getBody(), ShellOut.class);
+                switch (ind) {
+                    case CmdOut.ShellOutInd:
+                        ShellOut shellOut = objectMapper.readValue(body, ShellOut.class);
+                        Step step = stepService.get(shellOut.getId());
+                        step.setFrom(shellOut);
 
-                Step step = stepService.get(out.getId());
-                step.setFrom(out);
-                log.info("[Callback]: {}-{} = {}", step.getJobId(), step.getNodePath(), step.getStatus());
+                        log.info("[Callback]: {}-{} = {}", step.getJobId(), step.getNodePath(), step.getStatus());
+                        handleCallback(step);
 
-                handleCallback(step);
-                return message.sendAck();
-            } catch (IOException | NotFoundException e) {
-                log.error(e.getMessage());
-                return false;
+                    case CmdOut.TtyOutInd:
+                        TtyCmd.Out ttyOut = objectMapper.readValue(body, TtyCmd.Out.class);
+                        eventManager.publish(new TtyStatusUpdateEvent(this, ttyOut));
+
+                    default:
+                        log.warn("Invalid message from callback queue");
+                }
+            } catch (IOException e) {
+                log.warn("Unable to decode message from callback queue");
             }
+
+            return message.sendAck();
         });
     }
 

@@ -10,7 +10,7 @@ import java.util.Date;
 
 @Getter
 @Setter
-public final class ShellOut implements Executed {
+public final class ShellOut implements Executed, CmdOut {
 
     private String id;
 
@@ -31,5 +31,4 @@ public final class ShellOut implements Executed {
     private String error;
 
     private long logSize;
-
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flowci.core.job;
+package com.flowci.core.job.controller;
 
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.common.manager.SessionManager;

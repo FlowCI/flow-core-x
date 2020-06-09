@@ -19,9 +19,9 @@ public abstract class CmdIn {
         KILL,
 
         /**
-         * Stream cmd
+         * TTY cmd
          */
-        Stream,
+        TTY,
 
         /**
          * Close agent
