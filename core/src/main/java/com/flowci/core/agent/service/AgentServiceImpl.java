@@ -535,7 +535,10 @@ public class AgentServiceImpl implements AgentService {
 
             if (event.getType() == Type.CHILD_ADDED) {
                 syncLockNode(agent, Type.CHILD_ADDED);
-                updateAgentStatus(agent, Status.IDLE);
+
+                // status is reported from agent
+                Status status = getStatusFromZk(agent);
+                updateAgentStatus(agent, status);
                 log.debug("Event '{}' of agent '{}' with status '{}'", event.getType(), agent.getName(), Status.IDLE);
                 return;
             }

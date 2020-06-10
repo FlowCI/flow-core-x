@@ -152,16 +152,18 @@ public class JobEventServiceImpl implements JobEventService {
 
                         log.info("[Callback]: {}-{} = {}", step.getJobId(), step.getNodePath(), step.getStatus());
                         handleCallback(step);
+                        break;
 
                     case CmdOut.TtyOutInd:
                         TtyCmd.Out ttyOut = objectMapper.readValue(body, TtyCmd.Out.class);
                         eventManager.publish(new TtyStatusUpdateEvent(this, ttyOut));
+                        break;
 
                     default:
-                        log.warn("Invalid message from callback queue");
+                        log.warn("Invalid message from callback queue: {}", new String(raw));
                 }
             } catch (IOException e) {
-                log.warn("Unable to decode message from callback queue");
+                log.warn("Unable to decode message from callback queue: {}", new String(raw));
             }
 
             return message.sendAck();
