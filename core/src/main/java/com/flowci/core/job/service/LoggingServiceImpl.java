@@ -19,6 +19,7 @@ package com.flowci.core.job.service;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SocketPushManager;
 import com.flowci.core.common.rabbit.QueueOperations;
+import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
@@ -46,6 +47,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -75,22 +77,38 @@ public class LoggingServiceImpl implements LoggingService {
     private String topicForLogs;
 
     @Autowired
+    private String shellLogQueue;
+
+    @Autowired
+    private String ttyLogQueue;
+
+    @Autowired
     private SocketPushManager socketPushManager;
 
     @Autowired
     private FileManager fileManager;
 
     @Autowired
-    private QueueOperations loggingQueueManager;
+    private RabbitOperations logQueueManager;
 
     @Autowired
     private StepService stepService;
 
     @EventListener(ContextRefreshedEvent.class)
     public void onStart() throws IOException {
-        loggingQueueManager.startConsumer(true, message -> {
-            // send JobProto.LogItem byte array to web directly
+        logQueueManager.startConsumer(shellLogQueue, true, message -> {
             socketPushManager.push(topicForLogs, message.getBody());
+            return true;
+        });
+
+        logQueueManager.startConsumer(ttyLogQueue, true, message -> {
+            byte[] body = message.getBody();
+            byte idLength = body[0];
+
+            String jobId = new String(Arrays.copyOfRange(body, 1, idLength));
+            byte[] content = Arrays.copyOfRange(body, idLength + 2, body.length);
+
+            log.debug("[TTY] {} = {}", jobId, new String(content));
             return true;
         });
     }
