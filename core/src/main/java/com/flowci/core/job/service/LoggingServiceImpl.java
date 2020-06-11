@@ -18,11 +18,10 @@ package com.flowci.core.job.service;
 
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SocketPushManager;
-import com.flowci.core.common.rabbit.QueueOperations;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.Step;
 import com.flowci.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
@@ -80,9 +79,6 @@ public class LoggingServiceImpl implements LoggingService {
     private String shellLogQueue;
 
     @Autowired
-    private String ttyLogQueue;
-
-    @Autowired
     private SocketPushManager socketPushManager;
 
     @Autowired
@@ -97,18 +93,11 @@ public class LoggingServiceImpl implements LoggingService {
     @EventListener(ContextRefreshedEvent.class)
     public void onStart() throws IOException {
         logQueueManager.startConsumer(shellLogQueue, true, message -> {
-            socketPushManager.push(topicForLogs, message.getBody());
-            return true;
-        });
-
-        logQueueManager.startConsumer(ttyLogQueue, true, message -> {
-            byte[] body = message.getBody();
-            byte idLength = body[0];
-
-            String jobId = new String(Arrays.copyOfRange(body, 1, idLength));
-            byte[] content = Arrays.copyOfRange(body, idLength + 2, body.length);
-
-            log.debug("[TTY] {} = {}", jobId, new String(content));
+            try {
+                socketPushManager.push(topicForLogs, message.getBody());
+            } catch (Exception e) {
+                log.warn(e);
+            }
             return true;
         });
     }
