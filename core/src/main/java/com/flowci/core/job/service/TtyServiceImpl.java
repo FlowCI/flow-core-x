@@ -1,6 +1,8 @@
 package com.flowci.core.job.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.domain.TtyCmd;
+import com.flowci.core.agent.domain.TtyLog;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.manager.SocketPushManager;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -33,6 +35,9 @@ public class TtyServiceImpl implements TtyService {
     private JobService jobService;
 
     @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private AgentService agentService;
 
     @Autowired
@@ -48,16 +53,10 @@ public class TtyServiceImpl implements TtyService {
     public void startTtyLog() throws IOException {
         logQueueManager.startConsumer(ttyLogQueue, true, message -> {
             try {
-                byte[] body = message.getBody();
-                byte idLength = body[0];
-
-                // {length of id}003{cmd id}003{content}
-                String jobId = new String(Arrays.copyOfRange(body, 2, idLength + 2));
-                byte[] content = Arrays.copyOfRange(body, idLength + 3, body.length);
-
-                log.debug("[TTY - {}] {}", jobId, new String(content));
-                String topic = topicForTtyLogs + "/" + jobId;
-                socketPushManager.push(topic, content);
+                TtyLog ttyLog = objectMapper.readValue(message.getBody(), TtyLog.class);
+                log.debug("[TTY - {}] {}", ttyLog.getId(), ttyLog.getContent());
+                String topic = topicForTtyLogs + "/" + ttyLog.getId();
+                socketPushManager.push(topic, ttyLog.getContent().getBytes());
             } catch (Exception e) {
                 log.warn(e);
             }
