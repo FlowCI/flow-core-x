@@ -1,13 +1,6 @@
 package com.flowci.core.agent.domain;
 
-import lombok.Getter;
-import lombok.Setter;
+public abstract class TtyLog {
 
-@Getter
-@Setter
-public final class TtyLog {
-
-    private String id;
-
-    private String content;
+    public static final String ID_HEADER = "id";
 }

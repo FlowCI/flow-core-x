@@ -144,12 +144,12 @@ public class RabbitOperations implements AutoCloseable {
                 if (executor != null) {
                     executor.execute(() -> {
                         log.debug("======= {} ======", new String(body));
-                        onMessage.apply(new Message(getChannel(), body, envelope));
+                        onMessage.apply(new Message(properties.getHeaders(), getChannel(), body, envelope));
                     });
                     return;
                 }
 
-                onMessage.apply(new Message(getChannel(), body, envelope));
+                onMessage.apply(new Message(properties.getHeaders(), getChannel(), body, envelope));
             }
         };
 
@@ -190,13 +190,16 @@ public class RabbitOperations implements AutoCloseable {
     @Getter
     public static class Message {
 
+        private final Map<String, Object> headers;
+
         private final Channel channel;
 
         private final byte[] body;
 
         private final Envelope envelope;
 
-        public Message(Channel channel, byte[] body, Envelope envelope) {
+        public Message(Map<String, Object> headers, Channel channel, byte[] body, Envelope envelope) {
+            this.headers = headers;
             this.channel = channel;
             this.body = body;
             this.envelope = envelope;
@@ -209,6 +212,10 @@ public class RabbitOperations implements AutoCloseable {
             } catch (IOException e) {
                 return false;
             }
+        }
+
+        public boolean hasHeader() {
+            return headers != null;
         }
     }
 }
