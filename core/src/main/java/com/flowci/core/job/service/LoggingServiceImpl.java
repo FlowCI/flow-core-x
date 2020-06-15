@@ -16,6 +16,7 @@
 
 package com.flowci.core.job.service;
 
+import com.flowci.core.agent.domain.CmdStdLog;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SocketPushManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
@@ -46,9 +47,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -72,6 +74,13 @@ public class LoggingServiceImpl implements LoggingService {
     private final Cache<String, BufferedReader> logReaderCache =
             CacheHelper.createLocalCache(10, 60, new ReaderCleanUp());
 
+
+    @Autowired
+    private String ttyLogQueue;
+
+    @Autowired
+    private String topicForTtyLogs;
+
     @Autowired
     private String topicForLogs;
 
@@ -92,14 +101,8 @@ public class LoggingServiceImpl implements LoggingService {
 
     @EventListener(ContextRefreshedEvent.class)
     public void onStart() throws IOException {
-        logQueueManager.startConsumer(shellLogQueue, true, message -> {
-            try {
-                socketPushManager.push(topicForLogs, message.getBody());
-            } catch (Exception e) {
-                log.warn(e);
-            }
-            return true;
-        });
+        logQueueManager.startConsumer(shellLogQueue, true, new CmdStdLogHandler(topicForLogs));
+        logQueueManager.startConsumer(ttyLogQueue, true, new CmdStdLogHandler(topicForTtyLogs));
     }
 
     @Override
@@ -175,7 +178,7 @@ public class LoggingServiceImpl implements LoggingService {
         return cmdId + ".log";
     }
 
-    private static class ReaderCleanUp implements RemovalListener<String, BufferedReader> {
+    private class ReaderCleanUp implements RemovalListener<String, BufferedReader> {
 
         @Override
         public void onRemoval(String key, BufferedReader reader, RemovalCause cause) {
@@ -188,6 +191,25 @@ public class LoggingServiceImpl implements LoggingService {
             } catch (IOException e) {
                 log.debug(e);
             }
+        }
+    }
+
+    private class CmdStdLogHandler implements Function<RabbitOperations.Message, Boolean> {
+
+        private final String topic;
+
+        private CmdStdLogHandler(String topic) {
+            this.topic = topic;
+        }
+
+        @Override
+        public Boolean apply(RabbitOperations.Message message) {
+            Optional<String> optional = CmdStdLog.getId(message);
+            if (optional.isPresent()) {
+                String jobId = optional.get();
+                socketPushManager.push(topic + "/" + jobId, message.getBody());
+            }
+            return true;
         }
     }
 }
