@@ -46,6 +46,7 @@ public class CmdManagerImpl implements CmdManager {
         ShellIn in = new ShellIn()
                 .setId(step.getId())
                 .setFlowId(job.getFlowId())
+                .setJobId(job.getId())
                 .setAllowFailure(node.isAllowFailure())
                 .setDocker(node.getDocker())
                 .setTimeout(job.getTimeout());

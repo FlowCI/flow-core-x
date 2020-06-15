@@ -67,7 +67,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     /**
      * To subscribe real time logging for all jobs.
-     * Ex: /topic/logs
+     * Ex: /topic/logs/{job id}
      */
     private final String logsTopic = "/topic/logs";
 

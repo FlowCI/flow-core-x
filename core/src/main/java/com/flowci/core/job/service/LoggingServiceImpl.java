@@ -101,7 +101,10 @@ public class LoggingServiceImpl implements LoggingService {
 
     @EventListener(ContextRefreshedEvent.class)
     public void onStart() throws IOException {
+        // shell log content will be json {cmdId: xx, content: b64 log}
         logQueueManager.startConsumer(shellLogQueue, true, new CmdStdLogHandler(topicForLogs));
+
+        // tty log conent will be b64 std out/err
         logQueueManager.startConsumer(ttyLogQueue, true, new CmdStdLogHandler(topicForTtyLogs));
     }
 

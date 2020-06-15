@@ -23,6 +23,8 @@ public final class ShellIn extends CmdIn {
 
     private String flowId;
 
+    private String jobId;
+
     private boolean allowFailure;
 
     private String plugin;
