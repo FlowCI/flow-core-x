@@ -171,7 +171,7 @@ public class FlowServiceImpl implements FlowService {
     }
 
     @Override
-    public Flow confirm(String name, String gitUrl, String credential) {
+    public Flow confirm(String name, String gitUrl, String secret) {
         Flow flow = get(name);
 
         if (flow.getStatus() == Status.CONFIRMED) {
@@ -184,8 +184,8 @@ public class FlowServiceImpl implements FlowService {
             localVars.put(Variables.Flow.GitUrl, VarValue.of(gitUrl, VarType.GIT_URL, true));
         }
 
-        if (StringHelper.hasValue(credential)) {
-            localVars.put(Variables.Flow.GitCredential, VarValue.of(credential, VarType.STRING, true));
+        if (StringHelper.hasValue(secret)) {
+            localVars.put(Variables.Flow.GitCredential, VarValue.of(secret, VarType.STRING, true));
         }
 
         flow.setStatus(Status.CONFIRMED);
