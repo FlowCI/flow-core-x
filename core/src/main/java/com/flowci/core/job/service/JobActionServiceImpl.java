@@ -662,7 +662,7 @@ public class JobActionServiceImpl implements JobActionService {
     /**
      * Dispatch next step to agent
      *
-     * @return true if next step dispatched, false if no more steps
+     * @return true if next step dispatched, false if no more steps or failure
      */
     private boolean toNextStep(JobSmContext context) {
         Job job = context.job;
@@ -683,7 +683,7 @@ public class JobActionServiceImpl implements JobActionService {
         NodeTree tree = ymlManager.getTree(job);
         StepNode node = tree.get(currentPath);
         updateJobTime(job, step, tree, node);
-        updateJobStatusAndContext(job, node, step);
+        updateJobContextAndLatestStatus(job, node, step);
 
         // to next step
         Optional<StepNode> next = findNext(tree, node, step.isSuccess());
@@ -739,7 +739,7 @@ public class JobActionServiceImpl implements JobActionService {
         job.setFinishAt(execCmd.getFinishAt());
     }
 
-    private void updateJobStatusAndContext(Job job, StepNode node, ExecutedCmd cmd) {
+    private void updateJobContextAndLatestStatus(Job job, StepNode node, ExecutedCmd cmd) {
         // merge output to job context
         Vars<String> context = job.getContext();
         context.merge(cmd.getOutput());
@@ -748,7 +748,7 @@ public class JobActionServiceImpl implements JobActionService {
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
         context.put(Variables.Job.Steps, stepService.toVarString(job, node));
 
-        // after status not apart of job status
+        // latest status saved in context apart from job status property
         job.setStatusToContext(StatusHelper.convert(cmd));
         job.setErrorToContext(cmd.getError());
     }
@@ -756,7 +756,7 @@ public class JobActionServiceImpl implements JobActionService {
     private Optional<StepNode> findNext(NodeTree tree, Node current, boolean isSuccess) {
         StepNode next = tree.next(current.getPath());
 
-        if (Objects.isNull(next)) {
+        if (Objects.isNull(next) || !isSuccess) {
             return Optional.empty();
         }
 

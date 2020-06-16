@@ -7,4 +7,7 @@ steps:
     FLOW_WORKSPACE: "echo step"
     FLOW_VERSION: "echo step version"
   script: |
-    echo hello
+    echo shoulde failure
+
+- script: |
+    echo cannot run
