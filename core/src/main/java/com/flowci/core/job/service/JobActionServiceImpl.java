@@ -730,7 +730,6 @@ public class JobActionServiceImpl implements JobActionService {
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
         context.put(Variables.Job.Steps, stepService.toVarString(job, node));
 
-        // latest status saved in context apart from job status property
         job.setStatusToContext(StatusHelper.convert(cmd));
         job.setErrorToContext(cmd.getError());
     }
