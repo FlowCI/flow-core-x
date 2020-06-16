@@ -372,6 +372,28 @@ public class JobServiceTest extends ZookeeperScenario {
     }
 
     @Test
+    public void should_handle_cmd_callback_for_failure_status() throws IOException {
+        // init: agent and job
+        yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-failure.yml")));
+        Agent agent = agentService.create("hello.agent", null, Optional.empty());
+        Job job = prepareJobForRunningStatus(agent);
+
+        NodeTree tree = ymlManager.getTree(job);
+        StepNode firstNode = tree.next(tree.getRoot().getPath());
+        Step firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
+
+        // when: cmd of first node with failure
+        firstStep.setStatus(Step.Status.EXCEPTION);
+        executedCmdDao.save(firstStep);
+        jobEventService.handleCallback(firstStep);
+
+        // then: job should be failure
+        job = jobDao.findById(job.getId()).get();
+        Assert.assertEquals(Status.FAILURE, job.getStatus());
+        Assert.assertEquals("hello/step-1", job.getCurrentPath());
+    }
+
+    @Test
     public void should_handle_cmd_callback_for_failure_status_but_allow_failure() throws IOException {
         // init: agent and job
         yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-all-failure.yml")));
