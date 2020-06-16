@@ -34,52 +34,79 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      * To subscribe git test status update for flow
      * Ex: /topic/flows/git/test/{flow id}
      */
-    private final String gitTestTopic = "/topic/flows/git/test";
+    @Bean("topicForGitTest")
+    public String topicForGitTest() {
+        return "/topic/flows/git/test";
+    }
 
     /**
      * To subscribe new job
      */
-    private final String jobsTopic = "/topic/jobs";
+    @Bean("topicForJobs")
+    public String topicForJobs() {
+        return "/topic/jobs";
+    }
 
     /**
      * To subscribe step update for job
      * Ex: /topic/steps/{job id}
      */
-    private final String stepsTopic = "/topic/steps";
-
-    /**
-     * To subscribe task update for job
-     * Ex: /topic/tasks/{job id}
-     */
-    private final String tasksTopic = "/topic/tasks";
+    @Bean("topicForSteps")
+    public String topicForSteps() {
+        return "/topic/steps";
+    }
 
     /**
      * To subscribe tty action
      * Ex: /topic/tty/action/{job id}
      */
-    private final String ttyActionTopic = "/topic/tty/action";
+    @Bean("topicForTtyAction")
+    public String topicForTtyAction() {
+        return "/topic/tty/action";
+    }
 
     /**
      * To subscribe tty logs
      * Ex: /topic/tty/logs/{job id}
      */
-    private final String ttyLogsTopic = "/topic/tty/logs";
+    @Bean("topicForTtyLogs")
+    public String topicForTtyLogs() {
+        return "/topic/tty/logs";
+    }
+
+    /**
+     * To subscribe task update for job
+     * Ex: /topic/tasks/{job id}
+     */
+    @Bean("topicForTasks")
+    public String topicForTasks() {
+        return "/topic/tasks";
+    }
 
     /**
      * To subscribe real time logging for all jobs.
      * Ex: /topic/logs/{job id}
      */
-    private final String logsTopic = "/topic/logs";
+    @Bean("topicForLogs")
+    public String topicForLogs() {
+        return "/topic/logs";
+    }
 
     /**
      * To subscribe agent update
      */
-    private final String agentsTopic = "/topic/agents";
+    @Bean("topicForAgents")
+    public String topicForAgents() {
+        return "/topic/agents";
+    }
 
     /**
      * To subscribe agent host update
      */
-    private final String agentHostTopic = "/topic/hosts";
+    @Bean("topicForAgentHost")
+    public String topicForAgentHost() {
+        return "/topic/hosts";
+    }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -88,62 +115,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker(
-                jobsTopic,
-                stepsTopic,
-                tasksTopic,
-                ttyActionTopic,
-                ttyLogsTopic,
-                logsTopic,
-                agentsTopic,
-                agentHostTopic,
-                gitTestTopic
-        );
+        registry.enableSimpleBroker("/topic");
         registry.setApplicationDestinationPrefixes("/app");
-    }
-
-    @Bean("topicForGitTest")
-    public String topicForGitTest() {
-        return gitTestTopic;
-    }
-
-    @Bean("topicForJobs")
-    public String topicForJobs() {
-        return jobsTopic;
-    }
-
-    @Bean("topicForSteps")
-    public String topicForSteps() {
-        return stepsTopic;
-    }
-
-    @Bean("topicForTtyAction")
-    public String topicForTtyAction() {
-        return ttyActionTopic;
-    }
-
-    @Bean("topicForTtyLogs")
-    public String topicForTtyLogs() {
-        return ttyLogsTopic;
-    }
-
-    @Bean("topicForTasks")
-    public String topicForTasks() {
-        return tasksTopic;
-    }
-
-    @Bean("topicForLogs")
-    public String topicForLogs() {
-        return logsTopic;
-    }
-
-    @Bean("topicForAgents")
-    public String topicForAgents() {
-        return agentsTopic;
-    }
-
-    @Bean("topicForAgentHost")
-    public String topicForAgentHost() {
-        return agentHostTopic;
     }
 }
