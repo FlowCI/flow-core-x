@@ -44,7 +44,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Optional;
 
 @Log4j2
 @Service
@@ -137,7 +136,7 @@ public class JobEventServiceImpl implements JobEventService {
     //====================================================================
 
     @EventListener(value = ContextRefreshedEvent.class)
-    public void startCallbackQueueConsumer(ContextRefreshedEvent ignore) throws IOException {
+    public void startCallbackQueueConsumer() throws IOException {
         callbackQueueManager.startConsumer(false, message -> {
             byte[] raw = message.getBody();
             byte ind = raw[0];
@@ -171,7 +170,7 @@ public class JobEventServiceImpl implements JobEventService {
     }
 
     @EventListener(value = ContextRefreshedEvent.class)
-    public void startJobDeadLetterConsumer(ContextRefreshedEvent ignore) throws IOException {
+    public void startJobDeadLetterConsumer() throws IOException {
         String deadLetterQueue = rabbitProperties.getJobDlQueue();
         jobsQueueManager.startConsumer(deadLetterQueue, true, message -> {
             String jobId = new String(message.getBody());

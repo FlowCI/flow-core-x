@@ -209,7 +209,7 @@ public class RabbitOperations implements AutoCloseable {
             try {
                 getChannel().basicAck(envelope.getDeliveryTag(), false);
                 return true;
-            } catch (IOException e) {
+            } catch (Exception e) {
                 return false;
             }
         }
