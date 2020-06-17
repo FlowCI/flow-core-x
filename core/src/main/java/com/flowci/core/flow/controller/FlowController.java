@@ -81,7 +81,7 @@ public class FlowController {
         if (Objects.isNull(gitSettings)) {
             gitSettings = new GitSettings();
         }
-        return flowService.confirm(name, gitSettings.getGitUrl(), gitSettings.getCredential());
+        return flowService.confirm(name, gitSettings.getGitUrl(), gitSettings.getSecret());
     }
 
     @PostMapping(value = "/{name}/sourceOfYaml")
