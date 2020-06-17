@@ -27,5 +27,4 @@ public class GitSettings {
     private String gitUrl;
 
     private String secret;
-
 }
