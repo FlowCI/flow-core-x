@@ -58,6 +58,8 @@ public class AppProperties {
 
     private boolean defaultSmtpConfig;
 
+    private boolean socketContainer;
+
     @Bean("adminProperties")
     @ConfigurationProperties(prefix = "app.admin")
     public Admin admin() {
@@ -151,9 +153,9 @@ public class AppProperties {
 
         private String callbackQueue;
 
-        private String loggingQueue;
+        private String shellLogEx; // fanout exchange for shell log
 
-        private String loggingExchange;
+        private String ttyLogEx; // fanout exchange for tty log
 
         private String jobDlQueue; // job dead letter queue
 

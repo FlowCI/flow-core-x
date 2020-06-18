@@ -22,7 +22,7 @@ import com.flowci.core.common.domain.JsonablePage;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.job.domain.CreateJob;
 import com.flowci.core.job.domain.Executed.Status;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobItem;
 import com.flowci.core.plugin.dao.PluginDao;
@@ -60,8 +60,8 @@ public class JobControllerTest extends SpringScenario {
             new TypeReference<ResponseMessage<JsonablePage<JobItem>>>() {
             };
 
-    private static final TypeReference<ResponseMessage<List<ExecutedCmd>>> JobStepsType =
-            new TypeReference<ResponseMessage<List<ExecutedCmd>>>() {
+    private static final TypeReference<ResponseMessage<List<Step>>> JobStepsType =
+            new TypeReference<ResponseMessage<List<Step>>>() {
             };
 
     private static final TypeReference<ResponseMessage<String>> JobYmlType =
@@ -162,12 +162,12 @@ public class JobControllerTest extends SpringScenario {
         createJobForFlow(flow);
 
         // when:
-        ResponseMessage<List<ExecutedCmd>> message = mockMvcHelper
+        ResponseMessage<List<Step>> message = mockMvcHelper
                 .expectSuccessAndReturnClass(get("/jobs/hello-flow/1/steps"), JobStepsType);
         Assert.assertEquals(StatusCode.OK, message.getCode());
 
         // then:
-        List<ExecutedCmd> steps = message.getData();
+        List<Step> steps = message.getData();
         Assert.assertEquals(2, steps.size());
         Assert.assertEquals(Status.PENDING, steps.get(0).getStatus());
         Assert.assertEquals(Status.PENDING, steps.get(1).getStatus());

@@ -1,12 +1,13 @@
 package com.flowci.core.job.service;
 
+import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.dao.JobDao;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
@@ -172,7 +173,7 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     @Override
-    public void toContinue(Job job, ExecutedCmd step) {
+    public void toContinue(Job job, Step step) {
         if (job.isCancelling()) {
             on(job, Job.Status.CANCELLED, (context) -> context.step = step);
             return;
@@ -354,7 +355,7 @@ public class JobActionServiceImpl implements JobActionService {
                 // set current step to exception
                 String jobId = job.getId();
                 String nodePath = job.getCurrentPath(); // set in the dispatch
-                stepService.toStatus(jobId, nodePath, ExecutedCmd.Status.EXCEPTION, null);
+                stepService.toStatus(jobId, nodePath, Step.Status.EXCEPTION, null);
 
                 setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
                 agentService.tryRelease(agentId);
@@ -450,10 +451,10 @@ public class JobActionServiceImpl implements JobActionService {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                ExecutedCmd step = context.step;
+                Step step = context.step;
                 Throwable err = context.getError();
 
-                stepService.toStatus(job.getId(), step.getNodePath(), ExecutedCmd.Status.EXCEPTION, null);
+                stepService.toStatus(job.getId(), step.getNodePath(), Step.Status.EXCEPTION, null);
 
                 Agent agent = agentService.get(job.getAgentId());
                 agentService.tryRelease(agent.getId());
@@ -540,10 +541,10 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     private void setRestStepsToSkipped(Job job) {
-        List<ExecutedCmd> steps = stepService.list(job);
-        for (ExecutedCmd step : steps) {
+        List<Step> steps = stepService.list(job);
+        for (Step step : steps) {
             if (step.isRunning() || step.isPending()) {
-                stepService.toStatus(step, ExecutedCmd.Status.SKIPPED, null);
+                stepService.toStatus(step, Step.Status.SKIPPED, null);
             }
         }
     }
@@ -631,7 +632,7 @@ public class JobActionServiceImpl implements JobActionService {
         job.setAgentSnapshot(agent);
 
         // set executed cmd step to running
-        ExecutedCmd nextCmd = stepService.toStatus(job.getId(), nextPath, ExecutedCmd.Status.RUNNING, null);
+        Step nextCmd = stepService.toStatus(job.getId(), nextPath, Step.Status.RUNNING, null);
 
         // dispatch job to agent queue
         CmdIn cmd = cmdManager.createShellCmd(job, next, nextCmd);
@@ -648,7 +649,7 @@ public class JobActionServiceImpl implements JobActionService {
      */
     private boolean toNextStep(JobSmContext context) {
         Job job = context.job;
-        ExecutedCmd step = context.step;
+        Step step = context.step;
 
         // save executed cmd
         stepService.resultUpdate(step);
@@ -673,7 +674,7 @@ public class JobActionServiceImpl implements JobActionService {
             String nextPath = next.get().getPathAsString();
             job.setCurrentPath(nextPath);
 
-            ExecutedCmd nextCmd = stepService.toStatus(job.getId(), nextPath, ExecutedCmd.Status.RUNNING, null);
+            Step nextCmd = stepService.toStatus(job.getId(), nextPath, Step.Status.RUNNING, null);
             context.setStep(nextCmd);
 
             Agent agent = agentService.get(job.getAgentId());
@@ -714,14 +715,14 @@ public class JobActionServiceImpl implements JobActionService {
         logInfo(job, "status = {}", job.getStatus());
     }
 
-    private void updateJobTime(Job job, ExecutedCmd execCmd, NodeTree tree, StepNode node) {
+    private void updateJobTime(Job job, Step execCmd, NodeTree tree, StepNode node) {
         if (tree.isFirst(node.getPath())) {
             job.setStartAt(execCmd.getStartAt());
         }
         job.setFinishAt(execCmd.getFinishAt());
     }
 
-    private void updateJobContextAndLatestStatus(Job job, StepNode node, ExecutedCmd cmd) {
+    private void updateJobContextAndLatestStatus(Job job, StepNode node, Step cmd) {
         // merge output to job context
         Vars<String> context = job.getContext();
         context.merge(cmd.getOutput());
@@ -783,7 +784,7 @@ public class JobActionServiceImpl implements JobActionService {
 
         public String yml;
 
-        private ExecutedCmd step;
+        private Step step;
 
         private String agentId;
 

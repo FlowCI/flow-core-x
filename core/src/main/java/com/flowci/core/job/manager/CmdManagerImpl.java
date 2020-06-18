@@ -16,22 +16,21 @@
 
 package com.flowci.core.job.manager;
 
+import com.flowci.core.agent.domain.CmdIn;
+import com.flowci.core.agent.domain.ShellKill;
+import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
-import com.flowci.domain.CmdIn;
-import com.flowci.domain.CmdType;
 import com.flowci.domain.Vars;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 /**
  * @author yang
@@ -43,16 +42,16 @@ public class CmdManagerImpl implements CmdManager {
     private SpringEventManager eventManager;
 
     @Override
-    public CmdIn createShellCmd(Job job, StepNode node, ExecutedCmd cmd) {
-        CmdIn in = new CmdIn(cmd.getId(), CmdType.SHELL);
-        in.setFlowId(cmd.getFlowId()); // default work dir is {agent dir}/{flow id}
-        in.setJobId(cmd.getJobId());
-        in.setBuildNumber(cmd.getBuildNumber());
-        in.setTimeout(job.getTimeout());
+    public CmdIn createShellCmd(Job job, StepNode node, Step step) {
+        ShellIn in = new ShellIn()
+                .setId(step.getId())
+                .setFlowId(job.getFlowId())
+                .setJobId(job.getId())
+                .setAllowFailure(node.isAllowFailure())
+                .setDocker(node.getDocker())
+                .setTimeout(job.getTimeout());
 
         // load setting from yaml StepNode
-        in.setNodePath(node.getPathAsString());
-        in.setDocker(node.getDocker());
         in.addScript(node.getScript());
         in.addEnvFilters(node.getExports());
         in.getInputs().merge(job.getContext()).merge(node.getEnvironments());
@@ -75,10 +74,10 @@ public class CmdManagerImpl implements CmdManager {
 
     @Override
     public CmdIn createKillCmd() {
-        return new CmdIn(UUID.randomUUID().toString(), CmdType.KILL);
+        return new ShellKill();
     }
 
-    private void setPlugin(String name, CmdIn cmd) {
+    private void setPlugin(String name, ShellIn cmd) {
         GetPluginEvent event = eventManager.publish(new GetPluginAndVerifySetContext(this, name, cmd.getInputs()));
         if (event.hasError()) {
             throw event.getError();

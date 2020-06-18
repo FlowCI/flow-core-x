@@ -57,16 +57,17 @@ public class StateMachine<T extends Context> {
             return;
         }
 
-        // execute target hook
-        hooksOnTargetStatus.computeIfPresent(target, (status, hooks) -> {
-            for (Consumer<T> hook : hooks) {
-                hook.accept(context);
-            }
-            return hooks;
-        });
-
         try {
             action.accept(context);
+
+            // execute target hook
+            hooksOnTargetStatus.computeIfPresent(target, (status, hooks) -> {
+                for (Consumer<T> hook : hooks) {
+                    hook.accept(context);
+                }
+                return hooks;
+            });
+
         } catch (Throwable e) {
             log.debug(e);
             action.onException(e, context);

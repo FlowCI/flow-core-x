@@ -67,6 +67,10 @@ public class RabbitOperations implements AutoCloseable {
         this.channel.queueDeclare(queue, durable, false, false, null);
     }
 
+    public void declareTemp(String queue) throws IOException {
+        this.channel.queueDeclare(queue, false, true, true, null);
+    }
+
     public void declare(String queue, boolean durable, Integer maxPriority, String dlExName) throws IOException {
         Map<String, Object> props = new HashMap<>(3);
         props.put("x-max-priority", maxPriority);
@@ -140,12 +144,12 @@ public class RabbitOperations implements AutoCloseable {
                 if (executor != null) {
                     executor.execute(() -> {
                         log.debug("======= {} ======", new String(body));
-                        onMessage.apply(new Message(getChannel(), body, envelope));
+                        onMessage.apply(new Message(properties.getHeaders(), getChannel(), body, envelope));
                     });
                     return;
                 }
 
-                onMessage.apply(new Message(getChannel(), body, envelope));
+                onMessage.apply(new Message(properties.getHeaders(), getChannel(), body, envelope));
             }
         };
 
@@ -186,13 +190,16 @@ public class RabbitOperations implements AutoCloseable {
     @Getter
     public static class Message {
 
+        private final Map<String, Object> headers;
+
         private final Channel channel;
 
         private final byte[] body;
 
         private final Envelope envelope;
 
-        public Message(Channel channel, byte[] body, Envelope envelope) {
+        public Message(Map<String, Object> headers, Channel channel, byte[] body, Envelope envelope) {
+            this.headers = headers;
             this.channel = channel;
             this.body = body;
             this.envelope = envelope;
@@ -202,9 +209,13 @@ public class RabbitOperations implements AutoCloseable {
             try {
                 getChannel().basicAck(envelope.getDeliveryTag(), false);
                 return true;
-            } catch (IOException e) {
+            } catch (Exception e) {
                 return false;
             }
+        }
+
+        public boolean hasHeader() {
+            return headers != null;
         }
     }
 }

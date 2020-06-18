@@ -20,11 +20,16 @@ package com.flowci.core.auth;
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.auth.service.AuthService;
 import com.flowci.core.common.manager.SessionManager;
+import com.flowci.core.user.domain.User;
 import com.flowci.exception.AccessException;
 import com.flowci.exception.AuthenticationException;
+import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -32,6 +37,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author yang
@@ -50,6 +56,31 @@ public class WebAuth implements HandlerInterceptor {
 
     @Autowired
     private SessionManager sessionManager;
+
+    /**
+     * Get user object from ws message header
+     * @param headers
+     * @return User object
+     * @exception AuthenticationException if Token header is missing or invalid token
+     */
+    public User validate(MessageHeaders headers) {
+        MultiValueMap<String, String> map = headers.get(StompHeaderAccessor.NATIVE_HEADERS, MultiValueMap.class);
+        if (Objects.isNull(map)) {
+            throw new AuthenticationException("Invalid token");
+        }
+
+        String token = map.getFirst(HeaderToken);
+        if (!StringHelper.hasValue(token)) {
+            throw new AuthenticationException("Invalid token");
+        }
+
+        Optional<User> user = authService.get(token);
+        if (!user.isPresent()) {
+            throw new AuthenticationException("Invalid token");
+        }
+
+        return user.get();
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {

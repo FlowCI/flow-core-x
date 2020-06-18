@@ -53,7 +53,8 @@ public class AgentConfig {
         Settings.RabbitMQ mq = new Settings.RabbitMQ();
         mq.setUri(getRabbitUri());
         mq.setCallback(rabbitProperties.getCallbackQueue());
-        mq.setLogsExchange(rabbitProperties.getLoggingExchange());
+        mq.setShellLogEx(rabbitProperties.getShellLogEx());
+        mq.setTtyLogEx(rabbitProperties.getTtyLogEx());
 
         Settings settings = new Settings();
         settings.setZookeeper(zk);

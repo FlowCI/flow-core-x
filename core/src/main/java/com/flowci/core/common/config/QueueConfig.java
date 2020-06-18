@@ -69,15 +69,36 @@ public class QueueConfig {
         return manager;
     }
 
-    @Bean("loggingQueueManager")
-    public QueueOperations loggingQueueManager(Connection rabbitConnection) throws IOException {
-        String queue = rabbitProperties.getLoggingQueue();
-        String exchange = rabbitProperties.getLoggingExchange();
+    @Bean("shellLogQueue")
+    public String getShellLogQ() {
+        return "shelllog.q." + StringHelper.randomString(8);
+    }
 
-        QueueOperations manager = new QueueOperations(rabbitConnection, 10, queue);
-        manager.declare(false);
-        manager.declareExchangeAndBind(exchange, BuiltinExchangeType.FANOUT, StringHelper.EMPTY);
+    @Bean("ttyLogQueue")
+    public String getTtyLogQ() {
+        return "ttylog.q." + StringHelper.randomString(8);
+    }
 
+    @Bean("logQueueManager")
+    public RabbitOperations logQueueManager(Connection rabbitConnection,
+                                            String shellLogQueue,
+                                            String ttyLogQueue) throws IOException {
+        RabbitOperations manager = new RabbitOperations(rabbitConnection, 10);
+        manager.declareTemp(shellLogQueue);
+        manager.declareExchangeAndBind(
+                rabbitProperties.getShellLogEx(),
+                BuiltinExchangeType.FANOUT,
+                shellLogQueue,
+                StringHelper.EMPTY
+        );
+
+        manager.declareTemp(ttyLogQueue);
+        manager.declareExchangeAndBind(
+                rabbitProperties.getTtyLogEx(),
+                BuiltinExchangeType.FANOUT,
+                ttyLogQueue,
+                StringHelper.EMPTY
+        );
         return manager;
     }
 

@@ -19,6 +19,9 @@ package com.flowci.core.auth.service;
 
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.auth.domain.Tokens;
+import com.flowci.core.user.domain.User;
+
+import java.util.Optional;
 
 /**
  * 'login' ->
@@ -52,10 +55,15 @@ public interface AuthService {
     boolean hasPermission(Action action);
 
     /**
-     * Set current user by token
+     * Set current logged in user by token
      * @return Current user object or null if not verified
      */
     boolean set(String token);
+
+    /**
+     * Get current logged in user
+     */
+    Optional<User> get(String token);
 
     /**
      * Set current user from default admin form config properties

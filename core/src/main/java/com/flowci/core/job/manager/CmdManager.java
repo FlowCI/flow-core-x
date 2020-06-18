@@ -16,9 +16,9 @@
 
 package com.flowci.core.job.manager;
 
+import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.job.domain.Job;
-import com.flowci.domain.CmdIn;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.tree.StepNode;
 
 /**
@@ -26,7 +26,7 @@ import com.flowci.tree.StepNode;
  */
 public interface CmdManager {
 
-    CmdIn createShellCmd(Job job, StepNode node, ExecutedCmd cmd);
+    CmdIn createShellCmd(Job job, StepNode node, Step cmd);
 
     CmdIn createKillCmd();
 }
