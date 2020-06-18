@@ -25,16 +25,15 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
-import com.flowci.exception.ArgumentException;
 import com.flowci.exception.AuthenticationException;
 import com.flowci.util.HashingHelper;
-import java.util.Objects;
-import java.util.Optional;
-
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
+import java.util.Optional;
 
 @Log4j2
 @Service
@@ -68,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userService.getByEmail(email);
 
         if (!Objects.equals(user.getPasswordOnMd5(), passwordOnMd5)) {
-            throw new ArgumentException("Invalid password");
+            throw new AuthenticationException("Invalid password");
         }
 
         // create token

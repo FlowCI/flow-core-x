@@ -26,28 +26,7 @@ public class TtyServiceImpl implements TtyService {
     private SpringEventManager eventManager;
 
     @Override
-    public void open(String jobId) {
-        dispatch(new TtyCmd.In()
-                .setId(jobId)
-                .setAction(TtyCmd.Action.OPEN));
-    }
-
-    @Override
-    public void shell(String jobId, String script) {
-        dispatch(new TtyCmd.In()
-                .setId(jobId)
-                .setAction(TtyCmd.Action.SHELL)
-                .setInput(script));
-    }
-
-    @Override
-    public void close(String jobId) {
-        dispatch(new TtyCmd.In()
-                .setId(jobId)
-                .setAction(TtyCmd.Action.CLOSE));
-    }
-
-    private void dispatch(TtyCmd.In in) {
+    public void execute(TtyCmd.In in) {
         try {
             Agent agent = getAgent(in.getId());
 
