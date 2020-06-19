@@ -16,18 +16,22 @@
 
 package com.flowci.core.flow.config;
 
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.log4j.Log4j2;
-import org.apache.velocity.Template;
-import org.apache.velocity.app.Velocity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * @author yang
@@ -36,28 +40,28 @@ import java.util.Properties;
 @Configuration
 public class FlowConfig {
 
-    private static final Properties templateProperties = new Properties();
+    @Autowired
+    private AppProperties.Flow flowProperties;
 
-    static {
-        templateProperties.setProperty("resource.loader", "class");
-        templateProperties.setProperty("class.resource.loader.class",
-                "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-
-        Velocity.init(templateProperties);
-    }
+    @Autowired
+    private HttpClient httpClient;
 
     @Bean("gitTestExecutor")
     public ThreadPoolTaskExecutor gitTestExecutor() {
         return ThreadHelper.createTaskExecutor(20, 20, 100, "git-test-");
     }
 
-    @Bean
-    public Template defaultYmlTemplate() {
-        return Velocity.getTemplate("templates/example.yml.vm");
-    }
-
     @Bean("gitBranchCache")
     public Cache<String, List<String>> gitBranchCache() {
         return CacheHelper.createLocalCache(50, 300);
+    }
+
+    @Bean("defaultTemplateYml")
+    public String defaultTemplateYml() throws IOException {
+        String url = flowProperties.getDefaultTemplateUrl();
+        HttpResponse response = httpClient.execute(new HttpGet(url));
+        String yml = EntityUtils.toString(response.getEntity());
+        log.info("Default template yml is loaded from {}", url);
+        return yml;
     }
 }

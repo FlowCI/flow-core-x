@@ -32,8 +32,6 @@ import com.flowci.tree.StepNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -51,7 +49,7 @@ import java.util.Set;
 public class YmlServiceImpl implements YmlService {
 
     @Autowired
-    private Template defaultYmlTemplate;
+    private String defaultTemplateYml;
 
     @Autowired
     private YmlDao ymlDao;
@@ -115,7 +113,7 @@ public class YmlServiceImpl implements YmlService {
 
     @Override
     public Yml saveDefaultTemplate(Flow flow) {
-        return saveYml(flow, getTemplateYml());
+        return saveYml(flow, defaultTemplateYml);
     }
 
     //====================================================================
@@ -158,16 +156,5 @@ public class YmlServiceImpl implements YmlService {
         }
 
         return Optional.empty();
-    }
-
-    private String getTemplateYml() {
-        VelocityContext context = new VelocityContext();
-
-        try (StringWriter sw = new StringWriter()) {
-            defaultYmlTemplate.merge(context, sw);
-            return sw.toString();
-        } catch (IOException e) {
-            return StringHelper.EMPTY;
-        }
     }
 }

@@ -72,6 +72,12 @@ public class AppProperties {
         return new Zookeeper();
     }
 
+    @Bean("flowProperties")
+    @ConfigurationProperties(prefix = "app.flow")
+    public Flow flow() {
+        return new Flow();
+    }
+
     @Bean("jobProperties")
     @ConfigurationProperties(prefix = "app.job")
     public Job job() {
@@ -112,6 +118,12 @@ public class AppProperties {
 
         @NotBlank
         private String defaultPassword;
+    }
+
+    @Data
+    public static class Flow {
+
+        private String defaultTemplateUrl;
     }
 
     @Data
