@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
 
 import static com.flowci.core.common.helper.CipherHelper.RSA.fingerprintMd5;
 
@@ -61,7 +62,7 @@ public class CipherHelperTest {
     }
 
     @Test
-    public void should_create_public_key_fingerprint() throws IOException {
+    public void should_create_public_key_fingerprint() throws IOException, NoSuchAlgorithmException {
         InputStream in = CipherHelper.class.getClassLoader().getResourceAsStream("pk_fingerprint");
         String publicKey = StringHelper.toString(in);
         Assert.assertEquals("09:e6:ce:d3:ba:a3:ee:75:9e:96:7b:55:12:85:c6:4e", fingerprintMd5(publicKey));
