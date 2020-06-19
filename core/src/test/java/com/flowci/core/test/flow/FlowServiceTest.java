@@ -134,7 +134,7 @@ public class FlowServiceTest extends SpringScenario {
         Assert.assertNotNull(yml);
 
         Node root = YmlParser.load("test", yml.getRaw());
-        Assert.assertEquals(1, root.getChildren().size());
+        Assert.assertTrue(root.getChildren().size() > 0);
 
         // then:
         List<Flow> flows = flowService.list(Status.CONFIRMED);

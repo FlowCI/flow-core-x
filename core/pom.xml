@@ -130,11 +130,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.velocity</groupId>
-      <artifactId>velocity-engine-core</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>com.cronutils</groupId>
       <artifactId>cron-utils</artifactId>
     </dependency>
