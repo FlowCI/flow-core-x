@@ -38,6 +38,8 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.commons.lang.NotImplementedException;
 import sun.security.util.DerInputStream;
 import sun.security.util.DerValue;
 
@@ -98,6 +100,10 @@ public abstract class CipherHelper {
             } catch (Throwable e) {
                 return StringHelper.EMPTY;
             }
+        }
+
+        public static String fingerprintMd5(String publicKey) {
+            throw new NotImplementedException();
         }
 
         private static PrivateKey toPrivateKey(String key)
