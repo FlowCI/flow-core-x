@@ -23,6 +23,7 @@ import com.flowci.core.secret.dao.SecretDao;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
+import com.flowci.core.secret.domain.TokenSecret;
 import com.flowci.core.secret.event.CreateAuthEvent;
 import com.flowci.core.secret.event.CreateRsaEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
@@ -30,6 +31,7 @@ import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
+import com.flowci.exception.StatusException;
 import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +39,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 
@@ -93,20 +96,20 @@ public class SecretServiceImpl implements SecretService {
     public RSASecret createRSA(String name) {
         String email = sessionManager.get().getEmail();
         SimpleKeyPair pair = CipherHelper.RSA.gen(email);
-
-        RSASecret rsaCredential = new RSASecret();
-        rsaCredential.setName(name);
-        rsaCredential.setPair(pair);
-
-        return save(rsaCredential);
+        return createRSA(name, pair);
     }
 
     @Override
     public RSASecret createRSA(String name, SimpleKeyPair pair) {
-        RSASecret rsaCredential = new RSASecret();
-        rsaCredential.setName(name);
-        rsaCredential.setPair(pair);
-        return save(rsaCredential);
+        try {
+            RSASecret secret = new RSASecret();
+            secret.setName(name);
+            secret.setPair(pair);
+            secret.setMd5Fingerprint(CipherHelper.RSA.fingerprintMd5(pair.getPublicKey()));
+            return save(secret);
+        } catch (NoSuchAlgorithmException e) {
+            throw new StatusException("failed to generate fingerprint");
+        }
     }
 
     @Override
@@ -115,6 +118,14 @@ public class SecretServiceImpl implements SecretService {
         auth.setName(name);
         auth.setPair(pair);
         return save(auth);
+    }
+
+    @Override
+    public TokenSecret createToken(String name, String token) {
+        TokenSecret t = new TokenSecret();
+        t.setName(name);
+        t.setTokenData(token);
+        return save(t);
     }
 
     @EventListener

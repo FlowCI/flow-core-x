@@ -16,12 +16,21 @@
 
 package com.flowci.core.common.config;
 
+import com.flowci.core.common.helper.ThreadHelper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+import java.util.List;
 
 /**
  * @author yang
@@ -34,40 +43,79 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      * To subscribe git test status update for flow
      * Ex: /topic/flows/git/test/{flow id}
      */
-    private final String gitTestTopic = "/topic/flows/git/test";
+    @Bean("topicForGitTest")
+    public String topicForGitTest() {
+        return "/topic/flows/git/test";
+    }
 
     /**
      * To subscribe new job
      */
-    private final String jobsTopic = "/topic/jobs";
+    @Bean("topicForJobs")
+    public String topicForJobs() {
+        return "/topic/jobs";
+    }
 
     /**
      * To subscribe step update for job
      * Ex: /topic/steps/{job id}
      */
-    private final String stepsTopic = "/topic/steps";
+    @Bean("topicForSteps")
+    public String topicForSteps() {
+        return "/topic/steps";
+    }
+
+    /**
+     * To subscribe tty action
+     * Ex: /topic/tty/action/{job id}
+     */
+    @Bean("topicForTtyAction")
+    public String topicForTtyAction() {
+        return "/topic/tty/action";
+    }
+
+    /**
+     * To subscribe tty logs
+     * Ex: /topic/tty/logs/{job id}
+     */
+    @Bean("topicForTtyLogs")
+    public String topicForTtyLogs() {
+        return "/topic/tty/logs";
+    }
 
     /**
      * To subscribe task update for job
      * Ex: /topic/tasks/{job id}
      */
-    private final String tasksTopic = "/topic/tasks";
+    @Bean("topicForTasks")
+    public String topicForTasks() {
+        return "/topic/tasks";
+    }
 
     /**
      * To subscribe real time logging for all jobs.
-     * Ex: /topic/logs
+     * Ex: /topic/logs/{job id}
      */
-    private final String logsTopic = "/topic/logs";
+    @Bean("topicForLogs")
+    public String topicForLogs() {
+        return "/topic/logs";
+    }
 
     /**
      * To subscribe agent update
      */
-    private final String agentsTopic = "/topic/agents";
+    @Bean("topicForAgents")
+    public String topicForAgents() {
+        return "/topic/agents";
+    }
 
     /**
      * To subscribe agent host update
      */
-    private final String agentHostTopic = "/topic/hosts";
+    @Bean("topicForAgentHost")
+    public String topicForAgentHost() {
+        return "/topic/hosts";
+    }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -76,50 +124,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker(
-                jobsTopic,
-                stepsTopic,
-                tasksTopic,
-                logsTopic,
-                agentsTopic,
-                agentHostTopic,
-                gitTestTopic
-        );
+        registry.enableSimpleBroker("/topic");
         registry.setApplicationDestinationPrefixes("/app");
     }
 
-    @Bean("topicForGitTest")
-    public String topicForGitTest() {
-        return gitTestTopic;
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        ThreadPoolTaskExecutor executor = ThreadHelper.createTaskExecutor(50, 50, 50, "ws-inbound-");
+        registration.taskExecutor(executor);
     }
 
-    @Bean("topicForJobs")
-    public String topicForJobs() {
-        return jobsTopic;
-    }
-
-    @Bean("topicForSteps")
-    public String topicForSteps() {
-        return stepsTopic;
-    }
-
-    @Bean("topicForTasks")
-    public String topicForTasks() {
-        return tasksTopic;
-    }
-
-    @Bean("topicForLogs")
-    public String topicForLogs() {
-        return logsTopic;
-    }
-
-    @Bean("topicForAgents")
-    public String topicForAgents() {
-        return agentsTopic;
-    }
-
-    @Bean("topicForAgentHost")
-    public String topicForAgentHost() {
-        return agentHostTopic;
+    @Override
+    public void configureClientOutboundChannel(ChannelRegistration registration) {
+        ThreadPoolTaskExecutor executor = ThreadHelper.createTaskExecutor(50, 50, 50, "ws-outbound-");
+        registration.taskExecutor(executor);
     }
 }

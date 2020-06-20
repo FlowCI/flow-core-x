@@ -57,9 +57,9 @@ public interface FlowService {
      *
      * @param name flow name
      * @param gitUrl defined git url, can be null
-     * @param credential defined credential
+     * @param secret defined secret
      */
-    Flow confirm(String name, String gitUrl, String credential);
+    Flow confirm(String name, String gitUrl, String secret);
 
     /**
      * Get flow by name

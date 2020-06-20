@@ -18,5 +18,7 @@ public interface ConfigService {
      */
     Config save(String name, SmtpOption option);
 
+    Config save(String name, String text);
+
     Config delete(String name);
 }

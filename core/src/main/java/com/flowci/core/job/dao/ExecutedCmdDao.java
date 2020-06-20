@@ -16,7 +16,7 @@
 
 package com.flowci.core.job.dao;
 
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -27,13 +27,13 @@ import java.util.Optional;
  * @author yang
  */
 @Repository
-public interface ExecutedCmdDao extends MongoRepository<ExecutedCmd, String> {
+public interface ExecutedCmdDao extends MongoRepository<Step, String> {
 
     Long deleteByFlowId(String flowId);
 
     Long deleteByJobId(String jobId);
 
-    Optional<ExecutedCmd> findByJobIdAndNodePath(String jobId, String nodePath);
+    Optional<Step> findByJobIdAndNodePath(String jobId, String nodePath);
 
-    List<ExecutedCmd> findByFlowIdAndBuildNumber(String flowId, long buildNumber);
+    List<Step> findByFlowIdAndBuildNumber(String flowId, long buildNumber);
 }

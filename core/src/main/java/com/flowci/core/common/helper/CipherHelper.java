@@ -23,31 +23,29 @@ import com.flowci.util.StringHelper;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
+import sun.security.util.DerInputStream;
+import sun.security.util.DerValue;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
-import sun.security.util.DerInputStream;
-import sun.security.util.DerValue;
 
 public abstract class CipherHelper {
 
     public static abstract class RSA {
 
-        private final static String RsaPrivateKeyStart = "-----BEGIN RSA PRIVATE KEY-----";
+        private static final String RsaPrivateKeyStart = "-----BEGIN RSA PRIVATE KEY-----";
 
-        private final static String RsaPrivateKeyEnd = "-----END RSA PRIVATE KEY-----";
+        private static final String RsaPrivateKeyEnd = "-----END RSA PRIVATE KEY-----";
 
         public static boolean isPrivateKey(String src) {
             src = src.trim();
@@ -100,8 +98,29 @@ public abstract class CipherHelper {
             }
         }
 
+        public static String fingerprintMd5(String publicKey) throws NoSuchAlgorithmException {
+            String derFormat = publicKey.split(" ")[1].trim();
+            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+            byte[] digest = messageDigest.digest(Base64.getDecoder().decode(derFormat));
+            final StringBuilder toRet = new StringBuilder();
+            for (int i = 0; i < digest.length; i++) {
+                if (i != 0) {
+                    toRet.append(":");
+                }
+
+                int b = digest[i] & 0xff;
+                String hex = Integer.toHexString(b);
+
+                if (hex.length() == 1) {
+                    toRet.append("0");
+                }
+                toRet.append(hex);
+            }
+            return toRet.toString();
+        }
+
         private static PrivateKey toPrivateKey(String key)
-            throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+                throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
             String content = key.replaceAll("\\n", "").replace(RsaPrivateKeyStart, "").replace(RsaPrivateKeyEnd, "");
@@ -121,7 +140,7 @@ public abstract class CipherHelper {
             BigInteger crtCoef = seq[8].getBigInteger();
 
             RSAPrivateCrtKeySpec keySpec =
-                new RSAPrivateCrtKeySpec(modulus, publicExp, privateExp, prime1, prime2, exp1, exp2, crtCoef);
+                    new RSAPrivateCrtKeySpec(modulus, publicExp, privateExp, prime1, prime2, exp1, exp2, crtCoef);
 
             return keyFactory.generatePrivate(keySpec);
         }
@@ -130,7 +149,7 @@ public abstract class CipherHelper {
          * from <type><space><base64data><space><comment> to public key
          */
         private static PublicKey toPublicKey(String sshPublicKey)
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
+                throws NoSuchAlgorithmException, InvalidKeySpecException {
             String[] line = sshPublicKey.trim().split(" ", 3);
             String type = line[0];
             String content = line[1];

@@ -52,7 +52,7 @@ import java.util.*;
 @Service
 public class StatsServiceImpl implements StatsService {
 
-    private final static TypeReference<List<StatsType>> StatsTypeRef = new TypeReference<List<StatsType>>() {
+    private static final TypeReference<List<StatsType>> StatsTypeRef = new TypeReference<List<StatsType>>() {
     };
 
     @Value("classpath:default_statistic_type.json")

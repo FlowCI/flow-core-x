@@ -43,7 +43,7 @@ import java.util.function.Consumer;
  */
 public class ZookeeperClient implements AutoCloseable {
 
-    private final static int RetryBetweenInMs = 1000 * 10;
+    private static final int RetryBetweenInMs = 1000 * 10;
 
     private final CuratorFramework client;
 

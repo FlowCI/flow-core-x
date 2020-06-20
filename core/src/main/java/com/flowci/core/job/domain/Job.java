@@ -33,6 +33,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
@@ -171,18 +172,18 @@ public class Job extends Mongoable implements Pathable {
         return job;
     }
 
-    public final static Set<Status> FINISH_STATUS = ImmutableSet.<Status>builder()
+    public static final Set<Status> FINISH_STATUS = ImmutableSet.<Status>builder()
             .add(Status.TIMEOUT)
             .add(Status.CANCELLED)
             .add(Status.FAILURE)
             .add(Status.SUCCESS)
             .build();
 
-    private final static SimpleDateFormat DateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final SimpleDateFormat DateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
-    private final static Integer MinPriority = 1;
+    private static final Integer MinPriority = 1;
 
-    private final static Integer MaxPriority = 255;
+    private static final Integer MaxPriority = 255;
 
     /**
      * Job key is generated from {flow id}-{build number}
@@ -220,17 +221,17 @@ public class Job extends Mongoable implements Pathable {
     private String yamlRepoBranch;
 
     /**
-     * Execution timeout in seconds
+     * Step timeout in seconds
      */
     private int timeout = 1800;
 
     /**
-     * Expire while queue up
+     * Timeout while job queuing
      */
     private int expire = 1800;
 
     /**
-     * Total expire from expire and timeout
+     * Date that job will expired at
      */
     private Date expireAt;
 
@@ -243,6 +244,12 @@ public class Job extends Mongoable implements Pathable {
      * Real execution finish at
      */
     private Date finishAt;
+
+    public void setExpire(int expire) {
+        this.expire = expire;
+        Instant expireAt = Instant.now().plus(expire, ChronoUnit.SECONDS);
+        this.expireAt = (Date.from(expireAt));
+    }
 
     @JsonIgnore
     public boolean isCancelled() {

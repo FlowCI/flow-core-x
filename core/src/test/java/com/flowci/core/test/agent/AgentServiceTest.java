@@ -16,6 +16,8 @@
 
 package com.flowci.core.test.agent;
 
+import com.flowci.core.agent.domain.CmdIn;
+import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.config.AppProperties;
@@ -23,16 +25,14 @@ import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.test.ZookeeperScenario;
 import com.flowci.domain.Agent;
 import com.flowci.domain.Agent.Status;
-import com.flowci.domain.CmdIn;
-import com.flowci.domain.CmdType;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,7 +138,7 @@ public class AgentServiceTest extends ZookeeperScenario {
     @Test
     public void should_dispatch_cmd_to_agent() throws InterruptedException {
         // init:
-        CmdIn cmd = new CmdIn(UUID.randomUUID().toString(), CmdType.SHELL);
+        CmdIn cmd = new ShellIn();
         Agent agent = agentService.create("hello.agent", null, Optional.empty());
 
         // when:

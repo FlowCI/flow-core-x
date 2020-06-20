@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.util.Properties;
 import org.apache.zookeeper.server.ServerConfig;
 import org.apache.zookeeper.server.ZooKeeperServerMain;
+import org.apache.zookeeper.server.admin.AdminServer;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
 
@@ -52,7 +53,7 @@ public class LocalServer extends ZooKeeperServerMain implements Runnable {
             configuration.readFrom(quorumPeerConfig);
 
             this.runFromConfig(configuration);
-        } catch (IOException | ConfigException e) {
+        } catch (Exception e) {
             throw new ZookeeperException("Unable to start embedded zookeeper server: {}", e.getMessage());
         }
     }
@@ -70,7 +71,7 @@ public class LocalServer extends ZooKeeperServerMain implements Runnable {
     }
 
     @Override
-    public void runFromConfig(ServerConfig config) throws IOException {
+    public void runFromConfig(ServerConfig config) throws IOException, AdminServer.AdminServerException {
         isStarted = true;
         super.runFromConfig(config);
     }

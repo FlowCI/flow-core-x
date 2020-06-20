@@ -21,7 +21,10 @@ import com.flowci.core.common.event.SyncEvent;
 import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.util.FileHelper;
 import lombok.extern.log4j.Log4j2;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.MultipartProperties;
 import org.springframework.cache.annotation.EnableCaching;
@@ -89,6 +92,18 @@ public class AppConfig {
     @Bean("objectMapper")
     public ObjectMapper objectMapper() {
         return JacksonHelper.create();
+    }
+
+    @Bean("httpClient")
+    public HttpClient httpClient() {
+        int timeout = 10 * 1000;
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(timeout)
+                .setConnectionRequestTimeout(timeout)
+                .setSocketTimeout(timeout)
+                .build();
+
+        return HttpClientBuilder.create().setDefaultRequestConfig(config).build();
     }
 
     @Bean(name = "applicationEventMulticaster")

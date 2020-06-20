@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.dao.AgentDao;
 import com.flowci.core.agent.domain.AgentInit;
+import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.event.CreateAgentEvent;
@@ -33,7 +34,6 @@ import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
 import com.flowci.domain.Agent;
 import com.flowci.domain.Agent.Status;
-import com.flowci.domain.CmdIn;
 import com.flowci.domain.Settings;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
@@ -219,10 +219,8 @@ public class AgentServiceImpl implements AgentService {
                 return Optional.empty();
             }
 
-            synchronized (lock) {
-                log.debug("Job {} is waiting for agent", jobId);
-                ThreadHelper.wait(lock, RetryIntervalOnNotFound);
-            }
+            log.debug("Job {} is waiting for agent", jobId);
+            ThreadHelper.wait(lock, RetryIntervalOnNotFound);
         }
     }
 
@@ -346,9 +344,7 @@ public class AgentServiceImpl implements AgentService {
 
         // notify all consumer to find agent
         acquireLocks.computeIfPresent(agent.getJobId(), (s, lock) -> {
-            synchronized (lock) {
-                lock.notifyAll();
-            }
+            ThreadHelper.notifyAll(lock);
             return lock;
         });
     }
@@ -361,9 +357,7 @@ public class AgentServiceImpl implements AgentService {
         }
 
         lock.stop = true;
-        synchronized (lock) {
-            lock.notifyAll();
-        }
+        ThreadHelper.notifyAll(lock);
     }
 
     //====================================================================
@@ -505,10 +499,9 @@ public class AgentServiceImpl implements AgentService {
     //        %% Inner classes
     //====================================================================
 
-    private class AcquireLock {
+    private static class AcquireLock {
 
         private boolean stop = false;
-
     }
 
     private class RootNodeListener implements PathChildrenCacheListener {
@@ -542,7 +535,10 @@ public class AgentServiceImpl implements AgentService {
 
             if (event.getType() == Type.CHILD_ADDED) {
                 syncLockNode(agent, Type.CHILD_ADDED);
-                updateAgentStatus(agent, Status.IDLE);
+
+                // status is reported from agent
+                Status status = getStatusFromZk(agent);
+                updateAgentStatus(agent, status);
                 log.debug("Event '{}' of agent '{}' with status '{}'", event.getType(), agent.getName(), Status.IDLE);
                 return;
             }

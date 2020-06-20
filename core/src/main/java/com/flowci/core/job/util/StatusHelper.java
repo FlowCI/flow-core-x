@@ -18,7 +18,7 @@ package com.flowci.core.job.util;
 
 import com.flowci.core.job.domain.Executed.Status;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public abstract class StatusHelper {
 
-    private final static Map<Status, Job.Status> StatusMapping = ImmutableMap.<Status, Job.Status>builder()
+    private static final Map<Status, Job.Status> StatusMapping = ImmutableMap.<Status, Job.Status>builder()
         .put(Status.PENDING, Job.Status.PENDING)
         .put(Status.RUNNING, Job.Status.RUNNING)
         .put(Status.SUCCESS, Job.Status.SUCCESS)
@@ -37,12 +37,12 @@ public abstract class StatusHelper {
         .put(Status.TIMEOUT, Job.Status.TIMEOUT)
         .build();
 
-    public static Job.Status convert(ExecutedCmd executedCmd) {
+    public static Job.Status convert(Step step) {
         // to handle allow failure
-        if (executedCmd.isSuccess()) {
+        if (step.isSuccess()) {
             return Job.Status.SUCCESS;
         }
 
-        return StatusMapping.get(executedCmd.getStatus());
+        return StatusMapping.get(step.getStatus());
     }
 }

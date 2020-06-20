@@ -17,6 +17,9 @@
 package com.flowci.core.job.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.core.agent.domain.CmdOut;
+import com.flowci.core.agent.domain.ShellOut;
+import com.flowci.core.agent.domain.TtyCmd;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -26,10 +29,11 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
-import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
+import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.domain.Agent;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +43,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @Log4j2
 @Service
@@ -61,6 +66,9 @@ public class JobEventServiceImpl implements JobEventService {
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private StepService stepService;
 
     @Autowired
     private JobActionService jobActionService;
@@ -118,7 +126,7 @@ public class JobEventServiceImpl implements JobEventService {
     }
 
     @Override
-    public void handleCallback(ExecutedCmd step) {
+    public void handleCallback(Step step) {
         Job job = jobService.get(step.getJobId());
         jobActionService.toContinue(job, step);
     }
@@ -128,23 +136,41 @@ public class JobEventServiceImpl implements JobEventService {
     //====================================================================
 
     @EventListener(value = ContextRefreshedEvent.class)
-    public void startCallbackQueueConsumer(ContextRefreshedEvent ignore) throws IOException {
+    public void startCallbackQueueConsumer() throws IOException {
         callbackQueueManager.startConsumer(false, message -> {
-            try {
-                ExecutedCmd cmd = objectMapper.readValue(message.getBody(), ExecutedCmd.class);
-                log.info("[Callback]: {}-{} = {}", cmd.getJobId(), cmd.getNodePath(), cmd.getStatus());
+            byte[] raw = message.getBody();
+            byte ind = raw[0];
+            byte[] body = Arrays.copyOfRange(raw, 1, raw.length);
 
-                handleCallback(cmd);
-                return message.sendAck();
+            try {
+                switch (ind) {
+                    case CmdOut.ShellOutInd:
+                        ShellOut shellOut = objectMapper.readValue(body, ShellOut.class);
+                        Step step = stepService.get(shellOut.getId());
+                        step.setFrom(shellOut);
+
+                        log.info("[Callback]: {}-{} = {}", step.getJobId(), step.getNodePath(), step.getStatus());
+                        handleCallback(step);
+                        break;
+
+                    case CmdOut.TtyOutInd:
+                        TtyCmd.Out ttyOut = objectMapper.readValue(body, TtyCmd.Out.class);
+                        eventManager.publish(new TtyStatusUpdateEvent(this, ttyOut));
+                        break;
+
+                    default:
+                        log.warn("Invalid message from callback queue: {}", new String(raw));
+                }
             } catch (IOException e) {
-                log.error(e.getMessage());
-                return false;
+                log.warn("Unable to decode message from callback queue: {}", new String(raw));
             }
+
+            return message.sendAck();
         });
     }
 
     @EventListener(value = ContextRefreshedEvent.class)
-    public void startJobDeadLetterConsumer(ContextRefreshedEvent ignore) throws IOException {
+    public void startJobDeadLetterConsumer() throws IOException {
         String deadLetterQueue = rabbitProperties.getJobDlQueue();
         jobsQueueManager.startConsumer(deadLetterQueue, true, message -> {
             String jobId = new String(message.getBody());

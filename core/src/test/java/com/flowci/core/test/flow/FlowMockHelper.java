@@ -23,8 +23,8 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.domain.VarValue;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.user.domain.User;
-import com.flowci.domain.http.RequestMessage;
-import com.flowci.domain.http.ResponseMessage;
+import com.flowci.core.common.domain.http.RequestMessage;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -41,19 +41,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  */
 public class FlowMockHelper {
 
-    final static TypeReference<ResponseMessage<Flow>> FlowType =
+    static final TypeReference<ResponseMessage<Flow>> FlowType =
             new TypeReference<ResponseMessage<Flow>>() {
             };
 
-    final static TypeReference<ResponseMessage<List<Flow>>> ListFlowType =
+    static final TypeReference<ResponseMessage<List<Flow>>> ListFlowType =
             new TypeReference<ResponseMessage<List<Flow>>>() {
             };
 
-    final static TypeReference<ResponseMessage<String>> FlowYmlType =
+    static final TypeReference<ResponseMessage<String>> FlowYmlType =
             new TypeReference<ResponseMessage<String>>() {
             };
 
-    private final static TypeReference<ResponseMessage<List<User>>> UserListType =
+    private static final TypeReference<ResponseMessage<List<User>>> UserListType =
             new TypeReference<ResponseMessage<List<User>>>() {
             };
 

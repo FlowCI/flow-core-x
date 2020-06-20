@@ -33,6 +33,8 @@ public final class RSASecret extends Secret {
 
     private SimpleKeyPair pair;
 
+    private String md5Fingerprint;
+
     public RSASecret() {
         this.pair = new SimpleKeyPair();
         this.setCategory(Category.SSH_RSA);

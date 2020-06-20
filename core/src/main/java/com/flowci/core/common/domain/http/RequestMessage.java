@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 flow.ci
+ * Copyright 2018 flow.ci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,25 @@
  * limitations under the License.
  */
 
-package com.flowci.core.secret.domain;
+package com.flowci.core.common.domain.http;
 
-import com.flowci.domain.SimpleAuthPair;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.validation.constraints.NotEmpty;
-import lombok.Data;
+import java.io.Serializable;
 
 /**
  * @author yang
  */
-@Data
-public class CreateAuth {
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class RequestMessage<T> implements Serializable {
 
     @NotEmpty
-    private String name;
-
-    @NotEmpty
-    private String username;
-
-    @NotEmpty
-    private String password;
-
-    public SimpleAuthPair getAuthPair() {
-        return SimpleAuthPair.of(username, password);
-    }
+    private T data;
 }

@@ -16,7 +16,7 @@
 
 package com.flowci.core.job.dao;
 
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.index.CompoundIndexDefinition;
@@ -37,7 +37,7 @@ public class JobIndexInitializer {
         fields.put("flowId", 1);
         fields.put("buildNumber", 1);
 
-        mongoOps.indexOps(ExecutedCmd.class)
+        mongoOps.indexOps(Step.class)
                 .ensureIndex(new CompoundIndexDefinition(fields));
     }
 }

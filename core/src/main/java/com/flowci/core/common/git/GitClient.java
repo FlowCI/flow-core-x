@@ -13,10 +13,8 @@ import lombok.extern.log4j.Log4j2;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.OpenSshConfig;
-import org.eclipse.jgit.transport.SshTransport;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
 
 import java.io.IOException;
@@ -63,6 +61,11 @@ public class GitClient {
 
         if (Files.exists(dir)) {
             try (Git git = Git.open(dir.toFile())) {
+                RemoteSetUrlCommand setRemote = git.remoteSetUrl();
+                setRemote.setName("origin");
+                setRemote.setUri(new URIish(repoUrl));
+                setRemote.call();
+
                 PullCommand pullCommand = git.pull()
                         .setTimeout(timeoutInSecond)
                         .setRemoteBranchName(branch)
@@ -170,7 +173,7 @@ public class GitClient {
 
     private class PrivateKeySessionFactory extends JschConfigSessionFactory implements AutoCloseable {
 
-        private Path tmpPrivateKeyFile = Paths.get(tmpDir.toString(), UUID.randomUUID().toString());
+        private final Path tmpPrivateKeyFile = Paths.get(tmpDir.toString(), UUID.randomUUID().toString());
 
         PrivateKeySessionFactory(String privateKey) throws IOException {
             Files.write(tmpPrivateKeyFile, privateKey.getBytes());

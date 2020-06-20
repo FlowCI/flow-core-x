@@ -17,6 +17,10 @@
 
 package com.flowci.core.user.domain;
 
+import com.google.common.collect.ImmutableList;
+
+import java.util.List;
+
 public abstract class UserAction {
 
     public static final String LIST_ALL = "user_list_all";
@@ -31,12 +35,12 @@ public abstract class UserAction {
 
     public static final String CHANGE_ROLE = "user_role_change";
 
-    public static final String[] ALL = {
+    public static final List<String> ALL = ImmutableList.of(
             LIST_ALL,
             CHANGE_PASSWORD,
             UPDATE_AVATAR,
             CREATE_USER,
             DELETE_USER,
             CHANGE_ROLE
-    };
+    );
 }

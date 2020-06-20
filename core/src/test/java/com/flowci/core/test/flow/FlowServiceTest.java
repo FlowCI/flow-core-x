@@ -33,7 +33,7 @@ import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
 import com.flowci.domain.VarValue;
 import com.flowci.domain.Vars;
-import com.flowci.domain.http.ResponseMessage;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.exception.ArgumentException;
 import com.flowci.tree.Node;
 import com.flowci.tree.YmlParser;
@@ -134,7 +134,7 @@ public class FlowServiceTest extends SpringScenario {
         Assert.assertNotNull(yml);
 
         Node root = YmlParser.load("test", yml.getRaw());
-        Assert.assertEquals(1, root.getChildren().size());
+        Assert.assertTrue(root.getChildren().size() > 0);
 
         // then:
         List<Flow> flows = flowService.list(Status.CONFIRMED);

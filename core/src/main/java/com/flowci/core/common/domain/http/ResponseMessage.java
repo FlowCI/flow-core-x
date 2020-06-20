@@ -14,34 +14,31 @@
  * limitations under the License.
  */
 
-package com.flowci.core.secret.domain;
+package com.flowci.core.common.domain.http;
 
-import com.flowci.domain.SimpleKeyPair;
-import com.google.common.base.Strings;
-import javax.validation.constraints.NotEmpty;
-import lombok.Data;
+import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * @author yang
  */
-@Data
-public class CreateRSA {
+@NoArgsConstructor
+@AllArgsConstructor
+public final class ResponseMessage<T> implements Serializable {
 
-    @NotEmpty
-    private String name;
+    @Getter
+    private Integer code;
 
-    @NotEmpty
-    private String publicKey;
+    @Getter
+    private String message;
 
-    @NotEmpty
-    private String privateKey;
+    @Getter
+    private T data;
 
-    public boolean hasKeyPair() {
-        return !Strings.isNullOrEmpty(publicKey) && !Strings.isNullOrEmpty(privateKey);
+    public ResponseMessage(Integer code, T data) {
+        this.code = code;
+        this.data = data;
     }
-
-    public SimpleKeyPair getKeyPair() {
-        return SimpleKeyPair.of(publicKey, privateKey);
-    }
-
 }

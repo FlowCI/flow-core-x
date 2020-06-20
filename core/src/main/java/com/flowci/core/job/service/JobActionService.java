@@ -1,6 +1,6 @@
 package com.flowci.core.job.service;
 
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 
 public interface JobActionService {
@@ -13,7 +13,7 @@ public interface JobActionService {
 
     void toRun(Job job);
 
-    void toContinue(Job job, ExecutedCmd step);
+    void toContinue(Job job, Step step);
 
     void toCancelled(Job job, String reason);
 

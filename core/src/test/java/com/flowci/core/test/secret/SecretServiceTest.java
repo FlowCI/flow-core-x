@@ -57,9 +57,10 @@ public class SecretServiceTest extends SpringScenario {
         Secret loaded = secretService.get("hello.rsa");
         Assert.assertTrue(loaded instanceof RSASecret);
 
-        RSASecret keyPair = (RSASecret) loaded;
-        Assert.assertFalse(Strings.isNullOrEmpty(keyPair.getPublicKey()));
-        Assert.assertFalse(Strings.isNullOrEmpty(keyPair.getPrivateKey()));
+        RSASecret secret = (RSASecret) loaded;
+        Assert.assertFalse(Strings.isNullOrEmpty(secret.getPublicKey()));
+        Assert.assertFalse(Strings.isNullOrEmpty(secret.getPrivateKey()));
+        Assert.assertNotNull(secret.getMd5Fingerprint());
     }
 
     @Test

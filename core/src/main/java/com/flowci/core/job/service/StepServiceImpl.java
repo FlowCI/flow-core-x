@@ -20,7 +20,7 @@ import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.ExecutedCmdDao;
 import com.flowci.core.job.domain.Executed;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.StepUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
@@ -50,7 +50,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class StepServiceImpl implements StepService {
 
     @Autowired
-    private Cache<String, List<ExecutedCmd>> jobStepCache;
+    private Cache<String, List<Step>> jobStepCache;
 
     @Autowired
     private ExecutedCmdDao executedCmdDao;
@@ -64,11 +64,10 @@ public class StepServiceImpl implements StepService {
     @Override
     public void init(Job job) {
         NodeTree tree = ymlManager.getTree(job);
-        List<ExecutedCmd> steps = new LinkedList<>();
+        List<Step> steps = new LinkedList<>();
 
         for (StepNode node : tree.getSteps()) {
-            ExecutedCmd cmd = newInstance(job, node);
-            cmd.setAfter(false);
+            Step cmd = newInstance(job, node);
             steps.add(cmd);
         }
 
@@ -77,8 +76,8 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public ExecutedCmd get(String jobId, String nodePath) {
-        Optional<ExecutedCmd> optional = executedCmdDao.findByJobIdAndNodePath(jobId, nodePath);
+    public Step get(String jobId, String nodePath) {
+        Optional<Step> optional = executedCmdDao.findByJobIdAndNodePath(jobId, nodePath);
 
         if (optional.isPresent()) {
             return optional.get();
@@ -88,8 +87,8 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public ExecutedCmd get(String id) {
-        Optional<ExecutedCmd> optional = executedCmdDao.findById(id);
+    public Step get(String id) {
+        Optional<Step> optional = executedCmdDao.findById(id);
 
         if (optional.isPresent()) {
             return optional.get();
@@ -99,14 +98,14 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public List<ExecutedCmd> list(Job job) {
+    public List<Step> list(Job job) {
         return list(job.getId(), job.getFlowId(), job.getBuildNumber());
     }
 
     @Override
     public String toVarString(Job job, StepNode current) {
         StringBuilder builder = new StringBuilder();
-        for (ExecutedCmd step : list(job)) {
+        for (Step step : list(job)) {
             NodePath path = NodePath.create(step.getNodePath());
             builder.append(path.name())
                     .append("=")
@@ -123,13 +122,13 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public ExecutedCmd toStatus(String jobId, String nodePath, ExecutedCmd.Status status, String err) {
-        ExecutedCmd entity = get(jobId, nodePath);
+    public Step toStatus(String jobId, String nodePath, Step.Status status, String err) {
+        Step entity = get(jobId, nodePath);
         return toStatus(entity, status, err);
     }
 
     @Override
-    public ExecutedCmd toStatus(ExecutedCmd entity, Executed.Status status, String err) {
+    public Step toStatus(Step entity, Executed.Status status, String err) {
         if (entity.getStatus() == status) {
             return entity;
         }
@@ -141,15 +140,15 @@ public class StepServiceImpl implements StepService {
         String jobId = entity.getJobId();
         jobStepCache.invalidate(jobId);
 
-        List<ExecutedCmd> steps = list(jobId, entity.getFlowId(), entity.getBuildNumber());
+        List<Step> steps = list(jobId, entity.getFlowId(), entity.getBuildNumber());
         eventManager.publish(new StepUpdateEvent(this, jobId, steps, false));
         return entity;
     }
 
     @Override
-    public void resultUpdate(ExecutedCmd cmd) {
+    public void resultUpdate(Step cmd) {
         checkNotNull(cmd.getId());
-        ExecutedCmd entity = get(cmd.getId());
+        Step entity = get(cmd.getId());
 
         // only update properties should from agent
         entity.setProcessId(cmd.getProcessId());
@@ -173,17 +172,22 @@ public class StepServiceImpl implements StepService {
         return executedCmdDao.deleteByJobId(job.getId());
     }
 
-    private List<ExecutedCmd> list(String jobId, String flowId, long buildNumber) {
+    private List<Step> list(String jobId, String flowId, long buildNumber) {
         return jobStepCache.get(jobId,
                 s -> executedCmdDao.findByFlowIdAndBuildNumber(flowId, buildNumber));
     }
 
-    private static ExecutedCmd newInstance(Job job, StepNode node) {
+    private static Step newInstance(Job job, StepNode node) {
         String cmdId = job.getId() + node.getPathAsString();
 
-        ExecutedCmd cmd = new ExecutedCmd(job.getFlowId(), job.getId(), node.getPathAsString(), node.isAllowFailure());
-        cmd.setId(Base64.getEncoder().encodeToString(cmdId.getBytes()));
-        cmd.setBuildNumber(job.getBuildNumber());
-        return cmd;
+        return new Step()
+                .setId(Base64.getEncoder().encodeToString(cmdId.getBytes()))
+                .setFlowId(job.getFlowId())
+                .setBuildNumber(job.getBuildNumber())
+                .setJobId(job.getId())
+                .setNodePath(node.getPathAsString())
+                .setAllowFailure(node.isAllowFailure())
+                .setPlugin(node.getPlugin())
+                .setDocker(node.getDocker());
     }
 }

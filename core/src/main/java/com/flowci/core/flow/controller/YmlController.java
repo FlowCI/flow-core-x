@@ -21,15 +21,13 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.FlowAction;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
-import com.flowci.domain.http.RequestMessage;
+import com.flowci.core.common.domain.http.RequestMessage;
 import com.flowci.tree.FlowNode;
-import com.flowci.tree.StepNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Base64;
-import java.util.List;
 
 /**
  * @author yang

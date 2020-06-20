@@ -20,6 +20,7 @@ package com.flowci.core.common.mongo;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
+import com.flowci.domain.SimpleToken;
 import lombok.Getter;
 import org.bson.Document;
 import org.springframework.core.convert.converter.Converter;
@@ -34,6 +35,8 @@ public class EncryptConverter {
     private static final String FieldUsername = "username";
 
     private static final String FieldPassword = "password";
+
+    private static final String FieldData = "data";
 
     private final String appSecret;
 
@@ -87,6 +90,27 @@ public class EncryptConverter {
             Document document = new Document();
             document.put(FieldUsername, CipherHelper.AES.encrypt(pair.getUsername(), appSecret));
             document.put(FieldPassword, CipherHelper.AES.encrypt(pair.getPassword(), appSecret));
+            return document;
+        }
+    }
+
+    public class SimpleTokenReader implements Converter<Document, SimpleToken> {
+
+        @Override
+        public SimpleToken convert(Document source) {
+            String token = source.getString(FieldData);
+            return SimpleToken.of(
+                    CipherHelper.AES.decrypt(token, appSecret)
+            );
+        }
+    }
+
+    public class SimpleTokenWriter implements Converter<SimpleToken, Document> {
+
+        @Override
+        public Document convert(SimpleToken pair) {
+            Document document = new Document();
+            document.put(FieldData, CipherHelper.AES.encrypt(pair.getData(), appSecret));
             return document;
         }
     }

@@ -17,23 +17,16 @@
 package com.flowci.core.secret;
 
 import com.flowci.core.auth.annotation.Action;
-import com.flowci.core.secret.domain.CreateAuth;
-import com.flowci.core.secret.domain.CreateRSA;
+import com.flowci.core.secret.domain.Request;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.domain.SecretAction;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.domain.SimpleKeyPair;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author yang
@@ -64,8 +57,8 @@ public class SecretController {
     }
 
     @PostMapping("/rsa")
-    @Action(SecretAction.CREATE_RSA)
-    public Secret create(@Validated @RequestBody CreateRSA body) {
+    @Action(SecretAction.CREATE)
+    public Secret create(@Validated @RequestBody Request.CreateRSA body) {
         if (body.hasKeyPair()) {
             return secretService.createRSA(body.getName(), body.getKeyPair());
         }
@@ -74,9 +67,15 @@ public class SecretController {
     }
 
     @PostMapping("/auth")
-    @Action(SecretAction.CREATE_AUTH)
-    public Secret create(@Validated @RequestBody CreateAuth body) {
+    @Action(SecretAction.CREATE)
+    public Secret create(@Validated @RequestBody Request.CreateAuth body) {
         return secretService.createAuth(body.getName(), body.getAuthPair());
+    }
+
+    @PostMapping("/token")
+    @Action(SecretAction.CREATE)
+    public Secret create(@Validated @RequestBody Request.CreateToken body) {
+        return secretService.createToken(body.getName(), body.getToken());
     }
 
     @PostMapping("/rsa/gen")

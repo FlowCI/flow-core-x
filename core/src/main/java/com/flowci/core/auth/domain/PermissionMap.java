@@ -30,6 +30,17 @@ public class PermissionMap extends HashMap<User.Role, Set<String>> {
         super();
     }
 
+    public void add(User.Role role, Collection<String> actions) {
+        Set<String> set = get(role);
+
+        if (Objects.isNull(set)) {
+            set = new HashSet<>(20);
+            put(role, set);
+        }
+
+        set.addAll(actions);
+    }
+
     public void add(User.Role role, String ...actions) {
         Set<String> set = get(role);
 

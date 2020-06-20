@@ -16,13 +16,13 @@
 
 package com.flowci.core.job.service;
 
+import com.flowci.core.agent.domain.CmdStdLog;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SocketPushManager;
-import com.flowci.core.common.rabbit.QueueOperations;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.domain.ExecutedCmd;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.Step;
 import com.flowci.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
@@ -49,6 +49,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -72,8 +74,18 @@ public class LoggingServiceImpl implements LoggingService {
     private final Cache<String, BufferedReader> logReaderCache =
             CacheHelper.createLocalCache(10, 60, new ReaderCleanUp());
 
+
+    @Autowired
+    private String ttyLogQueue;
+
+    @Autowired
+    private String topicForTtyLogs;
+
     @Autowired
     private String topicForLogs;
+
+    @Autowired
+    private String shellLogQueue;
 
     @Autowired
     private SocketPushManager socketPushManager;
@@ -82,22 +94,22 @@ public class LoggingServiceImpl implements LoggingService {
     private FileManager fileManager;
 
     @Autowired
-    private QueueOperations loggingQueueManager;
+    private RabbitOperations logQueueManager;
 
     @Autowired
     private StepService stepService;
 
     @EventListener(ContextRefreshedEvent.class)
     public void onStart() throws IOException {
-        loggingQueueManager.startConsumer(true, message -> {
-            // send JobProto.LogItem byte array to web directly
-            socketPushManager.push(topicForLogs, message.getBody());
-            return true;
-        });
+        // shell log content will be json {cmdId: xx, content: b64 log}
+        logQueueManager.startConsumer(shellLogQueue, true, new CmdStdLogHandler(topicForLogs));
+
+        // tty log conent will be b64 std out/err
+        logQueueManager.startConsumer(ttyLogQueue, true, new CmdStdLogHandler(topicForTtyLogs));
     }
 
     @Override
-    public Page<String> read(ExecutedCmd cmd, Pageable pageable) {
+    public Page<String> read(Step cmd, Pageable pageable) {
         BufferedReader reader = getReader(cmd.getId());
 
         if (Objects.isNull(reader)) {
@@ -156,7 +168,7 @@ public class LoggingServiceImpl implements LoggingService {
     }
 
     private Pathable[] getLogDir(String cmdId) {
-        ExecutedCmd cmd = stepService.get(cmdId);
+        Step cmd = stepService.get(cmdId);
 
         return new Pathable[]{
                 Flow.path(cmd.getFlowId()),
@@ -169,7 +181,7 @@ public class LoggingServiceImpl implements LoggingService {
         return cmdId + ".log";
     }
 
-    private static class ReaderCleanUp implements RemovalListener<String, BufferedReader> {
+    private class ReaderCleanUp implements RemovalListener<String, BufferedReader> {
 
         @Override
         public void onRemoval(String key, BufferedReader reader, RemovalCause cause) {
@@ -182,6 +194,25 @@ public class LoggingServiceImpl implements LoggingService {
             } catch (IOException e) {
                 log.debug(e);
             }
+        }
+    }
+
+    private class CmdStdLogHandler implements Function<RabbitOperations.Message, Boolean> {
+
+        private final String topic;
+
+        private CmdStdLogHandler(String topic) {
+            this.topic = topic;
+        }
+
+        @Override
+        public Boolean apply(RabbitOperations.Message message) {
+            Optional<String> optional = CmdStdLog.getId(message);
+            if (optional.isPresent()) {
+                String jobId = optional.get();
+                socketPushManager.push(topic + "/" + jobId, message.getBody());
+            }
+            return true;
         }
     }
 }

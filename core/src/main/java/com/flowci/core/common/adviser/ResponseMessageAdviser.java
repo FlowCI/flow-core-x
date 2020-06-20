@@ -17,7 +17,7 @@
 package com.flowci.core.common.adviser;
 
 import com.flowci.core.common.domain.StatusCode;
-import com.flowci.domain.http.ResponseMessage;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -42,7 +42,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 })
 public class ResponseMessageAdviser implements ResponseBodyAdvice {
 
-    private final static String SUCCESS_MESSAGE = "success";
+    private static final String SUCCESS_MESSAGE = "success";
 
     @Override
     public boolean supports(MethodParameter returnType, Class converterType) {

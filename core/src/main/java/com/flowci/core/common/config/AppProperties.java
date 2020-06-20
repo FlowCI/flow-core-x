@@ -58,6 +58,8 @@ public class AppProperties {
 
     private boolean defaultSmtpConfig;
 
+    private boolean socketContainer;
+
     @Bean("adminProperties")
     @ConfigurationProperties(prefix = "app.admin")
     public Admin admin() {
@@ -68,6 +70,12 @@ public class AppProperties {
     @ConfigurationProperties(prefix = "app.zookeeper")
     public Zookeeper zk() {
         return new Zookeeper();
+    }
+
+    @Bean("flowProperties")
+    @ConfigurationProperties(prefix = "app.flow")
+    public Flow flow() {
+        return new Flow();
     }
 
     @Bean("jobProperties")
@@ -113,11 +121,13 @@ public class AppProperties {
     }
 
     @Data
+    public static class Flow {
+
+        private String defaultTemplateUrl;
+    }
+
+    @Data
     public static class Job {
-
-        private int timeoutInSeconds; // job execution timeout
-
-        private int expireInSeconds; // job queue up timeout
 
         private int retryWaitingSeconds;
     }
@@ -155,9 +165,9 @@ public class AppProperties {
 
         private String callbackQueue;
 
-        private String loggingQueue;
+        private String shellLogEx; // fanout exchange for shell log
 
-        private String loggingExchange;
+        private String ttyLogEx; // fanout exchange for tty log
 
         private String jobDlQueue; // job dead letter queue
 

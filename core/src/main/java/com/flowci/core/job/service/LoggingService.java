@@ -16,7 +16,7 @@
 
 package com.flowci.core.job.service;
 
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +32,7 @@ public interface LoggingService {
     /**
      * To read logs from file store
      */
-    Page<String> read(ExecutedCmd cmd, Pageable pageable);
+    Page<String> read(Step cmd, Pageable pageable);
 
     /**
      * Save log into file system, return the id of file

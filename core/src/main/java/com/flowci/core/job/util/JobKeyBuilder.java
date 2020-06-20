@@ -21,7 +21,7 @@ package com.flowci.core.job.util;
  */
 public abstract class JobKeyBuilder {
 
-    private final static char Splitter = '-';
+    private static final char Splitter = '-';
 
     public static String build(String flowId, Long buildNumber) {
         return flowId + Splitter + buildNumber;

@@ -19,7 +19,7 @@ package com.flowci.core.job.config;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.helper.ThreadHelper;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.tree.NodeTree;
 import com.flowci.util.FileHelper;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -73,7 +73,7 @@ public class JobConfig {
     }
 
     @Bean("jobStepCache")
-    public Cache<String, List<ExecutedCmd>> jobStepCache() {
+    public Cache<String, List<Step>> jobStepCache() {
         return CacheHelper.createLocalCache(100, 60);
     }
 

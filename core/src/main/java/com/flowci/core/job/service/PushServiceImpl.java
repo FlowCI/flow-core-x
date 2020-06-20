@@ -19,10 +19,7 @@ package com.flowci.core.job.service;
 import com.flowci.core.common.domain.PushEvent;
 import com.flowci.core.common.manager.SocketPushManager;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.job.event.JobCreatedEvent;
-import com.flowci.core.job.event.JobStatusChangeEvent;
-import com.flowci.core.job.event.StepUpdateEvent;
-import com.flowci.core.job.event.TaskUpdateEvent;
+import com.flowci.core.job.event.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -43,6 +40,9 @@ public class PushServiceImpl implements PushService {
 
     @Autowired
     private String topicForTasks;
+
+    @Autowired
+    private String topicForTtyAction;
 
     @Autowired
     private SocketPushManager socketPushManager;
@@ -83,5 +83,12 @@ public class PushServiceImpl implements PushService {
             return;
         }
         socketPushManager.push(topic, PushEvent.STATUS_CHANGE, event.getItems());
+    }
+
+    @Override
+    @EventListener
+    public void onTtyStatusChange(TtyStatusUpdateEvent event) {
+        String topic = topicForTtyAction + "/" + event.getOut().getId();
+        socketPushManager.push(topic, PushEvent.STATUS_CHANGE, event.getOut());
     }
 }

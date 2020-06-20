@@ -19,6 +19,7 @@ package com.flowci.core.flow.domain;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -30,15 +31,13 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode(of = {"flowId"})
 @Document(collection = "flow_users")
+@NoArgsConstructor
 public class FlowUsers {
 
     @Id
     private String flowId;
 
     private List<String> users = new LinkedList<>(); // user email list
-
-    public FlowUsers() {
-    }
 
     public FlowUsers(String flowId) {
         this.flowId = flowId;

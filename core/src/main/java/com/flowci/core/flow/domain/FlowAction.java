@@ -17,6 +17,10 @@
 
 package com.flowci.core.flow.domain;
 
+import com.google.common.collect.ImmutableList;
+
+import java.util.List;
+
 public abstract class FlowAction {
 
     public static final String CREATE = "create_flow";
@@ -25,9 +29,7 @@ public abstract class FlowAction {
 
     public static final String CONFIRM = "confirm_flow";
 
-    public static final String RENAME = "rename_flow";
-
-    public static final String YAML_SOURCE = "update_flow_yaml_source";
+    public static final String UPDATE = "update_flow_settings";
 
     public static final String DELETE = "delete_flow";
 
@@ -36,10 +38,6 @@ public abstract class FlowAction {
     public static final String LIST_BY_CREDENTIAL = "list_flow_by_credential";
 
     public static final String GET = "get_flow";
-
-    public static final String ADD_VARS = "add_flow_vars";
-
-    public static final String REMOVE_VARS = "remove_flow_vars";
 
     public static final String GET_YML = "get_yml";
 
@@ -59,18 +57,15 @@ public abstract class FlowAction {
 
     public static final String LIST_PLUGINS = "list_plugins";
 
-    public static final String[] ALL = {
+    public static final List<String> ALL = ImmutableList.of(
             CREATE,
             CHECK_NAME,
             CONFIRM,
-            RENAME,
-            YAML_SOURCE,
             DELETE,
+            UPDATE,
             LIST,
             LIST_BY_CREDENTIAL,
             GET,
-            ADD_VARS,
-            REMOVE_VARS,
             GET_YML,
             SET_YML,
             GIT_TEST,
@@ -79,7 +74,7 @@ public abstract class FlowAction {
             ADD_USER,
             REMOVE_USER,
             LIST_USER,
-            LIST_PLUGINS,
-    };
+            LIST_PLUGINS
+    );
 
 }

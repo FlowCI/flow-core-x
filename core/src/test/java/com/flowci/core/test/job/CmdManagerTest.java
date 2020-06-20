@@ -16,17 +16,17 @@
 
 package com.flowci.core.test.job;
 
+import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
-import com.flowci.core.job.domain.ExecutedCmd;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
-import com.flowci.domain.Input;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.test.SpringScenario;
@@ -88,8 +88,8 @@ public class CmdManagerTest extends SpringScenario {
         FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
         NodeTree tree = NodeTree.create(root);
         StepNode node = tree.get(NodePath.create(flow.getName(), "plugin-test"));
-        ExecutedCmd step = stepService.get(job.getId(), node.getPathAsString());
-        CmdIn cmdIn = cmdManager.createShellCmd(job, node, step);
+        Step step = stepService.get(job.getId(), node.getPathAsString());
+        ShellIn cmdIn = (ShellIn) cmdManager.createShellCmd(job, node, step);
         Assert.assertNotNull(cmdIn);
 
         // then:

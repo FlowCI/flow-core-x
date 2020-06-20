@@ -10,7 +10,7 @@ services:
       - "27017:27017"
 
   zk:
-    image: zookeeper:3.4
+    image: zookeeper:3.6
     container_name: flowci-debug-zk
     restart: always
     ports:
