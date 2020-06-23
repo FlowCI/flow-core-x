@@ -20,7 +20,7 @@ import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.domain.FlowAction;
-import com.flowci.core.flow.domain.OnConfirm;
+import com.flowci.core.flow.domain.ConfirmOption;
 import com.flowci.core.flow.domain.Template;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.user.domain.User;
@@ -82,11 +82,8 @@ public class FlowController {
 
     @PostMapping(value = "/{name}/confirm")
     @Action(FlowAction.CONFIRM)
-    public Flow confirm(@PathVariable String name, @RequestBody(required = false) OnConfirm onConfirm) {
-        if (Objects.isNull(onConfirm)) {
-            onConfirm = new OnConfirm();
-        }
-        return flowService.confirm(name, onConfirm.getGitUrl(), onConfirm.getSecret());
+    public Flow confirm(@PathVariable String name, @RequestBody ConfirmOption option) {
+        return flowService.confirm(name, option);
     }
 
     @DeleteMapping("/{name}")

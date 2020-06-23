@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.domain.http.ResponseMessage;
+import com.flowci.core.flow.domain.ConfirmOption;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.event.GitTestEvent;
@@ -90,10 +91,10 @@ public class FlowServiceTest extends SpringScenario {
     @Test
     public void should_list_all_flows_by_user_id() {
         Flow first = flowService.create("test-1");
-        flowService.confirm(first.getName(), null, null);
+        flowService.confirm(first.getName(), new ConfirmOption());
 
         Flow second = flowService.create("test-2");
-        flowService.confirm(second.getName(), null, null);
+        flowService.confirm(second.getName(), new ConfirmOption());
 
         List<Flow> list = flowService.list(Status.CONFIRMED);
         Assert.assertEquals(2, list.size());
@@ -113,9 +114,10 @@ public class FlowServiceTest extends SpringScenario {
         Assert.assertEquals(Status.PENDING, created.getStatus());
 
         // when: confirm the flow
-        String gitUrl = "git@github.com:FlowCI/docs.git";
-        String credential = "ssh-ras-credential";
-        flowService.confirm(name, gitUrl, credential);
+        ConfirmOption option = new ConfirmOption()
+                .setGitUrl("git@github.com:FlowCI/docs.git")
+                .setSecret("ssh-ras-credential");
+        flowService.confirm(name, option);
 
         // then: flow should be with confirmed status
         Flow confirmed = flowService.get(name);
@@ -134,7 +136,7 @@ public class FlowServiceTest extends SpringScenario {
         secretService.createRSA(secretName);
 
         Flow flow = flowService.create("hello");
-        flowService.confirm(flow.getName(), null, secretName);
+        flowService.confirm(flow.getName(), new ConfirmOption().setSecret(secretName));
 
         Vars<VarValue> variables = flowService.get(flow.getName()).getLocally();
         Assert.assertEquals(secretName, variables.get(Variables.Flow.GitCredential).getData());

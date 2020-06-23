@@ -16,15 +16,28 @@
 
 package com.flowci.core.flow.domain;
 
+import com.flowci.util.StringHelper;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * @author yang
  */
 @Data
-public class OnConfirm {
+@Accessors(chain = true)
+public class ConfirmOption {
 
     private String gitUrl;
 
     private String secret;
+
+    private String yaml = StringHelper.EMPTY;
+
+    public boolean hasGitUrl() {
+        return StringHelper.hasValue(gitUrl);
+    }
+
+    public boolean hasSecret() {
+        return StringHelper.hasValue(secret);
+    }
 }
