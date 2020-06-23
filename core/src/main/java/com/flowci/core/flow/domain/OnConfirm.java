@@ -22,7 +22,7 @@ import lombok.Data;
  * @author yang
  */
 @Data
-public class GitSettings {
+public class OnConfirm {
 
     private String gitUrl;
 

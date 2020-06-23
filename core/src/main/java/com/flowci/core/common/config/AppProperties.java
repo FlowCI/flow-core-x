@@ -123,7 +123,7 @@ public class AppProperties {
     @Data
     public static class Flow {
 
-        private String defaultTemplateUrl;
+        private String templatesUrl;
     }
 
     @Data

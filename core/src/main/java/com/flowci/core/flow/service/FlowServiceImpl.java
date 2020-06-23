@@ -190,7 +190,6 @@ public class FlowServiceImpl implements FlowService {
 
         flow.setStatus(Status.CONFIRMED);
         flowDao.save(flow);
-        ymlService.saveDefaultTemplate(flow);
         return flow;
     }
 

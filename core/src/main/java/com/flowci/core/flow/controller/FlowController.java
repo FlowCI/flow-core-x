@@ -20,7 +20,8 @@ import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.domain.FlowAction;
-import com.flowci.core.flow.domain.GitSettings;
+import com.flowci.core.flow.domain.OnConfirm;
+import com.flowci.core.flow.domain.Template;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
@@ -41,6 +42,9 @@ import java.util.Objects;
 public class FlowController {
 
     @Autowired
+    private List<Template> templates;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
@@ -50,6 +54,12 @@ public class FlowController {
     @Action(FlowAction.LIST)
     public List<Flow> list() {
         return flowService.list(Status.CONFIRMED);
+    }
+
+    @GetMapping("/templates")
+    @Action(FlowAction.LIST)
+    public List<Template> getTemplates() {
+        return templates;
     }
 
     @GetMapping(value = "/{name}")
@@ -72,11 +82,11 @@ public class FlowController {
 
     @PostMapping(value = "/{name}/confirm")
     @Action(FlowAction.CONFIRM)
-    public Flow confirm(@PathVariable String name, @RequestBody(required = false) GitSettings gitSettings) {
-        if (Objects.isNull(gitSettings)) {
-            gitSettings = new GitSettings();
+    public Flow confirm(@PathVariable String name, @RequestBody(required = false) OnConfirm onConfirm) {
+        if (Objects.isNull(onConfirm)) {
+            onConfirm = new OnConfirm();
         }
-        return flowService.confirm(name, gitSettings.getGitUrl(), gitSettings.getSecret());
+        return flowService.confirm(name, onConfirm.getGitUrl(), onConfirm.getSecret());
     }
 
     @DeleteMapping("/{name}")
