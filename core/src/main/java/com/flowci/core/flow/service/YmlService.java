@@ -19,10 +19,6 @@ package com.flowci.core.flow.service;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.tree.FlowNode;
-import com.flowci.tree.Node;
-import com.flowci.tree.StepNode;
-
-import java.util.List;
 
 /**
  * @author yang
@@ -43,6 +39,4 @@ public interface YmlService {
      * Create or update yml for flow
      */
     Yml saveYml(Flow flow, String yml);
-
-    Yml saveDefaultTemplate(Flow flow);
 }

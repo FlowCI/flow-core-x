@@ -30,14 +30,11 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.StepNode;
 import com.flowci.tree.YmlParser;
-import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -47,9 +44,6 @@ import java.util.Set;
  */
 @Service
 public class YmlServiceImpl implements YmlService {
-
-    @Autowired
-    private String defaultTemplateYml;
 
     @Autowired
     private YmlDao ymlDao;
@@ -109,11 +103,6 @@ public class YmlServiceImpl implements YmlService {
         // update cron task
         cronService.update(flow, root, ymlObj);
         return ymlObj;
-    }
-
-    @Override
-    public Yml saveDefaultTemplate(Flow flow) {
-        return saveYml(flow, defaultTemplateYml);
     }
 
     //====================================================================

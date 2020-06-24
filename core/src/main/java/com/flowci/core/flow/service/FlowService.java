@@ -16,14 +16,11 @@
 
 package com.flowci.core.flow.service;
 
+import com.flowci.core.flow.domain.ConfirmOption;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
-import com.flowci.core.flow.domain.Yml;
-import com.flowci.core.flow.domain.StatsType;
-import com.flowci.core.job.domain.Job;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
-import com.flowci.domain.StringVars;
 
 import java.util.List;
 
@@ -55,11 +52,10 @@ public interface FlowService {
     /**
      * Confirm flow
      *
-     * @param name flow name
-     * @param gitUrl defined git url, can be null
-     * @param secret defined secret
+     * @param name   flow name
+     * @param option confirm option
      */
-    Flow confirm(String name, String gitUrl, String secret);
+    Flow confirm(String name, ConfirmOption option);
 
     /**
      * Get flow by name
@@ -96,12 +92,12 @@ public interface FlowService {
     /**
      * Add users to flow
      */
-    void addUsers(Flow flow, String ...emails);
+    void addUsers(Flow flow, String... emails);
 
     /**
      * Remove users from flow
      */
-    void removeUsers(Flow flow, String ...emails);
+    void removeUsers(Flow flow, String... emails);
 
     /**
      * List all users email by flow

@@ -19,13 +19,13 @@ package com.flowci.core.test.flow;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.Variables;
+import com.flowci.core.common.domain.http.ResponseMessage;
+import com.flowci.core.flow.domain.ConfirmOption;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
-import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.event.GitTestEvent;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.GitService;
-import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.test.SpringScenario;
@@ -33,10 +33,7 @@ import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
 import com.flowci.domain.VarValue;
 import com.flowci.domain.Vars;
-import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.exception.ArgumentException;
-import com.flowci.tree.Node;
-import com.flowci.tree.YmlParser;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,9 +59,6 @@ public class FlowServiceTest extends SpringScenario {
 
     @Autowired
     private GitService gitService;
-
-    @Autowired
-    private YmlService ymlService;
 
     @Autowired
     private String serverUrl;
@@ -97,10 +91,10 @@ public class FlowServiceTest extends SpringScenario {
     @Test
     public void should_list_all_flows_by_user_id() {
         Flow first = flowService.create("test-1");
-        flowService.confirm(first.getName(), null, null);
+        flowService.confirm(first.getName(), new ConfirmOption());
 
         Flow second = flowService.create("test-2");
-        flowService.confirm(second.getName(), null, null);
+        flowService.confirm(second.getName(), new ConfirmOption());
 
         List<Flow> list = flowService.list(Status.CONFIRMED);
         Assert.assertEquals(2, list.size());
@@ -109,7 +103,7 @@ public class FlowServiceTest extends SpringScenario {
     }
 
     @Test
-    public void should_create_and_confirm_flow_with_git_template() {
+    public void should_create_and_confirm_flow() {
         // when: create flow
         String name = "hello";
         flowService.create(name);
@@ -120,41 +114,19 @@ public class FlowServiceTest extends SpringScenario {
         Assert.assertEquals(Status.PENDING, created.getStatus());
 
         // when: confirm the flow
-        String gitUrl = "git@github.com:FlowCI/docs.git";
-        String credential = "ssh-ras-credential";
-        flowService.confirm(name, gitUrl, credential);
+        ConfirmOption option = new ConfirmOption()
+                .setGitUrl("git@github.com:FlowCI/docs.git")
+                .setSecret("ssh-ras-credential");
+        flowService.confirm(name, option);
 
         // then: flow should be with confirmed status
         Flow confirmed = flowService.get(name);
         Assert.assertNotNull(confirmed);
         Assert.assertEquals(Status.CONFIRMED, confirmed.getStatus());
 
-        // then: the default yml should be created with expected variables
-        Yml yml = ymlService.getYml(confirmed);
-        Assert.assertNotNull(yml);
-
-        Node root = YmlParser.load("test", yml.getRaw());
-        Assert.assertTrue(root.getChildren().size() > 0);
-
         // then:
         List<Flow> flows = flowService.list(Status.CONFIRMED);
         Assert.assertEquals(1, flows.size());
-    }
-
-    @Test
-    public void should_create_and_confirm_flow_with_default_template() {
-        // when: create and confirm flow without git settings
-        String name = "hello";
-        flowService.create(name);
-        Flow confirmed = flowService.confirm(name, null, null);
-
-        // then:
-        Yml yml = ymlService.getYml(confirmed);
-        Assert.assertNotNull(yml);
-
-        Node root = YmlParser.load("test", yml.getRaw());
-        Assert.assertNull(root.getEnv(Variables.Flow.GitUrl));
-        Assert.assertNull(root.getEnv(Variables.Flow.GitCredential));
     }
 
     @Test
@@ -164,7 +136,7 @@ public class FlowServiceTest extends SpringScenario {
         secretService.createRSA(secretName);
 
         Flow flow = flowService.create("hello");
-        flowService.confirm(flow.getName(), null, secretName);
+        flowService.confirm(flow.getName(), new ConfirmOption().setSecret(secretName));
 
         Vars<VarValue> variables = flowService.get(flow.getName()).getLocally();
         Assert.assertEquals(secretName, variables.get(Variables.Flow.GitCredential).getData());
