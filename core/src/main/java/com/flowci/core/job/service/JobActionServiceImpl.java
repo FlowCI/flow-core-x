@@ -702,6 +702,8 @@ public class JobActionServiceImpl implements JobActionService {
     private synchronized void setJobStatusAndSave(Job job, Job.Status newStatus, String message) {
         // check status order, just save job if new status is downgrade
         if (job.getStatus().getOrder() >= newStatus.getOrder()) {
+            // push updated job object as well
+            eventManager.publish(new JobStatusChangeEvent(this, job));
             jobDao.save(job);
             return;
         }
