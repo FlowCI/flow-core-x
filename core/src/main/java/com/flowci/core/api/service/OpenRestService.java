@@ -25,6 +25,10 @@ import com.flowci.core.flow.domain.StatsCounter;
 import com.flowci.core.user.domain.User;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.core.io.Resource;
+import org.springframework.data.util.Pair;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface OpenRestService {
@@ -38,6 +42,13 @@ public interface OpenRestService {
      * Get config by name
      */
     Config getConfig(String name);
+
+    /**
+     * Get file in config
+     *
+     * @return key as file name, value is resource
+     */
+    Pair<String, Resource> getResource(Config config);
 
     /**
      * Save statistic data for flow

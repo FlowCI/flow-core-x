@@ -129,26 +129,18 @@ public class ConfigServiceImpl implements ConfigService {
     public Config save(String name, AndroidSignOption option) {
         try {
             MultipartFile file = option.getKeyStore();
-            String path = fileManager.save(file.getOriginalFilename(), file.getInputStream(), getConfigFileDir(name));
 
             AndroidSignConfig config = load(name, AndroidSignConfig.class);
-            config.setKeyStoreFileUrl(path);
             config.setKeyStoreFileName(file.getOriginalFilename());
             config.setKeyStorePassword(SecretField.of(option.getKeyStorePw()));
             config.setKeyAlias(option.getKeyAlias());
             config.setKeyPassword(SecretField.of(option.getKeyPw()));
 
+            fileManager.save(file.getOriginalFilename(), file.getInputStream(), config.getPath());
             return save(config);
         } catch (IOException | ReflectiveOperationException e) {
             throw new StatusException(e.getMessage());
         }
-    }
-
-    public Pathable[] getConfigFileDir(String config) {
-        return new Pathable[]{
-                () -> "config",
-                () -> config,
-        };
     }
 
     private <T extends Config> T load(String name, Class<T> tClass) throws ReflectiveOperationException {

@@ -20,6 +20,7 @@ package com.flowci.core.api.service;
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.common.helper.DateHelper;
+import com.flowci.core.config.domain.AndroidSignConfig;
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.flow.dao.FlowUserDao;
@@ -35,11 +36,19 @@ import com.flowci.core.job.util.JobKeyBuilder;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.user.domain.User;
+import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
+import com.flowci.exception.StatusException;
+import com.flowci.store.FileManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 @Service
@@ -50,6 +59,9 @@ public class OpenRestServiceImpl implements OpenRestService {
 
     @Autowired
     private JobDao jobDao;
+
+    @Autowired
+    private FileManager fileManager;
 
     @Autowired
     private FlowService flowService;
@@ -81,6 +93,21 @@ public class OpenRestServiceImpl implements OpenRestService {
         Config config = configService.get(name);
         config.cleanDBInfo();
         return config;
+    }
+
+    @Override
+    public Pair<String, Resource> getResource(Config config) {
+        if (!(config instanceof AndroidSignConfig)) {
+            throw new ArgumentException("Unsupported config type");
+        }
+
+        try {
+            AndroidSignConfig signConfig = (AndroidSignConfig) config;
+            InputStream stream = fileManager.read(signConfig.getKeyStoreFileName(), config.getPath());
+            return Pair.of(signConfig.getKeyStoreFileName(), new InputStreamResource(stream));
+        } catch (IOException e) {
+            throw new StatusException("Failed to get resource: {}", e.getMessage());
+        }
     }
 
     @Override

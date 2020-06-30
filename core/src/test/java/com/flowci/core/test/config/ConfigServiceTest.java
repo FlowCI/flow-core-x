@@ -76,7 +76,6 @@ public class ConfigServiceTest extends SpringScenario {
         option.setKeyPw("678910");
 
         AndroidSignConfig config = (AndroidSignConfig) configService.save("android-debug", option);
-        Assert.assertNotNull(config.getKeyStoreFileUrl());
         Assert.assertEquals("test.jks", config.getKeyStoreFileName());
         Assert.assertEquals("12345", config.getKeyStorePassword().getData());
 

@@ -22,22 +22,22 @@ import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.api.service.OpenRestService;
 import com.flowci.core.config.domain.Config;
+import com.flowci.core.flow.domain.StatsCounter;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
-import com.flowci.core.flow.domain.StatsCounter;
 import com.flowci.core.user.domain.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.data.util.Pair;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Provides API which calling from agent plugin
@@ -64,6 +64,17 @@ public class OpenRestController {
     @GetMapping("/config/{name}")
     public Config getConfig(@PathVariable String name) {
         return openRestService.getConfig(name);
+    }
+
+    @GetMapping("/config/{name}/download")
+    public ResponseEntity<Resource> downloadConfigFile(@PathVariable String name) {
+        Config config = openRestService.getConfig(name);
+        Pair<String, Resource> pair = openRestService.getResource(config);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + pair.getFirst() + "\"")
+                .body(pair.getSecond());
     }
 
     @GetMapping("/flow/{name}/users")
