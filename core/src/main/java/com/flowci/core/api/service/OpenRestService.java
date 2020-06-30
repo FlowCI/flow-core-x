@@ -48,7 +48,7 @@ public interface OpenRestService {
      *
      * @return key as file name, value is resource
      */
-    Pair<String, Resource> getResource(Config config);
+    Resource getResource(Config config, String file);
 
     /**
      * Save statistic data for flow

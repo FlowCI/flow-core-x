@@ -28,7 +28,6 @@ import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.user.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -66,15 +65,16 @@ public class OpenRestController {
         return openRestService.getConfig(name);
     }
 
-    @GetMapping("/config/{name}/download")
-    public ResponseEntity<Resource> downloadConfigFile(@PathVariable String name) {
+    @GetMapping("/config/{name}/download/{file}")
+    public ResponseEntity<Resource> downloadConfigFile(@PathVariable String name,
+                                                       @PathVariable String file) {
         Config config = openRestService.getConfig(name);
-        Pair<String, Resource> pair = openRestService.getResource(config);
+        Resource resource = openRestService.getResource(config, file);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + pair.getFirst() + "\"")
-                .body(pair.getSecond());
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file + "\"")
+                .body(resource);
     }
 
     @GetMapping("/flow/{name}/users")

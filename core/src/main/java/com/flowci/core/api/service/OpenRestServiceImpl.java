@@ -43,7 +43,6 @@ import com.flowci.store.FileManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -96,15 +95,20 @@ public class OpenRestServiceImpl implements OpenRestService {
     }
 
     @Override
-    public Pair<String, Resource> getResource(Config config) {
+    public Resource getResource(Config config, String file) {
         if (!(config instanceof AndroidSignConfig)) {
             throw new ArgumentException("Unsupported config type");
         }
 
+        AndroidSignConfig signConfig = (AndroidSignConfig) config;
+
+        if (!Objects.equals(file, signConfig.getKeyStoreFileName())) {
+            throw new ArgumentException("File not existed in config");
+        }
+
         try {
-            AndroidSignConfig signConfig = (AndroidSignConfig) config;
             InputStream stream = fileManager.read(signConfig.getKeyStoreFileName(), config.getPath());
-            return Pair.of(signConfig.getKeyStoreFileName(), new InputStreamResource(stream));
+            return new InputStreamResource(stream);
         } catch (IOException e) {
             throw new StatusException("Failed to get resource: {}", e.getMessage());
         }
