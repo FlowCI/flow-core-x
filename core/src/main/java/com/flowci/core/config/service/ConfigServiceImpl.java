@@ -132,7 +132,8 @@ public class ConfigServiceImpl implements ConfigService {
             String path = fileManager.save(file.getOriginalFilename(), file.getInputStream(), getConfigFileDir(name));
 
             AndroidSignConfig config = load(name, AndroidSignConfig.class);
-            config.setKeyStoreFile(path);
+            config.setKeyStoreFileUrl(path);
+            config.setKeyStoreFileName(file.getOriginalFilename());
             config.setKeyStorePassword(SecretField.of(option.getKeyStorePw()));
             config.setKeyAlias(option.getKeyAlias());
             config.setKeyPassword(SecretField.of(option.getKeyPw()));

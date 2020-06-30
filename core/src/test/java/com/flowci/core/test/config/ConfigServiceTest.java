@@ -1,6 +1,8 @@
 package com.flowci.core.test.config;
 
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.config.domain.AndroidSignConfig;
+import com.flowci.core.config.domain.AndroidSignOption;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.SmtpOption;
 import com.flowci.core.config.service.ConfigService;
@@ -14,9 +16,10 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockMultipartFile;
 
-import static com.flowci.core.config.domain.Config.Category.TEXT;
 import static com.flowci.core.config.domain.Config.Category.SMTP;
+import static com.flowci.core.config.domain.Config.Category.TEXT;
 
 public class ConfigServiceTest extends SpringScenario {
 
@@ -62,5 +65,22 @@ public class ConfigServiceTest extends SpringScenario {
         Assert.assertEquals(config, configService.list().get(0));
         Assert.assertEquals(1, configService.list(SMTP).size());
         Assert.assertEquals(0, configService.list(TEXT).size());
+    }
+
+    @Test
+    public void should_create_android_sign_config() {
+        AndroidSignOption option = new AndroidSignOption();
+        option.setKeyStore(new MockMultipartFile("ks", "test.jks", null, "test data".getBytes()));
+        option.setKeyStorePw("12345");
+        option.setKeyAlias("helloworld");
+        option.setKeyPw("678910");
+
+        AndroidSignConfig config = (AndroidSignConfig) configService.save("android-debug", option);
+        Assert.assertNotNull(config.getKeyStoreFileUrl());
+        Assert.assertEquals("test.jks", config.getKeyStoreFileName());
+        Assert.assertEquals("12345", config.getKeyStorePassword().getData());
+
+        Assert.assertEquals("helloworld", config.getKeyAlias());
+        Assert.assertEquals("678910", config.getKeyPassword().getData());
     }
 }

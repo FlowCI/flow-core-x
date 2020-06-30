@@ -13,7 +13,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "configuration")
 public class AndroidSignConfig extends Config {
 
-    private String keyStoreFile; // url link
+    private String keyStoreFileUrl;
+
+    private String keyStoreFileName;
 
     private SecretField keyStorePassword;
 
