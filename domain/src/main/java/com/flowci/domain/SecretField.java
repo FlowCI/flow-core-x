@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor(staticName = "of")
-public class SimpleToken implements SimpleSecret {
+public class SecretField implements SimpleSecret {
 
     private String data;
 }

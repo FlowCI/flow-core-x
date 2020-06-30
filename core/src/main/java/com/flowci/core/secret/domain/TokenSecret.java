@@ -2,7 +2,7 @@ package com.flowci.core.secret.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.domain.SimpleSecret;
-import com.flowci.domain.SimpleToken;
+import com.flowci.domain.SecretField;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -15,10 +15,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "secret")
 public class TokenSecret extends Secret {
 
-    private SimpleToken token;
+    private SecretField token;
 
     public TokenSecret() {
-        this.token = new SimpleToken();
+        this.token = new SecretField();
         this.setCategory(Category.TOKEN);
     }
 
