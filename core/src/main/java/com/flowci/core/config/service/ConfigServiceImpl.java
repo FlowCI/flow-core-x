@@ -8,10 +8,14 @@ import com.flowci.core.config.domain.*;
 import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
+import com.flowci.domain.SecretField;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
+import com.flowci.exception.StatusException;
+import com.flowci.store.FileManager;
+import com.flowci.store.Pathable;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,10 +24,10 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Log4j2
@@ -38,6 +42,9 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Autowired
     private ConfigDao configDao;
+
+    @Autowired
+    private FileManager fileManager;
 
     @Autowired
     private SpringEventManager eventManager;
@@ -95,38 +102,66 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Override
     public Config save(String name, SmtpOption option) {
-        SmtpConfig config;
-        Optional<Config> optional = configDao.findByName(name);
-        if (optional.isPresent()) {
-            config = (SmtpConfig) optional.get();
-        } else {
-            config = new SmtpConfig();
-            config.setName(name);
+        try {
+            SmtpConfig config = load(name, SmtpConfig.class);
+            config.setSmtp(option);
+            if (config.hasSecret()) {
+                setAuthFromSecret(config);
+            }
+            return save(config);
+        } catch (ReflectiveOperationException e) {
+            throw new StatusException(e.getMessage());
         }
-
-        config.setSmtp(option);
-
-        if (config.hasSecret()) {
-            setAuthFromSecret(config);
-        }
-
-        return save(config);
     }
 
     @Override
     public Config save(String name, String text) {
-        TextConfig config;
+        try {
+            TextConfig config = load(name, TextConfig.class);
+            config.setText(text);
+            return save(config);
+        } catch (ReflectiveOperationException e) {
+            throw new StatusException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Config save(String name, AndroidSignOption option) {
+        try {
+            MultipartFile file = option.getKeyStore();
+            String path = fileManager.save(file.getOriginalFilename(), file.getInputStream(), getConfigFileDir(name));
+
+            AndroidSignConfig config = load(name, AndroidSignConfig.class);
+            config.setKeyStoreFile(path);
+            config.setKeyStorePassword(SecretField.of(option.getKeyStorePw()));
+            config.setKeyAlias(option.getKeyAlias());
+            config.setKeyPassword(SecretField.of(option.getKeyPw()));
+
+            return save(config);
+        } catch (IOException | ReflectiveOperationException e) {
+            throw new StatusException(e.getMessage());
+        }
+    }
+
+    public Pathable[] getConfigFileDir(String config) {
+        return new Pathable[]{
+                () -> "config",
+                () -> config,
+        };
+    }
+
+    private <T extends Config> T load(String name, Class<T> tClass) throws ReflectiveOperationException {
         Optional<Config> optional = configDao.findByName(name);
 
+        T config;
         if (optional.isPresent()) {
-            config = (TextConfig) optional.get();
+            config = (T) optional.get();
         } else {
-            config = new TextConfig();
+            config = tClass.newInstance();
             config.setName(name);
         }
 
-        config.setText(text);
-        return save(config);
+        return config;
     }
 
     private <T extends Config> T save(T config) {

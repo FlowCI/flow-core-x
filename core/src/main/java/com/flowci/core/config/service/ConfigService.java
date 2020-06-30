@@ -1,5 +1,6 @@
 package com.flowci.core.config.service;
 
+import com.flowci.core.config.domain.AndroidSignOption;
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.domain.SmtpOption;
 
@@ -19,6 +20,8 @@ public interface ConfigService {
     Config save(String name, SmtpOption option);
 
     Config save(String name, String text);
+
+    Config save(String name, AndroidSignOption option);
 
     Config delete(String name);
 }

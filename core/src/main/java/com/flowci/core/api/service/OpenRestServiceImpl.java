@@ -34,7 +34,6 @@ import com.flowci.core.job.service.ReportService;
 import com.flowci.core.job.util.JobKeyBuilder;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.core.user.dao.UserDao;
 import com.flowci.core.user.domain.User;
 import com.flowci.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +50,6 @@ public class OpenRestServiceImpl implements OpenRestService {
 
     @Autowired
     private JobDao jobDao;
-
-    @Autowired
-    private UserDao userDao;
 
     @Autowired
     private FlowService flowService;
