@@ -87,6 +87,17 @@ public class SecretServiceImpl implements SecretService {
     public Secret delete(String name) {
         Secret c = get(name);
         secretDao.delete(c);
+
+        if (c instanceof AndroidSign) {
+            try {
+                AndroidSign sign = (AndroidSign) c;
+                fileManager.remove(sign.getKeyStoreFileName(), sign.getPath());
+                log.info("Secret file {} been deleted", sign.getKeyStoreFileName());
+            } catch (IOException e) {
+                log.warn(e.getMessage());
+            }
+        }
+
         return c;
     }
 

@@ -83,11 +83,11 @@ public class MongoConfig extends AbstractMongoConfiguration {
         // add addPersistentEntity for sub types since not registered if called within same thread
         context.addEntity(SmtpConfig.class);
         context.addEntity(TextConfig.class);
-        context.addEntity(AndroidSign.class);
 
         context.addEntity(AuthSecret.class);
         context.addEntity(RSASecret.class);
         context.addEntity(TokenSecret.class);
+        context.addEntity(AndroidSign.class);
 
         context.addEntity(LocalUnixAgentHost.class);
         context.addEntity(SshAgentHost.class);
