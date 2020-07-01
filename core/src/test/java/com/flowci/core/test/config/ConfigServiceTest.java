@@ -70,12 +70,13 @@ public class ConfigServiceTest extends SpringScenario {
     @Test
     public void should_create_android_sign_config() {
         AndroidSignOption option = new AndroidSignOption();
-        option.setKeyStore(new MockMultipartFile("ks", "test.jks", null, "test data".getBytes()));
-        option.setKeyStorePw("12345");
+        option.setKeyPassword("12345");
         option.setKeyAlias("helloworld");
-        option.setKeyPw("678910");
+        option.setKeyPassword("678910");
 
-        AndroidSignConfig config = (AndroidSignConfig) configService.save("android-debug", option);
+        MockMultipartFile ks = new MockMultipartFile("ks", "test.jks", null, "test data".getBytes());
+
+        AndroidSignConfig config = (AndroidSignConfig) configService.save("android-debug", ks, option);
         Assert.assertEquals("test.jks", config.getKeyStoreFileName());
         Assert.assertEquals("12345", config.getKeyStorePassword().getData());
 

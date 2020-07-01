@@ -41,11 +41,10 @@ public class ConfigController {
 
     @PostMapping("/{name}/android/sign")
     public Config save(@PathVariable String name,
-                       @Validated @RequestPart("body") AndroidSignOption options,
-                       @RequestPart("ks") MultipartFile file) {
+                       @Validated @RequestPart AndroidSignOption option,
+                       @RequestPart MultipartFile keyStore) {
 
-        options.setKeyStore(file);
-        return configService.save(name, options);
+        return configService.save(name, keyStore, option);
     }
 
     @GetMapping("/{name}")

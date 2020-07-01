@@ -23,17 +23,11 @@ public final class SmtpOption {
     @NonNull
     private SecureType secure = SecureType.NONE;
 
-    private String username;
-
-    private String password;
+    private SimpleAuthPair auth;
 
     private String secret;
 
     public boolean hasSecret() {
         return StringHelper.hasValue(secret);
-    }
-
-    public SimpleAuthPair getAuthPair() {
-        return SimpleAuthPair.of(username, password);
     }
 }

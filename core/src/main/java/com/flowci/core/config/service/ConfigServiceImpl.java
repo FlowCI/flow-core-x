@@ -106,7 +106,7 @@ public class ConfigServiceImpl implements ConfigService {
             config.setServer(option.getServer());
             config.setPort(option.getPort());
             config.setSecure(option.getSecure());
-            config.setAuth(option.getAuthPair());
+            config.setAuth(option.getAuth());
 
             if (option.hasSecret()) {
                 config.setAuth(getAuthPairFromSecret(option));
@@ -130,17 +130,15 @@ public class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
-    public Config save(String name, AndroidSignOption option) {
+    public Config save(String name, MultipartFile keyStore, AndroidSignOption option) {
         try {
-            MultipartFile file = option.getKeyStore();
-
             AndroidSignConfig config = load(name, AndroidSignConfig.class);
-            config.setKeyStoreFileName(file.getOriginalFilename());
-            config.setKeyStorePassword(SecretField.of(option.getKeyStorePw()));
+            config.setKeyStoreFileName(keyStore.getOriginalFilename());
+            config.setKeyStorePassword(SecretField.of(option.getKeyStorePassword()));
             config.setKeyAlias(option.getKeyAlias());
-            config.setKeyPassword(SecretField.of(option.getKeyPw()));
+            config.setKeyPassword(SecretField.of(option.getKeyPassword()));
 
-            fileManager.save(file.getOriginalFilename(), file.getInputStream(), config.getPath());
+            fileManager.save(keyStore.getOriginalFilename(), keyStore.getInputStream(), config.getPath());
             return save(config);
         } catch (IOException | ReflectiveOperationException e) {
             throw new StatusException(e.getMessage());
