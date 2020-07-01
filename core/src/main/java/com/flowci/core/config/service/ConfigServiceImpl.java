@@ -15,7 +15,6 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
-import com.flowci.store.Pathable;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -104,10 +103,15 @@ public class ConfigServiceImpl implements ConfigService {
     public Config save(String name, SmtpOption option) {
         try {
             SmtpConfig config = load(name, SmtpConfig.class);
-            config.setSmtp(option);
-            if (config.hasSecret()) {
-                setAuthFromSecret(config);
+            config.setServer(option.getServer());
+            config.setPort(option.getPort());
+            config.setSecure(option.getSecure());
+            config.setAuth(option.getAuthPair());
+
+            if (option.hasSecret()) {
+                config.setAuth(getAuthPairFromSecret(option));
             }
+
             return save(config);
         } catch (ReflectiveOperationException e) {
             throw new StatusException(e.getMessage());
@@ -165,8 +169,8 @@ public class ConfigServiceImpl implements ConfigService {
         }
     }
 
-    private void setAuthFromSecret(SmtpConfig config) {
-        GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, config.getSecret()));
+    private SimpleAuthPair getAuthPairFromSecret(SmtpOption option) {
+        GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, option.getSecret()));
         if (event.hasError()) {
             throw event.getError();
         }
@@ -176,7 +180,7 @@ public class ConfigServiceImpl implements ConfigService {
             throw new ArgumentException("Invalid secret type");
         }
 
-        config.setAuth((SimpleAuthPair) secret.toSimpleSecret());
+        return (SimpleAuthPair) secret.toSimpleSecret();
     }
 
     @Override
