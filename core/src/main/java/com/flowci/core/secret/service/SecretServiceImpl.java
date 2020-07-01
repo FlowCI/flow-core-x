@@ -20,25 +20,26 @@ import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.secret.dao.SecretDao;
-import com.flowci.core.secret.domain.AuthSecret;
-import com.flowci.core.secret.domain.RSASecret;
-import com.flowci.core.secret.domain.Secret;
-import com.flowci.core.secret.domain.TokenSecret;
+import com.flowci.core.secret.domain.*;
 import com.flowci.core.secret.event.CreateAuthEvent;
 import com.flowci.core.secret.event.CreateRsaEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
+import com.flowci.domain.SecretField;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
+import com.flowci.store.FileManager;
 import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
@@ -55,6 +56,9 @@ public class SecretServiceImpl implements SecretService {
 
     @Autowired
     private SessionManager sessionManager;
+
+    @Autowired
+    private FileManager fileManager;
 
     @Override
     public List<Secret> list() {
@@ -126,6 +130,23 @@ public class SecretServiceImpl implements SecretService {
         t.setName(name);
         t.setTokenData(token);
         return save(t);
+    }
+
+    @Override
+    public AndroidSign createAndroidSign(String name, MultipartFile keyStore, AndroidSignOption option) {
+        try {
+            AndroidSign secret = new AndroidSign();
+            secret.setName(name);
+            secret.setKeyStoreFileName(keyStore.getOriginalFilename());
+            secret.setKeyStorePassword(SecretField.of(option.getKeyStorePassword()));
+            secret.setKeyAlias(option.getKeyAlias());
+            secret.setKeyPassword(SecretField.of(option.getKeyPassword()));
+
+            fileManager.save(keyStore.getOriginalFilename(), keyStore.getInputStream(), secret.getPath());
+            return save(secret);
+        } catch (IOException e) {
+            throw new StatusException(e.getMessage());
+        }
     }
 
     @EventListener

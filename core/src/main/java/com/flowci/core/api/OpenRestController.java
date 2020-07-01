@@ -68,8 +68,8 @@ public class OpenRestController {
     @GetMapping("/config/{name}/download/{file}")
     public ResponseEntity<Resource> downloadConfigFile(@PathVariable String name,
                                                        @PathVariable String file) {
-        Config config = openRestService.getConfig(name);
-        Resource resource = openRestService.getResource(config, file);
+        Secret secret = openRestService.getSecret(name);
+        Resource resource = openRestService.getResource(secret, file);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))

@@ -57,6 +57,5 @@ public abstract class Request {
 
         @NotEmpty
         public String token;
-
     }
 }

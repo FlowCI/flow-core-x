@@ -1,4 +1,4 @@
-package com.flowci.core.config.domain;
+package com.flowci.core.secret.domain;
 
 import com.flowci.domain.SecretField;
 import lombok.Getter;
@@ -10,8 +10,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Getter
 @Setter
-@Document(collection = "configuration")
-public class AndroidSignConfig extends Config {
+@Document(collection = "secret")
+public class AndroidSign extends Secret {
 
     private String keyStoreFileName;
 
@@ -21,7 +21,7 @@ public class AndroidSignConfig extends Config {
 
     private SecretField keyPassword;
 
-    public AndroidSignConfig() {
+    public AndroidSign() {
         setCategory(Category.ANDROID_SIGN);
     }
 }

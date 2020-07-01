@@ -39,16 +39,16 @@ public interface OpenRestService {
     Secret getSecret(String name);
 
     /**
-     * Get config by name
-     */
-    Config getConfig(String name);
-
-    /**
      * Get file in config
      *
      * @return key as file name, value is resource
      */
-    Resource getResource(Config config, String file);
+    Resource getResource(Secret config, String file);
+
+    /**
+     * Get config by name
+     */
+    Config getConfig(String name);
 
     /**
      * Save statistic data for flow

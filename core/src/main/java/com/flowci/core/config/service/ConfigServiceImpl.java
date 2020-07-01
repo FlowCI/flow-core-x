@@ -8,13 +8,11 @@ import com.flowci.core.config.domain.*;
 import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
-import com.flowci.domain.SecretField;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
-import com.flowci.store.FileManager;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +21,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,9 +38,6 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Autowired
     private ConfigDao configDao;
-
-    @Autowired
-    private FileManager fileManager;
 
     @Autowired
     private SpringEventManager eventManager;
@@ -125,22 +119,6 @@ public class ConfigServiceImpl implements ConfigService {
             config.setText(text);
             return save(config);
         } catch (ReflectiveOperationException e) {
-            throw new StatusException(e.getMessage());
-        }
-    }
-
-    @Override
-    public Config save(String name, MultipartFile keyStore, AndroidSignOption option) {
-        try {
-            AndroidSignConfig config = load(name, AndroidSignConfig.class);
-            config.setKeyStoreFileName(keyStore.getOriginalFilename());
-            config.setKeyStorePassword(SecretField.of(option.getKeyStorePassword()));
-            config.setKeyAlias(option.getKeyAlias());
-            config.setKeyPassword(SecretField.of(option.getKeyPassword()));
-
-            fileManager.save(keyStore.getOriginalFilename(), keyStore.getInputStream(), config.getPath());
-            return save(config);
-        } catch (IOException | ReflectiveOperationException e) {
             throw new StatusException(e.getMessage());
         }
     }

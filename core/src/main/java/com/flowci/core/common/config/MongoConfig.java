@@ -21,7 +21,7 @@ import com.flowci.core.agent.domain.LocalUnixAgentHost;
 import com.flowci.core.agent.domain.SshAgentHost;
 import com.flowci.core.common.mongo.EncryptConverter;
 import com.flowci.core.common.mongo.VariableMapConverter;
-import com.flowci.core.config.domain.AndroidSignConfig;
+import com.flowci.core.secret.domain.AndroidSign;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.TextConfig;
 import com.flowci.core.job.domain.JobItem;
@@ -83,7 +83,7 @@ public class MongoConfig extends AbstractMongoConfiguration {
         // add addPersistentEntity for sub types since not registered if called within same thread
         context.addEntity(SmtpConfig.class);
         context.addEntity(TextConfig.class);
-        context.addEntity(AndroidSignConfig.class);
+        context.addEntity(AndroidSign.class);
 
         context.addEntity(AuthSecret.class);
         context.addEntity(RSASecret.class);

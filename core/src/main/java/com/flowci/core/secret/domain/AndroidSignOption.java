@@ -1,4 +1,4 @@
-package com.flowci.core.config.domain;
+package com.flowci.core.secret.domain;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,8 +1,8 @@
 package com.flowci.core.test.config;
 
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.config.domain.AndroidSignConfig;
-import com.flowci.core.config.domain.AndroidSignOption;
+import com.flowci.core.secret.domain.AndroidSign;
+import com.flowci.core.secret.domain.AndroidSignOption;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.SmtpOption;
 import com.flowci.core.config.service.ConfigService;
@@ -65,22 +65,5 @@ public class ConfigServiceTest extends SpringScenario {
         Assert.assertEquals(config, configService.list().get(0));
         Assert.assertEquals(1, configService.list(SMTP).size());
         Assert.assertEquals(0, configService.list(TEXT).size());
-    }
-
-    @Test
-    public void should_create_android_sign_config() {
-        AndroidSignOption option = new AndroidSignOption();
-        option.setKeyPassword("12345");
-        option.setKeyAlias("helloworld");
-        option.setKeyPassword("678910");
-
-        MockMultipartFile ks = new MockMultipartFile("ks", "test.jks", null, "test data".getBytes());
-
-        AndroidSignConfig config = (AndroidSignConfig) configService.save("android-debug", ks, option);
-        Assert.assertEquals("test.jks", config.getKeyStoreFileName());
-        Assert.assertEquals("12345", config.getKeyStorePassword().getData());
-
-        Assert.assertEquals("helloworld", config.getKeyAlias());
-        Assert.assertEquals("678910", config.getKeyPassword().getData());
     }
 }

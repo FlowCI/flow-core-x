@@ -20,7 +20,7 @@ package com.flowci.core.api.service;
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.common.helper.DateHelper;
-import com.flowci.core.config.domain.AndroidSignConfig;
+import com.flowci.core.secret.domain.AndroidSign;
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.flow.dao.FlowUserDao;
@@ -95,19 +95,19 @@ public class OpenRestServiceImpl implements OpenRestService {
     }
 
     @Override
-    public Resource getResource(Config config, String file) {
-        if (!(config instanceof AndroidSignConfig)) {
-            throw new ArgumentException("Unsupported config type");
+    public Resource getResource(Secret secret, String file) {
+        if (!(secret instanceof AndroidSign)) {
+            throw new ArgumentException("Unsupported secret type");
         }
 
-        AndroidSignConfig signConfig = (AndroidSignConfig) config;
+        AndroidSign signSecret = (AndroidSign) secret;
 
-        if (!Objects.equals(file, signConfig.getKeyStoreFileName())) {
+        if (!Objects.equals(file, signSecret.getKeyStoreFileName())) {
             throw new ArgumentException("File not existed in config");
         }
 
         try {
-            InputStream stream = fileManager.read(signConfig.getKeyStoreFileName(), config.getPath());
+            InputStream stream = fileManager.read(signSecret.getKeyStoreFileName(), signSecret.getPath());
             return new InputStreamResource(stream);
         } catch (IOException e) {
             throw new StatusException("Failed to get resource: {}", e.getMessage());

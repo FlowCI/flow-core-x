@@ -16,10 +16,13 @@
 
 package com.flowci.core.secret.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.domain.SimpleSecret;
+import com.flowci.store.Pathable;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -41,7 +44,9 @@ public class Secret extends Mongoable {
 //
 //        SSH_ED25519,
 
-        TOKEN
+        TOKEN,
+
+        ANDROID_SIGN
     }
 
     @Indexed(name = "index_secret_name", unique = true)
@@ -51,5 +56,14 @@ public class Secret extends Mongoable {
 
     public SimpleSecret toSimpleSecret() {
         return null;
+    }
+
+    @JsonIgnore
+    @Transient
+    public Pathable[] getPath() {
+        return new Pathable[]{
+                () -> "secret",
+                this::getName,
+        };
     }
 }
