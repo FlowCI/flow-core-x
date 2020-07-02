@@ -60,13 +60,8 @@ public class OpenRestController {
         return secret;
     }
 
-    @GetMapping("/config/{name}")
-    public Config getConfig(@PathVariable String name) {
-        return openRestService.getConfig(name);
-    }
-
-    @GetMapping("/config/{name}/download/{file}")
-    public ResponseEntity<Resource> downloadConfigFile(@PathVariable String name,
+    @GetMapping("/secret/{name}/download/{file:.+}")
+    public ResponseEntity<Resource> downloadSecretFile(@PathVariable String name,
                                                        @PathVariable String file) {
         Secret secret = openRestService.getSecret(name);
         Resource resource = openRestService.getResource(secret, file);
@@ -75,6 +70,11 @@ public class OpenRestController {
                 .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file + "\"")
                 .body(resource);
+    }
+
+    @GetMapping("/config/{name}")
+    public Config getConfig(@PathVariable String name) {
+        return openRestService.getConfig(name);
     }
 
     @GetMapping("/flow/{name}/users")
