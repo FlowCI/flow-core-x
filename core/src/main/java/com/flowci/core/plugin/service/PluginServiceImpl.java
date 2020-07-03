@@ -63,6 +63,8 @@ public class PluginServiceImpl implements PluginService {
 
     private static final String PluginFileName = "plugin.yml";
 
+    private static final String PluginFileNameAlt = "plugin.yaml";
+
     private static final String ReadMeFileName = "README.md";
 
     private static final byte[] EmptyBytes = new byte[0];
@@ -262,7 +264,10 @@ public class PluginServiceImpl implements PluginService {
     private Plugin load(File dir, PluginRepoInfo info) throws IOException {
         Path pluginFile = Paths.get(dir.toString(), PluginFileName);
         if (!Files.exists(pluginFile)) {
-            throw new NotFoundException("The 'plugin.yml' not found in plugin repo {0}", info.getSource());
+            pluginFile = Paths.get(dir.toString(), PluginFileNameAlt);
+            if (!Files.exists(pluginFile)) {
+                throw new NotFoundException("The 'plugin.yml' not found in plugin repo {0}", info.getSource());
+            }
         }
 
         byte[] ymlInBytes = Files.readAllBytes(pluginFile);
