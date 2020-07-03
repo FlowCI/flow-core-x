@@ -22,5 +22,4 @@ public abstract class Config extends Mongoable {
     private String name;
 
     private Category category;
-
 }

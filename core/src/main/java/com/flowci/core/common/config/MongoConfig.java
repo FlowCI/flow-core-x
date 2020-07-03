@@ -21,6 +21,7 @@ import com.flowci.core.agent.domain.LocalUnixAgentHost;
 import com.flowci.core.agent.domain.SshAgentHost;
 import com.flowci.core.common.mongo.EncryptConverter;
 import com.flowci.core.common.mongo.VariableMapConverter;
+import com.flowci.core.secret.domain.AndroidSign;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.TextConfig;
 import com.flowci.core.job.domain.JobItem;
@@ -82,9 +83,12 @@ public class MongoConfig extends AbstractMongoConfiguration {
         // add addPersistentEntity for sub types since not registered if called within same thread
         context.addEntity(SmtpConfig.class);
         context.addEntity(TextConfig.class);
+
         context.addEntity(AuthSecret.class);
         context.addEntity(RSASecret.class);
         context.addEntity(TokenSecret.class);
+        context.addEntity(AndroidSign.class);
+
         context.addEntity(LocalUnixAgentHost.class);
         context.addEntity(SshAgentHost.class);
 
@@ -102,10 +106,12 @@ public class MongoConfig extends AbstractMongoConfiguration {
         EncryptConverter encryptConverter = new EncryptConverter(appProperties.getSecret());
         converters.add(encryptConverter.new SimpleKeyPairReader());
         converters.add(encryptConverter.new SimpleKeyPairWriter());
+
         converters.add(encryptConverter.new SimpleAuthPairReader());
         converters.add(encryptConverter.new SimpleAuthPairWriter());
-        converters.add(encryptConverter.new SimpleTokenReader());
-        converters.add(encryptConverter.new SimpleTokenWriter());
+
+        converters.add(encryptConverter.new SecretFieldReader());
+        converters.add(encryptConverter.new SecretFieldWriter());
 
         converters.add(new JobItem.ContextReader());
         return new MongoCustomConversions(converters);

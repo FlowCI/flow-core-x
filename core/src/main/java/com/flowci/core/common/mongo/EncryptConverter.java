@@ -20,7 +20,7 @@ package com.flowci.core.common.mongo;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
-import com.flowci.domain.SimpleToken;
+import com.flowci.domain.SecretField;
 import lombok.Getter;
 import org.bson.Document;
 import org.springframework.core.convert.converter.Converter;
@@ -94,21 +94,21 @@ public class EncryptConverter {
         }
     }
 
-    public class SimpleTokenReader implements Converter<Document, SimpleToken> {
+    public class SecretFieldReader implements Converter<Document, SecretField> {
 
         @Override
-        public SimpleToken convert(Document source) {
+        public SecretField convert(Document source) {
             String token = source.getString(FieldData);
-            return SimpleToken.of(
+            return SecretField.of(
                     CipherHelper.AES.decrypt(token, appSecret)
             );
         }
     }
 
-    public class SimpleTokenWriter implements Converter<SimpleToken, Document> {
+    public class SecretFieldWriter implements Converter<SecretField, Document> {
 
         @Override
-        public Document convert(SimpleToken pair) {
+        public Document convert(SecretField pair) {
             Document document = new Document();
             document.put(FieldData, CipherHelper.AES.encrypt(pair.getData(), appSecret));
             return document;

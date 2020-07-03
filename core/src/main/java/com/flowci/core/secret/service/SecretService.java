@@ -16,12 +16,10 @@
 
 package com.flowci.core.secret.service;
 
-import com.flowci.core.secret.domain.AuthSecret;
-import com.flowci.core.secret.domain.Secret;
-import com.flowci.core.secret.domain.RSASecret;
-import com.flowci.core.secret.domain.TokenSecret;
+import com.flowci.core.secret.domain.*;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -74,4 +72,9 @@ public interface SecretService {
      * Create token secret
      */
     TokenSecret createToken(String name, String token);
+
+    /**
+     * Create Android Sign Secret
+     */
+    AndroidSign createAndroidSign(String name, MultipartFile keyStore, AndroidSignOption option);
 }
