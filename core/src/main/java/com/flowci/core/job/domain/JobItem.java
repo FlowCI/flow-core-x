@@ -106,5 +106,11 @@ public class JobItem {
 
     private Context context;
 
-    protected Date createdAt;
+    private Date createdAt;
+
+    private Date startAt;
+
+    private Date finishAt;
+
+    private int numOfArtifact;
 }

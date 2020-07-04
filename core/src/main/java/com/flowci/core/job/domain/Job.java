@@ -245,6 +245,8 @@ public class Job extends Mongoable implements Pathable {
      */
     private Date finishAt;
 
+    private int numOfArtifact = 0;
+
     public void setExpire(int expire) {
         this.expire = expire;
         Instant expireAt = Instant.now().plus(expire, ChronoUnit.SECONDS);

@@ -17,6 +17,7 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.job.dao.JobArtifactDao;
+import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobArtifact;
 import com.flowci.exception.DuplicateException;
@@ -36,7 +37,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,6 +45,9 @@ import java.util.Optional;
 public class ArtifactServiceImpl implements ArtifactService {
 
     private static final String Separator = "/";
+
+    @Autowired
+    private JobDao jobDao;
 
     @Autowired
     private JobArtifactDao jobArtifactDao;
@@ -77,6 +80,7 @@ public class ArtifactServiceImpl implements ArtifactService {
             artifact.setMd5(md5);
 
             jobArtifactDao.save(artifact);
+            jobDao.increaseNumOfArtifact(job.getId());
         } catch (IOException e) {
             throw new NotAvailableException("Invalid artifact data");
         } catch (DuplicateKeyException e) {
