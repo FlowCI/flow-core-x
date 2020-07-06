@@ -9,12 +9,14 @@ public abstract class CmdStdLog {
 
     public static final String ID_HEADER = "id";
 
-    public static Optional<String> getId(RabbitOperations.Message message) {
+    public static final String STEP_ID_HEADER = "stepId";
+
+    public static Optional<String> getFromHeader(RabbitOperations.Message message, String header) {
         if (!message.hasHeader()) {
             return Optional.empty();
         }
 
-        Object id = message.getHeaders().get(CmdStdLog.ID_HEADER);
+        Object id = message.getHeaders().get(header);
         if (Objects.isNull(id)) {
             return Optional.empty();
         }

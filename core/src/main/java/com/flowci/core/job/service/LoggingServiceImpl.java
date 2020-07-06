@@ -23,6 +23,8 @@ import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Step;
+import com.flowci.core.job.event.JobCreatedEvent;
+import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
@@ -47,9 +49,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -71,9 +72,10 @@ public class LoggingServiceImpl implements LoggingService {
 
     private static final Pathable LogPath = () -> "logs";
 
-    private final Cache<String, BufferedReader> logReaderCache =
-            CacheHelper.createLocalCache(10, 60, new ReaderCleanUp());
+    private final Cache<String, BufferedReader> logReaderCache = CacheHelper.createLocalCache(10, 60, new ReaderCleanUp());
 
+    // cache current job log
+    private final Cache<String, Map<String, Queue<byte[]>>> logCache = CacheHelper.createLocalCache(50, 3600);
 
     @Autowired
     private String ttyLogQueue;
@@ -102,10 +104,37 @@ public class LoggingServiceImpl implements LoggingService {
     @EventListener(ContextRefreshedEvent.class)
     public void onStart() throws IOException {
         // shell log content will be json {cmdId: xx, content: b64 log}
-        logQueueManager.startConsumer(shellLogQueue, true, new CmdStdLogHandler(topicForLogs));
+        logQueueManager.startConsumer(shellLogQueue, true, new CmdStdLogHandler());
 
         // tty log conent will be b64 std out/err
-        logQueueManager.startConsumer(ttyLogQueue, true, new CmdStdLogHandler(topicForTtyLogs));
+        logQueueManager.startConsumer(ttyLogQueue, true, new TtyLogHandler());
+    }
+
+    /**
+     * Create logging buffer for job
+     */
+    @EventListener(JobCreatedEvent.class)
+    public void onJobCreated(JobCreatedEvent event) {
+        Job job = event.getJob();
+        List<Step> steps = stepService.list(job);
+
+        Map<String, Queue<byte[]>> cache = new HashMap<>(steps.size());
+        for (Step step : steps) {
+            cache.put(step.getId(), new ConcurrentLinkedQueue<>());
+        }
+
+        logCache.put(job.getId(), cache);
+    }
+
+    /**
+     * Remove logging buffer for job
+     */
+    @EventListener(JobStatusChangeEvent.class)
+    public void onJobFinished(JobStatusChangeEvent event) {
+        Job job = event.getJob();
+        if (job.isDone()) {
+            logCache.invalidate(job.getId());
+        }
     }
 
     @Override
@@ -199,18 +228,36 @@ public class LoggingServiceImpl implements LoggingService {
 
     private class CmdStdLogHandler implements Function<RabbitOperations.Message, Boolean> {
 
-        private final String topic;
+        @Override
+        public Boolean apply(RabbitOperations.Message message) {
+            Optional<String> jobId = CmdStdLog.getFromHeader(message, CmdStdLog.ID_HEADER);
+            if (!jobId.isPresent()) {
+                return true;
+            }
 
-        private CmdStdLogHandler(String topic) {
-            this.topic = topic;
+            // write to log cache
+            Optional<String> stepId = CmdStdLog.getFromHeader(message, CmdStdLog.STEP_ID_HEADER);
+            if (stepId.isPresent()) {
+                Map<String, Queue<byte[]>> cache = logCache.getIfPresent(jobId.get());
+                if (cache != null) {
+                    cache.get(stepId).add(message.getBody());
+                }
+            }
+
+            // push to ws
+            socketPushManager.push(topicForLogs + "/" + jobId.get(), message.getBody());
+            return true;
         }
+    }
+
+    private class TtyLogHandler implements Function<RabbitOperations.Message, Boolean> {
 
         @Override
         public Boolean apply(RabbitOperations.Message message) {
-            Optional<String> optional = CmdStdLog.getId(message);
+            Optional<String> optional = CmdStdLog.getFromHeader(message, CmdStdLog.ID_HEADER);
             if (optional.isPresent()) {
-                String jobId = optional.get();
-                socketPushManager.push(topic + "/" + jobId, message.getBody());
+                String ttyId = optional.get();
+                socketPushManager.push(topicForTtyLogs + "/" + ttyId, message.getBody());
             }
             return true;
         }
