@@ -109,27 +109,22 @@ public class LoggingServiceImpl implements LoggingService {
     }
 
     /**
-     * Create logging buffer for job
-     */
-    @EventListener(JobCreatedEvent.class)
-    public void onJobCreated(JobCreatedEvent event) {
-        Job job = event.getJob();
-        List<Step> steps = stepService.list(job);
-
-        Map<String, Queue<byte[]>> cache = new HashMap<>(steps.size());
-        for (Step step : steps) {
-            cache.put(step.getId(), new ConcurrentLinkedQueue<>());
-        }
-
-        logCache.put(job.getId(), cache);
-    }
-
-    /**
-     * Remove logging buffer for job
+     * Create/Remove logging buffer for job
      */
     @EventListener(JobStatusChangeEvent.class)
     public void onJobFinished(JobStatusChangeEvent event) {
         Job job = event.getJob();
+
+        if (job.getStatus() == Job.Status.CREATED) {
+            List<Step> steps = stepService.list(job);
+            Map<String, Queue<byte[]>> cache = new HashMap<>(steps.size());
+            for (Step step : steps) {
+                cache.put(step.getId(), new ConcurrentLinkedQueue<>());
+            }
+            logCache.put(job.getId(), cache);
+            return;
+        }
+
         if (job.isDone()) {
             logCache.invalidate(job.getId());
         }
@@ -193,7 +188,7 @@ public class LoggingServiceImpl implements LoggingService {
             if (stepId.isPresent()) {
                 Map<String, Queue<byte[]>> cache = logCache.getIfPresent(jobId.get());
                 if (cache != null) {
-                    cache.get(stepId).add(message.getBody());
+                    cache.get(stepId.get()).add(message.getBody());
                 }
             }
 
