@@ -16,23 +16,16 @@
 
 package com.flowci.core.job.service;
 
-import com.flowci.core.job.domain.Step;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 
 /**
  * @author yang
  */
 public interface LoggingService {
-
-    /**
-     * To read logs from file store
-     */
-    Page<String> read(Step cmd, Pageable pageable);
 
     /**
      * Save log into file system, return the id of file
@@ -45,9 +38,13 @@ public interface LoggingService {
     /**
      * Get log resource
      *
-     * @param cmdId cmd id
+     * @param stepId step id
      * @return file resource
      */
-    Resource get(String cmdId);
+    Resource get(String stepId);
 
+    /**
+     * Read cached log from step id
+     */
+    Collection<byte[]> read(String stepId);
 }

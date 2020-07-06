@@ -36,7 +36,7 @@ public interface StepService {
     Step get(String jobId, String nodePath);
 
     /**
-     * Get executed cmd from cmd id
+     * Get executed cmd from step id
      */
     Step get(String id);
 

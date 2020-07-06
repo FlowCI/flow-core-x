@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +41,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Base64;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -141,24 +141,21 @@ public class JobController {
         return localTaskService.list(job);
     }
 
-    @GetMapping("/logs/{executedCmdId}")
-    @Action(JobAction.GET_STEP_LOG)
-    public Page<String> getStepLog(@PathVariable String executedCmdId,
-                                   @RequestParam(required = false, defaultValue = "0") int page,
-                                   @RequestParam(required = false, defaultValue = "50") int size) {
-
-        return loggingService.read(stepService.get(executedCmdId), PageRequest.of(page, size));
+    @GetMapping("/logs/{stepId}/read")
+    @Action(JobAction.DOWNLOAD_STEP_LOG)
+    public Collection<byte[]> readStepLog(@PathVariable String stepId) {
+        return loggingService.read(stepId);
     }
 
-    @GetMapping("/logs/{cmdId}/download")
+    @GetMapping("/logs/{stepId}/download")
     @Action(JobAction.DOWNLOAD_STEP_LOG)
-    public ResponseEntity<Resource> downloadStepLog(@PathVariable String cmdId) {
-        Step cmd = stepService.get(cmdId);
-        Resource resource = loggingService.get(cmdId);
-        Flow flow = flowService.getById(cmd.getFlowId());
+    public ResponseEntity<Resource> downloadStepLog(@PathVariable String stepId) {
+        Step step = stepService.get(stepId);
+        Resource resource = loggingService.get(stepId);
+        Flow flow = flowService.getById(step.getFlowId());
 
-        NodePath path = NodePath.create(cmd.getNodePath());
-        String fileName = String.format("%s-#%s-%s.log", flow.getName(), cmd.getBuildNumber(), path.name());
+        NodePath path = NodePath.create(step.getNodePath());
+        String fileName = String.format("%s-#%s-%s.log", flow.getName(), step.getBuildNumber(), path.name());
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))

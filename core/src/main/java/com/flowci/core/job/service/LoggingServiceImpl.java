@@ -72,8 +72,6 @@ public class LoggingServiceImpl implements LoggingService {
 
     private static final Pathable LogPath = () -> "logs";
 
-    private final Cache<String, BufferedReader> logReaderCache = CacheHelper.createLocalCache(10, 60, new ReaderCleanUp());
-
     // cache current job log
     private final Cache<String, Map<String, Queue<byte[]>>> logCache = CacheHelper.createLocalCache(50, 3600);
 
@@ -138,32 +136,6 @@ public class LoggingServiceImpl implements LoggingService {
     }
 
     @Override
-    public Page<String> read(Step cmd, Pageable pageable) {
-        BufferedReader reader = getReader(cmd.getId());
-
-        if (Objects.isNull(reader)) {
-            return LogNotFound;
-        }
-
-        try (Stream<String> lines = reader.lines()) {
-            int i = pageable.getPageNumber() * pageable.getPageSize();
-
-            List<String> logs = lines.skip(i)
-                    .limit(pageable.getPageSize())
-                    .collect(Collectors.toList());
-
-            return new PageImpl<>(logs, pageable, cmd.getLogSize());
-        } finally {
-            try {
-                reader.reset();
-            } catch (IOException e) {
-                // reset will be failed if all lines been read
-                logReaderCache.invalidate(cmd.getId());
-            }
-        }
-    }
-
-    @Override
     public String save(String fileName, InputStream stream) throws IOException {
         String cmdId = FileHelper.getName(fileName);
         Pathable[] logDir = getLogDir(cmdId);
@@ -171,59 +143,40 @@ public class LoggingServiceImpl implements LoggingService {
     }
 
     @Override
-    public Resource get(String cmdId) {
+    public Resource get(String stepId) {
         try {
-            String fileName = getLogFile(cmdId);
-            InputStream stream = fileManager.read(fileName, getLogDir(cmdId));
+            String fileName = getLogFile(stepId);
+            InputStream stream = fileManager.read(fileName, getLogDir(stepId));
             return new InputStreamResource(stream);
         } catch (IOException e) {
             throw new NotFoundException("Log not available");
         }
     }
 
-    private BufferedReader getReader(String cmdId) {
-        return logReaderCache.get(cmdId, key -> {
-            try {
-                String fileName = getLogFile(cmdId);
-                InputStream stream = fileManager.read(fileName, getLogDir(cmdId));
-                InputStreamReader streamReader = new InputStreamReader(stream);
-                BufferedReader reader = new BufferedReader(streamReader, FileBufferSize);
-                reader.mark(1);
-                return reader;
-            } catch (IOException e) {
-                return null;
-            }
-        });
+    @Override
+    public Collection<byte[]> read(String stepId) {
+        Step step = stepService.get(stepId);
+        Map<String, Queue<byte[]>> cached = logCache.getIfPresent(step.getJobId());
+
+        if (Objects.isNull(cached)) {
+            return Collections.emptyList();
+        }
+
+        return cached.get(stepId);
     }
 
     private Pathable[] getLogDir(String cmdId) {
-        Step cmd = stepService.get(cmdId);
+        Step step = stepService.get(cmdId);
 
         return new Pathable[]{
-                Flow.path(cmd.getFlowId()),
-                Job.path(cmd.getBuildNumber()),
+                Flow.path(step.getFlowId()),
+                Job.path(step.getBuildNumber()),
                 LogPath
         };
     }
 
     private String getLogFile(String cmdId) {
         return cmdId + ".log";
-    }
-
-    private class ReaderCleanUp implements RemovalListener<String, BufferedReader> {
-
-        @Override
-        public void onRemoval(String key, BufferedReader reader, RemovalCause cause) {
-            if (Objects.isNull(reader)) {
-                return;
-            }
-
-            try {
-                reader.close();
-            } catch (IOException e) {
-                log.debug(e);
-            }
-        }
     }
 
     private class CmdStdLogHandler implements Function<RabbitOperations.Message, Boolean> {
