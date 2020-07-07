@@ -101,14 +101,10 @@ public class YmlServiceImpl implements YmlService {
         return ymlObj;
     }
 
-    //====================================================================
-    //        %% Internal events
-    //====================================================================
-
-    @EventListener
-    public void deleteYmlOnFlowDeleted(FlowDeletedEvent event) {
+    @Override
+    public void delete(Flow flow) {
         try {
-            Yml yml = getYml(event.getFlow());
+            Yml yml = getYml(flow);
             ymlDao.delete(yml);
         } catch (NotFoundException ignore) {
 

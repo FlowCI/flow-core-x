@@ -35,15 +35,15 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.time.ZonedDateTime;
 import java.util.Base64;
+import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * @author yang
@@ -55,6 +55,8 @@ public class CronServiceImpl implements CronService {
     private static final int MaxCronPoolSize = 20;
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(MaxCronPoolSize);
+
+    private final Map<String, ScheduledFuture<?>> scheduled = new ConcurrentHashMap<>();
 
     @Autowired
     private YmlDao ymlDao;
@@ -68,8 +70,12 @@ public class CronServiceImpl implements CronService {
     @Autowired
     private ZookeeperClient zk;
 
-    @PostConstruct
-    private void initZkRoot() {
+    //====================================================================
+    //        %% Internal events
+    //====================================================================
+
+    @EventListener(ContextRefreshedEvent.class)
+    public void initZkRoot() {
         try {
             String root = zkProperties.getCronRoot();
             zk.create(CreateMode.PERSISTENT, root, null);
@@ -78,9 +84,14 @@ public class CronServiceImpl implements CronService {
         }
     }
 
+    //====================================================================
+    //         Interface Methods
+    //====================================================================
+
     @Override
     public void set(Flow flow) {
         if (!flow.hasCron()) {
+            cancel(flow);
             return;
         }
 
@@ -88,7 +99,18 @@ public class CronServiceImpl implements CronService {
         String expression = flow.getCron();
         long delay = nextSeconds(expression);
         CronRunner runner = new CronRunner(flow);
-        executor.schedule(runner, delay, TimeUnit.SECONDS);
+
+        ScheduledFuture<?> future = executor.schedule(runner, delay, TimeUnit.SECONDS);
+        scheduled.put(flow.getId(), future);
+    }
+
+    @Override
+    public void cancel(Flow flow) {
+        ScheduledFuture<?> future = scheduled.get(flow.getId());
+        if (future != null) {
+            future.cancel(true);
+            scheduled.remove(flow.getId());
+        }
     }
 
     private class CronRunner implements Runnable {
@@ -113,7 +135,6 @@ public class CronServiceImpl implements CronService {
                 });
             }
 
-            // set next cron schedule
             set(flow);
         }
 

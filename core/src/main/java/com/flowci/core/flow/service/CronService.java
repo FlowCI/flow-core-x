@@ -25,4 +25,7 @@ public interface CronService {
 
     // Set cron job by flow
     void set(Flow flow);
+
+    // cancel scheduled cron job
+    void cancel(Flow flow);
 }
