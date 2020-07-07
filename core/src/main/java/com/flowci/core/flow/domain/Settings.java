@@ -22,4 +22,6 @@ public final class Settings {
     @NotNull
     @Min(value = 10) // min is 10 seconds
     private Integer stepTimeout;
+
+    private String cron;
 }

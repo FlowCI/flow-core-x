@@ -66,13 +66,20 @@ public class FlowSettingServiceImpl implements FlowSettingService {
     @Autowired
     private VarManager varManager;
 
+    @Autowired
+    private CronService cronService;
+
     @Override
     public void set(Flow flow, Settings settings) {
         flow.setYamlFromRepo(settings.getIsYamlFromRepo());
         flow.setYamlRepoBranch(settings.getYamlRepoBranch());
         flow.setJobTimeout(settings.getJobTimeout());
         flow.setStepTimeout(settings.getStepTimeout());
+        flow.setCron(settings.getCron());
         flowDao.save(flow);
+
+        // update cron task
+        cronService.set(flow);
     }
 
     @Override

@@ -21,7 +21,6 @@ import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
-import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.LocalTask;
 import com.flowci.domain.Vars;
@@ -31,9 +30,7 @@ import com.flowci.tree.FlowNode;
 import com.flowci.tree.StepNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
-import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
