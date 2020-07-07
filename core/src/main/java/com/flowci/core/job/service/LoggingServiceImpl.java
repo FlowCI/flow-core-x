@@ -23,6 +23,8 @@ import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Step;
+import com.flowci.core.job.event.JobCreatedEvent;
+import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
@@ -47,9 +49,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -71,9 +72,8 @@ public class LoggingServiceImpl implements LoggingService {
 
     private static final Pathable LogPath = () -> "logs";
 
-    private final Cache<String, BufferedReader> logReaderCache =
-            CacheHelper.createLocalCache(10, 60, new ReaderCleanUp());
-
+    // cache current job log
+    private final Cache<String, Map<String, Queue<byte[]>>> logCache = CacheHelper.createLocalCache(50, 3600);
 
     @Autowired
     private String ttyLogQueue;
@@ -102,35 +102,31 @@ public class LoggingServiceImpl implements LoggingService {
     @EventListener(ContextRefreshedEvent.class)
     public void onStart() throws IOException {
         // shell log content will be json {cmdId: xx, content: b64 log}
-        logQueueManager.startConsumer(shellLogQueue, true, new CmdStdLogHandler(topicForLogs));
+        logQueueManager.startConsumer(shellLogQueue, true, new CmdStdLogHandler());
 
         // tty log conent will be b64 std out/err
-        logQueueManager.startConsumer(ttyLogQueue, true, new CmdStdLogHandler(topicForTtyLogs));
+        logQueueManager.startConsumer(ttyLogQueue, true, new TtyLogHandler());
     }
 
-    @Override
-    public Page<String> read(Step cmd, Pageable pageable) {
-        BufferedReader reader = getReader(cmd.getId());
+    /**
+     * Create/Remove logging buffer for job
+     */
+    @EventListener(JobStatusChangeEvent.class)
+    public void onJobFinished(JobStatusChangeEvent event) {
+        Job job = event.getJob();
 
-        if (Objects.isNull(reader)) {
-            return LogNotFound;
+        if (job.getStatus() == Job.Status.CREATED) {
+            List<Step> steps = stepService.list(job);
+            Map<String, Queue<byte[]>> cache = new HashMap<>(steps.size());
+            for (Step step : steps) {
+                cache.put(step.getId(), new ConcurrentLinkedQueue<>());
+            }
+            logCache.put(job.getId(), cache);
+            return;
         }
 
-        try (Stream<String> lines = reader.lines()) {
-            int i = pageable.getPageNumber() * pageable.getPageSize();
-
-            List<String> logs = lines.skip(i)
-                    .limit(pageable.getPageSize())
-                    .collect(Collectors.toList());
-
-            return new PageImpl<>(logs, pageable, cmd.getLogSize());
-        } finally {
-            try {
-                reader.reset();
-            } catch (IOException e) {
-                // reset will be failed if all lines been read
-                logReaderCache.invalidate(cmd.getId());
-            }
+        if (job.isDone()) {
+            logCache.invalidate(job.getId());
         }
     }
 
@@ -142,37 +138,34 @@ public class LoggingServiceImpl implements LoggingService {
     }
 
     @Override
-    public Resource get(String cmdId) {
+    public Resource get(String stepId) {
         try {
-            String fileName = getLogFile(cmdId);
-            InputStream stream = fileManager.read(fileName, getLogDir(cmdId));
+            String fileName = getLogFile(stepId);
+            InputStream stream = fileManager.read(fileName, getLogDir(stepId));
             return new InputStreamResource(stream);
         } catch (IOException e) {
             throw new NotFoundException("Log not available");
         }
     }
 
-    private BufferedReader getReader(String cmdId) {
-        return logReaderCache.get(cmdId, key -> {
-            try {
-                String fileName = getLogFile(cmdId);
-                InputStream stream = fileManager.read(fileName, getLogDir(cmdId));
-                InputStreamReader streamReader = new InputStreamReader(stream);
-                BufferedReader reader = new BufferedReader(streamReader, FileBufferSize);
-                reader.mark(1);
-                return reader;
-            } catch (IOException e) {
-                return null;
-            }
-        });
+    @Override
+    public Collection<byte[]> read(String stepId) {
+        Step step = stepService.get(stepId);
+        Map<String, Queue<byte[]>> cached = logCache.getIfPresent(step.getJobId());
+
+        if (Objects.isNull(cached)) {
+            return Collections.emptyList();
+        }
+
+        return cached.get(stepId);
     }
 
     private Pathable[] getLogDir(String cmdId) {
-        Step cmd = stepService.get(cmdId);
+        Step step = stepService.get(cmdId);
 
         return new Pathable[]{
-                Flow.path(cmd.getFlowId()),
-                Job.path(cmd.getBuildNumber()),
+                Flow.path(step.getFlowId()),
+                Job.path(step.getBuildNumber()),
                 LogPath
         };
     }
@@ -181,36 +174,38 @@ public class LoggingServiceImpl implements LoggingService {
         return cmdId + ".log";
     }
 
-    private class ReaderCleanUp implements RemovalListener<String, BufferedReader> {
-
-        @Override
-        public void onRemoval(String key, BufferedReader reader, RemovalCause cause) {
-            if (Objects.isNull(reader)) {
-                return;
-            }
-
-            try {
-                reader.close();
-            } catch (IOException e) {
-                log.debug(e);
-            }
-        }
-    }
-
     private class CmdStdLogHandler implements Function<RabbitOperations.Message, Boolean> {
-
-        private final String topic;
-
-        private CmdStdLogHandler(String topic) {
-            this.topic = topic;
-        }
 
         @Override
         public Boolean apply(RabbitOperations.Message message) {
-            Optional<String> optional = CmdStdLog.getId(message);
+            Optional<String> jobId = CmdStdLog.getFromHeader(message, CmdStdLog.ID_HEADER);
+            if (!jobId.isPresent()) {
+                return true;
+            }
+
+            // write to log cache
+            Optional<String> stepId = CmdStdLog.getFromHeader(message, CmdStdLog.STEP_ID_HEADER);
+            if (stepId.isPresent()) {
+                Map<String, Queue<byte[]>> cache = logCache.getIfPresent(jobId.get());
+                if (cache != null) {
+                    cache.get(stepId.get()).add(message.getBody());
+                }
+            }
+
+            // push to ws
+            socketPushManager.push(topicForLogs + "/" + jobId.get(), message.getBody());
+            return true;
+        }
+    }
+
+    private class TtyLogHandler implements Function<RabbitOperations.Message, Boolean> {
+
+        @Override
+        public Boolean apply(RabbitOperations.Message message) {
+            Optional<String> optional = CmdStdLog.getFromHeader(message, CmdStdLog.ID_HEADER);
             if (optional.isPresent()) {
-                String jobId = optional.get();
-                socketPushManager.push(topic + "/" + jobId, message.getBody());
+                String ttyId = optional.get();
+                socketPushManager.push(topicForTtyLogs + "/" + ttyId, message.getBody());
             }
             return true;
         }
