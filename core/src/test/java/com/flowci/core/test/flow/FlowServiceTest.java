@@ -34,6 +34,7 @@ import com.flowci.domain.SimpleKeyPair;
 import com.flowci.domain.VarValue;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
+import com.flowci.util.StringHelper;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,9 +67,12 @@ public class FlowServiceTest extends SpringScenario {
     @Autowired
     private SecretService secretService;
 
+    private String defaultYml;
+
     @Before
-    public void login() {
+    public void login() throws IOException {
         mockLogin();
+        defaultYml = StringHelper.toString(load("flow.yml"));
     }
 
     @Test
@@ -90,11 +94,13 @@ public class FlowServiceTest extends SpringScenario {
 
     @Test
     public void should_list_all_flows_by_user_id() {
+        ConfirmOption confirmOption = new ConfirmOption().setYaml(defaultYml);
+
         Flow first = flowService.create("test-1");
-        flowService.confirm(first.getName(), new ConfirmOption());
+        flowService.confirm(first.getName(), confirmOption);
 
         Flow second = flowService.create("test-2");
-        flowService.confirm(second.getName(), new ConfirmOption());
+        flowService.confirm(second.getName(), confirmOption);
 
         List<Flow> list = flowService.list(Status.CONFIRMED);
         Assert.assertEquals(2, list.size());
@@ -115,6 +121,7 @@ public class FlowServiceTest extends SpringScenario {
 
         // when: confirm the flow
         ConfirmOption option = new ConfirmOption()
+                .setYaml(defaultYml)
                 .setGitUrl("git@github.com:FlowCI/docs.git")
                 .setSecret("ssh-ras-credential");
         flowService.confirm(name, option);
@@ -136,7 +143,7 @@ public class FlowServiceTest extends SpringScenario {
         secretService.createRSA(secretName);
 
         Flow flow = flowService.create("hello");
-        flowService.confirm(flow.getName(), new ConfirmOption().setSecret(secretName));
+        flowService.confirm(flow.getName(), new ConfirmOption().setYaml(defaultYml).setSecret(secretName));
 
         Vars<VarValue> variables = flowService.get(flow.getName()).getLocally();
         Assert.assertEquals(secretName, variables.get(Variables.Flow.GitCredential).getData());

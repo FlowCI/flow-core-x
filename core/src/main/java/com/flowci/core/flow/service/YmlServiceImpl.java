@@ -30,6 +30,7 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.StepNode;
 import com.flowci.tree.YmlParser;
+import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -53,9 +54,6 @@ public class YmlServiceImpl implements YmlService {
 
     @Autowired
     private SpringEventManager eventManager;
-
-    @Autowired
-    private CronService cronService;
 
     //====================================================================
     //        %% Public function
@@ -81,7 +79,7 @@ public class YmlServiceImpl implements YmlService {
 
     @Override
     public Yml saveYml(Flow flow, String yml) {
-        if (Strings.isNullOrEmpty(yml)) {
+        if (!StringHelper.hasValue(yml)) {
             throw new ArgumentException("Yml content cannot be null or empty");
         }
 
@@ -100,8 +98,6 @@ public class YmlServiceImpl implements YmlService {
         vars.merge(root.getEnvironments());
         flowDao.save(flow);
 
-        // update cron task
-        cronService.update(flow, root, ymlObj);
         return ymlObj;
     }
 

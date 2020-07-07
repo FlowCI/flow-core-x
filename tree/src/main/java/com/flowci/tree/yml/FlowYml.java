@@ -33,8 +33,6 @@ import java.util.*;
 @NoArgsConstructor
 public class FlowYml extends YmlBase<FlowNode> {
 
-    private String cron;
-
     @NonNull
     private Selector selector = new Selector();
 
@@ -62,7 +60,6 @@ public class FlowYml extends YmlBase<FlowNode> {
         }
 
         FlowNode node = new FlowNode(name);
-        node.setCron(cron);
         node.setSelector(selector);
         node.setTrigger(trigger);
         node.setEnvironments(getVariableMap());

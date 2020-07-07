@@ -29,8 +29,6 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.CreateNewJobEvent;
-import com.flowci.tree.FlowNode;
-import com.flowci.tree.YmlParser;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.flowci.zookeeper.ZookeeperException;
 import lombok.extern.log4j.Log4j2;
@@ -81,15 +79,15 @@ public class CronServiceImpl implements CronService {
     }
 
     @Override
-    public void update(Flow flow, FlowNode root, Yml yml) {
-        if (!root.hasCron()) {
+    public void set(Flow flow) {
+        if (!flow.hasCron()) {
             return;
         }
 
         // schedule next cron task
-        String expression = root.getCron();
+        String expression = flow.getCron();
         long delay = nextSeconds(expression);
-        CronRunner runner = new CronRunner(flow, yml, expression);
+        CronRunner runner = new CronRunner(flow);
         executor.schedule(runner, delay, TimeUnit.SECONDS);
     }
 
@@ -97,38 +95,26 @@ public class CronServiceImpl implements CronService {
 
         private final Flow flow;
 
-        private final Yml yml;
-
-        private final String expression;
-
         private final String path;
 
-        CronRunner(Flow flow, Yml yml, String expression) {
+        CronRunner(Flow flow) {
             this.flow = flow;
-            this.yml = yml;
-            this.expression = expression;
             this.path = getFlowCronPath();
         }
 
         @Override
         public void run() {
             if (lock()) {
-                log.info("Start flow '{}' from cron task", flow.getName());
-                eventManager.publish(new CreateNewJobEvent(this, flow, yml.getRaw(), Trigger.SCHEDULER, null));
-                clean();
+                Optional<Yml> yml = ymlDao.findById(flow.getId());
+                yml.ifPresent((obj) -> {
+                    log.info("Start flow '{}' from cron task", flow.getName());
+                    eventManager.publish(new CreateNewJobEvent(this, flow, obj.getRaw(), Trigger.SCHEDULER, null));
+                    clean();
+                });
             }
 
-            scheduleNext();
-        }
-
-        private void scheduleNext() {
-            Optional<Yml> optional = ymlDao.findById(flow.getId());
-            if (!optional.isPresent()) {
-                return;
-            }
-
-            FlowNode node = YmlParser.load(flow.getName(), yml.getRaw());
-            update(flow, node, optional.get());
+            // set next cron schedule
+            set(flow);
         }
 
         /**
@@ -153,6 +139,7 @@ public class CronServiceImpl implements CronService {
         }
 
         private String getFlowCronPath() {
+            String expression = flow.getCron();
             String expressionBase64 = Base64.getEncoder().encodeToString(expression.getBytes());
             return ZKPaths.makePath(zkProperties.getCronRoot(), flow.getName() + "-" + expressionBase64);
         }
