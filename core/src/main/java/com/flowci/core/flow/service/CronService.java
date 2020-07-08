@@ -23,9 +23,21 @@ import com.flowci.core.flow.domain.Flow;
  */
 public interface CronService {
 
-    // Set cron job by flow
+    /**
+     * Validate cron expression
+     * @throws IllegalArgumentException if invalid
+     * @param cron
+     */
+    void validate(String cron);
+
+    /**
+     * Set cron job by flow
+     */
     void set(Flow flow);
 
-    // cancel scheduled cron job
+    /**
+     * cancel scheduled cron job
+     * @param flow
+     */
     void cancel(Flow flow);
 }

@@ -18,7 +18,6 @@ package com.flowci.core.flow.service;
 
 import com.cronutils.model.Cron;
 import com.cronutils.model.CronType;
-import com.cronutils.model.definition.CronDefinition;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
@@ -27,6 +26,7 @@ import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
+import com.flowci.core.flow.event.FlowInitEvent;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.zookeeper.ZookeeperClient;
@@ -53,6 +53,8 @@ import java.util.concurrent.*;
 public class CronServiceImpl implements CronService {
 
     private static final int MaxCronPoolSize = 20;
+
+    private final CronParser parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX));
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(MaxCronPoolSize);
 
@@ -84,9 +86,19 @@ public class CronServiceImpl implements CronService {
         }
     }
 
+    @EventListener(FlowInitEvent.class)
+    public void initFlowCron() {
+
+    }
+
     //====================================================================
     //         Interface Methods
     //====================================================================
+
+    @Override
+    public void validate(String cron) {
+        parser.parse(cron);
+    }
 
     @Override
     public void set(Flow flow) {
@@ -166,10 +178,7 @@ public class CronServiceImpl implements CronService {
         }
     }
 
-    private static long nextSeconds(String expression) {
-        CronDefinition definition = CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX);
-        CronParser parser = new CronParser(definition);
-
+    private long nextSeconds(String expression) {
         Cron cron = parser.parse(expression);
         ExecutionTime executionTime = ExecutionTime.forCron(cron);
 
