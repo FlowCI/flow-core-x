@@ -16,10 +16,8 @@
 
 package com.flowci.core.flow.service;
 
-import com.cronutils.model.Cron;
 import com.cronutils.model.CronType;
 import com.cronutils.model.definition.CronDefinitionBuilder;
-import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -37,13 +35,15 @@ import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 
-import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 
 /**
  * @author yang
@@ -52,13 +52,12 @@ import java.util.concurrent.*;
 @Service
 public class CronServiceImpl implements CronService {
 
-    private static final int MaxCronPoolSize = 20;
-
     private final CronParser parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX));
 
-    private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(MaxCronPoolSize);
-
     private final Map<String, ScheduledFuture<?>> scheduled = new ConcurrentHashMap<>();
+
+    @Autowired
+    private TaskScheduler taskScheduler;
 
     @Autowired
     private YmlDao ymlDao;
@@ -102,24 +101,22 @@ public class CronServiceImpl implements CronService {
 
     @Override
     public void set(Flow flow) {
+        cancel(flow);
+
         if (!flow.hasCron()) {
-            cancel(flow);
             return;
         }
 
         // schedule next cron task
-        String expression = flow.getCron();
-        long delay = nextSeconds(expression);
-        CronRunner runner = new CronRunner(flow);
-
-        ScheduledFuture<?> future = executor.schedule(runner, delay, TimeUnit.SECONDS);
-        scheduled.put(flow.getId(), future);
+        String expression = "0 " + flow.getCron();
+        ScheduledFuture<?> schedule = taskScheduler.schedule(new CronRunner(flow), new CronTrigger(expression));
+        scheduled.put(flow.getId(), schedule);
     }
 
     @Override
     public void cancel(Flow flow) {
         ScheduledFuture<?> future = scheduled.get(flow.getId());
-        if (future != null) {
+        if (future != null && !future.isCancelled()) {
             future.cancel(true);
             scheduled.remove(flow.getId());
         }
@@ -143,11 +140,9 @@ public class CronServiceImpl implements CronService {
                 yml.ifPresent((obj) -> {
                     log.info("Start flow '{}' from cron task", flow.getName());
                     eventManager.publish(new CreateNewJobEvent(this, flow, obj.getRaw(), Trigger.SCHEDULER, null));
-                    clean();
                 });
+                clean();
             }
-
-            set(flow);
         }
 
         /**
@@ -176,13 +171,5 @@ public class CronServiceImpl implements CronService {
             String expressionBase64 = Base64.getEncoder().encodeToString(expression.getBytes());
             return ZKPaths.makePath(zkProperties.getCronRoot(), flow.getName() + "-" + expressionBase64);
         }
-    }
-
-    private long nextSeconds(String expression) {
-        Cron cron = parser.parse(expression);
-        ExecutionTime executionTime = ExecutionTime.forCron(cron);
-
-        ZonedDateTime now = ZonedDateTime.now();
-        return executionTime.timeToNextExecution(now).get().getSeconds();
     }
 }

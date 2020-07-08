@@ -173,9 +173,13 @@ public class JobEventServiceImpl implements JobEventService {
     public void startJobDeadLetterConsumer() throws IOException {
         String deadLetterQueue = rabbitProperties.getJobDlQueue();
         jobsQueueManager.startConsumer(deadLetterQueue, true, message -> {
-            String jobId = new String(message.getBody());
-            Job job = jobService.get(jobId);
-            jobActionService.toTimeout(job);
+            try {
+                String jobId = new String(message.getBody());
+                Job job = jobService.get(jobId);
+                jobActionService.toTimeout(job);
+            } catch (Exception e) {
+                log.warn(e);
+            }
             return true;
         });
     }
