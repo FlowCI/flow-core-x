@@ -86,8 +86,10 @@ public class CronServiceImpl implements CronService {
     }
 
     @EventListener(FlowInitEvent.class)
-    public void initFlowCron() {
-
+    public void initFlowCron(FlowInitEvent event) {
+        for (Flow flow : event.getFlows()) {
+            set(flow);
+        }
     }
 
     //====================================================================
