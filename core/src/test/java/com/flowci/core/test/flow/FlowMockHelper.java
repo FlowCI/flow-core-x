@@ -19,12 +19,14 @@ package com.flowci.core.test.flow;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.StatusCode;
-import com.flowci.core.flow.domain.Flow;
-import com.flowci.domain.VarValue;
-import com.flowci.core.test.MockMvcHelper;
-import com.flowci.core.user.domain.User;
 import com.flowci.core.common.domain.http.RequestMessage;
 import com.flowci.core.common.domain.http.ResponseMessage;
+import com.flowci.core.flow.domain.ConfirmOption;
+import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.job.domain.CreateJob;
+import com.flowci.core.test.MockMvcHelper;
+import com.flowci.core.user.domain.User;
+import com.flowci.domain.VarValue;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -65,24 +67,17 @@ public class FlowMockHelper {
 
     public Flow create(String name, String yml) throws Exception {
         // create
-        ResponseMessage<Flow> response = mockMvcHelper
-                .expectSuccessAndReturnClass(post("/flows/" + name), FlowType);
+        ResponseMessage<Flow> response = mockMvcHelper.expectSuccessAndReturnClass(post("/flows/" + name), FlowType);
 
         Assert.assertEquals(StatusCode.OK, response.getCode());
 
         // confirm
-        response = mockMvcHelper.expectSuccessAndReturnClass(post("/flows/" + name + "/confirm"), FlowType);
-        Assert.assertEquals(StatusCode.OK, response.getCode());
-
-        // save yml
-        String base64Encoded = Base64.getEncoder().encodeToString(yml.getBytes());
-        RequestMessage<String> message = new RequestMessage<>(base64Encoded);
-
-        mockMvcHelper.expectSuccessAndReturnString(
-                post("/flows/" + name + "/yml")
+        response = mockMvcHelper.expectSuccessAndReturnClass(
+                post("/flows/" + name + "/confirm")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(message))
-        );
+                        .content(objectMapper.writeValueAsBytes(new ConfirmOption().setYaml(yml))),
+                FlowType);
+        Assert.assertEquals(StatusCode.OK, response.getCode());
 
         return response.getData();
     }
