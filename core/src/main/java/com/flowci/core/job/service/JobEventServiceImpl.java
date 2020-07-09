@@ -198,11 +198,14 @@ public class JobEventServiceImpl implements JobEventService {
             jobsQueueManager.declare(queue, true, 255, rabbitProperties.getJobDlExchange());
 
             jobsQueueManager.startConsumer(queue, false, message -> {
-                String jobId = new String(message.getBody());
-                Job job = jobService.get(jobId);
-                logInfo(job, "received from queue");
-
-                jobActionService.toRun(job);
+                try {
+                    String jobId = new String(message.getBody());
+                    Job job = jobService.get(jobId);
+                    logInfo(job, "received from queue");
+                    jobActionService.toRun(job);
+                } catch (Exception e) {
+                    log.warn(e);
+                }
                 return message.sendAck();
             }, jobRunExecutor);
         } catch (IOException e) {

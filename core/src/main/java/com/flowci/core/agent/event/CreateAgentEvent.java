@@ -16,7 +16,7 @@
 
 package com.flowci.core.agent.event;
 
-import com.flowci.core.common.event.AbstractSyncEvent;
+import com.flowci.core.common.event.AbstractEvent;
 import com.flowci.domain.Agent;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,7 +25,7 @@ import java.util.Set;
 
 @Getter
 @Setter
-public class CreateAgentEvent extends AbstractSyncEvent<Agent> {
+public class CreateAgentEvent extends AbstractEvent<Agent> {
 
     private final String name;
 

@@ -32,6 +32,7 @@ public abstract class ThreadHelper {
         taskExecutor.setMaxPoolSize(maxPoolSize);
         taskExecutor.setQueueCapacity(queueSize);
         taskExecutor.setThreadNamePrefix(threadNamePrefix);
+        taskExecutor.setKeepAliveSeconds(30);
         taskExecutor.setDaemon(true);
 
         taskExecutor.initialize();

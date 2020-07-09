@@ -17,7 +17,6 @@
 package com.flowci.core.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flowci.core.common.event.SyncEvent;
 import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.util.FileHelper;
 import lombok.extern.log4j.Log4j2;
@@ -35,8 +34,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.ResolvableType;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.data.mongodb.core.mapping.event.AuditingEventListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
@@ -118,20 +115,17 @@ public class AppConfig {
             public void multicastEvent(ApplicationEvent event, ResolvableType eventType) {
                 ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
                 Executor executor = getTaskExecutor();
-
                 for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
-                    if (event instanceof SyncEvent || listener instanceof AuditingEventListener) {
-                        invokeListener(listener, event);
-                        continue;
+                    if (executor != null) {
+                        executor.execute(() -> invokeListener(listener, event));
                     }
-
-                    executor.execute(() -> invokeListener(listener, event));
+                    else {
+                        invokeListener(listener, event);
+                    }
                 }
             }
         };
 
-        SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("s-event-");
-        multicaster.setTaskExecutor(executor);
         return multicaster;
     }
 }
