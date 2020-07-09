@@ -46,6 +46,10 @@ public class Node implements Serializable {
      */
     protected Node parent;
 
+    /**
+     * Inner option has higher priority
+     * Ex: Plugin > Step > Flow
+     */
     protected DockerOption docker;
 
     protected StringVars environments = new StringVars();

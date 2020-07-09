@@ -1,0 +1,17 @@
+envs:
+  FLOW_WORKSPACE: "echo hello"
+  FLOW_VERSION: "echo version"
+
+docker:
+  image: "helloworld:0.1"
+
+steps:
+  - name: step-docker
+    docker:
+      image: "step:0.1"
+    script: |
+      echo hello
+
+  - name: flow-docker
+    script: |
+      echo "test"

@@ -57,6 +57,13 @@ public class CmdManagerImpl implements CmdManager {
                 .setDocker(node.getDocker())
                 .setTimeout(job.getTimeout());
 
+        // apply flow level docker if step level is not specified
+        if (!node.hasDocker()) {
+            if (root.hasDocker()) {
+                in.setDocker(root.getDocker());
+            }
+        }
+
         // load setting from yaml StepNode
         in.addScript(node.getScript());
         in.addEnvFilters(node.getExports());
@@ -95,7 +102,7 @@ public class CmdManagerImpl implements CmdManager {
         cmd.addEnvFilters(plugin.getExports());
         cmd.addScript(plugin.getScript());
 
-        // apply docker from plugin if it's specified
+        // apply docker from plugin as top priority if it's specified
         ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> {
             cmd.setDocker(plugin.getDocker());
         });
