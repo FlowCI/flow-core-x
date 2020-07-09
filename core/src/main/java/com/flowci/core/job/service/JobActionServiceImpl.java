@@ -632,10 +632,10 @@ public class JobActionServiceImpl implements JobActionService {
         job.setAgentSnapshot(agent);
 
         // set executed cmd step to running
-        Step nextCmd = stepService.toStatus(job.getId(), nextPath, Step.Status.RUNNING, null);
+        Step nextStep = stepService.toStatus(job.getId(), nextPath, Step.Status.RUNNING, null);
 
         // dispatch job to agent queue
-        CmdIn cmd = cmdManager.createShellCmd(job, next, nextCmd);
+        CmdIn cmd = cmdManager.createShellCmd(job, nextStep, tree);
         setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
         agentService.dispatch(cmd, agent);
@@ -674,11 +674,11 @@ public class JobActionServiceImpl implements JobActionService {
             String nextPath = next.get().getPathAsString();
             job.setCurrentPath(nextPath);
 
-            Step nextCmd = stepService.toStatus(job.getId(), nextPath, Step.Status.RUNNING, null);
-            context.setStep(nextCmd);
+            Step nextStep = stepService.toStatus(job.getId(), nextPath, Step.Status.RUNNING, null);
+            context.setStep(nextStep);
 
             Agent agent = agentService.get(job.getAgentId());
-            CmdIn cmd = cmdManager.createShellCmd(job, next.get(), nextCmd);
+            CmdIn cmd = cmdManager.createShellCmd(job, nextStep, tree);
             setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
             agentService.dispatch(cmd, agent);

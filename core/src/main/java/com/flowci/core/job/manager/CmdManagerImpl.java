@@ -27,6 +27,9 @@ import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.Vars;
+import com.flowci.tree.FlowNode;
+import com.flowci.tree.NodePath;
+import com.flowci.tree.NodeTree;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +45,10 @@ public class CmdManagerImpl implements CmdManager {
     private SpringEventManager eventManager;
 
     @Override
-    public CmdIn createShellCmd(Job job, StepNode node, Step step) {
+    public CmdIn createShellCmd(Job job, Step step, NodeTree tree) {
+        FlowNode root = tree.getRoot();
+        StepNode node = tree.get(NodePath.create(step.getNodePath()));
+
         ShellIn in = new ShellIn()
                 .setId(step.getId())
                 .setFlowId(job.getFlowId())

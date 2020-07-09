@@ -89,7 +89,7 @@ public class CmdManagerTest extends SpringScenario {
         NodeTree tree = NodeTree.create(root);
         StepNode node = tree.get(NodePath.create(flow.getName(), "plugin-test"));
         Step step = stepService.get(job.getId(), node.getPathAsString());
-        ShellIn cmdIn = (ShellIn) cmdManager.createShellCmd(job, node, step);
+        ShellIn cmdIn = (ShellIn) cmdManager.createShellCmd(job, step, tree);
         Assert.assertNotNull(cmdIn);
 
         // then:
