@@ -32,11 +32,11 @@ import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -88,7 +88,7 @@ public class JobController {
     private ArtifactService artifactService;
 
     @Autowired
-    private ThreadPoolTaskExecutor jobStartExecutor;
+    private TaskExecutor appTaskExecutor;
 
     @GetMapping("/{flow}")
     @Action(JobAction.LIST)
@@ -176,8 +176,8 @@ public class JobController {
     public void createAndStart(@Validated @RequestBody CreateJob body) {
         final User current = sessionManager.get();
 
-        // start from thread since will be loading status
-        jobStartExecutor.execute(() -> {
+        // start from thread since could be loading yaml from git repo
+        appTaskExecutor.execute(() -> {
             sessionManager.set(current);
             Flow flow = flowService.get(body.getFlow());
             Yml yml = ymlService.getYml(flow);

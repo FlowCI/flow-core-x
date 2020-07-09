@@ -53,7 +53,6 @@ public class YmlParserTest {
         FlowNode root = YmlParser.load("root", content);
 
         // verify flow
-        Assert.assertEquals("* * * * *", root.getCron());
         Assert.assertEquals("root", root.getName());
         Assert.assertEquals("echo hello", root.getEnv("FLOW_WORKSPACE"));
         Assert.assertEquals("echo version", root.getEnv("FLOW_VERSION"));

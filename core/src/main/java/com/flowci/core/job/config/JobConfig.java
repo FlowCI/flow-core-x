@@ -18,21 +18,19 @@ package com.flowci.core.job.config;
 
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
-import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.job.domain.Step;
 import com.flowci.tree.NodeTree;
 import com.flowci.util.FileHelper;
 import com.github.benmanes.caffeine.cache.Cache;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yang
@@ -43,29 +41,6 @@ public class JobConfig {
 
     @Autowired
     private AppProperties appProperties;
-
-    /**
-     * Consume http request
-     */
-    @Bean("jobStartExecutor")
-    public ThreadPoolTaskExecutor jobStartExecutor() {
-        return ThreadHelper.createTaskExecutor(1, 1, 100, "job-start-");
-    }
-
-    @Bean("jobRunExecutor")
-    public ThreadPoolTaskExecutor jobRunExecutor() {
-        return ThreadHelper.createTaskExecutor(100, 100, 100, "job-run-");
-    }
-
-    @Bean("jobDeleteExecutor")
-    public ThreadPoolTaskExecutor jobDeleteExecutor() {
-        return ThreadHelper.createTaskExecutor(1, 1, 100, "job-delete-");
-    }
-
-    @Bean("localTaskExecutor")
-    public ThreadPoolTaskExecutor localTaskExecutor() {
-        return ThreadHelper.createTaskExecutor(5, 5, 100, "local-task-");
-    }
 
     @Bean("jobTreeCache")
     public Cache<String, NodeTree> jobTreeCache() {

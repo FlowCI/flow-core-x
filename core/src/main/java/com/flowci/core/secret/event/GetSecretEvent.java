@@ -16,7 +16,7 @@
 
 package com.flowci.core.secret.event;
 
-import com.flowci.core.common.event.AbstractSyncEvent;
+import com.flowci.core.common.event.AbstractEvent;
 import com.flowci.core.secret.domain.Secret;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,7 +26,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class GetSecretEvent extends AbstractSyncEvent<Secret> {
+public class GetSecretEvent extends AbstractEvent<Secret> {
 
     private final String name;
 

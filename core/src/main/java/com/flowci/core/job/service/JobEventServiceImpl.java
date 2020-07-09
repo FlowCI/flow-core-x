@@ -39,7 +39,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -74,10 +74,7 @@ public class JobEventServiceImpl implements JobEventService {
     private JobActionService jobActionService;
 
     @Autowired
-    private ThreadPoolTaskExecutor jobStartExecutor;
-
-    @Autowired
-    private ThreadPoolTaskExecutor jobRunExecutor;
+    private TaskExecutor appTaskExecutor;
 
     //====================================================================
     //        %% Internal events
@@ -103,7 +100,7 @@ public class JobEventServiceImpl implements JobEventService {
 
     @EventListener
     public void startNewJob(CreateNewJobEvent event) {
-        jobStartExecutor.execute(() -> {
+        appTaskExecutor.execute(() -> {
             Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
             jobActionService.toStart(job);
         });
@@ -173,9 +170,13 @@ public class JobEventServiceImpl implements JobEventService {
     public void startJobDeadLetterConsumer() throws IOException {
         String deadLetterQueue = rabbitProperties.getJobDlQueue();
         jobsQueueManager.startConsumer(deadLetterQueue, true, message -> {
-            String jobId = new String(message.getBody());
-            Job job = jobService.get(jobId);
-            jobActionService.toTimeout(job);
+            try {
+                String jobId = new String(message.getBody());
+                Job job = jobService.get(jobId);
+                jobActionService.toTimeout(job);
+            } catch (Exception e) {
+                log.warn(e);
+            }
             return true;
         });
     }
@@ -194,13 +195,16 @@ public class JobEventServiceImpl implements JobEventService {
             jobsQueueManager.declare(queue, true, 255, rabbitProperties.getJobDlExchange());
 
             jobsQueueManager.startConsumer(queue, false, message -> {
-                String jobId = new String(message.getBody());
-                Job job = jobService.get(jobId);
-                logInfo(job, "received from queue");
-
-                jobActionService.toRun(job);
+                try {
+                    String jobId = new String(message.getBody());
+                    Job job = jobService.get(jobId);
+                    logInfo(job, "received from queue");
+                    jobActionService.toRun(job);
+                } catch (Exception e) {
+                    log.warn(e);
+                }
                 return message.sendAck();
-            }, jobRunExecutor);
+            });
         } catch (IOException e) {
             log.warn(e);
         }

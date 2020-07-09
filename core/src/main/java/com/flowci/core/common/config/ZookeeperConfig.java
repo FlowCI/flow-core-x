@@ -21,15 +21,16 @@ import com.flowci.exception.CIException;
 import com.flowci.zookeeper.LocalServer;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.flowci.zookeeper.ZookeeperException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.Executor;
-import javax.annotation.PreDestroy;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import javax.annotation.PreDestroy;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * @author yang
@@ -45,20 +46,10 @@ public class ZookeeperConfig {
     @Autowired
     private AppProperties.Zookeeper zkProperties;
 
-    @Bean("zkServerExecutor")
-    public ThreadPoolTaskExecutor serverExecutor() {
-        return ThreadHelper.createTaskExecutor(5, 1, 0, "zk-server-");
-    }
-
-    @Bean("zkWatchExecutor")
-    public ThreadPoolTaskExecutor watchExecutor() {
-        return ThreadHelper.createTaskExecutor(5, 5, 50, "zk-watch-");
-    }
-
     @Bean(name = "zk")
-    public ZookeeperClient zookeeperClient(Executor zkServerExecutor, Executor zkWatchExecutor) {
+    public ZookeeperClient zookeeperClient(TaskExecutor appTaskExecutor) {
         if (zkProperties.getEmbedded()) {
-            startEmbeddedServer(zkServerExecutor);
+            startEmbeddedServer();
             log.info("Embedded zookeeper been started ~");
         }
 
@@ -66,7 +57,7 @@ public class ZookeeperConfig {
         Integer timeout = zkProperties.getTimeout();
         Integer retry = zkProperties.getRetry();
 
-        client = new ZookeeperClient(host, retry, timeout, zkWatchExecutor);
+        client = new ZookeeperClient(host, retry, timeout, appTaskExecutor);
         client.start();
         return client;
     }
@@ -82,14 +73,16 @@ public class ZookeeperConfig {
         }
     }
 
-    private void startEmbeddedServer(Executor executor) {
+    private void startEmbeddedServer() {
         Path path = Paths.get(zkProperties.getDataDir());
         String address = "0.0.0.0";
         Integer port = 2180;
 
+        ThreadPoolTaskExecutor taskExecutor = ThreadHelper.createTaskExecutor(5, 1, 0, "zk-server-");
+
         try {
             server = new LocalServer(path, address, port);
-            executor.execute(server);
+            taskExecutor.execute(server);
         } catch (ZookeeperException e) {
             throw new CIException("Unable to start embedded zookeeper: {}", e.getMessage());
         }

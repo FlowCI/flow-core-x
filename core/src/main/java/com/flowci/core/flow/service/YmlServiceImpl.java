@@ -21,7 +21,6 @@ import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
-import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.LocalTask;
 import com.flowci.domain.Vars;
@@ -30,9 +29,8 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.StepNode;
 import com.flowci.tree.YmlParser;
-import com.google.common.base.Strings;
+import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -53,9 +51,6 @@ public class YmlServiceImpl implements YmlService {
 
     @Autowired
     private SpringEventManager eventManager;
-
-    @Autowired
-    private CronService cronService;
 
     //====================================================================
     //        %% Public function
@@ -81,7 +76,7 @@ public class YmlServiceImpl implements YmlService {
 
     @Override
     public Yml saveYml(Flow flow, String yml) {
-        if (Strings.isNullOrEmpty(yml)) {
+        if (!StringHelper.hasValue(yml)) {
             throw new ArgumentException("Yml content cannot be null or empty");
         }
 
@@ -100,19 +95,13 @@ public class YmlServiceImpl implements YmlService {
         vars.merge(root.getEnvironments());
         flowDao.save(flow);
 
-        // update cron task
-        cronService.update(flow, root, ymlObj);
         return ymlObj;
     }
 
-    //====================================================================
-    //        %% Internal events
-    //====================================================================
-
-    @EventListener
-    public void deleteYmlOnFlowDeleted(FlowDeletedEvent event) {
+    @Override
+    public void delete(Flow flow) {
         try {
-            Yml yml = getYml(event.getFlow());
+            Yml yml = getYml(flow);
             ymlDao.delete(yml);
         } catch (NotFoundException ignore) {
 

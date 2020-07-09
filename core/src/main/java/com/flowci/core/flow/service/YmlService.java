@@ -39,4 +39,9 @@ public interface YmlService {
      * Create or update yml for flow
      */
     Yml saveYml(Flow flow, String yml);
+
+    /**
+     * Delete flow yml
+     */
+    void delete(Flow flow);
 }

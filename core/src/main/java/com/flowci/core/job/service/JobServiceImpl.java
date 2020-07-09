@@ -42,6 +42,7 @@ import com.flowci.tree.YmlParser;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -84,7 +85,7 @@ public class JobServiceImpl implements JobService {
     private JobNumberDao jobNumberDao;
 
     @Autowired
-    private ThreadPoolTaskExecutor jobDeleteExecutor;
+    private TaskExecutor appTaskExecutor;
 
     @Autowired
     private YmlManager ymlManager;
@@ -218,7 +219,7 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public void delete(Flow flow) {
-        jobDeleteExecutor.execute(() -> {
+        appTaskExecutor.execute(() -> {
             jobNumberDao.deleteByFlowId(flow.getId());
             log.info("Deleted: job number of flow {}", flow.getName());
 

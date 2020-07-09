@@ -17,11 +17,11 @@
 
 package com.flowci.core.flow.event;
 
-import com.flowci.core.common.event.AbstractSyncEvent;
+import com.flowci.core.common.event.AbstractEvent;
 import com.flowci.core.flow.domain.Flow;
 import lombok.Getter;
 
-public abstract class FlowOperationEvent extends AbstractSyncEvent<Void> {
+public abstract class FlowOperationEvent extends AbstractEvent<Void> {
 
     @Getter
     protected final Flow flow;

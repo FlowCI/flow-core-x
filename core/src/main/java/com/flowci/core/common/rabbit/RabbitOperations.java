@@ -22,7 +22,6 @@ import com.flowci.util.StringHelper;
 import com.rabbitmq.client.*;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -127,27 +126,12 @@ public class RabbitOperations implements AutoCloseable {
     }
 
     public void startConsumer(String queue, boolean autoAck, Function<Message, Boolean> onMessage) throws IOException {
-        startConsumer(queue, autoAck, onMessage, null);
-    }
-
-    public void startConsumer(String queue,
-                              boolean autoAck,
-                              Function<Message, Boolean> onMessage,
-                              ThreadPoolTaskExecutor executor) throws IOException {
         Consumer consumer = new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag,
                                        Envelope envelope,
                                        AMQP.BasicProperties properties,
-                                       byte[] body) throws IOException {
-
-                if (executor != null) {
-                    executor.execute(() -> {
-                        log.debug("======= {} ======", new String(body));
-                        onMessage.apply(new Message(properties.getHeaders(), getChannel(), body, envelope));
-                    });
-                    return;
-                }
+                                       byte[] body) {
 
                 onMessage.apply(new Message(properties.getHeaders(), getChannel(), body, envelope));
             }

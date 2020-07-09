@@ -77,6 +77,8 @@ public final class Flow extends Mongoable implements Pathable {
 
     private int stepTimeout = 900; // job step timeout in second;
 
+    private String cron;
+
     // variables from yml
     @NonNull
     private Vars<String> variables = new StringVars();
@@ -89,6 +91,11 @@ public final class Flow extends Mongoable implements Pathable {
 
     public Flow(String name) {
         this.name = name;
+    }
+
+    @JsonIgnore
+    public boolean hasCron() {
+        return StringHelper.hasValue(cron);
     }
 
     @JsonIgnore

@@ -17,19 +17,18 @@
 package com.flowci.core.plugin.config;
 
 import com.flowci.core.common.config.AppProperties;
-import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.plugin.PluginRepoResolver;
 import com.flowci.util.FileHelper;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import lombok.extern.log4j.Log4j2;
 import org.eclipse.jgit.http.server.GitServlet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * @author yang
@@ -42,11 +41,6 @@ public class PluginConfig {
 
     @Autowired
     private AppProperties appProperties;
-
-    @Bean("repoCloneExecutor")
-    public ThreadPoolTaskExecutor repoCloneExecutor() {
-        return ThreadHelper.createTaskExecutor(2, 2, 100, "plugin-repo-clone-");
-    }
 
     @Bean("pluginDir")
     public Path pluginDir() throws IOException {

@@ -78,6 +78,9 @@ public class FlowServiceImpl implements FlowService {
     @Autowired
     private YmlService ymlService;
 
+    @Autowired
+    private CronService cronService;
+
     // ====================================================================
     // %% Public function
     // ====================================================================
@@ -220,6 +223,10 @@ public class FlowServiceImpl implements FlowService {
         Flow flow = get(name);
         flowDao.delete(flow);
         flowUserDao.delete(flow.getId());
+
+        ymlService.delete(flow);
+        cronService.cancel(flow);
+
         eventManager.publish(new FlowDeletedEvent(this, flow));
         return flow;
     }

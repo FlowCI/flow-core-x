@@ -20,7 +20,7 @@ import com.flowci.tree.NodeTree;
 import com.flowci.util.ObjectsHelper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
     private DockerManager dockerManager;
 
     @Autowired
-    private ThreadPoolTaskExecutor localTaskExecutor;
+    private TaskExecutor appTaskExecutor;
 
     @Autowired
     private YmlManager ymlManager;
@@ -88,7 +88,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
 
     @Override
     public void executeAsync(Job job) {
-        localTaskExecutor.execute(() -> {
+        appTaskExecutor.execute(() -> {
             NodeTree tree = ymlManager.getTree(job);
             for (LocalTask t : tree.getRoot().getNotifications()) {
                 execute(job, t);

@@ -20,14 +20,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
-import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.flow.domain.Template;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.IOException;
 import java.net.URL;
@@ -45,11 +43,6 @@ public class FlowConfig {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Bean("gitTestExecutor")
-    public ThreadPoolTaskExecutor gitTestExecutor() {
-        return ThreadHelper.createTaskExecutor(20, 20, 100, "git-test-");
-    }
 
     @Bean("gitBranchCache")
     public Cache<String, List<String>> gitBranchCache() {

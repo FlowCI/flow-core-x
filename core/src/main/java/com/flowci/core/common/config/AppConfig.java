@@ -17,8 +17,9 @@
 package com.flowci.core.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flowci.core.common.event.SyncEvent;
+import com.flowci.core.common.event.AsyncEvent;
 import com.flowci.core.common.helper.JacksonHelper;
+import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.util.FileHelper;
 import lombok.extern.log4j.Log4j2;
 import org.apache.http.client.HttpClient;
@@ -35,8 +36,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.ResolvableType;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.data.mongodb.core.mapping.event.AuditingEventListener;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
@@ -106,8 +106,13 @@ public class AppConfig {
         return HttpClientBuilder.create().setDefaultRequestConfig(config).build();
     }
 
+    @Bean("appTaskExecutor")
+    public TaskExecutor getAppTaskExecutor() {
+        return ThreadHelper.createTaskExecutor(100, 100, 50, "app-task-");
+    }
+
     @Bean(name = "applicationEventMulticaster")
-    public ApplicationEventMulticaster simpleApplicationEventMulticaster() {
+    public ApplicationEventMulticaster simpleApplicationEventMulticaster(TaskExecutor appTaskExecutor) {
         SimpleApplicationEventMulticaster multicaster = new SimpleApplicationEventMulticaster() {
 
             private ResolvableType resolveDefaultEventType(ApplicationEvent event) {
@@ -118,20 +123,17 @@ public class AppConfig {
             public void multicastEvent(ApplicationEvent event, ResolvableType eventType) {
                 ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
                 Executor executor = getTaskExecutor();
-
                 for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
-                    if (event instanceof SyncEvent || listener instanceof AuditingEventListener) {
-                        invokeListener(listener, event);
+                    if (listener instanceof AsyncEvent) {
+                        executor.execute(() -> invokeListener(listener, event));
                         continue;
                     }
-
-                    executor.execute(() -> invokeListener(listener, event));
+                    invokeListener(listener, event);
                 }
             }
         };
 
-        SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("s-event-");
-        multicaster.setTaskExecutor(executor);
+        multicaster.setTaskExecutor(appTaskExecutor);
         return multicaster;
     }
 }
