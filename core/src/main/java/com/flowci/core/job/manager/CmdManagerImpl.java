@@ -27,6 +27,9 @@ import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.Vars;
+import com.flowci.tree.FlowNode;
+import com.flowci.tree.NodePath;
+import com.flowci.tree.NodeTree;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +45,10 @@ public class CmdManagerImpl implements CmdManager {
     private SpringEventManager eventManager;
 
     @Override
-    public CmdIn createShellCmd(Job job, StepNode node, Step step) {
+    public CmdIn createShellCmd(Job job, Step step, NodeTree tree) {
+        FlowNode root = tree.getRoot();
+        StepNode node = tree.get(NodePath.create(step.getNodePath()));
+
         ShellIn in = new ShellIn()
                 .setId(step.getId())
                 .setFlowId(job.getFlowId())
@@ -50,6 +56,13 @@ public class CmdManagerImpl implements CmdManager {
                 .setAllowFailure(node.isAllowFailure())
                 .setDocker(node.getDocker())
                 .setTimeout(job.getTimeout());
+
+        // apply flow level docker if step level is not specified
+        if (!node.hasDocker()) {
+            if (root.hasDocker()) {
+                in.setDocker(root.getDocker());
+            }
+        }
 
         // load setting from yaml StepNode
         in.addScript(node.getScript());
@@ -89,7 +102,7 @@ public class CmdManagerImpl implements CmdManager {
         cmd.addEnvFilters(plugin.getExports());
         cmd.addScript(plugin.getScript());
 
-        // apply docker from plugin if it's specified
+        // apply docker from plugin as top priority if it's specified
         ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> {
             cmd.setDocker(plugin.getDocker());
         });

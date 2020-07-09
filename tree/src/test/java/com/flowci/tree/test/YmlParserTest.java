@@ -63,6 +63,10 @@ public class YmlParserTest {
         Assert.assertEquals(3, root.getTrigger().getBranch().size());
         Assert.assertEquals(1, root.getTrigger().getTag().size());
 
+        // verify docker
+        Assert.assertNotNull(root.getDocker());
+        Assert.assertEquals("helloworld:0.1", root.getDocker().getImage());
+
         // verify notifications
         Assert.assertEquals(1, root.getNotifications().size());
         Assert.assertEquals("email-notify", root.getNotifications().get(0).getPlugin());

@@ -1,7 +1,6 @@
 package com.flowci.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.flowci.domain.DockerOption;
 import com.google.common.base.Strings;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -16,8 +15,6 @@ import java.util.Set;
 public class StepNode extends Node {
 
     public static final boolean ALLOW_FAILURE_DEFAULT = false;
-
-    private DockerOption docker;
 
     /**
      * Node before groovy script;
@@ -55,10 +52,5 @@ public class StepNode extends Node {
     @JsonIgnore
     public boolean hasBefore() {
         return !Strings.isNullOrEmpty(before);
-    }
-
-    @JsonIgnore
-    public boolean hasDocker() {
-        return docker != null;
     }
 }

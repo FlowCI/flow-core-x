@@ -16,6 +16,8 @@
 
 package com.flowci.tree;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -44,6 +46,12 @@ public class Node implements Serializable {
      */
     protected Node parent;
 
+    /**
+     * Inner option has higher priority
+     * Ex: Plugin > Step > Flow
+     */
+    protected DockerOption docker;
+
     protected StringVars environments = new StringVars();
 
     protected List<StepNode> children = new LinkedList<>();
@@ -59,5 +67,10 @@ public class Node implements Serializable {
 
     public String getEnv(String name) {
         return environments.get(name);
+    }
+
+    @JsonIgnore
+    public boolean hasDocker() {
+        return docker != null;
     }
 }
