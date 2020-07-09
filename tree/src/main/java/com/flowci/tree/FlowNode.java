@@ -1,5 +1,6 @@
 package com.flowci.tree;
 
+import com.flowci.domain.DockerOption;
 import com.flowci.domain.LocalTask;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -17,6 +18,11 @@ public class FlowNode extends Node {
      * Agent tags to set node running on which agent
      */
     private Selector selector;
+
+    /**
+     * Flow level docker settings
+     */
+    private DockerOption docker;
 
     /**
      * Node start trigger

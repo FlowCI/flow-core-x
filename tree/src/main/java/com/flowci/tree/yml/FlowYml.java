@@ -18,6 +18,7 @@ package com.flowci.tree.yml;
 
 import com.flowci.exception.YmlException;
 import com.flowci.tree.*;
+import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -33,13 +34,12 @@ import java.util.*;
 @NoArgsConstructor
 public class FlowYml extends YmlBase<FlowNode> {
 
-    @NonNull
     private Selector selector = new Selector();
 
-    @NonNull
     private TriggerFilter trigger = new TriggerFilter();
 
-    @NonNull
+    private DockerYml docker;
+
     private List<NotifyYml> notifications = new LinkedList<>();
 
     @NonNull
@@ -63,6 +63,8 @@ public class FlowYml extends YmlBase<FlowNode> {
         node.setSelector(selector);
         node.setTrigger(trigger);
         node.setEnvironments(getVariableMap());
+
+        ObjectsHelper.ifNotNull(docker, (v) -> node.setDocker(v.toDockerOption()));
 
         setupNotifications(node);
         setupSteps(node);
