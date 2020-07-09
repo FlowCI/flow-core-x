@@ -33,6 +33,7 @@ import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -58,11 +59,8 @@ public class YmlServiceImpl implements YmlService {
 
     @Override
     public FlowNode getRaw(Flow flow) {
-        Optional<Yml> optional = ymlDao.findById(flow.getId());
-        if (optional.isPresent()) {
-            return YmlParser.load(flow.getName(), optional.get().getRaw());
-        }
-        throw new NotFoundException("No yml defined for flow {0}", flow.getName());
+        Yml yml = getYml(flow);
+        return YmlParser.load(flow.getName(), yml.getRaw());
     }
 
     @Override
@@ -72,6 +70,13 @@ public class YmlServiceImpl implements YmlService {
             return optional.get();
         }
         throw new NotFoundException("No yml defined for flow {0}", flow.getName());
+    }
+
+    @Nullable
+    @Override
+    public String getYmlString(Flow flow) {
+        Optional<Yml> optional = ymlDao.findById(flow.getId());
+        return optional.map(Yml::getRaw).orElse(null);
     }
 
     @Override

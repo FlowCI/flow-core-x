@@ -167,8 +167,8 @@ public class JobController {
     @Action(JobAction.CREATE)
     public Job create(@Validated @RequestBody CreateJob data) {
         Flow flow = flowService.get(data.getFlow());
-        Yml yml = ymlService.getYml(flow);
-        return jobService.create(flow, yml.getRaw(), Trigger.API, data.getInputs());
+        String ymlStr = ymlService.getYmlString(flow);
+        return jobService.create(flow, ymlStr, Trigger.API, data.getInputs());
     }
 
     @PostMapping("/run")
@@ -180,8 +180,8 @@ public class JobController {
         appTaskExecutor.execute(() -> {
             sessionManager.set(current);
             Flow flow = flowService.get(body.getFlow());
-            Yml yml = ymlService.getYml(flow);
-            Job job = jobService.create(flow, yml.getRaw(), Trigger.API, body.getInputs());
+            String ymlStr = ymlService.getYmlString(flow);
+            Job job = jobService.create(flow, ymlStr, Trigger.API, body.getInputs());
             jobActionService.toStart(job);
         });
     }

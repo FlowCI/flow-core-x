@@ -24,6 +24,8 @@ import com.flowci.core.job.domain.JobYml;
 import com.flowci.domain.StringVars;
 import org.springframework.data.domain.Page;
 
+import javax.annotation.Nullable;
+
 /**
  * @author yang
  */
@@ -59,7 +61,7 @@ public interface JobService {
      *
      * @throws com.flowci.exception.NotAvailableException with job object in extra field
      */
-    Job create(Flow flow, String yml, Trigger trigger, StringVars input);
+    Job create(Flow flow, @Nullable String yml, Trigger trigger, StringVars input);
 
     /**
      * Restart job

@@ -101,8 +101,12 @@ public class JobEventServiceImpl implements JobEventService {
     @EventListener
     public void startNewJob(CreateNewJobEvent event) {
         appTaskExecutor.execute(() -> {
-            Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
-            jobActionService.toStart(job);
+            try {
+                Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
+                jobActionService.toStart(job);
+            } catch (Throwable e) {
+                log.warn(e);
+            }
         });
     }
 

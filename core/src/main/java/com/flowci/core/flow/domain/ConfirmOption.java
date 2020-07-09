@@ -40,4 +40,8 @@ public class ConfirmOption {
     public boolean hasSecret() {
         return StringHelper.hasValue(secret);
     }
+
+    public boolean hasYml() {
+        return StringHelper.hasValue(yaml);
+    }
 }

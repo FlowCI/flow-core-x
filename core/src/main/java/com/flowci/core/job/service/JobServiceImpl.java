@@ -34,11 +34,13 @@ import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.JobKeyBuilder;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
+import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.YmlParser;
+import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -168,6 +170,10 @@ public class JobServiceImpl implements JobService {
         if (job.isYamlFromRepo()) {
             jobActionService.toLoading(job);
             return job;
+        }
+
+        if (!StringHelper.hasValue(yml)) {
+            throw new ArgumentException("YAML config is required to start a job");
         }
 
         jobActionService.toCreated(job, yml);
