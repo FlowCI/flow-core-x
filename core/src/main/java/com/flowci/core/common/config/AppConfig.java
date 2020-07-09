@@ -17,6 +17,7 @@
 package com.flowci.core.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.core.common.event.AsyncEvent;
 import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.util.FileHelper;
@@ -107,11 +108,11 @@ public class AppConfig {
 
     @Bean("appTaskExecutor")
     public TaskExecutor getAppTaskExecutor() {
-        return ThreadHelper.createTaskExecutor(100, 100, 100, "app-task-");
+        return ThreadHelper.createTaskExecutor(100, 100, 50, "app-task-");
     }
 
     @Bean(name = "applicationEventMulticaster")
-    public ApplicationEventMulticaster simpleApplicationEventMulticaster() {
+    public ApplicationEventMulticaster simpleApplicationEventMulticaster(TaskExecutor appTaskExecutor) {
         SimpleApplicationEventMulticaster multicaster = new SimpleApplicationEventMulticaster() {
 
             private ResolvableType resolveDefaultEventType(ApplicationEvent event) {
@@ -123,15 +124,16 @@ public class AppConfig {
                 ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
                 Executor executor = getTaskExecutor();
                 for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
-                    if (executor != null) {
+                    if (listener instanceof AsyncEvent) {
                         executor.execute(() -> invokeListener(listener, event));
-                    } else {
-                        invokeListener(listener, event);
+                        continue;
                     }
+                    invokeListener(listener, event);
                 }
             }
         };
 
+        multicaster.setTaskExecutor(appTaskExecutor);
         return multicaster;
     }
 }
