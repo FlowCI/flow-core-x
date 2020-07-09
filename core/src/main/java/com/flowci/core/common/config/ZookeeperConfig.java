@@ -25,12 +25,12 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.annotation.PreDestroy;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.Executor;
 
 /**
  * @author yang
@@ -46,13 +46,8 @@ public class ZookeeperConfig {
     @Autowired
     private AppProperties.Zookeeper zkProperties;
 
-    @Bean("zkWatchExecutor")
-    public ThreadPoolTaskExecutor watchExecutor() {
-        return ThreadHelper.createTaskExecutor(5, 5, 50, "zk-watch-");
-    }
-
     @Bean(name = "zk")
-    public ZookeeperClient zookeeperClient(Executor zkWatchExecutor) {
+    public ZookeeperClient zookeeperClient(TaskExecutor appTaskExecutor) {
         if (zkProperties.getEmbedded()) {
             startEmbeddedServer();
             log.info("Embedded zookeeper been started ~");
@@ -62,7 +57,7 @@ public class ZookeeperConfig {
         Integer timeout = zkProperties.getTimeout();
         Integer retry = zkProperties.getRetry();
 
-        client = new ZookeeperClient(host, retry, timeout, zkWatchExecutor);
+        client = new ZookeeperClient(host, retry, timeout, appTaskExecutor);
         client.start();
         return client;
     }

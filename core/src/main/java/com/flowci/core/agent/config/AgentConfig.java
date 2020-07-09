@@ -64,11 +64,6 @@ public class AgentConfig {
         return settings;
     }
 
-    @Bean("agentHostExecutor")
-    public ThreadPoolTaskExecutor agentHostExecutor() {
-        return ThreadHelper.createTaskExecutor(10, 1, 10, "agent-host");
-    }
-
     private String getZkHost() {
         return env.getProperty(App.ZookeeperHost, zkProperties.getHost());
     }

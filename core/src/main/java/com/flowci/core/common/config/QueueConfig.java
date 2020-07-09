@@ -45,20 +45,20 @@ public class QueueConfig {
     @Autowired
     private AppProperties.RabbitMQ rabbitProperties;
 
-    @Bean
+    @Bean("rabbitTaskExecutor")
     public ThreadPoolTaskExecutor rabbitConsumerExecutor() {
-        return ThreadHelper.createTaskExecutor(10, 10, 50, "rabbit-event-");
+        return ThreadHelper.createTaskExecutor(10, 10, 50, "rabbit-task-");
     }
 
     @Bean
-    public Connection rabbitConnection(ThreadPoolTaskExecutor rabbitConsumerExecutor) throws Throwable {
+    public Connection rabbitConnection(ThreadPoolTaskExecutor rabbitTaskExecutor) throws Throwable {
         log.info("Rabbit URI: {}", rabbitProperties.getUri());
 
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUri(rabbitProperties.getUri());
         factory.setRequestedHeartbeat(1800);
 
-        return factory.newConnection(rabbitConsumerExecutor.getThreadPoolExecutor());
+        return factory.newConnection(rabbitTaskExecutor.getThreadPoolExecutor());
     }
 
     @Bean("callbackQueueManager")

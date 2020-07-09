@@ -18,6 +18,7 @@ package com.flowci.core.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.helper.JacksonHelper;
+import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.util.FileHelper;
 import lombok.extern.log4j.Log4j2;
 import org.apache.http.client.HttpClient;
@@ -34,6 +35,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
@@ -103,6 +105,11 @@ public class AppConfig {
         return HttpClientBuilder.create().setDefaultRequestConfig(config).build();
     }
 
+    @Bean("appTaskExecutor")
+    public TaskExecutor getAppTaskExecutor() {
+        return ThreadHelper.createTaskExecutor(100, 100, 100, "app-task-");
+    }
+
     @Bean(name = "applicationEventMulticaster")
     public ApplicationEventMulticaster simpleApplicationEventMulticaster() {
         SimpleApplicationEventMulticaster multicaster = new SimpleApplicationEventMulticaster() {
@@ -118,8 +125,7 @@ public class AppConfig {
                 for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
                     if (executor != null) {
                         executor.execute(() -> invokeListener(listener, event));
-                    }
-                    else {
+                    } else {
                         invokeListener(listener, event);
                     }
                 }

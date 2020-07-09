@@ -39,7 +39,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -74,10 +74,7 @@ public class JobEventServiceImpl implements JobEventService {
     private JobActionService jobActionService;
 
     @Autowired
-    private ThreadPoolTaskExecutor jobStartExecutor;
-
-    @Autowired
-    private ThreadPoolTaskExecutor jobRunExecutor;
+    private TaskExecutor appTaskExecutor;
 
     //====================================================================
     //        %% Internal events
@@ -103,7 +100,7 @@ public class JobEventServiceImpl implements JobEventService {
 
     @EventListener
     public void startNewJob(CreateNewJobEvent event) {
-        jobStartExecutor.execute(() -> {
+        appTaskExecutor.execute(() -> {
             Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
             jobActionService.toStart(job);
         });
@@ -207,7 +204,7 @@ public class JobEventServiceImpl implements JobEventService {
                     log.warn(e);
                 }
                 return message.sendAck();
-            }, jobRunExecutor);
+            });
         } catch (IOException e) {
             log.warn(e);
         }

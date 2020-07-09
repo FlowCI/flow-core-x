@@ -18,12 +18,12 @@ package com.flowci.core.flow.service;
 
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.event.GitTestEvent;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.event.GitTestEvent;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
 import com.flowci.domain.SimpleSecret;
@@ -34,7 +34,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
@@ -49,13 +49,10 @@ import java.util.List;
 public class GitServiceImpl implements GitService {
 
     @Autowired
-    private ThreadPoolTaskExecutor gitTestExecutor;
+    private TaskExecutor appTaskExecutor;
 
     @Autowired
     private Path tmpDir;
-
-    @Autowired
-    private Path repoDir;
 
     @Autowired
     private Cache<String, List<String>> gitBranchCache;
@@ -76,7 +73,7 @@ public class GitServiceImpl implements GitService {
             }
         }
 
-        gitTestExecutor.execute(() -> fetchBranchFromGit(flow, url, c));
+        appTaskExecutor.execute(() -> fetchBranchFromGit(flow, url, c));
     }
 
     @Override
@@ -88,7 +85,7 @@ public class GitServiceImpl implements GitService {
         RSASecret c = new RSASecret();
         c.setPair(rsa);
 
-        gitTestExecutor.execute(() -> fetchBranchFromGit(flow, url, c));
+        appTaskExecutor.execute(() -> fetchBranchFromGit(flow, url, c));
     }
 
     @Override
@@ -100,7 +97,7 @@ public class GitServiceImpl implements GitService {
         AuthSecret c = new AuthSecret();
         c.setPair(auth);
 
-        gitTestExecutor.execute(() -> fetchBranchFromGit(flow, url, c));
+        appTaskExecutor.execute(() -> fetchBranchFromGit(flow, url, c));
     }
 
     @Override
