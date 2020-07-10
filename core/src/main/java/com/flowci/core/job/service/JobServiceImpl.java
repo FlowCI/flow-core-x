@@ -30,6 +30,7 @@ import com.flowci.core.job.domain.JobNumber;
 import com.flowci.core.job.domain.JobYml;
 import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.job.event.JobDeletedEvent;
+import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.JobKeyBuilder;
 import com.flowci.domain.StringVars;
@@ -49,7 +50,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -103,7 +103,7 @@ public class JobServiceImpl implements JobService {
     private FileManager fileManager;
 
     @Autowired
-    private JobActionService jobActionService;
+    private JobActionManager jobActionManager;
 
     @Autowired
     private StepService stepService;
@@ -163,12 +163,12 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public synchronized Job create(Flow flow, String yml, Trigger trigger, StringVars input) {
+    public Job create(Flow flow, String yml, Trigger trigger, StringVars input) {
         Job job = createJob(flow, trigger, input);
         eventManager.publish(new JobCreatedEvent(this, job));
 
         if (job.isYamlFromRepo()) {
-            jobActionService.toLoading(job);
+            jobActionManager.toLoading(job);
             return job;
         }
 
@@ -176,8 +176,18 @@ public class JobServiceImpl implements JobService {
             throw new ArgumentException("YAML config is required to start a job");
         }
 
-        jobActionService.toCreated(job, yml);
+        jobActionManager.toCreated(job, yml);
         return job;
+    }
+
+    @Override
+    public void start(Job job) {
+        jobActionManager.toStart(job);
+    }
+
+    @Override
+    public void cancel(Job job) {
+        jobActionManager.toCancelled(job, StringHelper.EMPTY);
     }
 
     @Override
@@ -218,8 +228,8 @@ public class JobServiceImpl implements JobService {
         localTaskService.delete(job);
         ymlManager.delete(job);
 
-        jobActionService.toCreated(job, yml.getRaw());
-        jobActionService.toStart(job);
+        jobActionManager.toCreated(job, yml.getRaw());
+        jobActionManager.toStart(job);
         return job;
     }
 

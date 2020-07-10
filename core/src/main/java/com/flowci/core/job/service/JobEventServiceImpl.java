@@ -34,6 +34,7 @@ import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
+import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.domain.Agent;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +72,7 @@ public class JobEventServiceImpl implements JobEventService {
     private StepService stepService;
 
     @Autowired
-    private JobActionService jobActionService;
+    private JobActionManager jobActionManager;
 
     @Autowired
     private TaskExecutor appTaskExecutor;
@@ -103,7 +104,7 @@ public class JobEventServiceImpl implements JobEventService {
         appTaskExecutor.execute(() -> {
             try {
                 Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
-                jobActionService.toStart(job);
+                jobService.start(job);
             } catch (Throwable e) {
                 log.warn(e);
             }
@@ -123,13 +124,13 @@ public class JobEventServiceImpl implements JobEventService {
         }
 
         Job job = jobService.get(agent.getJobId());
-        jobActionService.toCancelled(job, "Agent unexpected offline");
+        jobActionManager.toCancelled(job, "Agent unexpected offline");
     }
 
     @Override
     public void handleCallback(Step step) {
         Job job = jobService.get(step.getJobId());
-        jobActionService.toContinue(job, step);
+        jobActionManager.toContinue(job, step);
     }
 
     //====================================================================
@@ -177,7 +178,7 @@ public class JobEventServiceImpl implements JobEventService {
             try {
                 String jobId = new String(message.getBody());
                 Job job = jobService.get(jobId);
-                jobActionService.toTimeout(job);
+                jobActionManager.toTimeout(job);
             } catch (Exception e) {
                 log.warn(e);
             }
@@ -203,7 +204,7 @@ public class JobEventServiceImpl implements JobEventService {
                     String jobId = new String(message.getBody());
                     Job job = jobService.get(jobId);
                     logInfo(job, "received from queue");
-                    jobActionService.toRun(job);
+                    jobActionManager.toRun(job);
                 } catch (Exception e) {
                     log.warn(e);
                 }

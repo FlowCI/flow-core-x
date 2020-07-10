@@ -19,7 +19,6 @@ package com.flowci.core.job.controller;
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.domain.*;
@@ -27,6 +26,7 @@ import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.service.*;
 import com.flowci.core.user.domain.User;
 import com.flowci.exception.ArgumentException;
+import com.flowci.exception.StatusException;
 import com.flowci.tree.NodePath;
 import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author yang
@@ -68,9 +69,6 @@ public class JobController {
 
     @Autowired
     private JobService jobService;
-
-    @Autowired
-    private JobActionService jobActionService;
 
     @Autowired
     private StepService stepService;
@@ -175,14 +173,18 @@ public class JobController {
     @Action(JobAction.RUN)
     public void createAndStart(@Validated @RequestBody CreateJob body) {
         final User current = sessionManager.get();
+        final Flow flow = flowService.get(body.getFlow());
+        final String ymlStr = ymlService.getYmlString(flow);
+
+        if (!flow.isYamlFromRepo() && Objects.isNull(ymlStr)) {
+            throw new ArgumentException("YAML config is required to start a job");
+        }
 
         // start from thread since could be loading yaml from git repo
         appTaskExecutor.execute(() -> {
             sessionManager.set(current);
-            Flow flow = flowService.get(body.getFlow());
-            String ymlStr = ymlService.getYmlString(flow);
             Job job = jobService.create(flow, ymlStr, Trigger.API, body.getInputs());
-            jobActionService.toStart(job);
+            jobService.start(job);
         });
     }
 
@@ -198,7 +200,7 @@ public class JobController {
     @Action(JobAction.CANCEL)
     public Job cancel(@PathVariable String flow, @PathVariable String buildNumber) {
         Job job = get(flow, buildNumber);
-        jobActionService.toCancelled(job, StringHelper.EMPTY);
+        jobService.cancel(job);
         return job;
     }
 
