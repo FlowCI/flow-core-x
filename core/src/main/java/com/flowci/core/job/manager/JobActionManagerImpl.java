@@ -1,4 +1,4 @@
-package com.flowci.core.job.service;
+package com.flowci.core.job.manager;
 
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.service.AgentService;
@@ -7,16 +7,18 @@ import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.dao.JobDao;
-import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
-import com.flowci.core.job.manager.CmdManager;
-import com.flowci.core.job.manager.YmlManager;
+import com.flowci.core.job.service.LocalTaskService;
+import com.flowci.core.job.service.StepService;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.domain.*;
+import com.flowci.domain.Agent;
+import com.flowci.domain.SimpleSecret;
+import com.flowci.domain.Vars;
 import com.flowci.exception.CIException;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.StatusException;
@@ -49,7 +51,7 @@ import java.util.function.Function;
 
 @Log4j2
 @Service
-public class JobActionServiceImpl implements JobActionService {
+public class JobActionManagerImpl implements JobActionManager {
 
     private static final Status Pending = new Status(Job.Status.PENDING.name());
     private static final Status Created = new Status(Job.Status.CREATED.name());
@@ -201,7 +203,7 @@ public class JobActionServiceImpl implements JobActionService {
                 Job job = context.job;
                 String yml = context.yml;
 
-                setupYamlAndSteps(job, yml);
+                setupJobYamlAndSteps(job, yml);
                 setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
             }
         });
@@ -240,7 +242,7 @@ public class JobActionServiceImpl implements JobActionService {
                 Job job = context.job;
                 String yml = context.yml;
 
-                setupYamlAndSteps(job, yml);
+                setupJobYamlAndSteps(job, yml);
                 setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
             }
         });
@@ -528,7 +530,7 @@ public class JobActionServiceImpl implements JobActionService {
         });
     }
 
-    private void setupYamlAndSteps(Job job, String yml) {
+    private void setupJobYamlAndSteps(Job job, String yml) {
         FlowNode root = YmlParser.load(job.getFlowName(), yml);
 
         job.setCurrentPath(root.getPathAsString());

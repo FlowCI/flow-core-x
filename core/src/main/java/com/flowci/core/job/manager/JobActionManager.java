@@ -1,9 +1,9 @@
-package com.flowci.core.job.service;
+package com.flowci.core.job.manager;
 
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 
-public interface JobActionService {
+public interface JobActionManager {
 
     void toLoading(Job job);
 

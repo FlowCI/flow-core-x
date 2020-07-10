@@ -30,15 +30,18 @@ import com.flowci.core.job.domain.JobNumber;
 import com.flowci.core.job.domain.JobYml;
 import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.job.event.JobDeletedEvent;
+import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.JobKeyBuilder;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
+import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.YmlParser;
+import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,7 +50,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -101,7 +103,7 @@ public class JobServiceImpl implements JobService {
     private FileManager fileManager;
 
     @Autowired
-    private JobActionService jobActionService;
+    private JobActionManager jobActionManager;
 
     @Autowired
     private StepService stepService;
@@ -161,17 +163,31 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public synchronized Job create(Flow flow, String yml, Trigger trigger, StringVars input) {
+    public Job create(Flow flow, String yml, Trigger trigger, StringVars input) {
         Job job = createJob(flow, trigger, input);
         eventManager.publish(new JobCreatedEvent(this, job));
 
         if (job.isYamlFromRepo()) {
-            jobActionService.toLoading(job);
+            jobActionManager.toLoading(job);
             return job;
         }
 
-        jobActionService.toCreated(job, yml);
+        if (!StringHelper.hasValue(yml)) {
+            throw new ArgumentException("YAML config is required to start a job");
+        }
+
+        jobActionManager.toCreated(job, yml);
         return job;
+    }
+
+    @Override
+    public void start(Job job) {
+        jobActionManager.toStart(job);
+    }
+
+    @Override
+    public void cancel(Job job) {
+        jobActionManager.toCancelled(job, StringHelper.EMPTY);
     }
 
     @Override
@@ -212,8 +228,8 @@ public class JobServiceImpl implements JobService {
         localTaskService.delete(job);
         ymlManager.delete(job);
 
-        jobActionService.toCreated(job, yml.getRaw());
-        jobActionService.toStart(job);
+        jobActionManager.toCreated(job, yml.getRaw());
+        jobActionManager.toStart(job);
         return job;
     }
 

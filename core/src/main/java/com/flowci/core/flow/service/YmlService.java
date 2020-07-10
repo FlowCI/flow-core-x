@@ -20,6 +20,8 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.tree.FlowNode;
 
+import javax.annotation.Nullable;
+
 /**
  * @author yang
  */
@@ -27,16 +29,28 @@ public interface YmlService {
 
     /**
      * Get FlowNode that represent yaml in obj
+     *
+     * @throws com.flowci.exception.NotFoundException if YML not found
      */
     FlowNode getRaw(Flow flow);
 
     /**
      * Get yml by flow
+     *
+     * @throws com.flowci.exception.NotFoundException if YML not found
      */
     Yml getYml(Flow flow);
 
     /**
+     * Get yml by flow
+     */
+    @Nullable
+    String getYmlString(Flow flow);
+
+    /**
      * Create or update yml for flow
+     *
+     * @throws com.flowci.exception.ArgumentException if yml string is empty or null
      */
     Yml saveYml(Flow flow, String yml);
 

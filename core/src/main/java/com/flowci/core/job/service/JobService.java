@@ -24,6 +24,8 @@ import com.flowci.core.job.domain.JobYml;
 import com.flowci.domain.StringVars;
 import org.springframework.data.domain.Page;
 
+import javax.annotation.Nullable;
+
 /**
  * @author yang
  */
@@ -55,11 +57,23 @@ public interface JobService {
     Page<JobItem> list(Flow flow, int page, int size);
 
     /**
-     * Create a job by flow and yml
+     * Create a job by flow and yml, job status will be PENDING -> LOADING -> CREATED,
      *
      * @throws com.flowci.exception.NotAvailableException with job object in extra field
      */
-    Job create(Flow flow, String yml, Trigger trigger, StringVars input);
+    Job create(Flow flow, @Nullable String yml, Trigger trigger, StringVars input);
+
+    /**
+     * Run job, dispatch to queue, status will be CREATED -> RUNNING
+     * @param job
+     */
+    void start(Job job);
+
+    /**
+     * Cancel job, status will be CANCELLING -> CANCELLED,
+     * @param job
+     */
+    void cancel(Job job);
 
     /**
      * Restart job
