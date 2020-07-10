@@ -33,6 +33,7 @@ import com.flowci.core.job.event.JobDeletedEvent;
 import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.JobKeyBuilder;
+import com.flowci.core.user.domain.User;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
@@ -275,14 +276,7 @@ public class JobServiceImpl implements JobService {
         // init job context
         initJobContext(job, flow, input);
 
-        // setup created by form login user or git event author
-        if (sessionManager.exist()) {
-            job.getContext().put(Variables.Job.TriggerBy, sessionManager.getUserEmail());
-        } else {
-            String createdBy = job.getContext().get(GIT_AUTHOR, "Unknown");
-            job.setCreatedBy(createdBy);
-            job.getContext().put(Variables.Job.TriggerBy, createdBy);
-        }
+        setTriggerBy(job);
 
         // create job file space
         try {
@@ -293,6 +287,24 @@ public class JobServiceImpl implements JobService {
 
         // save
         return jobDao.insert(job);
+    }
+
+    // setup created by form login user or git event author
+    private void setTriggerBy(Job job) {
+        Vars<String> context = job.getContext();
+        if (sessionManager.exist()) {
+            context.put(Variables.Job.TriggerBy, sessionManager.getUserEmail());
+            return;
+        }
+
+        if (job.getTrigger() == Trigger.SCHEDULER) {
+            context.put(Variables.Job.TriggerBy, User.DefaultSystemUser);
+            return;
+        }
+
+        String createdBy = context.get(GIT_AUTHOR, "Unknown");
+        job.setCreatedBy(createdBy);
+        context.put(Variables.Job.TriggerBy, createdBy);
     }
 
     private void initJobContext(Job job, Flow flow, Vars<String> inputs) {
