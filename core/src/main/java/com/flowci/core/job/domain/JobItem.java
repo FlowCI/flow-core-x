@@ -21,13 +21,14 @@ import com.flowci.core.job.domain.Job.Status;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.trigger.domain.Variables;
 import com.google.common.base.Strings;
-import java.util.Date;
-import java.util.HashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.Date;
+import java.util.HashMap;
 
 /**
  * As job list item, remove the data which is not used in the list view
@@ -37,7 +38,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @Document(collection = "job")
-public class JobItem {
+public class JobItem extends JobDesc {
 
     @Getter
     @Setter
@@ -91,14 +92,6 @@ public class JobItem {
             return context;
         }
     }
-
-    @Id
-    protected String id;
-
-    private Long buildNumber;
-
-    @JsonIgnore
-    private String flowId;
 
     private Trigger trigger;
 

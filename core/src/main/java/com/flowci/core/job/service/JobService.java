@@ -19,6 +19,7 @@ package com.flowci.core.job.service;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Job.Trigger;
+import com.flowci.core.job.domain.JobDesc;
 import com.flowci.core.job.domain.JobItem;
 import com.flowci.core.job.domain.JobYml;
 import com.flowci.domain.StringVars;
@@ -35,6 +36,13 @@ public interface JobService {
      * Get job by id
      */
     Job get(String id);
+
+    /**
+     * Get job desc (flow name, build number)
+     *
+     * @return desc instance or null
+     */
+    JobDesc getDesc(String id);
 
     /**
      * Get job by flow and build number

@@ -21,13 +21,11 @@ import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.JobDao;
+import com.flowci.core.job.dao.JobDescDao;
 import com.flowci.core.job.dao.JobItemDao;
 import com.flowci.core.job.dao.JobNumberDao;
-import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
-import com.flowci.core.job.domain.JobItem;
-import com.flowci.core.job.domain.JobNumber;
-import com.flowci.core.job.domain.JobYml;
 import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.job.event.JobDeletedEvent;
 import com.flowci.core.job.manager.JobActionManager;
@@ -82,6 +80,9 @@ public class JobServiceImpl implements JobService {
     private JobDao jobDao;
 
     @Autowired
+    private JobDescDao jobDescDao;
+
+    @Autowired
     private JobItemDao jobItemDao;
 
     @Autowired
@@ -125,6 +126,12 @@ public class JobServiceImpl implements JobService {
         }
 
         throw new NotFoundException("Job {0} not found", jobId);
+    }
+
+    @Override
+    public JobDesc getDesc(String id) {
+        Optional<JobDesc> desc = jobDescDao.findById(id);
+        return desc.orElse(null);
     }
 
     @Override

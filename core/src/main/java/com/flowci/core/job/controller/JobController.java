@@ -115,6 +115,12 @@ public class JobController {
         }
     }
 
+    @GetMapping("/{jobId}/desc")
+    @Action(JobAction.GET)
+    public JobDesc getDesc(@PathVariable String jobId) {
+        return jobService.getDesc(jobId);
+    }
+
     @GetMapping(value = "/{flow}/{buildNumber}/yml", produces = MediaType.APPLICATION_JSON_VALUE)
     @Action(JobAction.GET_YML)
     public String getYml(@PathVariable String flow, @PathVariable String buildNumber) {
