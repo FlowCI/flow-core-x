@@ -83,7 +83,7 @@ public class AgentController {
     //      Functions require agent token header
     // --------------------------------------------------------
 
-    @PostMapping("/connect")
+    @PostMapping("/api/connect")
     public Settings connect(@RequestHeader(AgentAuth.HeaderAgentToken) String token,
                             @RequestBody AgentInit init,
                             HttpServletRequest request) {
@@ -92,13 +92,13 @@ public class AgentController {
         return agentService.connect(init);
     }
 
-    @PostMapping("/resource")
-    public void resourceUpdate(@RequestHeader(AgentAuth.HeaderAgentToken) String token,
+    @PostMapping("/api/profile")
+    public void profile(@RequestHeader(AgentAuth.HeaderAgentToken) String token,
                                @RequestBody Agent.Resource resource) {
         agentService.update(token, resource);
     }
 
-    @PostMapping("/logs/upload")
+    @PostMapping("/api/logs/upload")
     public void upload(@RequestPart("file") MultipartFile file) {
         try(InputStream stream = file.getInputStream()) {
             loggingService.save(file.getOriginalFilename(), stream);
