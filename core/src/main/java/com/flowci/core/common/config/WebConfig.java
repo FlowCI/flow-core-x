@@ -87,17 +87,13 @@ public class WebConfig {
                         .addPathPatterns("/secrets/**")
                         .addPathPatterns("/configs/**")
                         .addPathPatterns("/auth/logout")
-                        .excludePathPatterns("/agents/connect")
-                        .excludePathPatterns("/agents/resource")
-                        .excludePathPatterns("/agents/logs/upload");
+                        .excludePathPatterns("/agents/api/**");
 
                 registry.addInterceptor(apiAuth)
                         .addPathPatterns("/api/**");
 
                 registry.addInterceptor(agentAuth)
-                        .addPathPatterns("/agents/connect")
-                        .addPathPatterns("/agents/resource")
-                        .addPathPatterns("/agents/logs/upload");
+                        .addPathPatterns("/agents/api/**");
             }
 
             @Override
