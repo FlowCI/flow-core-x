@@ -21,7 +21,6 @@ import com.flowci.tree.NodePath;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
-import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,8 +38,6 @@ import java.util.List;
 public class StepYml extends YmlBase<StepNode> {
 
     private static final String DefaultStepPrefix = "step-";
-
-    private DockerYml docker;
 
     private String before;
 
@@ -68,8 +65,7 @@ public class StepYml extends YmlBase<StepNode> {
         node.setExports(Sets.newHashSet(exports));
         node.setAllowFailure(allow_failure);
         node.setEnvironments(getVariableMap());
-
-        ObjectsHelper.ifNotNull(docker, (val) -> node.setDocker(docker.toDockerOption()));
+        setupDocker(node);
 
         if (StringHelper.hasValue(node.getName()) && !NodePath.validate(node.getName())) {
             throw new YmlException("Invalid name '{0}'", node.getName());

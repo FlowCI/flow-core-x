@@ -22,8 +22,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -34,9 +36,13 @@ public class DockerOption {
 
     private List<String> entrypoint = Lists.newArrayList("/bin/bash");
 
-    private String networkMode = "host";
+    private String networkMode = "bridge";
 
     private String user = "root"; // default user
+
+    private Map<String, String> environment = new HashMap<>();
+
+    private boolean isRuntime = false;
 
     /**
      * List of port like "HOST:CONTAINER 5672:5672"

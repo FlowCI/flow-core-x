@@ -38,8 +38,6 @@ public class FlowYml extends YmlBase<FlowNode> {
 
     private TriggerFilter trigger = new TriggerFilter();
 
-    private DockerYml docker;
-
     private List<NotifyYml> notifications = new LinkedList<>();
 
     @NonNull
@@ -64,8 +62,7 @@ public class FlowYml extends YmlBase<FlowNode> {
         node.setTrigger(trigger);
         node.setEnvironments(getVariableMap());
 
-        ObjectsHelper.ifNotNull(docker, (v) -> node.setDocker(v.toDockerOption()));
-
+        setupDocker(node);
         setupNotifications(node);
         setupSteps(node);
         return node;

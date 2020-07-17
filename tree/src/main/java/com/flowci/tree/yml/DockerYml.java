@@ -22,6 +22,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Setter
@@ -36,6 +37,10 @@ public class DockerYml {
 
     private List<String> entrypoint;
 
+    private Map<String, String> environment;
+
+    private Boolean is_runtime;
+
     private Boolean stop_on_finish;
 
     private Boolean delete_on_finish;
@@ -45,12 +50,16 @@ public class DockerYml {
 
         DockerOption option = new DockerOption();
         option.setImage(image);
+
         ObjectsHelper.ifNotNull(network_mode, option::setNetworkMode);
         ObjectsHelper.ifNotNull(ports, option::setPorts);
         ObjectsHelper.ifNotNull(entrypoint, option::setEntrypoint);
         ObjectsHelper.ifNotNull(ports, option::setPorts);
+        ObjectsHelper.ifNotNull(environment, option::setEnvironment);
+        ObjectsHelper.ifNotNull(is_runtime, option::setRuntime);
         ObjectsHelper.ifNotNull(stop_on_finish, option::setStopContainer);
         ObjectsHelper.ifNotNull(delete_on_finish, option::setDeleteContainer);
+
         return option;
     }
 }

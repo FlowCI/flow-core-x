@@ -50,7 +50,7 @@ public class Node implements Serializable {
      * Inner option has higher priority
      * Ex: Plugin > Step > Flow
      */
-    protected DockerOption docker;
+    protected List<DockerOption> dockers = new LinkedList<>();
 
     protected StringVars environments = new StringVars();
 
@@ -71,6 +71,6 @@ public class Node implements Serializable {
 
     @JsonIgnore
     public boolean hasDocker() {
-        return docker != null;
+        return !dockers.isEmpty();
     }
 }
