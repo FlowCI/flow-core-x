@@ -125,7 +125,7 @@ public class RabbitOperations implements AutoCloseable {
         }
     }
 
-    public void startConsumer(String queue, boolean autoAck, Function<Message, Boolean> onMessage) throws IOException {
+    public void startConsumer(String queue, boolean autoAck, OnMessage onMessage) throws IOException {
         Consumer consumer = new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag,
@@ -133,7 +133,14 @@ public class RabbitOperations implements AutoCloseable {
                                        AMQP.BasicProperties properties,
                                        byte[] body) {
 
-                onMessage.apply(new Message(properties.getHeaders(), getChannel(), body, envelope));
+                boolean isSendAck = onMessage.on(properties.getHeaders(), body, envelope);
+                if (isSendAck) {
+                    try {
+                        getChannel().basicAck(envelope.getDeliveryTag(), false);
+                    } catch (Exception e) {
+                        log.warn(e);
+                    }
+                }
             }
         };
 
@@ -141,7 +148,6 @@ public class RabbitOperations implements AutoCloseable {
         consumers.put(queue, tag);
         log.info("[Consumer STARTED] queue {} with tag {}", queue, tag);
     }
-
 
     public void removeConsumer(String queue) {
         String consumerTag = consumers.remove(queue);
@@ -171,35 +177,12 @@ public class RabbitOperations implements AutoCloseable {
         channel.close();
     }
 
-    @Getter
-    public static class Message {
+    public interface OnMessage {
 
-        private final Map<String, Object> headers;
-
-        private final Channel channel;
-
-        private final byte[] body;
-
-        private final Envelope envelope;
-
-        public Message(Map<String, Object> headers, Channel channel, byte[] body, Envelope envelope) {
-            this.headers = headers;
-            this.channel = channel;
-            this.body = body;
-            this.envelope = envelope;
-        }
-
-        public boolean sendAck() {
-            try {
-                getChannel().basicAck(envelope.getDeliveryTag(), false);
-                return true;
-            } catch (Exception e) {
-                return false;
-            }
-        }
-
-        public boolean hasHeader() {
-            return headers != null;
-        }
+        /**
+         * Action on message
+         * @return it will send Ack if return true
+         */
+        boolean on(Map<String, Object> headers, byte[] body, Envelope envelope);
     }
 }

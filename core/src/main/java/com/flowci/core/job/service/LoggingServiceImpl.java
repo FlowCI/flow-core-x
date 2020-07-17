@@ -33,6 +33,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.RemovalListener;
 import com.google.common.collect.ImmutableList;
+import com.rabbitmq.client.Envelope;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -174,40 +175,40 @@ public class LoggingServiceImpl implements LoggingService {
         return cmdId + ".log";
     }
 
-    private class CmdStdLogHandler implements Function<RabbitOperations.Message, Boolean> {
+    private class CmdStdLogHandler implements RabbitOperations.OnMessage {
 
         @Override
-        public Boolean apply(RabbitOperations.Message message) {
-            Optional<String> jobId = CmdStdLog.getFromHeader(message, CmdStdLog.ID_HEADER);
+        public boolean on(Map<String, Object> headers, byte[] body, Envelope envelope) {
+            Optional<String> jobId = CmdStdLog.getFromHeader(headers, CmdStdLog.ID_HEADER);
             if (!jobId.isPresent()) {
                 return true;
             }
 
             // write to log cache
-            Optional<String> stepId = CmdStdLog.getFromHeader(message, CmdStdLog.STEP_ID_HEADER);
+            Optional<String> stepId = CmdStdLog.getFromHeader(headers, CmdStdLog.STEP_ID_HEADER);
             if (stepId.isPresent()) {
                 Map<String, Queue<byte[]>> cache = logCache.getIfPresent(jobId.get());
                 if (cache != null) {
-                    cache.get(stepId.get()).add(message.getBody());
+                    cache.get(stepId.get()).add(body);
                 }
             }
 
             // push to ws
-            socketPushManager.push(topicForLogs + "/" + jobId.get(), message.getBody());
-            return true;
+            socketPushManager.push(topicForLogs + "/" + jobId.get(), body);
+            return false;
         }
     }
 
-    private class TtyLogHandler implements Function<RabbitOperations.Message, Boolean> {
+    private class TtyLogHandler implements RabbitOperations.OnMessage {
 
         @Override
-        public Boolean apply(RabbitOperations.Message message) {
-            Optional<String> optional = CmdStdLog.getFromHeader(message, CmdStdLog.ID_HEADER);
+        public boolean on(Map<String, Object> headers, byte[] body, Envelope envelope) {
+            Optional<String> optional = CmdStdLog.getFromHeader(headers, CmdStdLog.ID_HEADER);
             if (optional.isPresent()) {
                 String ttyId = optional.get();
-                socketPushManager.push(topicForTtyLogs + "/" + ttyId, message.getBody());
+                socketPushManager.push(topicForTtyLogs + "/" + ttyId, body);
             }
-            return true;
+            return false;
         }
     }
 }

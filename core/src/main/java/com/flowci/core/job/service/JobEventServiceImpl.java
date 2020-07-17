@@ -139,8 +139,7 @@ public class JobEventServiceImpl implements JobEventService {
 
     @EventListener(value = ContextRefreshedEvent.class)
     public void startCallbackQueueConsumer() throws IOException {
-        callbackQueueManager.startConsumer(false, message -> {
-            byte[] raw = message.getBody();
+        callbackQueueManager.startConsumer(false, (header, raw, envelope) -> {
             byte ind = raw[0];
             byte[] body = Arrays.copyOfRange(raw, 1, raw.length);
 
@@ -167,22 +166,22 @@ public class JobEventServiceImpl implements JobEventService {
                 log.warn("Unable to decode message from callback queue: {}", new String(raw));
             }
 
-            return message.sendAck();
+            return true;
         });
     }
 
     @EventListener(value = ContextRefreshedEvent.class)
     public void startJobDeadLetterConsumer() throws IOException {
         String deadLetterQueue = rabbitProperties.getJobDlQueue();
-        jobsQueueManager.startConsumer(deadLetterQueue, true, message -> {
+        jobsQueueManager.startConsumer(deadLetterQueue, true, (header, body, envelope) -> {
             try {
-                String jobId = new String(message.getBody());
+                String jobId = new String(body);
                 Job job = jobService.get(jobId);
                 jobActionManager.toTimeout(job);
             } catch (Exception e) {
                 log.warn(e);
             }
-            return true;
+            return false;
         });
     }
 
@@ -199,16 +198,17 @@ public class JobEventServiceImpl implements JobEventService {
             final String queue = flow.getQueueName();
             jobsQueueManager.declare(queue, true, 255, rabbitProperties.getJobDlExchange());
 
-            jobsQueueManager.startConsumer(queue, false, message -> {
+            jobsQueueManager.startConsumer(queue, false, (header, body, envelope) -> {
                 try {
-                    String jobId = new String(message.getBody());
+                    String jobId = new String(body);
                     Job job = jobService.get(jobId);
                     logInfo(job, "received from queue");
                     jobActionManager.toRun(job);
                 } catch (Exception e) {
                     log.warn(e);
                 }
-                return message.sendAck();
+
+                return true;
             });
         } catch (IOException e) {
             log.warn(e);
