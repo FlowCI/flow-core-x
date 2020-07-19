@@ -17,7 +17,6 @@
 package com.flowci.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -44,7 +43,8 @@ public class DockerOption {
 
     private Map<String, String> environment = new HashMap<>();
 
-    private boolean isRuntime = false;
+    @JsonProperty("isRuntime")
+    private boolean runtime = false;
 
     /**
      * List of port like "HOST:CONTAINER 5672:5672"
