@@ -153,7 +153,18 @@ public class YmlParserTest {
 
         Assert.assertEquals("mysql", second.getDockers().get(1).getImage());
         Assert.assertEquals("12345", second.getDockers().get(1).getEnvironment().get("MY_PW"));
+
+        Assert.assertEquals(2, second.getDockers().get(1).getCommand().size());
+        Assert.assertEquals("mysql", second.getDockers().get(1).getCommand().get(0));
+        Assert.assertEquals("-hlocalhost", second.getDockers().get(1).getCommand().get(1));
+
         Assert.assertFalse(second.getDockers().get(1).isRuntime());
+    }
+
+    @Test(expected = YmlException.class)
+    public void should_throw_ex_when_runtime_has_command() throws IOException {
+        content = loadContent("runtime-with-command.yml");
+        YmlParser.load("default", content);
     }
 
     private String loadContent(String resource) throws IOException {

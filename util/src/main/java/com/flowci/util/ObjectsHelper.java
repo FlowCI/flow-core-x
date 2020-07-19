@@ -17,6 +17,7 @@
 package com.flowci.util;
 
 import java.io.*;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -24,6 +25,10 @@ import java.util.function.Consumer;
  * @author yang
  */
 public abstract class ObjectsHelper {
+
+    public static boolean hasCollection(Collection<?> collection) {
+        return collection != null && collection.size() > 0;
+    }
 
     public static <T extends Serializable> T copy(T source) {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {

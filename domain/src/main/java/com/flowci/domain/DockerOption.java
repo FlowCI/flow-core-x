@@ -34,7 +34,9 @@ public class DockerOption {
 
     private String image;
 
-    private List<String> entrypoint = Lists.newArrayList("/bin/bash");
+    private List<String> entrypoint;
+
+    private List<String> command;
 
     private String networkMode = "bridge";
 
@@ -54,4 +56,6 @@ public class DockerOption {
 
     @JsonProperty("isDeleteContainer")
     private boolean deleteContainer = true;
+
+    private String containerId;
 }

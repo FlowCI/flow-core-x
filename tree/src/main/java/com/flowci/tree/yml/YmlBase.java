@@ -75,17 +75,24 @@ public abstract class YmlBase<T extends Node> implements Serializable {
 
         if (hasDockers()) {
             int numOfRuntime = 0;
+            DockerOption runtime = null;
+
             List<DockerOption> options = new ArrayList<>(dockers.size());
             for (DockerYml item : dockers) {
                 DockerOption option = item.toDockerOption();
                 options.add(option);
 
                 if (option.isRuntime()) {
+                    runtime = option;
                     numOfRuntime++;
                 }
             }
 
             if (numOfRuntime == 1) {
+                if (ObjectsHelper.hasCollection(runtime.getCommand())) {
+                    throw new YmlException("'Command' section cannot be applied for runtime image");
+                }
+
                 node.getDockers().addAll(options);
                 return;
             }

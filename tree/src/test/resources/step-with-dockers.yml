@@ -27,6 +27,7 @@ steps:
       - image: "mysql"
         ports:
           - "6400:3360"
+        command: ["mysql", "-hlocalhost"]
         environment:
           MY_PW: "12345"
         network_mode: none

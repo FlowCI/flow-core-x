@@ -37,6 +37,8 @@ public class DockerYml {
 
     private List<String> entrypoint;
 
+    private List<String> command;
+
     private Map<String, String> environment;
 
     private Boolean is_runtime;
@@ -54,7 +56,7 @@ public class DockerYml {
         ObjectsHelper.ifNotNull(network_mode, option::setNetworkMode);
         ObjectsHelper.ifNotNull(ports, option::setPorts);
         ObjectsHelper.ifNotNull(entrypoint, option::setEntrypoint);
-        ObjectsHelper.ifNotNull(ports, option::setPorts);
+        ObjectsHelper.ifNotNull(command, option::setCommand);
         ObjectsHelper.ifNotNull(environment, option::setEnvironment);
         ObjectsHelper.ifNotNull(is_runtime, option::setRuntime);
         ObjectsHelper.ifNotNull(stop_on_finish, option::setStopContainer);
