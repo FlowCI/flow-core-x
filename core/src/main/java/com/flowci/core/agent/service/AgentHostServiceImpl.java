@@ -193,10 +193,16 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
 
         List<Agent> agents = agentDao.findAllByHostId(host.getId());
-        List<Agent> offline = new LinkedList<>();
+        List<Agent> startList = new LinkedList<>();
 
-        // resume from stopped
         for (Agent agent : agents) {
+            // add to offline list to start later
+            if (agent.getStatus() == Agent.Status.CREATED) {
+                startList.add(agent);
+                continue;
+            }
+
+            // try to resume, add to start list if failed
             if (agent.getStatus() == Agent.Status.OFFLINE) {
                 try {
                     optional.get().resume(agent.getName());
@@ -204,13 +210,13 @@ public class AgentHostServiceImpl implements AgentHostService {
                     return true;
                 } catch (DockerPoolException e) {
                     log.warn("Unable to resume agent {}", agent.getName());
-                    offline.add(agent);
+                    startList.add(agent);
                 }
             }
         }
 
         // re-start from offline, and delete if cannot be started
-        for (Agent agent : offline) {
+        for (Agent agent : startList) {
             StartContext context = new StartContext();
             context.setServerUrl(serverUrl);
             context.setAgentName(agent.getName());
