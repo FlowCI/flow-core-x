@@ -209,7 +209,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             }
         }
 
-        // re-start from offline
+        // re-start from offline, and delete if cannot be started
         for (Agent agent : offline) {
             StartContext context = new StartContext();
             context.setServerUrl(serverUrl);
@@ -222,6 +222,9 @@ public class AgentHostServiceImpl implements AgentHostService {
                 return true;
             } catch (DockerPoolException e) {
                 log.warn("Unable to restart agent {}", agent.getName());
+
+                agentDao.deleteById(agent.getId());
+                agents.remove(agent);
             }
         }
 

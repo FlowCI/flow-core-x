@@ -102,8 +102,8 @@ public class SocketPoolManager implements PoolManager<SocketInitContext> {
                     .exec();
 
             client.startContainerCmd(container.getId()).exec();
-        } catch (DockerException e) {
-            throw new DockerPoolException(e);
+        } catch (Exception e) {
+            throw new DockerPoolException(e.getMessage());
         }
     }
 
@@ -145,14 +145,20 @@ public class SocketPoolManager implements PoolManager<SocketInitContext> {
     }
 
     private Container findContainer(String name) throws DockerPoolException {
-        String containerName = name(name);
-        List<Container> list = client.listContainersCmd().withShowAll(true).withNameFilter(Lists.newArrayList(containerName))
-                .exec();
+        try {
+            String containerName = name(name);
+            List<Container> list = client.listContainersCmd()
+                    .withShowAll(true)
+                    .withNameFilter(Lists.newArrayList(containerName))
+                    .exec();
 
-        if (list.size() != 1) {
-            throw new DockerPoolException("Unable to find container for agent {0}", containerName);
+            if (list.size() != 1) {
+                throw new DockerPoolException("Unable to find container for agent {0}", containerName);
+            }
+
+            return list.get(0);
+        } catch (Exception e) {
+            throw new DockerPoolException(e.getMessage());
         }
-
-        return list.get(0);
     }
 }
