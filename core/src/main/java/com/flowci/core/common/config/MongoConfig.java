@@ -101,7 +101,8 @@ public class MongoConfig extends AbstractMongoConfiguration {
 
         VariableMapConverter variableConverter = new VariableMapConverter(objectMapper);
         converters.add(variableConverter.getReader());
-        converters.add(variableConverter.getWriter());
+        converters.add(variableConverter.getStringVarWriter());
+        converters.add(variableConverter.getTypedVarWriter());
 
         EncryptConverter encryptConverter = new EncryptConverter(appProperties.getSecret());
         converters.add(encryptConverter.new SimpleKeyPairReader());

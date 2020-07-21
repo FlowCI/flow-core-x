@@ -36,12 +36,15 @@ public class VariableMapConverter {
 
     private final Reader reader;
 
-    private final Writer writer;
+    private final StringVarWriter stringVarWriter;
+
+    private final TypedVarWriter typedVarWriter;
 
     public VariableMapConverter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         this.reader = new Reader();
-        this.writer = new Writer();
+        this.stringVarWriter = new StringVarWriter();
+        this.typedVarWriter = new TypedVarWriter();
     }
 
     public class Reader implements Converter<Document, Vars<?>> {
@@ -72,12 +75,25 @@ public class VariableMapConverter {
         }
     }
 
-    public class Writer implements Converter<Vars<?>, Document> {
+    public class StringVarWriter implements Converter<StringVars, Document> {
 
         @Override
-        public Document convert(Vars<?> source) {
+        public Document convert(StringVars src) {
             try {
-                String json = objectMapper.writeValueAsString(source);
+                String json = objectMapper.writeValueAsString(src);
+                return Document.parse(json);
+            } catch (JsonProcessingException e) {
+                throw new ArgumentException("Cannot parse StringVars to json");
+            }
+        }
+    }
+
+    public class TypedVarWriter implements Converter<TypedVars, Document> {
+
+        @Override
+        public Document convert(TypedVars src) {
+            try {
+                String json = objectMapper.writeValueAsString(src);
                 return Document.parse(json);
             } catch (JsonProcessingException e) {
                 throw new ArgumentException("Cannot parse StringVars to json");
