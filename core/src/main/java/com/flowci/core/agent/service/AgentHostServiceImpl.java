@@ -27,10 +27,10 @@ import com.flowci.core.agent.event.CreateAgentEvent;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
-import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.Agent;
 import com.flowci.exception.NotAvailableException;
@@ -60,7 +60,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
@@ -245,7 +244,7 @@ public class AgentHostServiceImpl implements AgentHostService {
                 log.info("Agent {} been created and started", name);
                 return true;
             } catch (DockerPoolException e) {
-                log.warn("Unable to start created agent {}", agent.getName());
+                log.warn("Unable to start created agent {}, since {}", agent.getName(), e.getMessage());
                 return false;
             }
         }

@@ -94,11 +94,11 @@ public class SocketPoolManager implements PoolManager<SocketInitContext> {
                     .withEnv(String.format("%s=%s", SERVER_URL, context.getServerUrl()),
                             String.format("%s=%s", AGENT_TOKEN, context.getToken()),
                             String.format("%s=%s", AGENT_LOG_LEVEL, context.getLogLevel()),
-                            String.format("%s=%s", AGENT_WORKSPACE, "/ws"),
+                            String.format("%s=%s", AGENT_WORKSPACE, StartContext.DefaultWorkspace),
                             String.format("%s=%s", AGENT_VOLUMES, System.getenv(AGENT_VOLUMES)))
                     .withBinds(
-                            new Bind(srcDirOnHost.toString(), new Volume("/ws")),
-                            new Bind("/var/run/docker.sock", new Volume("/var/run/docker.sock")))
+                            new Bind(srcDirOnHost.toString(), new Volume(StartContext.DefaultWorkspace)),
+                            new Bind(StartContext.DockerSock, new Volume(StartContext.DockerSock)))
                     .exec();
 
             client.startContainerCmd(container.getId()).exec();

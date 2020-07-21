@@ -28,8 +28,12 @@ import lombok.Setter;
 @Getter
 @Setter
 public class StartContext implements Serializable {
-    
-    public static class AgentEnvs {
+
+    public static final String DefaultWorkspace = "/ws";
+
+    public static final String DockerSock = "/var/run/docker.sock";
+
+    public static abstract class AgentEnvs {
 
         public static final String SERVER_URL = "FLOWCI_SERVER_URL";
 
