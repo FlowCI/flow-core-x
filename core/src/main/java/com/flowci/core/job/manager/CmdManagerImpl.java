@@ -26,11 +26,17 @@ import com.flowci.core.job.domain.Job;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
+import com.flowci.domain.DockerOption;
 import com.flowci.domain.Vars;
+import com.flowci.tree.FlowNode;
+import com.flowci.tree.NodePath;
+import com.flowci.tree.NodeTree;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Iterator;
 
 /**
  * @author yang
@@ -42,14 +48,24 @@ public class CmdManagerImpl implements CmdManager {
     private SpringEventManager eventManager;
 
     @Override
-    public CmdIn createShellCmd(Job job, StepNode node, Step step) {
+    public CmdIn createShellCmd(Job job, Step step, NodeTree tree) {
+        FlowNode root = tree.getRoot();
+        StepNode node = tree.get(NodePath.create(step.getNodePath()));
+
         ShellIn in = new ShellIn()
                 .setId(step.getId())
                 .setFlowId(job.getFlowId())
                 .setJobId(job.getId())
                 .setAllowFailure(node.isAllowFailure())
-                .setDocker(node.getDocker())
+                .setDockers(node.getDockers())
                 .setTimeout(job.getTimeout());
+
+        // apply flow level docker if step level is not specified
+        if (!node.hasDocker()) {
+            if (root.hasDocker()) {
+                in.setDockers(root.getDockers());
+            }
+        }
 
         // load setting from yaml StepNode
         in.addScript(node.getScript());
@@ -66,7 +82,7 @@ public class CmdManagerImpl implements CmdManager {
         }
 
         if (!isDockerEnabled(job.getContext())) {
-            in.setDocker(null);
+            in.getDockers().clear();
         }
 
         return in;
@@ -89,9 +105,17 @@ public class CmdManagerImpl implements CmdManager {
         cmd.addEnvFilters(plugin.getExports());
         cmd.addScript(plugin.getScript());
 
-        // apply docker from plugin if it's specified
+        // apply docker from plugin as run time if it's specified
         ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> {
-            cmd.setDocker(plugin.getDocker());
+            Iterator<DockerOption> iterator = cmd.getDockers().iterator();
+            while (iterator.hasNext()) {
+                DockerOption option = iterator.next();
+                if (option.isRuntime()) {
+                    iterator.remove();
+                    break;
+                }
+            }
+            cmd.getDockers().add(plugin.getDocker());
         });
     }
 

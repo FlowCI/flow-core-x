@@ -6,13 +6,13 @@ import org.springframework.context.ApplicationEvent;
 
 @Getter
 @Setter
-public abstract class AbstractSyncEvent<T> extends ApplicationEvent implements SyncEvent {
+public abstract class AbstractEvent<T> extends ApplicationEvent {
 
     private T fetched;
 
     private RuntimeException error;
 
-    public AbstractSyncEvent(Object source) {
+    public AbstractEvent(Object source) {
         super(source);
     }
 

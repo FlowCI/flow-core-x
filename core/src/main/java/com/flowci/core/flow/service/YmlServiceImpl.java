@@ -21,7 +21,6 @@ import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
-import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.LocalTask;
 import com.flowci.domain.Vars;
@@ -31,13 +30,10 @@ import com.flowci.tree.FlowNode;
 import com.flowci.tree.StepNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
-import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.StringWriter;
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -49,9 +45,6 @@ import java.util.Set;
 public class YmlServiceImpl implements YmlService {
 
     @Autowired
-    private String defaultTemplateYml;
-
-    @Autowired
     private YmlDao ymlDao;
 
     @Autowired
@@ -60,20 +53,14 @@ public class YmlServiceImpl implements YmlService {
     @Autowired
     private SpringEventManager eventManager;
 
-    @Autowired
-    private CronService cronService;
-
     //====================================================================
     //        %% Public function
     //====================================================================
 
     @Override
     public FlowNode getRaw(Flow flow) {
-        Optional<Yml> optional = ymlDao.findById(flow.getId());
-        if (optional.isPresent()) {
-            return YmlParser.load(flow.getName(), optional.get().getRaw());
-        }
-        throw new NotFoundException("No yml defined for flow {0}", flow.getName());
+        Yml yml = getYml(flow);
+        return YmlParser.load(flow.getName(), yml.getRaw());
     }
 
     @Override
@@ -85,9 +72,16 @@ public class YmlServiceImpl implements YmlService {
         throw new NotFoundException("No yml defined for flow {0}", flow.getName());
     }
 
+    @Nullable
+    @Override
+    public String getYmlString(Flow flow) {
+        Optional<Yml> optional = ymlDao.findById(flow.getId());
+        return optional.map(Yml::getRaw).orElse(null);
+    }
+
     @Override
     public Yml saveYml(Flow flow, String yml) {
-        if (Strings.isNullOrEmpty(yml)) {
+        if (!StringHelper.hasValue(yml)) {
             throw new ArgumentException("Yml content cannot be null or empty");
         }
 
@@ -106,24 +100,13 @@ public class YmlServiceImpl implements YmlService {
         vars.merge(root.getEnvironments());
         flowDao.save(flow);
 
-        // update cron task
-        cronService.update(flow, root, ymlObj);
         return ymlObj;
     }
 
     @Override
-    public Yml saveDefaultTemplate(Flow flow) {
-        return saveYml(flow, defaultTemplateYml);
-    }
-
-    //====================================================================
-    //        %% Internal events
-    //====================================================================
-
-    @EventListener
-    public void deleteYmlOnFlowDeleted(FlowDeletedEvent event) {
+    public void delete(Flow flow) {
         try {
-            Yml yml = getYml(event.getFlow());
+            Yml yml = getYml(flow);
             ymlDao.delete(yml);
         } catch (NotFoundException ignore) {
 

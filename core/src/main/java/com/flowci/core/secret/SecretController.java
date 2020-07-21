@@ -17,6 +17,7 @@
 package com.flowci.core.secret;
 
 import com.flowci.core.auth.annotation.Action;
+import com.flowci.core.secret.domain.AndroidSignOption;
 import com.flowci.core.secret.domain.Request;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.domain.SecretAction;
@@ -25,7 +26,10 @@ import com.flowci.domain.SimpleKeyPair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
@@ -76,6 +80,15 @@ public class SecretController {
     @Action(SecretAction.CREATE)
     public Secret create(@Validated @RequestBody Request.CreateToken body) {
         return secretService.createToken(body.getName(), body.getToken());
+    }
+
+    @PostMapping("/android/sign")
+    @Action(SecretAction.CREATE)
+    public Secret create(@Validated @NotEmpty @RequestPart String name,
+                         @Validated @RequestPart AndroidSignOption option,
+                         @Validated @NotBlank @RequestPart MultipartFile keyStore) {
+
+        return secretService.createAndroidSign(name, keyStore, option);
     }
 
     @PostMapping("/rsa/gen")

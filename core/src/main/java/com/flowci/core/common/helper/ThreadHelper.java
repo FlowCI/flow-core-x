@@ -18,6 +18,9 @@ package com.flowci.core.common.helper;
 
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
+
 /**
  * @author yang
  */
@@ -32,8 +35,8 @@ public abstract class ThreadHelper {
         taskExecutor.setMaxPoolSize(maxPoolSize);
         taskExecutor.setQueueCapacity(queueSize);
         taskExecutor.setThreadNamePrefix(threadNamePrefix);
+        taskExecutor.setKeepAliveSeconds(30);
         taskExecutor.setDaemon(true);
-
         taskExecutor.initialize();
         return taskExecutor;
     }

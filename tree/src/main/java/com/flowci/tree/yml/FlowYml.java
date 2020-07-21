@@ -18,6 +18,7 @@ package com.flowci.tree.yml;
 
 import com.flowci.exception.YmlException;
 import com.flowci.tree.*;
+import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -33,15 +34,10 @@ import java.util.*;
 @NoArgsConstructor
 public class FlowYml extends YmlBase<FlowNode> {
 
-    private String cron;
-
-    @NonNull
     private Selector selector = new Selector();
 
-    @NonNull
     private TriggerFilter trigger = new TriggerFilter();
 
-    @NonNull
     private List<NotifyYml> notifications = new LinkedList<>();
 
     @NonNull
@@ -62,11 +58,11 @@ public class FlowYml extends YmlBase<FlowNode> {
         }
 
         FlowNode node = new FlowNode(name);
-        node.setCron(cron);
         node.setSelector(selector);
         node.setTrigger(trigger);
         node.setEnvironments(getVariableMap());
 
+        setupDocker(node);
         setupNotifications(node);
         setupSteps(node);
         return node;

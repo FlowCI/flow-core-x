@@ -419,7 +419,7 @@ public class AgentServiceImpl implements AgentService {
      */
     private void updateAgentStatus(Agent agent, Status status) {
         if (agent.getStatus() == status) {
-            log.debug("Do not update agent {} status since status the same", agent);
+            agentDao.save(agent);
             return;
         }
 

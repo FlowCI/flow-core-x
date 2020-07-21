@@ -16,6 +16,7 @@
 
 package com.flowci.core.test.job;
 
+import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobArtifact;
 import com.flowci.core.job.service.ArtifactService;
@@ -38,6 +39,9 @@ import static org.mockito.ArgumentMatchers.eq;
 public class ArtifactServiceTest extends SpringScenario {
 
     @Autowired
+    private JobDao jobDao;
+
+    @Autowired
     private ArtifactService artifactService;
 
     @MockBean
@@ -48,6 +52,7 @@ public class ArtifactServiceTest extends SpringScenario {
         Job job = new Job();
         job.setFlowId("1111");
         job.setBuildNumber(1L);
+        jobDao.save(job);
 
         ByteArrayInputStream content = new ByteArrayInputStream("content".getBytes());
         MockMultipartFile file = new MockMultipartFile("file", "test.jar", null, content);
@@ -60,6 +65,9 @@ public class ArtifactServiceTest extends SpringScenario {
 
         // when: save artifact
         artifactService.save(job, "foo/boo", "md5..", file);
+
+        // then: job artifact num should increased
+        Assert.assertEquals(1, jobDao.findById(job.getId()).get().getNumOfArtifact());
 
         // then: fetch
         List<JobArtifact> list = artifactService.list(job);

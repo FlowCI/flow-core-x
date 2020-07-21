@@ -1,5 +1,6 @@
 package com.flowci.core.flow.domain;
 
+import com.flowci.util.StringHelper;
 import lombok.Data;
 
 import javax.validation.constraints.Min;
@@ -22,4 +23,10 @@ public final class Settings {
     @NotNull
     @Min(value = 10) // min is 10 seconds
     private Integer stepTimeout;
+
+    private String cron;
+
+    public boolean hasCron() {
+        return StringHelper.hasValue(cron);
+    }
 }

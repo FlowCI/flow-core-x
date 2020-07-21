@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 flow.ci
+ * Copyright 2019 fir.im
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,34 @@
  * limitations under the License.
  */
 
-package com.flowci.core.common.event;
+package com.flowci.core.flow.domain;
+
+import com.flowci.util.StringHelper;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * @author yang
  */
-public interface SyncEvent {
+@Data
+@Accessors(chain = true)
+public class ConfirmOption {
 
+    private String gitUrl;
+
+    private String secret;
+
+    private String yaml = StringHelper.EMPTY;
+
+    public boolean hasGitUrl() {
+        return StringHelper.hasValue(gitUrl);
+    }
+
+    public boolean hasSecret() {
+        return StringHelper.hasValue(secret);
+    }
+
+    public boolean hasYml() {
+        return StringHelper.hasValue(yaml);
+    }
 }

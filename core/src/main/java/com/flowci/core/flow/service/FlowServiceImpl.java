@@ -21,6 +21,7 @@ import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowUserDao;
+import com.flowci.core.flow.domain.ConfirmOption;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.event.FlowCreatedEvent;
@@ -38,7 +39,6 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.util.ObjectsHelper;
-import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +77,9 @@ public class FlowServiceImpl implements FlowService {
 
     @Autowired
     private YmlService ymlService;
+
+    @Autowired
+    private CronService cronService;
 
     // ====================================================================
     // %% Public function
@@ -171,7 +174,7 @@ public class FlowServiceImpl implements FlowService {
     }
 
     @Override
-    public Flow confirm(String name, String gitUrl, String secret) {
+    public Flow confirm(String name, ConfirmOption option) {
         Flow flow = get(name);
 
         if (flow.getStatus() == Status.CONFIRMED) {
@@ -180,17 +183,21 @@ public class FlowServiceImpl implements FlowService {
 
         Vars<VarValue> localVars = flow.getLocally();
 
-        if (StringHelper.hasValue(gitUrl)) {
-            localVars.put(Variables.Flow.GitUrl, VarValue.of(gitUrl, VarType.GIT_URL, true));
+        if (option.hasGitUrl()) {
+            localVars.put(Variables.Flow.GitUrl, VarValue.of(option.getGitUrl(), VarType.GIT_URL, true));
         }
 
-        if (StringHelper.hasValue(secret)) {
-            localVars.put(Variables.Flow.GitCredential, VarValue.of(secret, VarType.STRING, true));
+        if (option.hasSecret()) {
+            localVars.put(Variables.Flow.GitCredential, VarValue.of(option.getSecret(), VarType.STRING, true));
         }
 
         flow.setStatus(Status.CONFIRMED);
-        flowDao.save(flow);
-        ymlService.saveDefaultTemplate(flow);
+
+        // flow will be saved in saveYml
+        if (option.hasYml()) {
+            ymlService.saveYml(flow, option.getYaml());
+        }
+
         return flow;
     }
 
@@ -219,6 +226,10 @@ public class FlowServiceImpl implements FlowService {
         Flow flow = get(name);
         flowDao.delete(flow);
         flowUserDao.delete(flow.getId());
+
+        ymlService.delete(flow);
+        cronService.cancel(flow);
+
         eventManager.publish(new FlowDeletedEvent(this, flow));
         return flow;
     }

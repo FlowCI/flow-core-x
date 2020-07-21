@@ -16,9 +16,7 @@
 
 package com.flowci.core.test.secret;
 
-import com.flowci.core.secret.domain.AuthSecret;
-import com.flowci.core.secret.domain.RSASecret;
-import com.flowci.core.secret.domain.Secret;
+import com.flowci.core.secret.domain.*;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.SimpleAuthPair;
@@ -27,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.List;
 
@@ -107,5 +106,22 @@ public class SecretServiceTest extends SpringScenario {
         Assert.assertEquals("hello.rsa.2", names.get(1).getName());
         Assert.assertEquals("hello.auth.1", list.get(2).getName());
         Assert.assertEquals("hello.auth.2", list.get(3).getName());
+    }
+
+    @Test
+    public void should_create_android_sign_secret() {
+        AndroidSignOption option = new AndroidSignOption();
+        option.setKeyStorePassword("12345");
+        option.setKeyAlias("helloworld");
+        option.setKeyPassword("678910");
+
+        MockMultipartFile ks = new MockMultipartFile("ks", "test.jks", null, "test data".getBytes());
+
+        AndroidSign config = secretService.createAndroidSign("android-debug", ks, option);
+        Assert.assertEquals("test.jks", config.getKeyStoreFileName());
+        Assert.assertEquals("12345", config.getKeyStorePassword().getData());
+
+        Assert.assertEquals("helloworld", config.getKeyAlias());
+        Assert.assertEquals("678910", config.getKeyPassword().getData());
     }
 }

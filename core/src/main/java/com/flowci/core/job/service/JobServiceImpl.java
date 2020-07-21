@@ -21,32 +21,34 @@ import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.JobDao;
+import com.flowci.core.job.dao.JobDescDao;
 import com.flowci.core.job.dao.JobItemDao;
 import com.flowci.core.job.dao.JobNumberDao;
-import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
-import com.flowci.core.job.domain.JobItem;
-import com.flowci.core.job.domain.JobNumber;
-import com.flowci.core.job.domain.JobYml;
 import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.job.event.JobDeletedEvent;
+import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.JobKeyBuilder;
+import com.flowci.core.user.domain.User;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
+import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.YmlParser;
+import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -78,13 +80,16 @@ public class JobServiceImpl implements JobService {
     private JobDao jobDao;
 
     @Autowired
+    private JobDescDao jobDescDao;
+
+    @Autowired
     private JobItemDao jobItemDao;
 
     @Autowired
     private JobNumberDao jobNumberDao;
 
     @Autowired
-    private ThreadPoolTaskExecutor jobDeleteExecutor;
+    private TaskExecutor appTaskExecutor;
 
     @Autowired
     private YmlManager ymlManager;
@@ -100,7 +105,7 @@ public class JobServiceImpl implements JobService {
     private FileManager fileManager;
 
     @Autowired
-    private JobActionService jobActionService;
+    private JobActionManager jobActionManager;
 
     @Autowired
     private StepService stepService;
@@ -121,6 +126,12 @@ public class JobServiceImpl implements JobService {
         }
 
         throw new NotFoundException("Job {0} not found", jobId);
+    }
+
+    @Override
+    public JobDesc getDesc(String id) {
+        Optional<JobDesc> desc = jobDescDao.findById(id);
+        return desc.orElse(null);
     }
 
     @Override
@@ -160,17 +171,31 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public synchronized Job create(Flow flow, String yml, Trigger trigger, StringVars input) {
+    public Job create(Flow flow, String yml, Trigger trigger, StringVars input) {
         Job job = createJob(flow, trigger, input);
         eventManager.publish(new JobCreatedEvent(this, job));
 
         if (job.isYamlFromRepo()) {
-            jobActionService.toLoading(job);
+            jobActionManager.toLoading(job);
             return job;
         }
 
-        jobActionService.toCreated(job, yml);
+        if (!StringHelper.hasValue(yml)) {
+            throw new ArgumentException("YAML config is required to start a job");
+        }
+
+        jobActionManager.toCreated(job, yml);
         return job;
+    }
+
+    @Override
+    public void start(Job job) {
+        jobActionManager.toStart(job);
+    }
+
+    @Override
+    public void cancel(Job job) {
+        jobActionManager.toCancelled(job, StringHelper.EMPTY);
     }
 
     @Override
@@ -211,14 +236,14 @@ public class JobServiceImpl implements JobService {
         localTaskService.delete(job);
         ymlManager.delete(job);
 
-        jobActionService.toCreated(job, yml.getRaw());
-        jobActionService.toStart(job);
+        jobActionManager.toCreated(job, yml.getRaw());
+        jobActionManager.toStart(job);
         return job;
     }
 
     @Override
     public void delete(Flow flow) {
-        jobDeleteExecutor.execute(() -> {
+        appTaskExecutor.execute(() -> {
             jobNumberDao.deleteByFlowId(flow.getId());
             log.info("Deleted: job number of flow {}", flow.getName());
 
@@ -258,14 +283,7 @@ public class JobServiceImpl implements JobService {
         // init job context
         initJobContext(job, flow, input);
 
-        // setup created by form login user or git event author
-        if (sessionManager.exist()) {
-            job.getContext().put(Variables.Job.TriggerBy, sessionManager.getUserEmail());
-        } else {
-            String createdBy = job.getContext().get(GIT_AUTHOR, "Unknown");
-            job.setCreatedBy(createdBy);
-            job.getContext().put(Variables.Job.TriggerBy, createdBy);
-        }
+        setTriggerBy(job);
 
         // create job file space
         try {
@@ -276,6 +294,24 @@ public class JobServiceImpl implements JobService {
 
         // save
         return jobDao.insert(job);
+    }
+
+    // setup created by form login user or git event author
+    private void setTriggerBy(Job job) {
+        Vars<String> context = job.getContext();
+        if (sessionManager.exist()) {
+            context.put(Variables.Job.TriggerBy, sessionManager.getUserEmail());
+            return;
+        }
+
+        if (job.getTrigger() == Trigger.SCHEDULER) {
+            context.put(Variables.Job.TriggerBy, User.DefaultSystemUser);
+            return;
+        }
+
+        String createdBy = context.get(GIT_AUTHOR, "Unknown");
+        job.setCreatedBy(createdBy);
+        context.put(Variables.Job.TriggerBy, createdBy);
     }
 
     private void initJobContext(Job job, Flow flow, Vars<String> inputs) {

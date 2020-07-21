@@ -20,6 +20,7 @@ package com.flowci.core.api.service;
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.common.helper.DateHelper;
+import com.flowci.core.secret.domain.AndroidSign;
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.flow.dao.FlowUserDao;
@@ -34,13 +35,19 @@ import com.flowci.core.job.service.ReportService;
 import com.flowci.core.job.util.JobKeyBuilder;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.core.user.dao.UserDao;
 import com.flowci.core.user.domain.User;
+import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
+import com.flowci.exception.StatusException;
+import com.flowci.store.FileManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 @Service
@@ -53,7 +60,7 @@ public class OpenRestServiceImpl implements OpenRestService {
     private JobDao jobDao;
 
     @Autowired
-    private UserDao userDao;
+    private FileManager fileManager;
 
     @Autowired
     private FlowService flowService;
@@ -85,6 +92,26 @@ public class OpenRestServiceImpl implements OpenRestService {
         Config config = configService.get(name);
         config.cleanDBInfo();
         return config;
+    }
+
+    @Override
+    public Resource getResource(Secret secret, String file) {
+        if (!(secret instanceof AndroidSign)) {
+            throw new ArgumentException("Unsupported secret type");
+        }
+
+        AndroidSign signSecret = (AndroidSign) secret;
+
+        if (!Objects.equals(file, signSecret.getKeyStoreFileName())) {
+            throw new ArgumentException("File not existed in config");
+        }
+
+        try {
+            InputStream stream = fileManager.read(signSecret.getKeyStoreFileName(), signSecret.getPath());
+            return new InputStreamResource(stream);
+        } catch (IOException e) {
+            throw new StatusException("Failed to get resource: {}", e.getMessage());
+        }
     }
 
     @Override

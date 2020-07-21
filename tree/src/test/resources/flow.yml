@@ -3,8 +3,6 @@ envs:
   FLOW_WORKSPACE: "echo hello"
   FLOW_VERSION: "echo version"
 
-cron: "* * * * *"
-
 trigger:
   branch:
     - "develop"
@@ -12,6 +10,9 @@ trigger:
     - "feature/*"
   tag:
     - "*"
+
+docker:
+  image: "helloworld:0.1"
 
 selector:
   label:

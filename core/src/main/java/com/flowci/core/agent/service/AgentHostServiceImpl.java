@@ -58,6 +58,7 @@ import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -106,7 +107,7 @@ public class AgentHostServiceImpl implements AgentHostService {
     private AppProperties.Zookeeper zkProperties;
 
     @Autowired
-    private ThreadPoolTaskExecutor agentHostExecutor;
+    private TaskExecutor appTaskExecutor;
 
     {
         mapping.put(LocalUnixAgentHost.class, new OnLocalSocketHostCreate());
@@ -131,7 +132,7 @@ public class AgentHostServiceImpl implements AgentHostService {
     @Override
     public void delete(AgentHost host) {
         agentHostDao.deleteById(host.getId());
-        agentHostExecutor.execute(() -> {
+        appTaskExecutor.execute(() -> {
             removeAll(host);
         });
     }
@@ -271,7 +272,7 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @Override
     public void testConn(AgentHost host) {
-        agentHostExecutor.execute(() -> {
+        appTaskExecutor.execute(() -> {
             getPoolManager(host);
         });
     }

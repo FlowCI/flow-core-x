@@ -17,13 +17,27 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Yml;
-import com.flowci.tree.FlowNode;
 
 /**
  * @author yang
  */
 public interface CronService {
 
-    void update(Flow flow, FlowNode root, Yml yml);
+    /**
+     * Validate cron expression
+     * @throws IllegalArgumentException if invalid
+     * @param cron
+     */
+    void validate(String cron);
+
+    /**
+     * Set cron job by flow
+     */
+    void set(Flow flow);
+
+    /**
+     * cancel scheduled cron job
+     * @param flow
+     */
+    void cancel(Flow flow);
 }

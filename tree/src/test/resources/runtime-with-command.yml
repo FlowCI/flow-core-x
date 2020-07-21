@@ -1,0 +1,20 @@
+steps:
+  - name: step1
+    allow_failure: false
+    dockers:
+      - image: "ubuntu:18.04"
+        ports:
+          - "6400:6400"
+          - "2700:2700"
+        entrypoint: ["/bin/sh"]
+        commnad: ["/bin/bash", "-c"]
+        is_runtime: true
+
+      - image: "mysql"
+        ports:
+          - "6400:3360"
+        environment:
+          MY_PW: "12345"
+        network_mode: none
+
+    script: "echo 2"

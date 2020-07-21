@@ -34,12 +34,13 @@ import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
+import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.domain.Agent;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -71,13 +72,10 @@ public class JobEventServiceImpl implements JobEventService {
     private StepService stepService;
 
     @Autowired
-    private JobActionService jobActionService;
+    private JobActionManager jobActionManager;
 
     @Autowired
-    private ThreadPoolTaskExecutor jobStartExecutor;
-
-    @Autowired
-    private ThreadPoolTaskExecutor jobRunExecutor;
+    private TaskExecutor appTaskExecutor;
 
     //====================================================================
     //        %% Internal events
@@ -103,9 +101,13 @@ public class JobEventServiceImpl implements JobEventService {
 
     @EventListener
     public void startNewJob(CreateNewJobEvent event) {
-        jobStartExecutor.execute(() -> {
-            Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
-            jobActionService.toStart(job);
+        appTaskExecutor.execute(() -> {
+            try {
+                Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
+                jobService.start(job);
+            } catch (Throwable e) {
+                log.warn(e);
+            }
         });
     }
 
@@ -122,13 +124,13 @@ public class JobEventServiceImpl implements JobEventService {
         }
 
         Job job = jobService.get(agent.getJobId());
-        jobActionService.toCancelled(job, "Agent unexpected offline");
+        jobActionManager.toCancelled(job, "Agent unexpected offline");
     }
 
     @Override
     public void handleCallback(Step step) {
         Job job = jobService.get(step.getJobId());
-        jobActionService.toContinue(job, step);
+        jobActionManager.toContinue(job, step);
     }
 
     //====================================================================
@@ -137,8 +139,7 @@ public class JobEventServiceImpl implements JobEventService {
 
     @EventListener(value = ContextRefreshedEvent.class)
     public void startCallbackQueueConsumer() throws IOException {
-        callbackQueueManager.startConsumer(false, message -> {
-            byte[] raw = message.getBody();
+        callbackQueueManager.startConsumer(false, (header, raw, envelope) -> {
             byte ind = raw[0];
             byte[] body = Arrays.copyOfRange(raw, 1, raw.length);
 
@@ -165,18 +166,22 @@ public class JobEventServiceImpl implements JobEventService {
                 log.warn("Unable to decode message from callback queue: {}", new String(raw));
             }
 
-            return message.sendAck();
+            return true;
         });
     }
 
     @EventListener(value = ContextRefreshedEvent.class)
     public void startJobDeadLetterConsumer() throws IOException {
         String deadLetterQueue = rabbitProperties.getJobDlQueue();
-        jobsQueueManager.startConsumer(deadLetterQueue, true, message -> {
-            String jobId = new String(message.getBody());
-            Job job = jobService.get(jobId);
-            jobActionService.toTimeout(job);
-            return true;
+        jobsQueueManager.startConsumer(deadLetterQueue, true, (header, body, envelope) -> {
+            try {
+                String jobId = new String(body);
+                Job job = jobService.get(jobId);
+                jobActionManager.toTimeout(job);
+            } catch (Exception e) {
+                log.warn(e);
+            }
+            return false;
         });
     }
 
@@ -193,14 +198,18 @@ public class JobEventServiceImpl implements JobEventService {
             final String queue = flow.getQueueName();
             jobsQueueManager.declare(queue, true, 255, rabbitProperties.getJobDlExchange());
 
-            jobsQueueManager.startConsumer(queue, false, message -> {
-                String jobId = new String(message.getBody());
-                Job job = jobService.get(jobId);
-                logInfo(job, "received from queue");
+            jobsQueueManager.startConsumer(queue, false, (header, body, envelope) -> {
+                try {
+                    String jobId = new String(body);
+                    Job job = jobService.get(jobId);
+                    logInfo(job, "received from queue");
+                    jobActionManager.toRun(job);
+                } catch (Exception e) {
+                    log.warn(e);
+                }
 
-                jobActionService.toRun(job);
-                return message.sendAck();
-            }, jobRunExecutor);
+                return true;
+            });
         } catch (IOException e) {
             log.warn(e);
         }

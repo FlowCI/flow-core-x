@@ -37,8 +37,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
@@ -63,6 +63,8 @@ public class PluginServiceImpl implements PluginService {
 
     private static final String PluginFileName = "plugin.yml";
 
+    private static final String PluginFileNameAlt = "plugin.yaml";
+
     private static final String ReadMeFileName = "README.md";
 
     private static final byte[] EmptyBytes = new byte[0];
@@ -77,7 +79,7 @@ public class PluginServiceImpl implements PluginService {
     private AppProperties.Plugin pluginProperties;
 
     @Autowired
-    private ThreadPoolTaskExecutor repoCloneExecutor;
+    private TaskExecutor appTaskExecutor;
 
     @Autowired
     private ApplicationContext context;
@@ -199,7 +201,7 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public void clone(List<PluginRepoInfo> repos) {
         for (PluginRepoInfo repo : repos) {
-            repoCloneExecutor.execute(() -> {
+            appTaskExecutor.execute(() -> {
                 try {
                     Plugin plugin = clone(repo);
                     saveOrUpdate(plugin);
@@ -262,7 +264,10 @@ public class PluginServiceImpl implements PluginService {
     private Plugin load(File dir, PluginRepoInfo info) throws IOException {
         Path pluginFile = Paths.get(dir.toString(), PluginFileName);
         if (!Files.exists(pluginFile)) {
-            throw new NotFoundException("The 'plugin.yml' not found in plugin repo {0}", info.getSource());
+            pluginFile = Paths.get(dir.toString(), PluginFileNameAlt);
+            if (!Files.exists(pluginFile)) {
+                throw new NotFoundException("The 'plugin.yml' not found in plugin repo {0}", info.getSource());
+            }
         }
 
         byte[] ymlInBytes = Files.readAllBytes(pluginFile);

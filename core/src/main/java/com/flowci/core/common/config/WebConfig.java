@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -86,17 +87,13 @@ public class WebConfig {
                         .addPathPatterns("/secrets/**")
                         .addPathPatterns("/configs/**")
                         .addPathPatterns("/auth/logout")
-                        .excludePathPatterns("/agents/connect")
-                        .excludePathPatterns("/agents/resource")
-                        .excludePathPatterns("/agents/logs/upload");
+                        .excludePathPatterns("/agents/api/**");
 
                 registry.addInterceptor(apiAuth)
                         .addPathPatterns("/api/**");
 
                 registry.addInterceptor(agentAuth)
-                        .addPathPatterns("/agents/connect")
-                        .addPathPatterns("/agents/resource")
-                        .addPathPatterns("/agents/logs/upload");
+                        .addPathPatterns("/agents/api/**");
             }
 
             @Override
@@ -110,7 +107,8 @@ public class WebConfig {
                         new ByteArrayHttpMessageConverter(),
                         new MappingJackson2HttpMessageConverter(mapperForHttp),
                         new ResourceHttpMessageConverter(),
-                        new AllEncompassingFormHttpMessageConverter()
+                        new AllEncompassingFormHttpMessageConverter(),
+                        new StringHttpMessageConverter()
                 );
 
                 converters.addAll(DefaultConverters);

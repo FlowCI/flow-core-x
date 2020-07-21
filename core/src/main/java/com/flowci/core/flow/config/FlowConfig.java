@@ -16,21 +16,19 @@
 
 package com.flowci.core.flow.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
-import com.flowci.core.common.helper.ThreadHelper;
+import com.flowci.core.flow.domain.Template;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.log4j.Log4j2;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -44,24 +42,20 @@ public class FlowConfig {
     private AppProperties.Flow flowProperties;
 
     @Autowired
-    private HttpClient httpClient;
-
-    @Bean("gitTestExecutor")
-    public ThreadPoolTaskExecutor gitTestExecutor() {
-        return ThreadHelper.createTaskExecutor(20, 20, 100, "git-test-");
-    }
+    private ObjectMapper objectMapper;
 
     @Bean("gitBranchCache")
     public Cache<String, List<String>> gitBranchCache() {
         return CacheHelper.createLocalCache(50, 300);
     }
 
-    @Bean("defaultTemplateYml")
-    public String defaultTemplateYml() throws IOException {
-        String url = flowProperties.getDefaultTemplateUrl();
-        HttpResponse response = httpClient.execute(new HttpGet(url));
-        String yml = EntityUtils.toString(response.getEntity());
-        log.info("Default template yml is loaded from {}", url);
-        return yml;
+    @Bean("templates")
+    public List<Template> getTemplates() throws IOException {
+        TypeReference<List<Template>> typeRef = new TypeReference<List<Template>>() {
+        };
+        String url = flowProperties.getTemplatesUrl();
+        List<Template> list = objectMapper.readValue(new URL(url), typeRef);
+        log.info("Templates is loaded from {}", url);
+        return list;
     }
 }

@@ -19,7 +19,6 @@ package com.flowci.core.job.controller;
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.domain.*;
@@ -27,22 +26,24 @@ import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.service.*;
 import com.flowci.core.user.domain.User;
 import com.flowci.exception.ArgumentException;
+import com.flowci.exception.StatusException;
 import com.flowci.tree.NodePath;
 import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Base64;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author yang
@@ -70,9 +71,6 @@ public class JobController {
     private JobService jobService;
 
     @Autowired
-    private JobActionService jobActionService;
-
-    @Autowired
     private StepService stepService;
 
     @Autowired
@@ -88,7 +86,7 @@ public class JobController {
     private ArtifactService artifactService;
 
     @Autowired
-    private ThreadPoolTaskExecutor jobStartExecutor;
+    private TaskExecutor appTaskExecutor;
 
     @GetMapping("/{flow}")
     @Action(JobAction.LIST)
@@ -117,6 +115,12 @@ public class JobController {
         }
     }
 
+    @GetMapping("/{jobId}/desc")
+    @Action(JobAction.GET)
+    public JobDesc getDesc(@PathVariable String jobId) {
+        return jobService.getDesc(jobId);
+    }
+
     @GetMapping(value = "/{flow}/{buildNumber}/yml", produces = MediaType.APPLICATION_JSON_VALUE)
     @Action(JobAction.GET_YML)
     public String getYml(@PathVariable String flow, @PathVariable String buildNumber) {
@@ -141,24 +145,21 @@ public class JobController {
         return localTaskService.list(job);
     }
 
-    @GetMapping("/logs/{executedCmdId}")
-    @Action(JobAction.GET_STEP_LOG)
-    public Page<String> getStepLog(@PathVariable String executedCmdId,
-                                   @RequestParam(required = false, defaultValue = "0") int page,
-                                   @RequestParam(required = false, defaultValue = "50") int size) {
-
-        return loggingService.read(stepService.get(executedCmdId), PageRequest.of(page, size));
+    @GetMapping("/logs/{stepId}/read")
+    @Action(JobAction.DOWNLOAD_STEP_LOG)
+    public Collection<byte[]> readStepLog(@PathVariable String stepId) {
+        return loggingService.read(stepId);
     }
 
-    @GetMapping("/logs/{cmdId}/download")
+    @GetMapping("/logs/{stepId}/download")
     @Action(JobAction.DOWNLOAD_STEP_LOG)
-    public ResponseEntity<Resource> downloadStepLog(@PathVariable String cmdId) {
-        Step cmd = stepService.get(cmdId);
-        Resource resource = loggingService.get(cmdId);
-        Flow flow = flowService.getById(cmd.getFlowId());
+    public ResponseEntity<Resource> downloadStepLog(@PathVariable String stepId) {
+        Step step = stepService.get(stepId);
+        Resource resource = loggingService.get(stepId);
+        Flow flow = flowService.getById(step.getFlowId());
 
-        NodePath path = NodePath.create(cmd.getNodePath());
-        String fileName = String.format("%s-#%s-%s.log", flow.getName(), cmd.getBuildNumber(), path.name());
+        NodePath path = NodePath.create(step.getNodePath());
+        String fileName = String.format("%s-#%s-%s.log", flow.getName(), step.getBuildNumber(), path.name());
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))
@@ -170,22 +171,26 @@ public class JobController {
     @Action(JobAction.CREATE)
     public Job create(@Validated @RequestBody CreateJob data) {
         Flow flow = flowService.get(data.getFlow());
-        Yml yml = ymlService.getYml(flow);
-        return jobService.create(flow, yml.getRaw(), Trigger.API, data.getInputs());
+        String ymlStr = ymlService.getYmlString(flow);
+        return jobService.create(flow, ymlStr, Trigger.API, data.getInputs());
     }
 
     @PostMapping("/run")
     @Action(JobAction.RUN)
     public void createAndStart(@Validated @RequestBody CreateJob body) {
         final User current = sessionManager.get();
+        final Flow flow = flowService.get(body.getFlow());
+        final String ymlStr = ymlService.getYmlString(flow);
 
-        // start from thread since will be loading status
-        jobStartExecutor.execute(() -> {
+        if (!flow.isYamlFromRepo() && Objects.isNull(ymlStr)) {
+            throw new ArgumentException("YAML config is required to start a job");
+        }
+
+        // start from thread since could be loading yaml from git repo
+        appTaskExecutor.execute(() -> {
             sessionManager.set(current);
-            Flow flow = flowService.get(body.getFlow());
-            Yml yml = ymlService.getYml(flow);
-            Job job = jobService.create(flow, yml.getRaw(), Trigger.API, body.getInputs());
-            jobActionService.toStart(job);
+            Job job = jobService.create(flow, ymlStr, Trigger.API, body.getInputs());
+            jobService.start(job);
         });
     }
 
@@ -201,7 +206,7 @@ public class JobController {
     @Action(JobAction.CANCEL)
     public Job cancel(@PathVariable String flow, @PathVariable String buildNumber) {
         Job job = get(flow, buildNumber);
-        jobActionService.toCancelled(job, StringHelper.EMPTY);
+        jobService.cancel(job);
         return job;
     }
 

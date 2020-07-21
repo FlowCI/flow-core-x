@@ -12,6 +12,7 @@ import com.flowci.domain.SimpleAuthPair;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
+import com.flowci.exception.StatusException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Log4j2
@@ -95,38 +95,46 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Override
     public Config save(String name, SmtpOption option) {
-        SmtpConfig config;
-        Optional<Config> optional = configDao.findByName(name);
-        if (optional.isPresent()) {
-            config = (SmtpConfig) optional.get();
-        } else {
-            config = new SmtpConfig();
-            config.setName(name);
+        try {
+            SmtpConfig config = load(name, SmtpConfig.class);
+            config.setServer(option.getServer());
+            config.setPort(option.getPort());
+            config.setSecure(option.getSecure());
+            config.setAuth(option.getAuth());
+
+            if (option.hasSecret()) {
+                config.setAuth(getAuthPairFromSecret(option));
+            }
+
+            return save(config);
+        } catch (ReflectiveOperationException e) {
+            throw new StatusException(e.getMessage());
         }
-
-        config.setSmtp(option);
-
-        if (config.hasSecret()) {
-            setAuthFromSecret(config);
-        }
-
-        return save(config);
     }
 
     @Override
     public Config save(String name, String text) {
-        TextConfig config;
+        try {
+            TextConfig config = load(name, TextConfig.class);
+            config.setText(text);
+            return save(config);
+        } catch (ReflectiveOperationException e) {
+            throw new StatusException(e.getMessage());
+        }
+    }
+
+    private <T extends Config> T load(String name, Class<T> tClass) throws ReflectiveOperationException {
         Optional<Config> optional = configDao.findByName(name);
 
+        T config;
         if (optional.isPresent()) {
-            config = (TextConfig) optional.get();
+            config = (T) optional.get();
         } else {
-            config = new TextConfig();
+            config = tClass.newInstance();
             config.setName(name);
         }
 
-        config.setText(text);
-        return save(config);
+        return config;
     }
 
     private <T extends Config> T save(T config) {
@@ -137,8 +145,8 @@ public class ConfigServiceImpl implements ConfigService {
         }
     }
 
-    private void setAuthFromSecret(SmtpConfig config) {
-        GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, config.getSecret()));
+    private SimpleAuthPair getAuthPairFromSecret(SmtpOption option) {
+        GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, option.getSecret()));
         if (event.hasError()) {
             throw event.getError();
         }
@@ -148,7 +156,7 @@ public class ConfigServiceImpl implements ConfigService {
             throw new ArgumentException("Invalid secret type");
         }
 
-        config.setAuth((SimpleAuthPair) secret.toSimpleSecret());
+        return (SimpleAuthPair) secret.toSimpleSecret();
     }
 
     @Override

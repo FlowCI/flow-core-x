@@ -22,8 +22,8 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
-import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
@@ -70,6 +70,38 @@ public class CmdManagerTest extends SpringScenario {
     }
 
     @Test
+    public void should_apply_flow_level_docker_option() throws IOException {
+        // given: flow and job
+        Flow flow = flowService.create("hello");
+        Yml yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-root-docker.yml")));
+        Job job = jobService.create(flow, yml.getRaw(), Job.Trigger.MANUAL, new StringVars());
+        Assert.assertNotNull(job);
+
+        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+        NodeTree tree = NodeTree.create(root);
+
+        // when: create first shell cmd
+        StepNode node = tree.get(NodePath.create(flow.getName(), "step-docker"));
+        Step step = stepService.get(job.getId(), node.getPathAsString());
+
+        // then: first step docker should be applied from step level
+        ShellIn in = (ShellIn) cmdManager.createShellCmd(job, step, tree);
+        Assert.assertNotNull(in.getDockers());
+        Assert.assertEquals(1, in.getDockers().size());
+        Assert.assertEquals("step:0.1", in.getDockers().get(0).getImage());
+
+        // when: create second shell cmd
+        node = tree.get(NodePath.create(flow.getName(), "flow-docker"));
+        step = stepService.get(job.getId(), node.getPathAsString());
+
+        // then: first step docker should be applied from step level
+        in = (ShellIn) cmdManager.createShellCmd(job, step, tree);
+        Assert.assertNotNull(in.getDockers());
+        Assert.assertEquals(1, in.getDockers().size());
+        Assert.assertEquals("helloworld:0.1", in.getDockers().get(0).getImage());
+    }
+
+    @Test
     public void should_create_cmd_in_with_default_plugin_value() throws IOException {
         // init: setup mock plugin service
         Plugin plugin = createDummyPlugin();
@@ -89,7 +121,8 @@ public class CmdManagerTest extends SpringScenario {
         NodeTree tree = NodeTree.create(root);
         StepNode node = tree.get(NodePath.create(flow.getName(), "plugin-test"));
         Step step = stepService.get(job.getId(), node.getPathAsString());
-        ShellIn cmdIn = (ShellIn) cmdManager.createShellCmd(job, node, step);
+
+        ShellIn cmdIn = (ShellIn) cmdManager.createShellCmd(job, step, tree);
         Assert.assertNotNull(cmdIn);
 
         // then:

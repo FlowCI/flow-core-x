@@ -29,7 +29,7 @@ public final class ShellIn extends CmdIn {
 
     private String plugin;
 
-    private DockerOption docker;
+    private List<DockerOption> dockers;
 
     private List<String> scripts = new LinkedList<>();
 

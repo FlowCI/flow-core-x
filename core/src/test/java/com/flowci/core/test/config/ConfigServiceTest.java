@@ -1,6 +1,8 @@
 package com.flowci.core.test.config;
 
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.secret.domain.AndroidSign;
+import com.flowci.core.secret.domain.AndroidSignOption;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.SmtpOption;
 import com.flowci.core.config.service.ConfigService;
@@ -14,9 +16,10 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockMultipartFile;
 
-import static com.flowci.core.config.domain.Config.Category.TEXT;
 import static com.flowci.core.config.domain.Config.Category.SMTP;
+import static com.flowci.core.config.domain.Config.Category.TEXT;
 
 public class ConfigServiceTest extends SpringScenario {
 

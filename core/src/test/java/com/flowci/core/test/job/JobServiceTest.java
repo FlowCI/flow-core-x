@@ -37,6 +37,7 @@ import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.event.StartAsyncLocalTaskEvent;
+import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.service.*;
 import com.flowci.core.plugin.dao.PluginDao;
@@ -104,7 +105,7 @@ public class JobServiceTest extends ZookeeperScenario {
     private AgentService agentService;
 
     @Autowired
-    private JobActionService jobActionService;
+    private JobActionManager jobActionManager;
 
     @Autowired
     private YmlManager ymlManager;
@@ -190,7 +191,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals(Status.CREATED, job.getStatus());
         Assert.assertEquals(tree.getRoot().getPath(), NodePath.create(job.getCurrentPath()));
 
-        jobActionService.toStart(job);
+        jobActionManager.toStart(job);
         Assert.assertEquals(Status.QUEUED, job.getStatus());
 
         Assert.assertNotNull(job);
@@ -274,7 +275,7 @@ public class JobServiceTest extends ZookeeperScenario {
             }
         });
 
-        jobActionService.toStart(job);
+        jobActionManager.toStart(job);
         Assert.assertTrue(counterForStep1.await(10, TimeUnit.SECONDS));
 
         // then: verify step 1 agent
@@ -448,7 +449,7 @@ public class JobServiceTest extends ZookeeperScenario {
         mockAgentOnline(agentService.getPath(agent));
 
         // given: start job and wait for running
-        jobActionService.toStart(job);
+        jobActionManager.toStart(job);
 
         CountDownLatch waitForRunning = new CountDownLatch(1);
         addEventListener((ApplicationListener<JobStatusChangeEvent>) event -> {

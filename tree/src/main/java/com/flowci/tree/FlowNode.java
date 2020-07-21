@@ -1,8 +1,6 @@
 package com.flowci.tree;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.domain.LocalTask;
-import com.google.common.base.Strings;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,21 +24,11 @@ public class FlowNode extends Node {
     private TriggerFilter trigger = new TriggerFilter();
 
     /**
-     * Unix cron expression
-     */
-    private String cron;
-
-    /**
      * Notification list that run locally
      */
     private List<LocalTask> notifications = new LinkedList<>();
 
     public FlowNode(String name) {
         super(name);
-    }
-
-    @JsonIgnore
-    public boolean hasCron() {
-        return !Strings.isNullOrEmpty(cron);
     }
 }

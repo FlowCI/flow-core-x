@@ -3,7 +3,6 @@ package com.flowci.core.test.config;
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.domain.ConfigParser;
 import com.flowci.core.config.domain.SmtpConfig;
-import com.flowci.core.config.domain.SmtpOption;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -20,10 +19,10 @@ public class ConfigParserTest {
 
         SmtpConfig smtp = (SmtpConfig) config;
         Assert.assertEquals("my-demo", smtp.getName());
-        Assert.assertEquals("smtp.sendgrid.net", smtp.getSmtp().getServer());
-        Assert.assertEquals(587, smtp.getSmtp().getPort().intValue());
-        Assert.assertEquals("apikey", smtp.getSmtp().getAuth().getUsername());
-        Assert.assertEquals("123", smtp.getSmtp().getAuth().getPassword());
-        Assert.assertEquals(SmtpOption.SecureType.TLS, smtp.getSmtp().getSecure());
+        Assert.assertEquals("smtp.sendgrid.net", smtp.getServer());
+        Assert.assertEquals(587, smtp.getPort().intValue());
+        Assert.assertEquals("apikey", smtp.getAuth().getUsername());
+        Assert.assertEquals("123", smtp.getAuth().getPassword());
+        Assert.assertEquals(SmtpConfig.SecureType.TLS, smtp.getSecure());
     }
 }

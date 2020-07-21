@@ -53,7 +53,6 @@ public class YmlParserTest {
         FlowNode root = YmlParser.load("root", content);
 
         // verify flow
-        Assert.assertEquals("* * * * *", root.getCron());
         Assert.assertEquals("root", root.getName());
         Assert.assertEquals("echo hello", root.getEnv("FLOW_WORKSPACE"));
         Assert.assertEquals("echo version", root.getEnv("FLOW_VERSION"));
@@ -63,6 +62,10 @@ public class YmlParserTest {
 
         Assert.assertEquals(3, root.getTrigger().getBranch().size());
         Assert.assertEquals(1, root.getTrigger().getTag().size());
+
+        // verify docker
+        Assert.assertTrue(root.getDockers().size() > 0);;
+        Assert.assertEquals("helloworld:0.1", root.getDockers().get(0).getImage());
 
         // verify notifications
         Assert.assertEquals(1, root.getNotifications().size());
@@ -85,7 +88,7 @@ public class YmlParserTest {
         Assert.assertEquals("step2", step2.getName());
         Assert.assertEquals("echo 2", step2.getScript());
 
-        DockerOption dockerOption = step2.getDocker();
+        DockerOption dockerOption = step2.getDockers().get(0);
         Assert.assertNotNull(dockerOption);
         Assert.assertEquals("ubuntu:18.04", dockerOption.getImage());
         Assert.assertEquals("6400:6400", dockerOption.getPorts().get(0));
@@ -129,6 +132,39 @@ public class YmlParserTest {
         Assert.assertEquals("step-1", first.getPath().name());
 
         Assert.assertEquals(2, first.getExports().size());
+    }
+
+    @Test
+    public void should_parse_docker_and_dockers() throws IOException {
+        content = loadContent("step-with-dockers.yml");
+        FlowNode root = YmlParser.load("default", content);
+        NodeTree tree = NodeTree.create(root);
+
+        StepNode first = tree.getSteps().get(0);
+        Assert.assertEquals(1, first.getDockers().size());
+        Assert.assertEquals("ubuntu:18.04", first.getDockers().get(0).getImage());
+        Assert.assertTrue(first.getDockers().get(0).isRuntime());
+
+        StepNode second = tree.getSteps().get(1);
+        Assert.assertEquals(2, second.getDockers().size());
+
+        Assert.assertEquals("ubuntu:18.04", second.getDockers().get(0).getImage());
+        Assert.assertTrue(second.getDockers().get(0).isRuntime());
+
+        Assert.assertEquals("mysql", second.getDockers().get(1).getImage());
+        Assert.assertEquals("12345", second.getDockers().get(1).getEnvironment().get("MY_PW"));
+
+        Assert.assertEquals(2, second.getDockers().get(1).getCommand().size());
+        Assert.assertEquals("mysql", second.getDockers().get(1).getCommand().get(0));
+        Assert.assertEquals("-hlocalhost", second.getDockers().get(1).getCommand().get(1));
+
+        Assert.assertFalse(second.getDockers().get(1).isRuntime());
+    }
+
+    @Test(expected = YmlException.class)
+    public void should_throw_ex_when_runtime_has_command() throws IOException {
+        content = loadContent("runtime-with-command.yml");
+        YmlParser.load("default", content);
     }
 
     private String loadContent(String resource) throws IOException {

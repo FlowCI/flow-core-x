@@ -19,10 +19,13 @@ package com.flowci.core.job.service;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Job.Trigger;
+import com.flowci.core.job.domain.JobDesc;
 import com.flowci.core.job.domain.JobItem;
 import com.flowci.core.job.domain.JobYml;
 import com.flowci.domain.StringVars;
 import org.springframework.data.domain.Page;
+
+import javax.annotation.Nullable;
 
 /**
  * @author yang
@@ -33,6 +36,13 @@ public interface JobService {
      * Get job by id
      */
     Job get(String id);
+
+    /**
+     * Get job desc (flow name, build number)
+     *
+     * @return desc instance or null
+     */
+    JobDesc getDesc(String id);
 
     /**
      * Get job by flow and build number
@@ -55,11 +65,23 @@ public interface JobService {
     Page<JobItem> list(Flow flow, int page, int size);
 
     /**
-     * Create a job by flow and yml
+     * Create a job by flow and yml, job status will be PENDING -> LOADING -> CREATED,
      *
      * @throws com.flowci.exception.NotAvailableException with job object in extra field
      */
-    Job create(Flow flow, String yml, Trigger trigger, StringVars input);
+    Job create(Flow flow, @Nullable String yml, Trigger trigger, StringVars input);
+
+    /**
+     * Run job, dispatch to queue, status will be CREATED -> RUNNING
+     * @param job
+     */
+    void start(Job job);
+
+    /**
+     * Cancel job, status will be CANCELLING -> CANCELLED,
+     * @param job
+     */
+    void cancel(Job job);
 
     /**
      * Restart job
