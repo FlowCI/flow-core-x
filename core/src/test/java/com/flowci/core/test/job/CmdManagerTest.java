@@ -16,15 +16,14 @@
 
 package com.flowci.core.test.job;
 
-import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
-import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
@@ -87,8 +86,9 @@ public class CmdManagerTest extends SpringScenario {
 
         // then: first step docker should be applied from step level
         ShellIn in = (ShellIn) cmdManager.createShellCmd(job, step, tree);
-        Assert.assertNotNull(in.getDocker());
-        Assert.assertEquals("step:0.1", in.getDocker().getImage());
+        Assert.assertNotNull(in.getDockers());
+        Assert.assertEquals(1, in.getDockers().size());
+        Assert.assertEquals("step:0.1", in.getDockers().get(0).getImage());
 
         // when: create second shell cmd
         node = tree.get(NodePath.create(flow.getName(), "flow-docker"));
@@ -96,8 +96,9 @@ public class CmdManagerTest extends SpringScenario {
 
         // then: first step docker should be applied from step level
         in = (ShellIn) cmdManager.createShellCmd(job, step, tree);
-        Assert.assertNotNull(in.getDocker());
-        Assert.assertEquals("helloworld:0.1", in.getDocker().getImage());
+        Assert.assertNotNull(in.getDockers());
+        Assert.assertEquals(1, in.getDockers().size());
+        Assert.assertEquals("helloworld:0.1", in.getDockers().get(0).getImage());
     }
 
     @Test

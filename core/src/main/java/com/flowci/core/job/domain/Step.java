@@ -29,6 +29,7 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -62,7 +63,7 @@ public class Step implements Executed {
 
     private String plugin;
 
-    private DockerOption docker;
+    private List<DockerOption> dockers;
 
     /**
      * Process id

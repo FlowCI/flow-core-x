@@ -17,13 +17,14 @@
 package com.flowci.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -32,11 +33,18 @@ public class DockerOption {
 
     private String image;
 
-    private List<String> entrypoint = Lists.newArrayList("/bin/bash");
+    private List<String> entrypoint;
 
-    private String networkMode = "host";
+    private List<String> command;
+
+    private String networkMode = "bridge";
 
     private String user = "root"; // default user
+
+    private Map<String, String> environment = new HashMap<>();
+
+    @JsonProperty("isRuntime")
+    private boolean runtime = false;
 
     /**
      * List of port like "HOST:CONTAINER 5672:5672"
@@ -48,4 +56,6 @@ public class DockerOption {
 
     @JsonProperty("isDeleteContainer")
     private boolean deleteContainer = true;
+
+    private String containerId;
 }

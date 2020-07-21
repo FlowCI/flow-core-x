@@ -188,6 +188,6 @@ public class StepServiceImpl implements StepService {
                 .setNodePath(node.getPathAsString())
                 .setAllowFailure(node.isAllowFailure())
                 .setPlugin(node.getPlugin())
-                .setDocker(node.getDocker());
+                .setDockers(node.getDockers());
     }
 }

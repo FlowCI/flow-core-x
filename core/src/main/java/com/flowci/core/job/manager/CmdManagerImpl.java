@@ -26,6 +26,7 @@ import com.flowci.core.job.domain.Job;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
+import com.flowci.domain.DockerOption;
 import com.flowci.domain.Vars;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.NodePath;
@@ -34,6 +35,8 @@ import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Iterator;
 
 /**
  * @author yang
@@ -54,13 +57,13 @@ public class CmdManagerImpl implements CmdManager {
                 .setFlowId(job.getFlowId())
                 .setJobId(job.getId())
                 .setAllowFailure(node.isAllowFailure())
-                .setDocker(node.getDocker())
+                .setDockers(node.getDockers())
                 .setTimeout(job.getTimeout());
 
         // apply flow level docker if step level is not specified
         if (!node.hasDocker()) {
             if (root.hasDocker()) {
-                in.setDocker(root.getDocker());
+                in.setDockers(root.getDockers());
             }
         }
 
@@ -79,7 +82,7 @@ public class CmdManagerImpl implements CmdManager {
         }
 
         if (!isDockerEnabled(job.getContext())) {
-            in.setDocker(null);
+            in.getDockers().clear();
         }
 
         return in;
@@ -102,9 +105,17 @@ public class CmdManagerImpl implements CmdManager {
         cmd.addEnvFilters(plugin.getExports());
         cmd.addScript(plugin.getScript());
 
-        // apply docker from plugin as top priority if it's specified
+        // apply docker from plugin as run time if it's specified
         ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> {
-            cmd.setDocker(plugin.getDocker());
+            Iterator<DockerOption> iterator = cmd.getDockers().iterator();
+            while (iterator.hasNext()) {
+                DockerOption option = iterator.next();
+                if (option.isRuntime()) {
+                    iterator.remove();
+                    break;
+                }
+            }
+            cmd.getDockers().add(plugin.getDocker());
         });
     }
 
