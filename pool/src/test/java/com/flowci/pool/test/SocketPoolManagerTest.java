@@ -24,8 +24,6 @@ import com.flowci.pool.exception.DockerPoolException;
 import com.flowci.pool.manager.PoolManager;
 import com.flowci.pool.manager.SocketPoolManager;
 import com.flowci.util.StringHelper;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientBuilder;
 import org.junit.*;
 
 import java.util.Optional;
@@ -37,12 +35,6 @@ public class SocketPoolManagerTest extends PoolScenario {
     @Before
     public void init() throws Exception {
         SocketInitContext context = new SocketInitContext();
-
-        DefaultDockerClientConfig config = DefaultDockerClientConfig
-                .createDefaultConfigBuilder()
-                .withDockerHost("unix:///var/run/docker.sock")
-                .build();
-        context.setClient(DockerClientBuilder.getInstance(config).build());
         manager.init(context);
     }
 

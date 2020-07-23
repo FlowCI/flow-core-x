@@ -170,7 +170,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
         eventManager.publish(new TaskUpdateEvent(this, t.getJobId(), list, false));
     }
 
-    private void runDockerTask(DockerManager.Option option, ExecutedLocalTask r) throws InterruptedException, RuntimeException {
+    private void runDockerTask(DockerManager.Option option, ExecutedLocalTask r) throws Exception {
         try {
             String image = option.getImage();
             boolean isSuccess = dockerManager.pullImage(image);

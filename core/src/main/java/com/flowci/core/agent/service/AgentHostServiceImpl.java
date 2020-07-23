@@ -35,6 +35,7 @@ import com.flowci.core.user.domain.User;
 import com.flowci.domain.Agent;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
+import com.flowci.pool.DockerClientExecutor;
 import com.flowci.pool.domain.AgentContainer;
 import com.flowci.pool.domain.SocketInitContext;
 import com.flowci.pool.domain.SshInitContext;
@@ -49,7 +50,6 @@ import com.flowci.zookeeper.ZookeeperException;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.RemovalListener;
-import com.github.dockerjava.api.DockerClient;
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -100,13 +100,13 @@ public class AgentHostServiceImpl implements AgentHostService {
     private ZookeeperClient zk;
 
     @Autowired
-    private DockerClient dockerClient;
-
-    @Autowired
     private AppProperties.Zookeeper zkProperties;
 
     @Autowired
     private TaskExecutor appTaskExecutor;
+
+    @Autowired
+    private DockerClientExecutor dockerExecutor;
 
     {
         mapping.put(LocalUnixAgentHost.class, new OnLocalSocketHostCreate());
@@ -550,7 +550,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             PoolManager<SocketInitContext> poolManager = new SocketPoolManager();
 
             SocketInitContext context = new SocketInitContext();
-            context.setClient(dockerClient);
+            context.setExecutor(dockerExecutor);
 
             poolManager.init(context);
             return poolManager;

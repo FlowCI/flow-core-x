@@ -5,12 +5,12 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
+import com.flowci.pool.DockerClientExecutor;
+import com.flowci.pool.exception.DockerPoolException;
 import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
-import com.github.dockerjava.api.command.CreateContainerCmd;
-import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.model.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,21 +35,24 @@ public class DockerManager {
     private String serverUrl;
 
     @Autowired
-    private DockerClient client;
+    private DockerClientExecutor dockerExecutor;
 
-    public boolean pullImage(String image) throws InterruptedException {
+    public boolean pullImage(String image) throws InterruptedException, DockerPoolException {
         String imageUrl = "docker.io/library/" + image;
         if (image.contains("/")) {
             imageUrl = "docker.io/" + image;
         }
 
-        List<Image> images = client.listImagesCmd().withImageNameFilter(image).exec();
+
+        ListImagesCmd listImagesCmd = client().listImagesCmd().withImageNameFilter(image);
+        List<Image> images = dockerExecutor.exec(listImagesCmd);
         if (images.size() >= 1) {
             return true;
         }
 
         log.info("Image {} not found, will pull", image);
-        PullImageCallback callback = client.pullImageCmd(imageUrl).exec(new PullImageCallback());
+        PullImageCmd pullImageCmd = client().pullImageCmd(imageUrl);
+        PullImageCallback callback = dockerExecutor.exec(pullImageCmd, new PullImageCallback());
 
         boolean await = callback.counter.await(60, TimeUnit.SECONDS);
         if (!await) {
@@ -61,14 +64,14 @@ public class DockerManager {
         return callback.isSuccess;
     }
 
-    public String createAndStartContainer(Option option) {
+    public String createAndStartContainer(Option option) throws DockerPoolException {
         StringVars defaultEnv = new StringVars(4);
         defaultEnv.put(Variables.App.Url, serverUrl);
         defaultEnv.put(Variables.Agent.Token, ApiAuth.LocalTaskToken);
         defaultEnv.put(Variables.Agent.Workspace, "/ws/");
         defaultEnv.put(Variables.Agent.PluginDir, "/ws/.plugins");
 
-        CreateContainerCmd createContainerCmd = client.createContainerCmd(option.image)
+        CreateContainerCmd createContainerCmd = client().createContainerCmd(option.image)
                 .withEnv(defaultEnv.merge(option.inputs).toList())
                 .withCmd("/bin/bash", "-c", option.script);
 
@@ -77,19 +80,24 @@ public class DockerManager {
                     new Bind(option.pluginDir, new Volume("/ws/.plugins/" + option.plugin)));
         }
 
-        CreateContainerResponse container = createContainerCmd.exec();
+        CreateContainerResponse container = dockerExecutor.exec(createContainerCmd);
         String containerId = container.getId();
-        client.startContainerCmd(container.getId()).exec();
+
+        StartContainerCmd startContainerCmd = client().startContainerCmd(container.getId());
+        dockerExecutor.exec(startContainerCmd);
+
         log.debug("Container {} been started", containerId);
         return containerId;
     }
 
-    public void printContainerLog(String cid) {
-        client.logContainerCmd(cid)
+    public void printContainerLog(String cid) throws DockerPoolException {
+        LogContainerCmd logContainerCmd = client()
+                .logContainerCmd(cid)
                 .withStdOut(true)
                 .withStdErr(true)
-                .withFollowStream(true)
-                .exec(new FrameCallback());
+                .withFollowStream(true);
+
+        dockerExecutor.exec(logContainerCmd, new FrameCallback());
     }
 
     /**
@@ -97,11 +105,12 @@ public class DockerManager {
      *
      * @return true if not running, false for timeout
      */
-    public boolean waitContainer(String cid, int timeout) {
+    public boolean waitContainer(String cid, int timeout) throws DockerPoolException {
         Instant expire = Instant.now().plus(timeout, ChronoUnit.SECONDS);
 
         for (; ; ) {
-            InspectContainerResponse inspect = client.inspectContainerCmd(cid).exec();
+            InspectContainerCmd inspectContainerCmd = client().inspectContainerCmd(cid);
+            InspectContainerResponse inspect = dockerExecutor.exec(inspectContainerCmd);
             InspectContainerResponse.ContainerState state = inspect.getState();
 
             if (state.getRunning() == null) {
@@ -120,19 +129,26 @@ public class DockerManager {
         }
     }
 
-    public int getContainerExitCode(String cid) {
-        InspectContainerResponse inspect = client.inspectContainerCmd(cid).exec();
+    public int getContainerExitCode(String cid) throws DockerPoolException {
+        InspectContainerCmd inspectContainerCmd = client().inspectContainerCmd(cid);
+        InspectContainerResponse inspect = dockerExecutor.exec(inspectContainerCmd);
         return Objects.requireNonNull(inspect.getState().getExitCodeLong()).intValue();
     }
 
-    public void killContainer(String cid) {
-        client.killContainerCmd(cid).exec();
+    public void killContainer(String cid) throws DockerPoolException {
+        KillContainerCmd killContainerCmd = client().killContainerCmd(cid);
+        dockerExecutor.exec(killContainerCmd);
         log.debug("Container {} been killed", cid);
     }
 
-    public void removeContainer(String cid) {
-        client.removeContainerCmd(cid).withForce(true).exec();
+    public void removeContainer(String cid) throws DockerPoolException {
+        RemoveContainerCmd removeContainerCmd = client().removeContainerCmd(cid).withForce(true);
+        dockerExecutor.exec(removeContainerCmd);
         log.debug("Container {} been removed", cid);
+    }
+
+    private DockerClient client() {
+        return dockerExecutor.getClient();
     }
 
     @Getter
@@ -150,7 +166,7 @@ public class DockerManager {
         private String pluginDir;
 
         private boolean hasPlugin() {
-            return StringHelper.hasValue(plugin) && StringHelper.hasValue(pluginDir) ;
+            return StringHelper.hasValue(plugin) && StringHelper.hasValue(pluginDir);
         }
     }
 

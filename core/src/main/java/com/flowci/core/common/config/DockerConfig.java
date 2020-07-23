@@ -1,8 +1,6 @@
 package com.flowci.core.common.config;
 
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientBuilder;
+import com.flowci.pool.DockerClientExecutor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,12 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class DockerConfig {
 
     @Bean
-    public DockerClient dockerClient() {
-        String dockerHost = "unix:///var/run/docker.sock";
-
-        DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-                .withDockerHost(dockerHost).build();
-
-        return DockerClientBuilder.getInstance(config).build();
+    public DockerClientExecutor dockerExecutor() {
+        return new DockerClientExecutor();
     }
 }

@@ -1,19 +1,19 @@
 package com.flowci.pool.manager;
 
+import com.flowci.pool.DockerClientExecutor;
 import com.flowci.pool.domain.AgentContainer;
 import com.flowci.pool.domain.DockerStatus;
 import com.flowci.pool.domain.SocketInitContext;
 import com.flowci.pool.domain.StartContext;
 import com.flowci.pool.exception.DockerPoolException;
 import com.flowci.util.UnixHelper;
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.ListContainersCmd;
+import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Volume;
 import com.google.common.collect.Lists;
+import lombok.extern.log4j.Log4j2;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -25,32 +25,33 @@ import static com.flowci.pool.domain.AgentContainer.NameFilter;
 import static com.flowci.pool.domain.AgentContainer.name;
 import static com.flowci.pool.domain.StartContext.AgentEnvs.*;
 
+@Log4j2
 public class SocketPoolManager implements PoolManager<SocketInitContext> {
 
-    private DockerClient client;
+    private DockerClientExecutor executor;
 
     /**
      * Init local docker.sock api interface
      */
     @Override
     public void init(SocketInitContext context) {
-        Objects.requireNonNull(context.getClient(), "Missing docker client instance");
-        client = context.getClient();
+        this.executor = context.getExecutor();
+        if (Objects.isNull(this.executor)) {
+            this.executor = new DockerClientExecutor();
+        }
     }
 
     @Override
     public List<AgentContainer> list(Optional<String> state) throws DockerPoolException {
-        ListContainersCmd cmd = client.listContainersCmd().withShowAll(true)
+        ListContainersCmd cmd = executor.getClient().listContainersCmd().withShowAll(true)
                 .withNameFilter(Lists.newArrayList(NameFilter));
 
-        state.ifPresent((s) -> {
-            cmd.withStatusFilter(Lists.newArrayList(state.get()));
-        });
+        state.ifPresent((s) -> cmd.withStatusFilter(Lists.newArrayList(state.get())));
 
         try {
-
-            List<Container> list = cmd.exec();
+            List<Container> list = executor.exec(cmd);
             List<AgentContainer> result = new ArrayList<>(list.size());
+
             for (Container item : list) {
                 String name = item.getNames()[0];
                 if (name.startsWith("/")) {
@@ -58,6 +59,7 @@ public class SocketPoolManager implements PoolManager<SocketInitContext> {
                 }
                 result.add(AgentContainer.of(item.getId(), name, item.getState()));
             }
+
             return result;
         } catch (DockerException e) {
             throw new DockerPoolException(e);
@@ -67,20 +69,19 @@ public class SocketPoolManager implements PoolManager<SocketInitContext> {
     @Override
     public int size() throws DockerPoolException {
         try {
-            return client.listContainersCmd()
+            ListContainersCmd cmd = executor.getClient().listContainersCmd()
                     .withShowAll(true)
-                    .withNameFilter(Lists.newArrayList(NameFilter))
-                    .exec()
-                    .size();
+                    .withNameFilter(Lists.newArrayList(NameFilter));
+            return executor.exec(cmd).size();
         } catch (DockerException e) {
             throw new DockerPoolException(e);
         }
     }
 
     @Override
-    public void close() throws Exception {
-        if (client != null) {
-            client.close();
+    public void close() {
+        if (executor != null) {
+            executor.close();
         }
     }
 
@@ -90,7 +91,7 @@ public class SocketPoolManager implements PoolManager<SocketInitContext> {
             final String name = name(context.getAgentName());
             final Path srcDirOnHost = UnixHelper.replacePathWithEnv(context.getDirOnHost());
 
-            CreateContainerResponse container = client.createContainerCmd(AgentContainer.Image).withName(name)
+            CreateContainerCmd createCmd = executor.getClient().createContainerCmd(AgentContainer.Image).withName(name)
                     .withEnv(String.format("%s=%s", SERVER_URL, context.getServerUrl()),
                             String.format("%s=%s", AGENT_TOKEN, context.getToken()),
                             String.format("%s=%s", AGENT_LOG_LEVEL, context.getLogLevel()),
@@ -98,10 +99,11 @@ public class SocketPoolManager implements PoolManager<SocketInitContext> {
                             String.format("%s=%s", AGENT_VOLUMES, System.getenv(AGENT_VOLUMES)))
                     .withBinds(
                             new Bind(srcDirOnHost.toString(), new Volume(StartContext.DefaultWorkspace)),
-                            new Bind(StartContext.DockerSock, new Volume(StartContext.DockerSock)))
-                    .exec();
+                            new Bind(StartContext.DockerSock, new Volume(StartContext.DockerSock)));
+            CreateContainerResponse container = executor.exec(createCmd);
 
-            client.startContainerCmd(container.getId()).exec();
+            StartContainerCmd startCmd = executor.getClient().startContainerCmd(container.getId());
+            executor.exec(startCmd);
         } catch (Exception e) {
             throw new DockerPoolException(e.getMessage());
         }
@@ -110,7 +112,8 @@ public class SocketPoolManager implements PoolManager<SocketInitContext> {
     @Override
     public void stop(String name) throws DockerPoolException {
         try {
-            client.stopContainerCmd(findContainer(name).getId()).exec();
+            StopContainerCmd stopCmd = executor.getClient().stopContainerCmd(findContainer(name).getId());
+            executor.exec(stopCmd);
         } catch (DockerException e) {
             throw new DockerPoolException(e);
         }
@@ -120,7 +123,8 @@ public class SocketPoolManager implements PoolManager<SocketInitContext> {
     public void resume(String name) throws DockerPoolException {
         try {
             Container c = findContainer(name);
-            client.startContainerCmd(c.getId()).exec();
+            StartContainerCmd startCmd = executor.getClient().startContainerCmd(c.getId());
+            executor.exec(startCmd);
         } catch (DockerException e) {
             throw new DockerPoolException(e);
         }
@@ -129,7 +133,8 @@ public class SocketPoolManager implements PoolManager<SocketInitContext> {
     @Override
     public void remove(String name) throws DockerPoolException {
         try {
-            client.removeContainerCmd(findContainer(name).getId()).withForce(true).exec();
+            RemoveContainerCmd removeCmd = executor.getClient().removeContainerCmd(findContainer(name).getId()).withForce(true);
+            executor.exec(removeCmd);
         } catch (DockerException e) {
             throw new DockerPoolException(e);
         }
@@ -147,10 +152,12 @@ public class SocketPoolManager implements PoolManager<SocketInitContext> {
     private Container findContainer(String name) throws DockerPoolException {
         try {
             String containerName = name(name);
-            List<Container> list = client.listContainersCmd()
+
+            ListContainersCmd listCmd = executor.getClient().listContainersCmd()
                     .withShowAll(true)
-                    .withNameFilter(Lists.newArrayList(containerName))
-                    .exec();
+                    .withNameFilter(Lists.newArrayList(containerName));
+
+            List<Container> list = executor.exec(listCmd);
 
             if (list.size() != 1) {
                 throw new DockerPoolException("Unable to find container for agent {0}", containerName);

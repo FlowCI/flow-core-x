@@ -1,6 +1,6 @@
 package com.flowci.pool.domain;
 
-import com.github.dockerjava.api.DockerClient;
+import com.flowci.pool.DockerClientExecutor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,6 +8,5 @@ import lombok.Setter;
 @Setter
 public class SocketInitContext extends InitContext {
 
-    private DockerClient client;
-
+    private DockerClientExecutor executor;
 }
