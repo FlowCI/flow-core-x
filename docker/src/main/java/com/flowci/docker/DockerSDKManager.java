@@ -2,7 +2,7 @@ package com.flowci.docker;
 
 import com.flowci.docker.domain.DockerCallback;
 import com.flowci.docker.domain.DockerStartOption;
-import com.flowci.util.ObjectsHelper;
+import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.exception.DockerException;
@@ -12,6 +12,7 @@ import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PullResponseItem;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
+import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 
 import java.time.Instant;
@@ -78,16 +79,16 @@ public class DockerSDKManager implements DockerManager {
     private class ContainerManagerImpl implements ContainerManager {
 
         @Override
-        public List<Container> list(List<String> statusFilter, List<String> nameFilter) throws Exception {
+        public List<Container> list(String statusFilter, String nameFilter) throws Exception {
             try (DockerClient client = newClient()) {
                 ListContainersCmd cmd = client.listContainersCmd().withShowAll(true);
 
-                if (ObjectsHelper.hasCollection(nameFilter)) {
-                    cmd.withNameFilter(nameFilter);
+                if (StringHelper.hasValue(nameFilter)) {
+                    cmd.withNameFilter(Lists.newArrayList(nameFilter));
                 }
 
-                if (ObjectsHelper.hasCollection(statusFilter)) {
-                    cmd.withStatusFilter(statusFilter);
+                if (StringHelper.hasValue(statusFilter)) {
+                    cmd.withStatusFilter(Lists.newArrayList(statusFilter));
                 }
 
                 return cmd.exec();

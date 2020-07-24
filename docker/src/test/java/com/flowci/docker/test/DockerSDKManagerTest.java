@@ -35,7 +35,7 @@ public class DockerSDKManagerTest {
     }
 
     @Test
-    public void should_list_container() throws Exception {
+    public void should_list_containers() throws Exception {
         List<Container> containers = manager.getContainerManager().list(null, null);
         Assert.assertNotNull(containers);
     }

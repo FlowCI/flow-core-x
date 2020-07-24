@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 
 public interface ContainerManager {
 
-    List<Container> list(List<String> statusFilter, List<String> nameFilter) throws Exception;
+    List<Container> list(String statusFilter, String nameFilter) throws Exception;
 
     InspectContainerResponse inspect(String containerId) throws Exception;
 
