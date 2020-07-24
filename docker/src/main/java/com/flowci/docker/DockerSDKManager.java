@@ -1,20 +1,30 @@
 package com.flowci.docker;
 
+import com.flowci.docker.domain.DockerCallback;
 import com.flowci.docker.domain.DockerStartOption;
 import com.flowci.util.ObjectsHelper;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.*;
+import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.Container;
+import com.github.dockerjava.api.model.Image;
+import com.github.dockerjava.api.model.PullResponseItem;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
+@Log4j2
 public class DockerSDKManager implements DockerManager {
 
     private final String dockerHost;
 
     private final ContainerManager containerManager = new ContainerManagerImpl();
+
+    private final ImageManager imageManager = new ImageMangerImpl();
 
     public DockerSDKManager(String dockerHost) {
         this.dockerHost = dockerHost;
@@ -23,6 +33,59 @@ public class DockerSDKManager implements DockerManager {
     @Override
     public ContainerManager getContainerManager() {
         return containerManager;
+    }
+
+    @Override
+    public ImageManager getImageManager() {
+        return imageManager;
+    }
+
+    private class ImageMangerImpl implements ImageManager {
+
+        @Override
+        public void pull(String image, int timeoutInSeconds, Consumer<PullResponseItem> progress) throws Exception {
+            String imageUrl = "docker.io/library/" + image;
+            if (image.contains("/")) {
+                imageUrl = "docker.io/" + image;
+            }
+
+            try (DockerClient client = newClient()) {
+                if (findImage(client, image).size() >= 1) {
+                    return;
+                }
+
+                PullImageCallback callback = client.pullImageCmd(imageUrl).exec(new PullImageCallback(progress));
+                boolean await = callback.getCounter().await(timeoutInSeconds, TimeUnit.SECONDS);
+
+                if (!await) {
+                    throw new DockerException(String.format("Timeout when pull image %s", image), 0);
+                }
+
+                if (findImage(client, image).isEmpty()) {
+                    throw new DockerException(String.format("Failed on pull image %s", image), 0);
+                }
+            }
+        }
+
+        private List<Image> findImage(DockerClient client, String image) {
+            return client.listImagesCmd().withImageNameFilter(image).exec();
+        }
+    }
+
+    private static class PullImageCallback extends DockerCallback<PullResponseItem> {
+
+        private final Consumer<PullResponseItem> progress;
+
+        private PullImageCallback(Consumer<PullResponseItem> progress) {
+            this.progress = progress;
+        }
+
+        @Override
+        public void onNext(PullResponseItem item) {
+            if (progress != null && item != null) {
+                progress.accept(item);
+            }
+        }
     }
 
     private class ContainerManagerImpl implements ContainerManager {

@@ -4,6 +4,7 @@ import com.flowci.docker.ContainerManager;
 import com.flowci.docker.DockerManager;
 import com.flowci.docker.DockerSDKManager;
 import com.flowci.docker.domain.DockerStartOption;
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
 import org.junit.After;
 import org.junit.Assert;
@@ -27,6 +28,13 @@ public class DockerSDKManagerTest {
     }
 
     @Test
+    public void should_pull_image() throws Exception {
+        manager.getImageManager().pull("hello-world", 60, (item) -> {
+            System.out.println(item.getStatus());
+        });
+    }
+
+    @Test
     public void should_list_container() throws Exception {
         List<Container> containers = manager.getContainerManager().list(null, null);
         Assert.assertNotNull(containers);
@@ -44,5 +52,20 @@ public class DockerSDKManagerTest {
 
         cm.stop(cid);
         cm.delete(cid);
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void should_throw_exception_when_resume_cid_not_exist() throws Exception {
+        manager.getContainerManager().resume("1231231");
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void should_throw_exception_when_stop_cid_not_exist() throws Exception {
+        manager.getContainerManager().stop("1231231");
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void should_throw_exception_when_delete_cid_not_exist() throws Exception {
+        manager.getContainerManager().delete("1231231");
     }
 }
