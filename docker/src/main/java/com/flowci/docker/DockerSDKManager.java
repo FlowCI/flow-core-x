@@ -7,12 +7,15 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.Container;
+import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PullResponseItem;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import lombok.extern.log4j.Log4j2;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -72,22 +75,6 @@ public class DockerSDKManager implements DockerManager {
         }
     }
 
-    private static class PullImageCallback extends DockerCallback<PullResponseItem> {
-
-        private final Consumer<PullResponseItem> progress;
-
-        private PullImageCallback(Consumer<PullResponseItem> progress) {
-            this.progress = progress;
-        }
-
-        @Override
-        public void onNext(PullResponseItem item) {
-            if (progress != null && item != null) {
-                progress.accept(item);
-            }
-        }
-    }
-
     private class ContainerManagerImpl implements ContainerManager {
 
         @Override
@@ -108,11 +95,19 @@ public class DockerSDKManager implements DockerManager {
         }
 
         @Override
+        public InspectContainerResponse inspect(String containerId) throws Exception {
+            try (DockerClient client = newClient()) {
+                return client.inspectContainerCmd(containerId).exec();
+            }
+        }
+
+        @Override
         public String start(DockerStartOption option) throws Exception {
             try (DockerClient client = newClient()) {
                 CreateContainerCmd createCmd = client.createContainerCmd(option.getImage());
                 createCmd.withEnv(option.toEnvList());
                 createCmd.withBinds(option.toBindList());
+                createCmd.withEntrypoint(option.getEntrypoint());
 
                 if (option.hasName()) {
                     createCmd.withName(option.getName());
@@ -125,10 +120,37 @@ public class DockerSDKManager implements DockerManager {
         }
 
         @Override
+        public void wait(String containerId, int timeoutInSeconds, Consumer<Frame> onLog) throws Exception {
+            Instant expire = Instant.now().plus(timeoutInSeconds, ChronoUnit.SECONDS);
+
+            try (DockerClient client = newClient()) {
+                if (onLog != null) {
+                    client.logContainerCmd(containerId)
+                            .withStdOut(true)
+                            .withStdErr(true)
+                            .withFollowStream(true)
+                            .exec(new FrameCallback(onLog));
+                }
+
+                for (; ; ) {
+                    InspectContainerResponse.ContainerState state = client.inspectContainerCmd(containerId).exec().getState();
+                    if (state.getRunning() == null || !state.getRunning()) {
+                        return;
+                    }
+
+                    if (Instant.now().isAfter(expire)) {
+                        throw new DockerException("timeout", 0);
+                    }
+
+                    Thread.sleep(2000);
+                }
+            }
+        }
+
+        @Override
         public void stop(String containerId) throws Exception {
             try (DockerClient client = newClient()) {
-                InspectContainerResponse exec = client.inspectContainerCmd(containerId).exec();
-                InspectContainerResponse.ContainerState state = exec.getState();
+                InspectContainerResponse.ContainerState state = client.inspectContainerCmd(containerId).exec().getState();
                 Boolean running = state.getRunning();
                 if (running != null && running) {
                     client.stopContainerCmd(containerId).exec();
@@ -156,5 +178,37 @@ public class DockerSDKManager implements DockerManager {
         DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
                 .withDockerHost(dockerHost).build();
         return DockerClientBuilder.getInstance(config).build();
+    }
+
+    private static class PullImageCallback extends DockerCallback<PullResponseItem> {
+
+        private final Consumer<PullResponseItem> progress;
+
+        private PullImageCallback(Consumer<PullResponseItem> progress) {
+            this.progress = progress;
+        }
+
+        @Override
+        public void onNext(PullResponseItem item) {
+            if (progress != null && item != null) {
+                progress.accept(item);
+            }
+        }
+    }
+
+    private static class FrameCallback extends DockerCallback<Frame> {
+
+        private final Consumer<Frame> onLog;
+
+        private FrameCallback(Consumer<Frame> onLog) {
+            this.onLog = onLog;
+        }
+
+        @Override
+        public void onNext(Frame object) {
+            if (this.onLog != null) {
+                onLog.accept(object);
+            }
+        }
     }
 }

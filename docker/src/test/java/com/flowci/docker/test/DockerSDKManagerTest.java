@@ -41,14 +41,22 @@ public class DockerSDKManagerTest {
     }
 
     @Test
-    public void should_create_and_start_container() throws Exception {
+    public void should_create_start_and_delete_container() throws Exception {
         DockerStartOption option = new DockerStartOption();
         option.setImage("ubuntu:18.04");
         option.addEnv("FLOW_TEST", "hello.world");
 
+        option.addEntryPoint("/bin/bash");
+        option.addEntryPoint("-c");
+        option.addEntryPoint("echo helloworld\nsleep 10\necho end\necho helloworld");
+
         ContainerManager cm = manager.getContainerManager();
         String cid = cm.start(option);
         Assert.assertNotNull(cid);
+
+        cm.wait(cid, 60, (frame -> {
+            System.out.print(new String(frame.getPayload()));
+        }));
 
         cm.stop(cid);
         cm.delete(cid);

@@ -109,6 +109,12 @@
 
             <dependency>
                 <groupId>com.flowci</groupId>
+                <artifactId>docker</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.flowci</groupId>
                 <artifactId>sm</artifactId>
                 <version>${project.version}</version>
             </dependency>

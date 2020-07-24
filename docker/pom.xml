@@ -14,6 +14,11 @@
     <dependencies>
         <dependency>
             <groupId>com.flowci</groupId>
+            <artifactId>domain</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.flowci</groupId>
             <artifactId>util</artifactId>
         </dependency>
 
@@ -31,13 +36,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.docker-java</groupId>
-            <artifactId>docker-java-api</artifactId>
-            <version>3.2.1</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 

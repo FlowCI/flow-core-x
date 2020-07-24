@@ -1,12 +1,15 @@
 package com.flowci.docker.domain;
 
+import com.flowci.domain.StringVars;
 import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,12 +19,18 @@ public class DockerStartOption {
 
     private String name;
 
-    private final Map<String, String> env = new HashMap<>();
+    private final List<String> entrypoint = new LinkedList<>();
 
-    private final Map<String, String> bind = new HashMap<>();
+    private final StringVars env = new StringVars();
+
+    private final StringVars bind = new StringVars();
 
     public boolean hasName() {
         return StringHelper.hasValue(name);
+    }
+
+    public void addEntryPoint(String cmd) {
+        this.entrypoint.add(cmd);
     }
 
     public void addEnv(String k, String v) {
@@ -39,8 +48,6 @@ public class DockerStartOption {
     }
 
     public List<String> toEnvList() {
-        List<String> list = new ArrayList<>(env.size());
-        env.forEach((k, v) -> list.add(String.format("%s=%s", k, v)));
-        return list;
+        return env.toList();
     }
 }
