@@ -31,6 +31,7 @@ public class SshPoolManagerTest extends PoolScenario {
         }
     }
 
+    @Ignore
     @Test(expected = DockerPoolException.class)
     public void should_throw_exception_while_duplicate_container() throws DockerPoolException {
         String name = StringHelper.randomString(5);
@@ -44,6 +45,7 @@ public class SshPoolManagerTest extends PoolScenario {
         startAgent(name);
     }
 
+    @Ignore
     @Test
     public void should_start_agent_and_stop() throws Exception {
         // when: start two agent

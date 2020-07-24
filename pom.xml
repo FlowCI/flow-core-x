@@ -19,6 +19,7 @@
         <module>pool</module>
         <module>store</module>
         <module>sm</module>
+        <module>docker</module>
     </modules>
 
     <properties>

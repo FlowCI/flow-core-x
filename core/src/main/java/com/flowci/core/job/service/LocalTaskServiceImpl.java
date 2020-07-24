@@ -33,6 +33,7 @@ import java.util.Optional;
 public class LocalTaskServiceImpl implements LocalTaskService {
 
     private static final String DefaultImage = "flowci/plugin-runtime";
+
     private static final int DefaultTimeout = 60; // seconds
 
     @Autowired
@@ -120,7 +121,6 @@ public class LocalTaskServiceImpl implements LocalTaskService {
                 String message = event.getError().getMessage();
                 log.warn(message);
                 updateStatusTimeAndSave(exec, Executed.Status.EXCEPTION, message);
-                ;
                 return exec;
             }
 
