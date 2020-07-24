@@ -6,10 +6,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.docker.domain.DockerStartOption;
 import com.flowci.docker.domain.SSHOption;
+import com.flowci.domain.ObjectWrapper;
 import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Frame;
+import com.github.dockerjava.api.model.StreamType;
 import com.jcraft.jsch.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,7 +26,10 @@ public class DockerSSHManager implements DockerManager {
 
     private static final int ChannelTimeout = 10 * 1000;
 
+    private static final String FormatAsJson = "--format \"{{json .}}\"";
+
     private static final ObjectMapper mapper = new ObjectMapper();
+
 
     private Session session;
     
@@ -60,66 +65,127 @@ public class DockerSSHManager implements DockerManager {
     }
 
     private class ContainerManagerImpl implements ContainerManager {
+
         @Override
         public List<Container> list(String statusFilter, String nameFilter) throws Exception {
             StringBuilder cmd = new StringBuilder();
             cmd.append("docker ps -a ");
-
             if (StringHelper.hasValue(statusFilter)) {
                 cmd.append(String.format("--filter \"status=%s\" ", statusFilter));
             }
-
             if (StringHelper.hasValue(nameFilter)) {
                 cmd.append(String.format("--filter \"name=%s\" ", nameFilter));
             }
-
-            cmd.append("--format \"{{json .}}\"");
+            cmd.append(FormatAsJson);
 
             List<Container> list = new LinkedList<>();
-
             Output output = runCmd(cmd.toString(), (line) -> {
                 try {
                     list.add(mapper.readValue(line, Container.class));
                 } catch (JsonProcessingException ignore) {
-                    ignore.printStackTrace();
                 }
             });
 
-            if (output.getExit() != 0) {
-                throw new Exception(output.getErr());
-            }
-
+            throwExceptionIfError(output);
             return list;
         }
 
         @Override
         public InspectContainerResponse inspect(String containerId) throws Exception {
-            return null;
+            String cmd = String.format("docker inspect %s %s", containerId, FormatAsJson);
+            final ObjectWrapper<InspectContainerResponse> inspected = new ObjectWrapper<>();
+
+            Output output = runCmd(cmd, (line) -> {
+                try {
+                    inspected.setValue(mapper.readValue(line, InspectContainerResponse.class));
+                } catch (JsonProcessingException ignore) {
+                }
+            });
+            throwExceptionIfError(output);
+
+            if (!inspected.hasValue()) {
+                throw new Exception(String.format("Unable to inspect container %s result", containerId));
+            }
+
+            return inspected.getValue();
         }
 
         @Override
         public String start(DockerStartOption option) throws Exception {
-            return null;
+            StringBuilder cmd = new StringBuilder();
+            cmd.append("docker run -d ");
+
+            if (option.hasName()) {
+                cmd.append(String.format("--name %s ", option.getName()));
+            }
+
+            List<String> entrypoint = option.getEntrypoint();
+            if (!entrypoint.isEmpty()) {
+                cmd.append(String.format("--entrypoint %s ", entrypoint.get(0)));
+            }
+
+            option.getEnv().forEach((k, v) -> cmd.append(String.format("-e %s=%s ", k, v)));
+            option.getBind().forEach((s, t) -> cmd.append(String.format("-v %s:%s ", s, t)));
+            cmd.append(option.getImage());
+
+            if (!entrypoint.isEmpty() && entrypoint.size() > 1) {
+                cmd.append(" ");
+                for (int i = 1; i < entrypoint.size(); i++) {
+                    cmd.append(entrypoint.get(i)).append(" ");
+                }
+            }
+
+            ObjectWrapper<String> cid = new ObjectWrapper<>();
+            Output output = runCmd(cmd.toString(), cid::setValue);
+            throwExceptionIfError(output);
+
+            if (!cid.hasValue()) {
+                throw new Exception("Unable to get container line from output");
+            }
+
+            return cid.getValue();
         }
 
         @Override
         public void wait(String containerId, int timeoutInSeconds, Consumer<Frame> onLog) throws Exception {
-
+            String cmd = String.format("docker logs -f %s", containerId);
+            Output output = runCmd(cmd, (log) -> {
+                if (onLog != null) {
+                    onLog.accept(new Frame(StreamType.RAW, log.getBytes()));
+                }
+            });
+            throwExceptionIfError(output);
         }
 
         @Override
         public void stop(String containerId) throws Exception {
-
+            InspectContainerResponse.ContainerState state = inspect(containerId).getState();
+            Boolean running = state.getRunning();
+            if (running != null && running) {
+                String cmd = String.format("docker stop %s", containerId);
+                Output output = runCmd(cmd, null);
+                throwExceptionIfError(output);
+            }
         }
 
         @Override
         public void resume(String containerId) throws Exception {
-
+            String cmd = String.format("docker start %s", containerId);
+            Output output = runCmd(cmd, null);
+            throwExceptionIfError(output);
         }
 
         @Override
         public void delete(String containerId) throws Exception {
+            String cmd = String.format("docker rm -f %s", containerId);
+            Output output = runCmd(cmd, null);
+            throwExceptionIfError(output);
+        }
+    }
 
+    private void throwExceptionIfError(Output output) throws Exception {
+        if (output.getExit() != 0) {
+            throw new Exception(output.getErr());
         }
     }
 
