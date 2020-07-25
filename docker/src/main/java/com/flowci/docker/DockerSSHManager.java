@@ -8,10 +8,9 @@ import com.flowci.docker.domain.DockerStartOption;
 import com.flowci.docker.domain.SSHOption;
 import com.flowci.domain.ObjectWrapper;
 import com.flowci.util.StringHelper;
+import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
-import com.github.dockerjava.api.model.Container;
-import com.github.dockerjava.api.model.Frame;
-import com.github.dockerjava.api.model.StreamType;
+import com.github.dockerjava.api.model.*;
 import com.jcraft.jsch.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -34,6 +33,8 @@ public class DockerSSHManager implements DockerManager {
     private Session session;
     
     private final ContainerManager containerManager = new ContainerManagerImpl();
+
+    private final ImageManager imageManager = new ImageManagerImpl();
 
     static {
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -61,7 +62,38 @@ public class DockerSSHManager implements DockerManager {
 
     @Override
     public ImageManager getImageManager() {
-        return null;
+        return imageManager;
+    }
+
+    private class ImageManagerImpl implements ImageManager {
+
+        @Override
+        public void pull(String image, int ignore, Consumer<String> progress) throws Exception {
+            List<Image> list = findImage(image);
+            if (list.size() > 0) {
+                return;
+            }
+            String cmd = String.format("docker pull %s", image);
+            Output output = runCmd(cmd, (log) -> {
+                if (progress != null) {
+                    progress.accept(log);
+                }
+            });
+            throwExceptionIfError(output);
+        }
+
+        private List<Image> findImage(String image) throws Exception {
+            String cmd = String.format("docker image ls --filter reference=\"%s\" %s", image, FormatAsJson);
+            List<Image> list = new LinkedList<>();
+            Output output = runCmd(cmd, (line) -> {
+                try {
+                    list.add(mapper.readValue(line, Image.class));
+                } catch (JsonProcessingException ignore) {
+                }
+            });
+            throwExceptionIfError(output);
+            return list;
+        }
     }
 
     private class ContainerManagerImpl implements ContainerManager {

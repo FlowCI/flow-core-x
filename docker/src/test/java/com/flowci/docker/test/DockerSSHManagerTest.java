@@ -33,6 +33,16 @@ public class DockerSSHManagerTest {
     }
 
     @Test
+    public void should_pull_image_and_print_log() throws Exception {
+        manager.getImageManager().pull("ubuntu:18.04", 60, System.out::println);
+    }
+
+    @Test(expected = Exception.class)
+    public void should_throw_exception_if_image_not_found() throws Exception {
+        manager.getImageManager().pull("ubuntu:notfound", 10, null);
+    }
+
+    @Test
     public void should_create_start_and_delete_container() throws Exception {
         DockerStartOption option = new DockerStartOption();
         option.setImage("ubuntu:18.04");

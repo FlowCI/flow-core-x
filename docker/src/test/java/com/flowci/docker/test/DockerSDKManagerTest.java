@@ -29,9 +29,12 @@ public class DockerSDKManagerTest {
 
     @Test
     public void should_pull_image() throws Exception {
-        manager.getImageManager().pull("hello-world", 60, (item) -> {
-            System.out.println(item.getStatus());
-        });
+        manager.getImageManager().pull("ubuntu:18.04", 60, System.out::println);
+    }
+
+    @Test(expected = Exception.class)
+    public void should_throw_exception_if_image_not_found() throws Exception {
+        manager.getImageManager().pull("ubuntu:notfound", 120, null);
     }
 
     @Test

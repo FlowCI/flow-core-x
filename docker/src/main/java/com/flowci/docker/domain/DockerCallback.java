@@ -12,6 +12,9 @@ public abstract class DockerCallback<T> implements ResultCallback<T> {
     @Getter
     protected final CountDownLatch counter = new CountDownLatch(1);
 
+    @Getter
+    protected Throwable throwable;
+
     @Override
     public void onStart(Closeable closeable) {
 
@@ -19,7 +22,8 @@ public abstract class DockerCallback<T> implements ResultCallback<T> {
 
     @Override
     public void onError(Throwable throwable) {
-
+        this.throwable = throwable;
+        counter.countDown();
     }
 
     @Override
@@ -30,5 +34,9 @@ public abstract class DockerCallback<T> implements ResultCallback<T> {
     @Override
     public void close() throws IOException {
 
+    }
+
+    public boolean hasError() {
+        return this.throwable != null;
     }
 }

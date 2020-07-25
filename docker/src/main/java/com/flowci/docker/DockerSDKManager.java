@@ -47,7 +47,7 @@ public class DockerSDKManager implements DockerManager {
     private class ImageMangerImpl implements ImageManager {
 
         @Override
-        public void pull(String image, int timeoutInSeconds, Consumer<PullResponseItem> progress) throws Exception {
+        public void pull(String image, int timeoutInSeconds, Consumer<String> progress) throws Exception {
             String imageUrl = "docker.io/library/" + image;
             if (image.contains("/")) {
                 imageUrl = "docker.io/" + image;
@@ -63,6 +63,10 @@ public class DockerSDKManager implements DockerManager {
 
                 if (!await) {
                     throw new DockerException(String.format("Timeout when pull image %s", image), 0);
+                }
+
+                if (callback.hasError()) {
+                    throw new DockerException(callback.getThrowable().getMessage(), 0);
                 }
 
                 if (findImage(client, image).isEmpty()) {
@@ -183,16 +187,16 @@ public class DockerSDKManager implements DockerManager {
 
     private static class PullImageCallback extends DockerCallback<PullResponseItem> {
 
-        private final Consumer<PullResponseItem> progress;
+        private final Consumer<String> progress;
 
-        private PullImageCallback(Consumer<PullResponseItem> progress) {
+        private PullImageCallback(Consumer<String> progress) {
             this.progress = progress;
         }
 
         @Override
         public void onNext(PullResponseItem item) {
             if (progress != null && item != null) {
-                progress.accept(item);
+                progress.accept(item.getStatus());
             }
         }
     }
