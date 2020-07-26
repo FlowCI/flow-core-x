@@ -11,10 +11,6 @@ import com.google.common.collect.Sets;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.Date;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-
 public class AgentHostServiceTest extends ZookeeperScenario {
 
     @Autowired
@@ -80,34 +76,6 @@ public class AgentHostServiceTest extends ZookeeperScenario {
         agentHostService.removeAll(host);
         Assert.assertEquals(0, agentHostService.size(host));
         Assert.assertEquals(0, agentService.list().size());
-    }
-
-    @Ignore
-    @Test
-    public void should_should_over_time_limit() {
-        AgentHost host = new LocalUnixAgentHost();
-        host.setMaxIdleSeconds(1800);
-        host.setMaxOfflineSeconds(600);
-
-        // test idle limit
-        Instant updatedAt = Instant.now().minus(1, ChronoUnit.HOURS);
-        Assert.assertTrue(host.isOverMaxIdleSeconds(Date.from(updatedAt)));
-
-        updatedAt = Instant.now().minus(2, ChronoUnit.SECONDS);
-        Assert.assertFalse(host.isOverMaxIdleSeconds(Date.from(updatedAt)));
-
-        host.setMaxIdleSeconds(AgentHost.NoLimit);
-        Assert.assertFalse(host.isOverMaxIdleSeconds(Date.from(updatedAt)));
-
-        // test offline limit
-        updatedAt = Instant.now().minus(2, ChronoUnit.HOURS);
-        Assert.assertTrue(host.isOverMaxOfflineSeconds(Date.from(updatedAt)));
-
-        updatedAt = Instant.now().minus(5, ChronoUnit.MINUTES);
-        Assert.assertFalse(host.isOverMaxOfflineSeconds(Date.from(updatedAt)));
-
-        host.setMaxIdleSeconds(AgentHost.NoLimit);
-        Assert.assertFalse(host.isOverMaxOfflineSeconds(Date.from(updatedAt)));
     }
 
     @Ignore

@@ -45,11 +45,7 @@ public class CreateOrUpdateSshAgentHost {
 
     private String ip;
 
-    private int maxSize = 10;
-
-    private int maxIdleSeconds = 3600;
-
-    private int maxOfflineSeconds = 600;
+    private int maxSize = 5;
 
     public AgentHost toObj() {
         if (type == AgentHost.Type.SSH) {
@@ -61,8 +57,6 @@ public class CreateOrUpdateSshAgentHost {
             host.setIp(ip);
             host.setTags(tags);
             host.setMaxSize(maxSize);
-            host.setMaxIdleSeconds(maxIdleSeconds);
-            host.setMaxOfflineSeconds(maxOfflineSeconds);
             return host;
         }
 
@@ -71,8 +65,6 @@ public class CreateOrUpdateSshAgentHost {
             host.setId(id);
             host.setName(name);
             host.setMaxSize(maxSize);
-            host.setMaxIdleSeconds(maxIdleSeconds);
-            host.setMaxOfflineSeconds(maxOfflineSeconds);
             return host;
         }
 

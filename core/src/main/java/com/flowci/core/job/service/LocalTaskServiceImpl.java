@@ -37,7 +37,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
 
     private static final String DefaultImage = "flowci/plugin-runtime";
 
-    private static final int DefaultTimeout = 120; // seconds
+    private static final int DefaultTimeout = 300; // seconds
 
     @Autowired
     private String serverUrl;

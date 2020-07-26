@@ -16,20 +16,15 @@
 
 package com.flowci.core.agent.domain;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.flowci.core.common.domain.Mongoable;
-
-import org.springframework.data.mongodb.core.index.Indexed;
-
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -73,17 +68,7 @@ public abstract class AgentHost extends Mongoable {
     /**
      * Max agent size on the host
      */
-    private int maxSize = 10;
-
-    /**
-     * Stop agent container if over the idle seconds
-     */
-    private int maxIdleSeconds = 3600;
-
-    /**
-     * Remove agent container if over the offline seconds
-     */
-    private int maxOfflineSeconds = 600;
+    private int maxSize = 5;
 
     /**
      * Tags for all agent holed by host
@@ -94,18 +79,4 @@ public abstract class AgentHost extends Mongoable {
      * Error message if connection fail
      */
     private String error;
-
-    public boolean isOverMaxIdleSeconds(Date date) {
-        if (maxIdleSeconds == NoLimit) {
-            return false;
-        }
-        return date.toInstant().plus(maxIdleSeconds, ChronoUnit.SECONDS).isBefore(Instant.now());
-    }
-
-    public boolean isOverMaxOfflineSeconds(Date date) {
-        if (maxOfflineSeconds == NoLimit) {
-            return false;
-        }
-        return date.toInstant().plus(maxOfflineSeconds, ChronoUnit.SECONDS).isBefore(Instant.now());
-    }
 }
