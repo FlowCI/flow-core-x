@@ -1,5 +1,7 @@
 package com.flowci.core.job.service;
 
+import com.flowci.core.api.adviser.ApiAuth;
+import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.ExecutedLocalTaskDao;
@@ -7,14 +9,15 @@ import com.flowci.core.job.domain.Executed;
 import com.flowci.core.job.domain.ExecutedLocalTask;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.TaskUpdateEvent;
-import com.flowci.core.job.manager.DockerManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
+import com.flowci.docker.ContainerManager;
+import com.flowci.docker.DockerManager;
+import com.flowci.docker.ImageManager;
+import com.flowci.docker.domain.DockerStartOption;
 import com.flowci.domain.LocalTask;
-import com.flowci.domain.StringVars;
-import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.StatusException;
 import com.flowci.tree.NodeTree;
 import com.flowci.util.ObjectsHelper;
@@ -33,7 +36,11 @@ import java.util.Optional;
 public class LocalTaskServiceImpl implements LocalTaskService {
 
     private static final String DefaultImage = "flowci/plugin-runtime";
-    private static final int DefaultTimeout = 60; // seconds
+
+    private static final int DefaultTimeout = 300; // seconds
+
+    @Autowired
+    private String serverUrl;
 
     @Autowired
     private ExecutedLocalTaskDao executedLocalTaskDao;
@@ -108,32 +115,33 @@ public class LocalTaskServiceImpl implements LocalTaskService {
         ExecutedLocalTask exec = optional.get();
         updateStatusTimeAndSave(exec, Executed.Status.RUNNING, null);
 
-        DockerManager.Option option = new DockerManager.Option();
+        DockerStartOption option = new DockerStartOption();
         option.setImage(DefaultImage);
-        option.setInputs(new StringVars(job.getContext()).merge(task.getEnvs()));
+        option.addEntryPoint("/bin/bash");
+        option.addEntryPoint("-c");
+        option.getEnv()
+                .putAndReturn(Variables.App.Url, serverUrl)
+                .putAndReturn(Variables.Agent.Token, ApiAuth.LocalTaskToken)
+                .putAndReturn(Variables.Agent.Workspace, "/ws/")
+                .putAndReturn(Variables.Agent.PluginDir, "/ws/.plugins")
+                .merge(job.getContext())
+                .merge(task.getEnvs());
 
         if (task.hasPlugin()) {
             String name = task.getPlugin();
-            GetPluginEvent event = eventManager.publish(new GetPluginAndVerifySetContext(this, name, option.getInputs()));
+            GetPluginEvent event = eventManager.publish(new GetPluginAndVerifySetContext(this, name, option.getEnv()));
 
             if (event.hasError()) {
                 String message = event.getError().getMessage();
                 log.warn(message);
                 updateStatusTimeAndSave(exec, Executed.Status.EXCEPTION, message);
-                ;
                 return exec;
             }
 
             Plugin plugin = event.getFetched();
-
-            option.setScript(plugin.getScript());
-            option.setPlugin(plugin.getName());
-            option.setPluginDir(event.getDir().toString());
-
-            // apply docker image only from plugin if it's specified
-            ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> {
-                option.setImage(plugin.getDocker().getImage());
-            });
+            option.addEntryPoint(plugin.getScript());
+            option.addBind(event.getDir().toString(), "/ws/.plugins/" + plugin.getName());
+            ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> option.setImage(docker.getImage()));
         }
 
         try {
@@ -170,26 +178,22 @@ public class LocalTaskServiceImpl implements LocalTaskService {
         eventManager.publish(new TaskUpdateEvent(this, t.getJobId(), list, false));
     }
 
-    private void runDockerTask(DockerManager.Option option, ExecutedLocalTask r) throws InterruptedException, RuntimeException {
+    private void runDockerTask(DockerStartOption option, ExecutedLocalTask r) throws Exception {
+        ContainerManager cm = dockerManager.getContainerManager();
+        ImageManager im = dockerManager.getImageManager();
+        String image = option.getImage();
+
         try {
-            String image = option.getImage();
-            boolean isSuccess = dockerManager.pullImage(image);
-            if (!isSuccess) {
-                throw new NotAvailableException("Docker image {0} not available", image);
-            }
-
-            String cid = dockerManager.createAndStartContainer(option);
+            im.pull(image, DefaultTimeout, log::debug);
+            String cid = cm.start(option);
             r.setContainerId(cid);
-            dockerManager.printContainerLog(cid);
 
-            if (!dockerManager.waitContainer(cid, DefaultTimeout)) {
-                dockerManager.killContainer(cid);
-            }
-
-            r.setCode(dockerManager.getContainerExitCode(cid));
+            cm.wait(cid, DefaultTimeout, (frame -> log.debug(new String(frame.getPayload()))));
+            Long exitCode = cm.inspect(cid).getState().getExitCodeLong();
+            r.setCode(exitCode.intValue());
         } finally {
             if (r.hasContainerId()) {
-                dockerManager.removeContainer(r.getContainerId());
+                cm.delete(r.getContainerId());
             }
         }
     }

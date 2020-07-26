@@ -21,6 +21,11 @@
 
     <dependency>
       <groupId>com.flowci</groupId>
+      <artifactId>docker</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.flowci</groupId>
       <artifactId>sm</artifactId>
     </dependency>
 
@@ -47,11 +52,6 @@
     <dependency>
       <groupId>com.flowci</groupId>
       <artifactId>zookeeper</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.flowci</groupId>
-      <artifactId>pool</artifactId>
     </dependency>
 
     <dependency>
@@ -102,11 +102,6 @@
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java</artifactId>
     </dependency>
 
     <dependency>

@@ -19,16 +19,13 @@ package com.flowci.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.domain.Common.OS;
 import com.google.common.base.Strings;
+import lombok.*;
+import lombok.experimental.Accessors;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 
 /**
  * @author yang

@@ -28,5 +28,6 @@ public class LocalUnixAgentHost extends AgentHost {
     
     public LocalUnixAgentHost() {
         this.setType(AgentHost.Type.LocalUnixSocket);
+        this.setMaxSize(2);
     }
 }

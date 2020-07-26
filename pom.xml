@@ -16,9 +16,9 @@
         <module>exception</module>
         <module>tree</module>
         <module>zookeeper</module>
-        <module>pool</module>
         <module>store</module>
         <module>sm</module>
+        <module>docker</module>
     </modules>
 
     <properties>
@@ -108,6 +108,12 @@
 
             <dependency>
                 <groupId>com.flowci</groupId>
+                <artifactId>docker</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.flowci</groupId>
                 <artifactId>sm</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -122,12 +128,6 @@
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>tree</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.flowci</groupId>
-                <artifactId>pool</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

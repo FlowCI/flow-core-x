@@ -23,7 +23,6 @@ import com.flowci.core.agent.domain.AgentInit;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.CmdSentEvent;
-import com.flowci.core.agent.event.CreateAgentEvent;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.helper.ThreadHelper;
@@ -168,10 +167,10 @@ public class AgentServiceImpl implements AgentService {
     public List<Agent> find(Status status, Set<String> tags) {
         List<Agent> agents;
 
-        if (Objects.isNull(tags) || tags.isEmpty()) {
-            agents = agentDao.findAllByStatus(status);
-        } else {
+        if (ObjectsHelper.hasCollection(tags)) {
             agents = agentDao.findAllByStatusAndTagsIn(status, tags);
+        } else {
+            agents = agentDao.findAllByStatus(status);
         }
 
         return agents;
@@ -180,9 +179,15 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public Agent delete(String token) {
         Agent agent = getByToken(token);
-        agentDao.delete(agent);
-        log.debug("{} has been deleted", agent);
+        delete(agent);
         return agent;
+    }
+
+    @Override
+    public void delete(Agent agent) {
+        agentDao.delete(agent);
+        agentQueueManager.delete(agent.getQueueName());
+        log.debug("{} has been deleted", agent);
     }
 
     @Override
@@ -323,12 +328,6 @@ public class AgentServiceImpl implements AgentService {
     //====================================================================
     //        %% Spring Event Listener
     //====================================================================
-
-    @EventListener
-    public void onCreateAgentEvent(CreateAgentEvent event) {
-        Agent agent = this.create(event.getName(), event.getTags(), Optional.of(event.getHostId()));
-        event.setFetched(agent);
-    }
 
     @EventListener
     public void notifyToFindAvailableAgent(AgentStatusEvent event) {
