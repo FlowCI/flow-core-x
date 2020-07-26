@@ -7,4 +7,6 @@ public interface DockerManager {
     ContainerManager getContainerManager();
 
     ImageManager getImageManager();
+
+    void close();
 }

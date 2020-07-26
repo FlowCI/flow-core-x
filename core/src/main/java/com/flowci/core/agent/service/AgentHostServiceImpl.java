@@ -32,24 +32,21 @@ import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.core.user.domain.User;
+import com.flowci.docker.ContainerManager;
+import com.flowci.docker.DockerManager;
+import com.flowci.docker.DockerSSHManager;
+import com.flowci.docker.domain.DockerStartOption;
+import com.flowci.docker.domain.SSHOption;
 import com.flowci.domain.Agent;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
-import com.flowci.pool.DockerClientExecutor;
-import com.flowci.pool.domain.AgentContainer;
-import com.flowci.pool.domain.SocketInitContext;
-import com.flowci.pool.domain.SshInitContext;
-import com.flowci.pool.domain.StartContext;
-import com.flowci.pool.exception.DockerPoolException;
-import com.flowci.pool.manager.PoolManager;
-import com.flowci.pool.manager.SocketPoolManager;
-import com.flowci.pool.manager.SshPoolManager;
 import com.flowci.util.StringHelper;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.flowci.zookeeper.ZookeeperException;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.RemovalListener;
+import com.github.dockerjava.api.model.Container;
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -68,15 +65,24 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static com.flowci.core.agent.domain.Variables.*;
 import static com.flowci.core.secret.domain.Secret.Category.SSH_RSA;
 
 @Log4j2
 @Service
 public class AgentHostServiceImpl implements AgentHostService {
 
+    private static final String DefaultImage = "flowci/agent:latest";
+
+    private static final String DefaultWorkspace = "/ws";
+
+    private static final String DockerSock = "/var/run/docker.sock";
+
+    private static final String ContainerNamePrefix = "ci-agent";
+
     private final Map<Class<?>, OnCreateAndInit> mapping = new HashMap<>(3);
 
-    private final Cache<AgentHost, PoolManager<?>> poolManagerCache =
+    private final Cache<AgentHost, DockerManager> poolManagerCache =
             CacheHelper.createLocalCache(10, 600, new PoolManagerRemover());
 
     private String collectTaskZkPath;
@@ -106,7 +112,7 @@ public class AgentHostServiceImpl implements AgentHostService {
     private TaskExecutor appTaskExecutor;
 
     @Autowired
-    private DockerClientExecutor dockerExecutor;
+    private DockerManager dockerManager;
 
     {
         mapping.put(LocalUnixAgentHost.class, new OnLocalSocketHostCreate());
@@ -152,17 +158,18 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @Override
     public void sync(AgentHost host) {
-        Optional<PoolManager<?>> optional = getPoolManager(host);
+        Optional<DockerManager> optional = getDockerManager(host);
         if (!optional.isPresent()) {
             log.warn("Fail to get pool manager of host: {}", host.getName());
             return;
         }
 
-        List<AgentContainer> containerList;
+        ContainerManager cm = optional.get().getContainerManager();
+        List<Container> containerList;
 
         try {
-            containerList = optional.get().list(Optional.empty());
-        } catch (DockerPoolException e) {
+            containerList = cm.list(null, ContainerNamePrefix + "*");
+        } catch (Exception e) {
             log.warn("Cannot list containers of host {}", host.getName());
             return;
         }
@@ -176,18 +183,20 @@ public class AgentHostServiceImpl implements AgentHostService {
 
         for (AgentItemWrapper item : containerSet) {
             try {
-                optional.get().remove(item.getName());
+                List<Container> list = cm.list(null, item.getName());
+                if (list.size() > 0) {
+                    cm.delete(list.get(0).getId());
+                }
                 log.info("Agent {} has been cleaned up", item.getName());
-            } catch (DockerPoolException ignore) {
-
+            } catch (Exception ignore) {
             }
         }
     }
 
     @Override
     public boolean start(AgentHost host) {
-        Optional<PoolManager<?>> optional = getPoolManager(host);
-        if (!optional.isPresent()) {
+        Optional<DockerManager> manager = getDockerManager(host);
+        if (!manager.isPresent()) {
             log.warn("Fail to get pool manager of host: {}", host.getName());
             return false;
         }
@@ -195,8 +204,12 @@ public class AgentHostServiceImpl implements AgentHostService {
         List<Agent> agents = agentDao.findAllByHostId(host.getId());
         List<Agent> startList = new LinkedList<>();
 
+        DockerManager dockerManager = manager.get();
+        ContainerManager cm = dockerManager.getContainerManager();
+
+
         for (Agent agent : agents) {
-            // add to offline list to start later
+            // add just created agent to list to start later
             if (agent.getStatus() == Agent.Status.CREATED) {
                 startList.add(agent);
                 continue;
@@ -205,30 +218,35 @@ public class AgentHostServiceImpl implements AgentHostService {
             // try to resume, add to start list if failed
             if (agent.getStatus() == Agent.Status.OFFLINE) {
                 try {
-                    optional.get().resume(agent.getName());
+                    List<Container> list = cm.list(null, getContainerName(agent));
+
+                    // container not exist
+                    if (list.isEmpty()) {
+                        startList.add(agent);
+                        continue;
+                    }
+
+                    Container container = list.get(0);
+                    cm.resume(container.getId());
                     log.info("Agent {} been resumed", agent.getName());
                     return true;
-                } catch (DockerPoolException e) {
+                } catch (Exception e) {
                     log.warn("Unable to resume agent {}", agent.getName());
                     startList.add(agent);
                 }
             }
         }
 
-        // re-start from offline, and delete if cannot be started
+        // start from offline, and delete if cannot be started
         for (Agent agent : startList) {
-            StartContext context = new StartContext();
-            context.setServerUrl(serverUrl);
-            context.setAgentName(agent.getName());
-            context.setToken(agent.getToken());
-
             try {
-                optional.get().start(context);
+                cm.start(buildStartOption(agent));
                 log.info("Agent {} been started", agent.getName());
                 return true;
-            } catch (DockerPoolException e) {
+            } catch (Exception e) {
                 log.warn("Unable to restart agent {}", agent.getName());
 
+                //TODO: send notification
                 agentDao.deleteById(agent.getId());
                 agents.remove(agent);
             }
@@ -243,16 +261,11 @@ public class AgentHostServiceImpl implements AgentHostService {
             Agent agent = syncEvent.getFetched();
             eventManager.publish(new AgentCreatedEvent(this, agent, host));
 
-            StartContext context = new StartContext();
-            context.setServerUrl(serverUrl);
-            context.setAgentName(agent.getName());
-            context.setToken(agent.getToken());
-
             try {
-                optional.get().start(context);
+                cm.start(buildStartOption(agent));
                 log.info("Agent {} been created and started", name);
                 return true;
-            } catch (DockerPoolException e) {
+            } catch (Exception e) {
                 log.warn("Unable to start created agent {}, since {}", agent.getName(), e.getMessage());
                 return false;
             }
@@ -264,15 +277,15 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @Override
     public int size(AgentHost host) {
-        Optional<PoolManager<?>> optional = getPoolManager(host);
+        Optional<DockerManager> optional = getDockerManager(host);
         if (!optional.isPresent()) {
             log.warn("Fail to get pool manager of host: {}", host.getName());
             return -1;
         }
 
         try {
-            return optional.get().size();
-        } catch (DockerPoolException e) {
+            return optional.get().getContainerManager().list(null, ContainerNamePrefix + "*").size();
+        } catch (Exception e) {
             log.warn("Cannot get container size of host {}", host.getName());
             return -1;
         }
@@ -280,25 +293,12 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @Override
     public void testConn(AgentHost host) {
-        appTaskExecutor.execute(() -> {
-            getPoolManager(host);
-        });
+        appTaskExecutor.execute(() -> getDockerManager(host));
     }
 
     @Override
     public void collect(AgentHost host) {
-        List<Agent> list = agentDao.findAllByHostId(host.getId());
-
-        for (Agent agent : list) {
-            if (agent.getStatus() == Agent.Status.IDLE) {
-                stopIfTimeout(host, agent);
-                continue;
-            }
-
-            if (agent.getStatus() == Agent.Status.OFFLINE) {
-                removeIfTimeout(host, agent);
-            }
-        }
+        // TODO: not implemented
     }
 
     @Override
@@ -308,19 +308,20 @@ public class AgentHostServiceImpl implements AgentHostService {
             agentDao.delete(agent);
         }
 
-        Optional<PoolManager<?>> optional = getPoolManager(host);
+        Optional<DockerManager> optional = getDockerManager(host);
         if (!optional.isPresent()) {
             log.warn("Fail to get pool manager of host: {}", host.getName());
             return;
         }
 
-        for (Agent agent : list) {
-            try {
-                optional.get().remove(agent.getName());
-                log.info("Agent {} been removed from host", agent.getName());
-            } catch (DockerPoolException e) {
-                log.info("Unable to remove agent {}", agent.getName());
+        ContainerManager cm = optional.get().getContainerManager();
+        try {
+            List<Container> containers = cm.list(null, ContainerNamePrefix + "*");
+            for (Container c : containers) {
+                cm.delete(c.getId());
             }
+        } catch (Exception e) {
+            log.warn(e.getMessage());
         }
     }
 
@@ -385,6 +386,27 @@ public class AgentHostServiceImpl implements AgentHostService {
     //        %% Private functions
     //====================================================================
 
+    private DockerStartOption buildStartOption(Agent agent) {
+        DockerStartOption option = new DockerStartOption();
+        option.setImage(DefaultImage);
+        option.setName(getContainerName(agent));
+
+        option.addEnv(SERVER_URL, serverUrl);
+        option.addEnv(AGENT_TOKEN, agent.getToken());
+        option.addEnv(AGENT_LOG_LEVEL, "DEBUG");
+        option.addEnv(AGENT_VOLUMES, System.getenv(AGENT_VOLUMES));
+        option.addEnv(AGENT_WORKSPACE, DefaultWorkspace);
+
+        option.addBind(String.format("${HOME}/.agent-%s", agent.getName()), DefaultWorkspace);
+        option.addBind(DockerSock, DockerSock);
+
+        return option;
+    }
+
+    public String getContainerName(Agent agent) {
+        return String.format("%s.%s", ContainerNamePrefix, agent.getName());
+    }
+
     private void initZkNodeForCronTask() {
         collectTaskZkPath = ZKPaths.makePath(zkProperties.getCronRoot(), "agent-host-collect");
     }
@@ -414,54 +436,11 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
     }
 
-    private boolean stopIfTimeout(AgentHost host, Agent agent) {
-        if (!host.isOverMaxIdleSeconds(agent.getStatusUpdatedAt())) {
-            return false;
-        }
-
-        Optional<PoolManager<?>> optional = getPoolManager(host);
-        if (!optional.isPresent()) {
-            log.warn("Fail to get pool manager of host: {}", host.getName());
-            return true;
-        }
-
-        try {
-            optional.get().stop(agent.getName());
-            log.debug("Agent {} been stopped", agent.getName());
-            return true;
-        } catch (Exception e) {
-            log.warn("Unable to stop idle agent {}", agent.getName());
-            return false;
-        }
-    }
-
-    private boolean removeIfTimeout(AgentHost host, Agent agent) {
-        if (!host.isOverMaxOfflineSeconds(agent.getStatusUpdatedAt())) {
-            return false;
-        }
-
-        Optional<PoolManager<?>> optional = getPoolManager(host);
-        if (!optional.isPresent()) {
-            log.warn("Fail to get pool manager of host: {}", host.getName());
-            return false;
-        }
-
-        try {
-            optional.get().remove(agent.getName());
-            agentDao.delete(agent);
-            log.debug("Agent {} been removed", agent.getName());
-            return true;
-        } catch (Exception e) {
-            log.warn("Unable to remove offline agent {}", agent.getName());
-            return false;
-        }
-    }
-
     /**
      * Load or init pool manager from local cache for each agent host
      */
-    private Optional<PoolManager<?>> getPoolManager(AgentHost host) {
-        PoolManager<?> manager = poolManagerCache.get(host, (h) -> {
+    private Optional<DockerManager> getDockerManager(AgentHost host) {
+        DockerManager manager = poolManagerCache.get(host, (h) -> {
             try {
                 return mapping.get(host.getClass()).init(host);
             } catch (Exception e) {
@@ -520,7 +499,7 @@ public class AgentHostServiceImpl implements AgentHostService {
 
         void create(AgentHost host);
 
-        PoolManager<?> init(AgentHost host) throws Exception;
+        DockerManager init(AgentHost host) throws Exception;
     }
 
     private class OnLocalSocketHostCreate implements OnCreateAndInit {
@@ -546,14 +525,8 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
 
         @Override
-        public PoolManager<?> init(AgentHost host) throws Exception {
-            PoolManager<SocketInitContext> poolManager = new SocketPoolManager();
-
-            SocketInitContext context = new SocketInitContext();
-            context.setExecutor(dockerExecutor);
-
-            poolManager.init(context);
-            return poolManager;
+        public DockerManager init(AgentHost host) {
+            return dockerManager;
         }
 
         private boolean hasCreated() {
@@ -579,7 +552,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
 
         @Override
-        public PoolManager<?> init(AgentHost host) throws Exception {
+        public DockerManager init(AgentHost host) throws Exception {
             SshAgentHost sshHost = (SshAgentHost) host;
             GetSecretEvent event = new GetSecretEvent(this, sshHost.getSecret());
             eventManager.publish(event);
@@ -589,11 +562,9 @@ public class AgentHostServiceImpl implements AgentHostService {
             Preconditions.checkArgument(c.getCategory() == SSH_RSA, "Invalid credential category");
 
             RSASecret rsa = (RSASecret) c;
-            PoolManager<SshInitContext> manager = new SshPoolManager();
-            manager.init(SshInitContext.of(
-                    rsa.getPrivateKey(), sshHost.getIp(), sshHost.getUser(), 10));
 
-            return manager;
+            SSHOption option = SSHOption.of(rsa.getPrivateKey(), sshHost.getIp(), sshHost.getUser(), sshHost.getPort());
+            return new DockerSSHManager(option);
         }
     }
 
@@ -617,8 +588,8 @@ public class AgentHostServiceImpl implements AgentHostService {
                 return ((Agent) object).getName();
             }
 
-            if (object instanceof AgentContainer) {
-                return ((AgentContainer) object).getAgentName();
+            if (object instanceof Container) {
+                return ((Container) object).getNames()[0];
             }
 
             throw new IllegalArgumentException();
@@ -640,15 +611,15 @@ public class AgentHostServiceImpl implements AgentHostService {
     }
 
     @Log4j2
-    private static class PoolManagerRemover implements RemovalListener<AgentHost, PoolManager<?>> {
+    private static class PoolManagerRemover implements RemovalListener<AgentHost, DockerManager> {
 
         @Override
         public void onRemoval(@Nullable AgentHost agentHost,
-                              @Nullable PoolManager<?> poolManager,
+                              @Nullable DockerManager dockerManager,
                               @Nonnull RemovalCause removalCause) {
-            if (poolManager != null) {
+            if (dockerManager != null) {
                 try {
-                    poolManager.close();
+                    dockerManager.close();
                 } catch (Exception e) {
                     log.warn("Unable to close agent host", e);
                 }

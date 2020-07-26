@@ -1,6 +1,7 @@
 package com.flowci.core.common.config;
 
-import com.flowci.pool.DockerClientExecutor;
+import com.flowci.docker.DockerManager;
+import com.flowci.docker.DockerSDKManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -8,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 public class DockerConfig {
 
     @Bean
-    public DockerClientExecutor dockerExecutor() {
-        return new DockerClientExecutor();
+    public DockerManager dockerManager() {
+        return new DockerSDKManager(DockerManager.DockerLocalHost);
     }
 }

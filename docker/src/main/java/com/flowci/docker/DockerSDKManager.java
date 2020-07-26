@@ -44,6 +44,11 @@ public class DockerSDKManager implements DockerManager {
         return imageManager;
     }
 
+    @Override
+    public void close() {
+        // ignore
+    }
+
     private class ImageMangerImpl implements ImageManager {
 
         @Override

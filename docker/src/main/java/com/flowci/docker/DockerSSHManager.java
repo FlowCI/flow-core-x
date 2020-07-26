@@ -8,9 +8,11 @@ import com.flowci.docker.domain.DockerStartOption;
 import com.flowci.docker.domain.SSHOption;
 import com.flowci.domain.ObjectWrapper;
 import com.flowci.util.StringHelper;
-import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
-import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.api.model.Container;
+import com.github.dockerjava.api.model.Frame;
+import com.github.dockerjava.api.model.Image;
+import com.github.dockerjava.api.model.StreamType;
 import com.jcraft.jsch.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,7 +33,7 @@ public class DockerSSHManager implements DockerManager {
 
 
     private Session session;
-    
+
     private final ContainerManager containerManager = new ContainerManagerImpl();
 
     private final ImageManager imageManager = new ImageManagerImpl();
@@ -63,6 +65,14 @@ public class DockerSSHManager implements DockerManager {
     @Override
     public ImageManager getImageManager() {
         return imageManager;
+    }
+
+    @Override
+    public void close() {
+        if (Objects.isNull(session)) {
+            return;
+        }
+        session.disconnect();
     }
 
     private class ImageManagerImpl implements ImageManager {
@@ -250,13 +260,6 @@ public class DockerSSHManager implements DockerManager {
                 channel.disconnect();
             }
         }
-    }
-
-    public void close() {
-        if (Objects.isNull(session)) {
-            return;
-        }
-        session.disconnect();
     }
 
     private static StringBuilder collectOutput(InputStream in, Consumer<String> handler) throws IOException {

@@ -19,8 +19,6 @@ package com.flowci.core.job.config;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.job.domain.Step;
-import com.flowci.docker.DockerManager;
-import com.flowci.docker.DockerSDKManager;
 import com.flowci.tree.NodeTree;
 import com.flowci.util.FileHelper;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -59,10 +57,5 @@ public class JobConfig {
         String workspace = appProperties.getWorkspace().toString();
         Path pluginDir = Paths.get(workspace, "repos");
         return FileHelper.createDirectory(pluginDir);
-    }
-
-    @Bean
-    public DockerManager dockerManager() {
-        return new DockerSDKManager(DockerManager.DockerLocalHost);
     }
 }
