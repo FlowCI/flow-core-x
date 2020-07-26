@@ -16,12 +16,13 @@
 
 package com.flowci.core.job.event;
 
+import com.flowci.core.common.event.AsyncEvent;
 import com.flowci.tree.Selector;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 @Getter
-public class NoIdleAgentEvent extends ApplicationEvent {
+public class NoIdleAgentEvent extends ApplicationEvent implements AsyncEvent {
 
     private final String jobId;
 

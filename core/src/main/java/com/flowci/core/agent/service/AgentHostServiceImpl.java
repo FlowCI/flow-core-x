@@ -355,18 +355,8 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @EventListener
     public void onNoIdleAgent(NoIdleAgentEvent event) {
-        if (!appProperties.isAutoLocalAgentHost()) {
-            return;
-        }
-
         Set<String> agentTags = event.getSelector().getLabel();
-
-        List<AgentHost> hosts;
-        if (agentTags.isEmpty()) {
-            hosts = list();
-        } else {
-            hosts = agentHostDao.findAllByTagsIn(agentTags);
-        }
+        List<AgentHost> hosts = agentTags.isEmpty() ? list() : agentHostDao.findAllByTagsIn(agentTags);
 
         if (hosts.isEmpty()) {
             log.warn("Unable to find matched agent host for job {}", event.getJobId());
@@ -397,9 +387,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         option.addEnv(AGENT_VOLUMES, System.getenv(AGENT_VOLUMES));
         option.addEnv(AGENT_WORKSPACE, DefaultWorkspace);
 
-        option.addBind(String.format("${HOME}/.agent-%s", agent.getName()), DefaultWorkspace);
         option.addBind(DockerSock, DockerSock);
-
         return option;
     }
 
