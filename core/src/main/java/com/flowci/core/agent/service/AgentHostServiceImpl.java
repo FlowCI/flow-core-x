@@ -23,7 +23,6 @@ import com.flowci.core.agent.domain.LocalUnixAgentHost;
 import com.flowci.core.agent.domain.SshAgentHost;
 import com.flowci.core.agent.event.AgentCreatedEvent;
 import com.flowci.core.agent.event.AgentHostStatusEvent;
-import com.flowci.core.agent.event.CreateAgentEvent;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -113,6 +112,9 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @Autowired
     private DockerManager dockerManager;
+
+    @Autowired
+    private AgentService agentService;
 
     {
         mapping.put(LocalUnixAgentHost.class, new OnLocalSocketHostCreate());
@@ -247,7 +249,7 @@ public class AgentHostServiceImpl implements AgentHostService {
                 log.warn("Unable to restart agent {}", agent.getName());
 
                 //TODO: send notification
-                agentDao.deleteById(agent.getId());
+                agentService.delete(agent);
                 agents.remove(agent);
             }
         }
@@ -255,18 +257,18 @@ public class AgentHostServiceImpl implements AgentHostService {
         // create new agent
         if (agents.size() < host.getMaxSize()) {
             String name = String.format("%s-%s", host.getName(), StringHelper.randomString(5));
-            CreateAgentEvent syncEvent =
-                    eventManager.publish(new CreateAgentEvent(this, name, host.getTags(), host.getId()));
-
-            Agent agent = syncEvent.getFetched();
-            eventManager.publish(new AgentCreatedEvent(this, agent, host));
-
+            Agent agent = null;
             try {
+                agent = agentService.create(name, host.getTags(), Optional.of(host.getId()));
                 cm.start(buildStartOption(agent));
+                eventManager.publish(new AgentCreatedEvent(this, agent, host));
                 log.info("Agent {} been created and started", name);
                 return true;
             } catch (Exception e) {
-                log.warn("Unable to start created agent {}, since {}", agent.getName(), e.getMessage());
+                if (agent != null) {
+                    agentService.delete(agent);
+                    log.warn("Unable to start created agent {}, since {}", agent.getName(), e.getMessage());
+                }
                 return false;
             }
         }
@@ -368,8 +370,6 @@ public class AgentHostServiceImpl implements AgentHostService {
                 return;
             }
         }
-
-        log.info("Unable to start agent from hosts");
     }
 
     //====================================================================

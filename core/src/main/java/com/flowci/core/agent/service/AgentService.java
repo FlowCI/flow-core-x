@@ -79,6 +79,11 @@ public interface AgentService {
     Agent delete(String token);
 
     /**
+     * Delete agent by object
+     */
+    void delete(Agent agent);
+
+    /**
      * Set agent tags by token
      */
     Agent setTags(String token, Set<String> tags);
