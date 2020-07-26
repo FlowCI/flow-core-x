@@ -184,11 +184,11 @@ public class LocalTaskServiceImpl implements LocalTaskService {
         String image = option.getImage();
 
         try {
-            im.pull(image, DefaultTimeout, log::info);
+            im.pull(image, DefaultTimeout, log::debug);
             String cid = cm.start(option);
             r.setContainerId(cid);
 
-            cm.wait(cid, DefaultTimeout, (frame -> log.info(new String(frame.getPayload()))));
+            cm.wait(cid, DefaultTimeout, (frame -> log.debug(new String(frame.getPayload()))));
             Long exitCode = cm.inspect(cid).getState().getExitCodeLong();
             r.setCode(exitCode.intValue());
         } finally {
