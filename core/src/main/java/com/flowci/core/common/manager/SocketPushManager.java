@@ -44,12 +44,16 @@ public class SocketPushManager {
             PushBody push = new PushBody(event, obj);
             String json = objectMapper.writeValueAsString(push);
             simpMessagingTemplate.convertAndSend(topic, json);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.warn(e.getMessage());
         }
     }
 
     public void push(String topic, byte[] bytes) {
-        simpMessagingTemplate.convertAndSend(topic, bytes);
+        try {
+            simpMessagingTemplate.convertAndSend(topic, bytes);
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+        }
     }
 }
