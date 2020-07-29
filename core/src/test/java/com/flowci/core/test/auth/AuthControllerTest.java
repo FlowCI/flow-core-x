@@ -79,7 +79,7 @@ public class AuthControllerTest extends SpringScenario {
     public void should_login_and_return_402_with_invalid_password() throws Exception {
         ResponseMessage<Tokens> message = authHelper.login(user.getEmail(), "wrong..");
 
-        Assert.assertEquals(ErrorCode.INVALID_ARGUMENT, message.getCode());
+        Assert.assertEquals(ErrorCode.AUTH_FAILURE, message.getCode());
         Assert.assertEquals("Invalid password", message.getMessage());
     }
 
