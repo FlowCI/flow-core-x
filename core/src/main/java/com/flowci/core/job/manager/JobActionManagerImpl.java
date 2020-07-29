@@ -134,22 +134,25 @@ public class JobActionManagerImpl implements JobActionManager {
 
     @EventListener
     public void init(ContextRefreshedEvent ignore) {
-        fromPending();
-        fromLoading();
-        fromCreated();
-        fromQueued();
-        fromRunning();
-        fromCancelling();
+        try {
+            fromPending();
+            fromLoading();
+            fromCreated();
+            fromQueued();
+            fromRunning();
+            fromCancelling();
 
-        Sm.addHookActionOnTargetStatus(context -> {
-            Job job = context.job;
-            if (hasJobLock(job.getId())) {
-                throw new StatusException("Unable to cancel right now, try later");
-            }
-        }, Cancelled);
+            Sm.addHookActionOnTargetStatus(context -> {
+                Job job = context.job;
+                if (hasJobLock(job.getId())) {
+                    throw new StatusException("Unable to cancel right now, try later");
+                }
+            }, Cancelled);
 
-        // run local notification task
-        Sm.addHookActionOnTargetStatus(notificationConsumer(), Success, Failure, Timeout, Cancelled);
+            // run local notification task
+            Sm.addHookActionOnTargetStatus(notificationConsumer(), Success, Failure, Timeout, Cancelled);
+        } catch (SmException.TransitionExisted ignored) {
+        }
     }
 
     @Override

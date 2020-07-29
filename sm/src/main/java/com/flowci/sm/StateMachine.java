@@ -31,7 +31,7 @@ public class StateMachine<T extends Context> {
         Map<Status, Action<T>> map = actions.computeIfAbsent(t.getFrom(), k -> new HashMap<>());
 
         if (map.containsKey(t.getTo())) {
-            throw new IllegalStateException("Transition already existed");
+            throw new SmException.TransitionExisted();
         }
 
         map.put(t.getTo(), action);
