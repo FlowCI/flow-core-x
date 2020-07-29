@@ -31,4 +31,4 @@ cd flow-docker
 ./server.sh start
 ```
 
-![](./src/demo.gif)
+![demo](https://github.com/FlowCI/docs/raw/master/src/demo.gif)
