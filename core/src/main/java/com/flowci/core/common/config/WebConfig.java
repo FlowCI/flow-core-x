@@ -78,6 +78,7 @@ public class WebConfig {
 
                 registry.addInterceptor(webAuth)
                         .addPathPatterns("/users/**")
+                        .excludePathPatterns("/users/default")
                         .addPathPatterns("/flows/**")
                         .addPathPatterns("/jobs/**")
                         .addPathPatterns("/agents/**")

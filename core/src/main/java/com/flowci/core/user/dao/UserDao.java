@@ -22,6 +22,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author yang
@@ -32,4 +33,6 @@ public interface UserDao extends MongoRepository<User, String> {
     User findByEmail(String email);
 
     List<User> findAllByEmailIn(Collection<String> emails);
+
+    Optional<User> findByRoleAndDefaultAdmin(User.Role role, Boolean defaultAdmin);
 }

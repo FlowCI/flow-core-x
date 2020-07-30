@@ -54,8 +54,15 @@ public class User extends Mongoable {
 
     private Role role;
 
+    private Boolean defaultAdmin;
+
     @JsonIgnore
     public boolean isAdmin() {
         return role == Role.Admin;
+    }
+
+    @JsonIgnore
+    public boolean isDefaultAdmin() {
+        return isAdmin() && defaultAdmin != null;
     }
 }
