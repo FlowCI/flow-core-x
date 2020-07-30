@@ -20,6 +20,8 @@ import com.flowci.exception.ArgumentException;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -39,12 +41,21 @@ public class CreateOrUpdateSshAgentHost {
     @NotEmpty
     private String name;
 
+    @NotEmpty
     private String secret;
 
+    @NotEmpty
     private String user;
 
+    @NotEmpty
     private String ip;
 
+    @Min(1)
+    @Max(Integer.MAX_VALUE)
+    private int port = 22;
+
+    @Min(1)
+    @Max(Integer.MAX_VALUE)
     private int maxSize = 5;
 
     public AgentHost toObj() {
@@ -57,6 +68,7 @@ public class CreateOrUpdateSshAgentHost {
             host.setIp(ip);
             host.setTags(tags);
             host.setMaxSize(maxSize);
+            host.setPort(port);
             return host;
         }
 

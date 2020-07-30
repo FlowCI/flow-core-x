@@ -35,7 +35,7 @@ public class SshAgentHost extends AgentHost {
     @NonNull
     private String ip;
 
-    private int port = 22;
+    private int port;
 
     public SshAgentHost() {
         setType(Type.SSH);
