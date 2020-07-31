@@ -16,7 +16,6 @@
 
 package com.flowci.core.user.service;
 
-import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.user.dao.UserDao;
@@ -26,7 +25,7 @@ import com.flowci.core.user.event.UserDeletedEvent;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
-import com.flowci.util.HashingHelper;
+import com.flowci.exception.StatusException;
 import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,10 +34,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author yang
@@ -48,9 +47,6 @@ import java.util.Objects;
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    private AppProperties.Admin adminProperties;
-
-    @Autowired
     private UserDao userDao;
 
     @Autowired
@@ -58,19 +54,6 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private SpringEventManager eventManager;
-
-    @PostConstruct
-    public void initAdmin() {
-        String adminEmail = adminProperties.getDefaultEmail();
-        String adminPassword = adminProperties.getDefaultPassword();
-
-        try {
-            create(adminEmail, HashingHelper.md5(adminPassword), Role.Admin);
-            log.info("Admin {} been initialized", adminEmail);
-        } catch (DuplicateException ignore) {
-
-        }
-    }
 
     @Override
     public Page<User> list(Pageable pageable) {
@@ -84,19 +67,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User defaultAdmin() {
-        String email = adminProperties.getDefaultEmail();
-        return userDao.findByEmail(email);
+    public Optional<User> defaultAdmin() {
+        return userDao.findByRoleAndDefaultAdmin(Role.Admin, true);
+    }
+
+    @Override
+    public User createDefaultAdmin(String email, String passwordOnMd5) {
+        if (defaultAdmin().isPresent()) {
+            throw new StatusException("Default admin has been created");
+        }
+
+        return create(email, passwordOnMd5, Role.Admin, Boolean.TRUE);
     }
 
     @Override
     public User create(String email, String passwordOnMd5, User.Role role) {
-        try {
-            User user = new User(email, passwordOnMd5, role);
-            return userDao.insert(user);
-        } catch (DuplicateKeyException e) {
-            throw new DuplicateException("Email {0} is already existed", email);
-        }
+        return create(email, passwordOnMd5, role, null);
     }
 
     @Override
@@ -123,20 +109,37 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void changeRole(String email, Role newRole) {
-        User target = getByEmail(email);
-        if (target.getRole().equals(newRole)) {
+        User user = getByEmail(email);
+        if (user.isDefaultAdmin()) {
+            throw new StatusException("Default admin user role cannot be deleted");
+        }
+
+        if (user.getRole().equals(newRole)) {
             return;
         }
 
-        target.setRole(newRole);
-        userDao.save(target);
+        user.setRole(newRole);
+        userDao.save(user);
     }
 
     @Override
     public User delete(String email) {
         User user = getByEmail(email);
+        if (user.isDefaultAdmin()) {
+            throw new StatusException("Default admin user cannot be deleted");
+        }
+
         userDao.delete(user);
         eventManager.publish(new UserDeletedEvent(this, user));
         return user;
+    }
+
+    private User create(String email, String md5pw, Role role, Boolean isDefaultAdmin) {
+        try {
+            User user = new User(email, md5pw, role, isDefaultAdmin);
+            return userDao.insert(user);
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateException("Email {0} is already existed", email);
+        }
     }
 }

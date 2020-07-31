@@ -60,12 +60,6 @@ public class AppProperties {
 
     private boolean socketContainer;
 
-    @Bean("adminProperties")
-    @ConfigurationProperties(prefix = "app.admin")
-    public Admin admin() {
-        return new Admin();
-    }
-
     @Bean("zkProperties")
     @ConfigurationProperties(prefix = "app.zookeeper")
     public Zookeeper zk() {
@@ -106,18 +100,6 @@ public class AppProperties {
     @ConfigurationProperties(prefix = "app.minio")
     public Minio minio() {
         return new Minio();
-    }
-
-    @Data
-    @Validated
-    public static class Admin {
-
-        @NotBlank
-        @Email
-        private String defaultEmail;
-
-        @NotBlank
-        private String defaultPassword;
     }
 
     @Data

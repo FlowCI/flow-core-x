@@ -71,6 +71,6 @@ public class AuthController {
         String email = values[0];
         String passwordOnMd5 = values[1];
 
-        return new User(email, passwordOnMd5, null);
+        return new User(email, passwordOnMd5, null, null);
     }
 }

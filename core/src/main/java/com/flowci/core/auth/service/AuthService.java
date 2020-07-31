@@ -65,8 +65,4 @@ public interface AuthService {
      */
     Optional<User> get(String token);
 
-    /**
-     * Set current user from default admin form config properties
-     */
-    boolean setAsDefaultAdmin();
 }

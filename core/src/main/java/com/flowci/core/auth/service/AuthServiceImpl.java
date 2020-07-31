@@ -153,11 +153,4 @@ public class AuthServiceImpl implements AuthService {
 
         return Optional.empty();
     }
-
-    @Override
-    public boolean setAsDefaultAdmin() {
-        User defaultAdmin = userService.defaultAdmin();
-        sessionManager.set(defaultAdmin);
-        return true;
-    }
 }
