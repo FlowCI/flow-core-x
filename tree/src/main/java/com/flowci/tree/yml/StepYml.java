@@ -19,7 +19,6 @@ package com.flowci.tree.yml;
 import com.flowci.exception.YmlException;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.StepNode;
-import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
 import lombok.Getter;
@@ -39,7 +38,10 @@ public class StepYml extends YmlBase<StepNode> {
 
     private static final String DefaultStepPrefix = "step-";
 
-    private String before;
+    /**
+     * Groovy script
+     */
+    private String condition;
 
     private String script;
 
@@ -59,7 +61,7 @@ public class StepYml extends YmlBase<StepNode> {
 
     public StepNode toNode(int index) {
         StepNode node = new StepNode(buildName(index));
-        node.setBefore(before);
+        node.setCondition(condition);
         node.setScript(script);
         node.setPlugin(plugin);
         node.setExports(Sets.newHashSet(exports));
