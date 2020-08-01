@@ -18,6 +18,7 @@ package com.flowci.core.job.config;
 
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
+import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.job.domain.Step;
 import com.flowci.tree.NodeTree;
 import com.flowci.util.FileHelper;
@@ -26,11 +27,13 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author yang
@@ -57,5 +60,10 @@ public class JobConfig {
         String workspace = appProperties.getWorkspace().toString();
         Path pluginDir = Paths.get(workspace, "repos");
         return FileHelper.createDirectory(pluginDir);
+    }
+
+    @Bean("jobConditionExecutor")
+    public ThreadPoolTaskExecutor jobConditionExecutor() {
+        return ThreadHelper.createTaskExecutor(20, 20, 100, "job-cond-");
     }
 }

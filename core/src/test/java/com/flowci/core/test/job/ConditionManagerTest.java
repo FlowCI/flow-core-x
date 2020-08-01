@@ -37,4 +37,18 @@ public class ConditionManagerTest extends SpringScenario {
 
         conditionManager.run(in);
     }
+
+    @Test(expected = ScriptException.class)
+    public void should_throw_exception_if_timeout() throws ScriptException {
+        ShellIn in = new ShellIn();
+        in.getInputs().put("foo", "helloword");
+        in.setCondition(
+                "sleep(6000); "
+                        + "println \"$foo\"; "
+                        + "hello = \"1234\";"
+                        + "return true;"
+        );
+
+        conditionManager.run(in);
+    }
 }
