@@ -646,12 +646,10 @@ public class JobActionManagerImpl implements JobActionManager {
         if (!canExecute) {
             nextStep.setStartAt(new Date());
             nextStep.setFinishAt(new Date());
-            nextStep.setError(Step.MessageSkippedOnCondition);
-
             updateJobTime(job, nextStep, tree, next);
 
             setJobStatusAndSave(job, Job.Status.RUNNING, null);
-            stepService.toStatus(nextStep, Executed.Status.SKIPPED, null);
+            stepService.toStatus(nextStep, Executed.Status.SKIPPED, Step.MessageSkippedOnCondition);
 
             JobSmContext context = new JobSmContext();
             context.job = job;
@@ -711,11 +709,10 @@ public class JobActionManagerImpl implements JobActionManager {
             if (!canExecute) {
                 nextStep.setStartAt(new Date());
                 nextStep.setFinishAt(new Date());
-                nextStep.setError(Step.MessageSkippedOnCondition);
                 updateJobTime(job, nextStep, tree, next.get());
 
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
-                stepService.toStatus(nextStep, Step.Status.SKIPPED, null);
+                stepService.toStatus(nextStep, Step.Status.SKIPPED, Step.MessageSkippedOnCondition);
                 return toNextStep(context);
             }
 
