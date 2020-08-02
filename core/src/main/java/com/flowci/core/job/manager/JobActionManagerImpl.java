@@ -646,6 +646,8 @@ public class JobActionManagerImpl implements JobActionManager {
         if (!canExecute) {
             nextStep.setStartAt(new Date());
             nextStep.setFinishAt(new Date());
+            nextStep.setError(Step.MessageSkippedOnCondition);
+
             updateJobTime(job, nextStep, tree, next);
 
             setJobStatusAndSave(job, Job.Status.RUNNING, null);
@@ -709,6 +711,7 @@ public class JobActionManagerImpl implements JobActionManager {
             if (!canExecute) {
                 nextStep.setStartAt(new Date());
                 nextStep.setFinishAt(new Date());
+                nextStep.setError(Step.MessageSkippedOnCondition);
                 updateJobTime(job, nextStep, tree, next.get());
 
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
