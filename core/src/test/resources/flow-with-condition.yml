@@ -10,7 +10,7 @@ steps:
 - envs:
     FLOW_WORKSPACE: "echo step"
     FLOW_VERSION: "echo step version"
-  before: |
+  condition: |
     return false
   script: |
     echo hello

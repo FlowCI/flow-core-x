@@ -35,13 +35,11 @@
         <swagger2.version>2.7.0</swagger2.version>
         <jgit.version>5.0.3.201809091024-r</jgit.version>
         <jsch.version>0.1.55</jsch.version>
-        <groovy-all.version>2.4.12</groovy-all.version>
         <docker-java.version>3.2.1</docker-java.version>
         <cron-utils.version>7.0.5</cron-utils.version>
         <amqp-client.version>5.9.0</amqp-client.version>
         <java-jwt.version>3.8.1</java-jwt.version>
         <minio.version>6.0.11</minio.version>
-        <protobuf-java.version>3.11.4</protobuf-java.version>
         <log4j-core.version>2.11.2</log4j-core.version>
     </properties>
 
@@ -153,18 +151,6 @@
                 <groupId>com.auth0</groupId>
                 <artifactId>java-jwt</artifactId>
                 <version>${java-jwt.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.google.protobuf</groupId>
-                <artifactId>protobuf-java</artifactId>
-                <version>${protobuf-java.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.codehaus.groovy</groupId>
-                <artifactId>groovy-all</artifactId>
-                <version>${groovy-all.version}</version>
             </dependency>
 
             <dependency>
@@ -315,6 +301,13 @@
             </dependency>
 
             <dependency>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy-all</artifactId>
+                <version>3.0.4</version>
+                <type>pom</type>
+            </dependency>
+
+            <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-test</artifactId>
                 <version>${curator.version}</version>
@@ -334,7 +327,6 @@
                 <version>${wiremock.version}</version>
                 <scope>test</scope>
             </dependency>
-
         </dependencies>
     </dependencyManagement>
 

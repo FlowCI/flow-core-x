@@ -25,7 +25,7 @@ notifications:
       FLOWCI_SMTP_CONFIG: 'test-config'
 
 steps:
- - before: |
+ - condition: |
      println(FLOW_WORKSPACE)
      true
    envs:

@@ -1,8 +1,10 @@
 package com.flowci.core.agent.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
+import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,6 +33,9 @@ public final class ShellIn extends CmdIn {
 
     private List<DockerOption> dockers;
 
+    @JsonIgnore
+    private String condition;
+
     private List<String> scripts = new LinkedList<>();
 
     private int timeout = 1800;
@@ -56,5 +61,10 @@ public final class ShellIn extends CmdIn {
 
     public void addInputs(StringVars vars) {
         inputs.putAll(vars);
+    }
+
+    @JsonIgnore
+    public boolean hasCondition() {
+        return StringHelper.hasValue(condition);
     }
 }

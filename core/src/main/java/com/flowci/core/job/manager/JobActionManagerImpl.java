@@ -7,6 +7,7 @@ import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.dao.JobDao;
+import com.flowci.core.job.domain.Executed;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.JobReceivedEvent;
@@ -29,6 +30,7 @@ import com.flowci.util.StringHelper;
 import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.base.Strings;
+import groovy.util.ScriptException;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -42,10 +44,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -119,6 +118,9 @@ public class JobActionManagerImpl implements JobActionManager {
 
     @Autowired
     private RabbitOperations jobsQueueManager;
+
+    @Autowired
+    private ConditionManager conditionManager;
 
     @Autowired
     private LocalTaskService localTaskService;
@@ -328,7 +330,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
         Sm.add(QueuedToRunning, new Action<JobSmContext>() {
             @Override
-            public void accept(JobSmContext context) {
+            public void accept(JobSmContext context) throws Exception {
                 Job job = context.job;
                 eventManager.publish(new JobReceivedEvent(this, job));
 
@@ -387,7 +389,7 @@ public class JobActionManagerImpl implements JobActionManager {
             }
 
             @Override
-            public void accept(JobSmContext context) {
+            public void accept(JobSmContext context) throws Exception {
                 Job job = context.job;
                 log.debug("Job {} is locked", job.getId());
 
@@ -618,7 +620,7 @@ public class JobActionManagerImpl implements JobActionManager {
     /**
      * Dispatch job to agent when Queue to Running
      */
-    private void dispatch(Job job, Agent agent) {
+    private void dispatch(Job job, Agent agent) throws ScriptException {
         NodeTree tree = ymlManager.getTree(job);
         StepNode next = tree.next(NodePath.create(job.getCurrentPath()));
 
@@ -636,13 +638,30 @@ public class JobActionManagerImpl implements JobActionManager {
         job.setAgentId(agent.getId());
         job.setAgentSnapshot(agent);
 
-        // set executed cmd step to running
-        Step nextStep = stepService.toStatus(job.getId(), nextPath, Step.Status.RUNNING, null);
-
         // dispatch job to agent queue
+        Step nextStep = stepService.get(job.getId(), nextPath);
         CmdIn cmd = cmdManager.createShellCmd(job, nextStep, tree);
-        setJobStatusAndSave(job, Job.Status.RUNNING, null);
+        boolean canExecute = conditionManager.run(cmd);
 
+        if (!canExecute) {
+            nextStep.setStartAt(new Date());
+            nextStep.setFinishAt(new Date());
+            updateJobTime(job, nextStep, tree, next);
+
+            setJobStatusAndSave(job, Job.Status.RUNNING, null);
+            stepService.toStatus(nextStep, Executed.Status.SKIPPED, Step.MessageSkippedOnCondition);
+
+            JobSmContext context = new JobSmContext();
+            context.job = job;
+            context.step = nextStep;
+            context.agentId = agent.getId();
+
+            this.toNextStep(context);
+            return;
+        }
+
+        setJobStatusAndSave(job, Job.Status.RUNNING, null);
+        stepService.toStatus(nextStep, Executed.Status.RUNNING, null);
         agentService.dispatch(cmd, agent);
         logInfo(job, "send to agent: step={}, agent={}", next.getName(), agent.getName());
     }
@@ -652,9 +671,9 @@ public class JobActionManagerImpl implements JobActionManager {
      *
      * @return true if next step dispatched, false if no more steps or failure
      */
-    private boolean toNextStep(JobSmContext context) {
+    private boolean toNextStep(JobSmContext context) throws ScriptException {
         Job job = context.job;
-        Step step = context.step;
+        Step step = context.step; // current step
 
         // save executed cmd
         stepService.resultUpdate(step);
@@ -677,15 +696,29 @@ public class JobActionManagerImpl implements JobActionManager {
         Optional<StepNode> next = findNext(tree, node, step.isSuccess());
         if (next.isPresent()) {
             String nextPath = next.get().getPathAsString();
-            job.setCurrentPath(nextPath);
-
-            Step nextStep = stepService.toStatus(job.getId(), nextPath, Step.Status.RUNNING, null);
+            Step nextStep = stepService.get(job.getId(), nextPath);
             context.setStep(nextStep);
+
+            job.setCurrentPath(nextPath);
+            setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
             Agent agent = agentService.get(job.getAgentId());
             CmdIn cmd = cmdManager.createShellCmd(job, nextStep, tree);
-            setJobStatusAndSave(job, Job.Status.RUNNING, null);
+            boolean canExecute = conditionManager.run(cmd);
 
+            if (!canExecute) {
+                nextStep.setStartAt(new Date());
+                nextStep.setFinishAt(new Date());
+                updateJobTime(job, nextStep, tree, next.get());
+
+                setJobStatusAndSave(job, Job.Status.RUNNING, null);
+                stepService.toStatus(nextStep, Step.Status.SKIPPED, Step.MessageSkippedOnCondition);
+                return toNextStep(context);
+            }
+
+            // TODO: run condition
+            setJobStatusAndSave(job, Job.Status.RUNNING, null);
+            stepService.toStatus(nextStep, Step.Status.RUNNING, null);
             agentService.dispatch(cmd, agent);
             logInfo(job, "send to agent: step={}, agent={}", next.get().getName(), agent.getName());
             return true;
@@ -722,11 +755,11 @@ public class JobActionManagerImpl implements JobActionManager {
         logInfo(job, "status = {}", job.getStatus());
     }
 
-    private void updateJobTime(Job job, Step execCmd, NodeTree tree, StepNode node) {
+    private void updateJobTime(Job job, Step step, NodeTree tree, StepNode node) {
         if (tree.isFirst(node.getPath())) {
-            job.setStartAt(execCmd.getStartAt());
+            job.setStartAt(step.getStartAt());
         }
-        job.setFinishAt(execCmd.getFinishAt());
+        job.setFinishAt(step.getFinishAt());
     }
 
     private void updateJobContextAndLatestStatus(Job job, StepNode node, Step cmd) {
