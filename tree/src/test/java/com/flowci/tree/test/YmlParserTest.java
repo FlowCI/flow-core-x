@@ -82,7 +82,7 @@ public class YmlParserTest {
         Assert.assertEquals("echo step version", step1.getEnv("FLOW_VERSION"));
 
         Assert.assertTrue(step1.isAllowFailure());
-        Assert.assertEquals("println(FLOW_WORKSPACE)\ntrue\n", step1.getBefore());
+        Assert.assertEquals("println(FLOW_WORKSPACE)\ntrue\n", step1.getCondition());
 
         StepNode step2 = steps.get(1);
         Assert.assertEquals("step2", step2.getName());

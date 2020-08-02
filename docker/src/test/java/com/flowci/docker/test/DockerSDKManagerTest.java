@@ -6,13 +6,11 @@ import com.flowci.docker.DockerSDKManager;
 import com.flowci.docker.domain.DockerStartOption;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.List;
 
+@Ignore
 public class DockerSDKManagerTest {
 
     private DockerManager manager;

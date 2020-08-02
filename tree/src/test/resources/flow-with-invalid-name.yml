@@ -17,7 +17,7 @@ selector:
     - local
 
 steps:
-  - before: |
+  - condition: |
       println(FLOW_WORKSPACE)
       true
     envs:

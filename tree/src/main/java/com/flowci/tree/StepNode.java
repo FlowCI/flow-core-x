@@ -19,7 +19,7 @@ public class StepNode extends Node {
     /**
      * Node before groovy script;
      */
-    private String before;
+    private String condition;
 
     /**
      * Node execute script, can be null
@@ -50,7 +50,7 @@ public class StepNode extends Node {
     }
 
     @JsonIgnore
-    public boolean hasBefore() {
-        return !Strings.isNullOrEmpty(before);
+    public boolean hasCondition() {
+        return !Strings.isNullOrEmpty(condition);
     }
 }

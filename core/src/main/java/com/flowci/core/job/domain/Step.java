@@ -48,6 +48,8 @@ import java.util.List;
 )
 public class Step implements Executed {
 
+    public static final String MessageSkippedOnCondition = "Skipped due to condition";
+
     @Id
     private String id;
 

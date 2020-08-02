@@ -2,13 +2,16 @@ envs:
   FLOW_WORKSPACE: "echo hello"
   FLOW_VERSION: "echo version"
 
-cron: "* * * * *"
+trigger:
+  branch:
+  - develop
 
 steps:
 - envs:
     FLOW_WORKSPACE: "echo step"
     FLOW_VERSION: "echo step version"
-  allow_failure: true
+  condition: |
+    return false
   script: |
     echo hello
 

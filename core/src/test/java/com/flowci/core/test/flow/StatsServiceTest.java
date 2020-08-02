@@ -44,6 +44,7 @@ public class StatsServiceTest extends SpringScenario {
     @Test
     public void should_add_stats_item_when_job_status_changed() {
         Job job = new Job();
+        job.setId("1111");
         job.setFlowId("123-456");
         job.setCreatedAt(new Date());
         job.setStatus(Job.Status.SUCCESS);
@@ -72,18 +73,21 @@ public class StatsServiceTest extends SpringScenario {
 
         Date yesterday = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
         Job job1 = new Job();
+        job1.setId("1111");
         job1.setFlowId(flowId);
         job1.setCreatedAt(yesterday);
         job1.setStatus(Job.Status.SUCCESS);
 
         Date today = Date.from(Instant.now());
         Job job2 = new Job();
+        job2.setId("2222");
         job2.setFlowId(flowId);
         job2.setCreatedAt(today);
         job2.setStatus(Job.Status.SUCCESS);
 
         Date tomorrow = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
         Job job3 = new Job();
+        job3.setId("3333");
         job3.setFlowId(flowId);
         job3.setCreatedAt(tomorrow);
         job3.setStatus(Job.Status.FAILURE);

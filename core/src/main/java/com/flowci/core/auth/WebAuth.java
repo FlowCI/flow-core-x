@@ -45,8 +45,6 @@ import java.util.Optional;
 @Component("webAuth")
 public class WebAuth implements HandlerInterceptor {
 
-    private static final String MagicToken = "helloflowciadmin";
-
     private static final String HeaderToken = "Token";
 
     private static final String ParameterToken = "token";
@@ -91,15 +89,10 @@ public class WebAuth implements HandlerInterceptor {
                 return true;
             }
 
-            return authService.setAsDefaultAdmin();
+            return true;
         }
 
         String token = getToken(request);
-
-        if (Objects.equals(token, MagicToken)) {
-            return authService.setAsDefaultAdmin();
-        }
-
         if (!authService.set(token)) {
             throw new AuthenticationException("Invalid token");
         }

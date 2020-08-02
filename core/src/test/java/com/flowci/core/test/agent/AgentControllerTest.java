@@ -140,7 +140,7 @@ public class AgentControllerTest extends SpringScenario {
         connect.setPort(8080);
 
         ResponseMessage<Settings> settingsR = mockMvcHelper.expectSuccessAndReturnClass(
-                post("/agents/connect")
+                post("/agents/api/connect")
                         .header("AGENT-TOKEN", agent.getToken())
                         .content(objectMapper.writeValueAsBytes(connect))
                         .contentType(MediaType.APPLICATION_JSON), SettingsResponseType);
@@ -161,7 +161,7 @@ public class AgentControllerTest extends SpringScenario {
         connect.setPort(8080);
 
         ResponseMessage message = mockMvcHelper.expectSuccessAndReturnClass(
-                post("/agents/connect")
+                post("/agents/api/connect")
                         .content(objectMapper.writeValueAsBytes(connect))
                         .contentType(MediaType.APPLICATION_JSON), ResponseMessage.class);
 
@@ -173,7 +173,7 @@ public class AgentControllerTest extends SpringScenario {
         MockMultipartFile log = new MockMultipartFile("file", "filename.txt", "application/octet-stream",
                 "some xml".getBytes());
 
-        mockMvc.perform(MockMvcRequestBuilders.multipart("/agents/logs/upload")
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/agents/api/logs/upload")
                 .file(log)
                 .header("AGENT-TOKEN", "12345")).andExpect(status().is(200));
     }
@@ -189,7 +189,7 @@ public class AgentControllerTest extends SpringScenario {
                 .setFreeMemory(4)
                 .setTotalMemory(20);
 
-        ResponseMessage message = mockMvcHelper.expectSuccessAndReturnClass(post("/agents/resource")
+        ResponseMessage message = mockMvcHelper.expectSuccessAndReturnClass(post("/agents/api/profile")
                 .header(AgentAuth.HeaderAgentToken, agent.getToken())
                 .content(objectMapper.writeValueAsBytes(resource))
                 .contentType(MediaType.APPLICATION_JSON), ResponseMessage.class);

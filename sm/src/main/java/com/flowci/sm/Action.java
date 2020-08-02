@@ -1,12 +1,12 @@
 package com.flowci.sm;
 
-import java.util.function.Consumer;
-
-public abstract class Action<T extends Context> implements Consumer<T> {
+public abstract class Action<T extends Context> {
 
     public boolean canRun(T context) {
         return true;
     }
+
+    public abstract void accept(T t) throws Exception;
 
     public void onException(Throwable e, T context) {
         // ignore by default

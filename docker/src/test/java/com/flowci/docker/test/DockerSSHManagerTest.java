@@ -10,11 +10,13 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Container;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.InputStream;
 import java.util.List;
 
+@Ignore
 public class DockerSSHManagerTest {
 
     private DockerManager manager;

@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author yang
@@ -41,12 +42,17 @@ public interface UserService {
     /**
      * Get default admin user
      */
-    User defaultAdmin();
+    Optional<User> defaultAdmin();
+
+    /**
+     * Create default admin user
+     */
+    User createDefaultAdmin(String email, String passwordOnMd5);
 
     /**
      * Create user by email and password;
      */
-    User create(String email, String password, User.Role role);
+    User create(String email, String passwordOnMd5, User.Role role);
 
     /**
      * Get user by email

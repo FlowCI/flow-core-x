@@ -22,6 +22,8 @@ import com.flowci.core.user.domain.*;
 import com.flowci.core.user.service.UserService;
 import com.flowci.exception.ArgumentException;
 import java.util.Objects;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -44,6 +46,17 @@ public class UserController {
 
     @Autowired
     private AuthService authService;
+
+    @GetMapping("/default")
+    public Boolean hasDefaultAdmin() {
+        Optional<User> user = userService.defaultAdmin();
+        return user.isPresent();
+    }
+
+    @PostMapping("/default")
+    public void createDefaultAdmin(@Validated @RequestBody CreateUser body) {
+        userService.createDefaultAdmin(body.getEmail(), body.getPasswordOnMd5());
+    }
 
     @GetMapping
     @Action(UserAction.LIST_ALL)
