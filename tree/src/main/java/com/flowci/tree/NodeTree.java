@@ -104,13 +104,8 @@ public class NodeTree {
         }
     }
 
-    /**
-     * Reset node path and parent reference and put to cache
-     */
     private void buildTree(Node root) {
         for (StepNode step : root.getChildren()) {
-            step.setPath(NodePath.create(root.getPath(), step.getName()));
-            step.setParent(root);
             steps.add(step);
             buildTree(step);
         }

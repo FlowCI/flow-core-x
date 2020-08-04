@@ -1,5 +1,5 @@
 steps:
-  - before: |
+  - condition: |
       println(FLOW_WORKSPACE)
       true
     envs:
@@ -23,7 +23,6 @@ steps:
           - "2700:2700"
         entrypoint: ["/bin/sh"]
         is_runtime: true
-
       - image: "mysql"
         ports:
           - "6400:3360"
@@ -31,5 +30,4 @@ steps:
         environment:
           MY_PW: "12345"
         network_mode: none
-
     script: "echo 2"

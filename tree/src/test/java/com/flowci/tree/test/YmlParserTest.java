@@ -167,6 +167,24 @@ public class YmlParserTest {
         YmlParser.load("default", content);
     }
 
+    @Test
+    public void should_parse_step_in_step() throws IOException {
+        content = loadContent("step-in-step.yml");
+
+        FlowNode root = YmlParser.load("root", content);
+        Assert.assertEquals(3, root.getChildren().size());
+
+        StepNode step2 = root.getChildren().get(1);
+        Assert.assertEquals(root, step2.getParent());
+
+        Assert.assertEquals(2, step2.getChildren().size());
+        StepNode step2_1 = step2.getChildren().get(0);
+        Assert.assertEquals(step2, step2_1.getParent());
+
+        StepNode step2_2 = step2.getChildren().get(1);
+        Assert.assertEquals(step2, step2_2.getParent());
+    }
+
     private String loadContent(String resource) throws IOException {
         ClassLoader classLoader = YmlParserTest.class.getClassLoader();
         URL url = classLoader.getResource(resource);

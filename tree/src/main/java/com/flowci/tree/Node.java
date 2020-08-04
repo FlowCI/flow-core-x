@@ -27,6 +27,7 @@ import lombok.ToString;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author yang
@@ -35,7 +36,7 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode(of = {"path"})
 @ToString(of = {"path"})
-public class Node implements Serializable {
+public abstract class Node implements Serializable {
 
     protected String name;
 
@@ -56,9 +57,16 @@ public class Node implements Serializable {
 
     protected List<StepNode> children = new LinkedList<>();
 
-    public Node(String name) {
+    public Node(String name, Node parent) {
         this.name = name;
-        this.path = NodePath.create(name);
+        this.parent = parent;
+
+        if (Objects.isNull(parent)) {
+            this.path = NodePath.create(name);
+            return;
+        }
+
+        this.path = NodePath.create(parent.getPath(), name);
     }
 
     public String getPathAsString() {
