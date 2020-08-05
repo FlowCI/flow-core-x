@@ -621,46 +621,12 @@ public class JobActionManagerImpl implements JobActionManager {
      * Dispatch job to agent when Queue to Running
      */
     private void dispatch(Job job, Agent agent) throws ScriptException {
-        NodeTree tree = ymlManager.getTree(job);
-        StepNode nextNode = tree.next(NodePath.create(job.getCurrentPath()));
-
-        // do not accept job without regular steps
-        if (Objects.isNull(nextNode)) {
-            log.debug("Next node cannot be found when process job {}", job);
-            return;
-        }
-
-        String nextPath = nextNode.getPathAsString();
-        log.debug("Next step of job {} is {}", job.getId(), nextNode.getName());
-
-        // set path, agent id, agent name and status to job
-        job.setCurrentPath(nextPath);
         job.setAgentId(agent.getId());
         job.setAgentSnapshot(agent);
 
-        // dispatch job to agent queue
-        Step nextStep = stepService.get(job.getId(), nextPath);
-        CmdIn cmd = cmdManager.createShellCmd(job, nextStep, tree);
-        boolean canExecute = conditionManager.run(cmd);
-
-        if (!canExecute) {
-            setStepToSkipped(nextNode, nextStep);
-            updateJobTime(job, nextStep, tree, nextNode);
-            setJobStatusAndSave(job, Job.Status.RUNNING, null);
-
-            JobSmContext context = new JobSmContext();
-            context.job = job;
-            context.step = nextStep;
-            context.agentId = agent.getId();
-
-            this.toNextStep(context);
-            return;
-        }
-
-        setJobStatusAndSave(job, Job.Status.RUNNING, null);
-        stepService.toStatus(nextStep, Executed.Status.RUNNING, null);
-        agentService.dispatch(cmd, agent);
-        logInfo(job, "send to agent: step={}, agent={}", nextNode.getName(), agent.getName());
+        NodeTree tree = ymlManager.getTree(job);
+        StepNode next = tree.next(tree.getRoot().getPath());
+        execute(job, next);
     }
 
     /**
@@ -672,54 +638,65 @@ public class JobActionManagerImpl implements JobActionManager {
         Job job = context.job;
         Step step = context.step; // current step
 
-        // save executed cmd
+        NodeTree tree = ymlManager.getTree(job);
+        StepNode node = tree.get(NodePath.create(step.getNodePath())); // current node
+
         stepService.resultUpdate(step);
         log.debug("Step {} been recorded", step);
 
-        NodePath currentPath = NodePath.create(step.getNodePath());
-
         // verify job node path is match cmd node path
-        if (!currentPath.equals(NodePath.create(job.getCurrentPath()))) {
+        if (!node.getPath().equals(NodePath.create(job.getCurrentPath()))) {
             log.error("Invalid executed cmd callback: does not match job current node path");
             return false;
         }
 
-        NodeTree tree = ymlManager.getTree(job);
-        StepNode node = tree.get(currentPath);
         updateJobTime(job, step, tree, node);
         updateJobContextAndLatestStatus(job, node, step);
 
-        // to next step
         Optional<StepNode> next = findNext(tree, node, step.isSuccess());
         if (next.isPresent()) {
-            StepNode nextNode = next.get();
-            Step nextStep = stepService.get(job.getId(), nextNode.getPathAsString());
-            context.setStep(nextStep);
-
-            job.setCurrentPath(nextNode.getPathAsString());
-            setJobStatusAndSave(job, Job.Status.RUNNING, null);
-
-            Agent agent = agentService.get(job.getAgentId());
-            CmdIn cmd = cmdManager.createShellCmd(job, nextStep, tree);
-            boolean canExecute = conditionManager.run(cmd);
-
-            if (!canExecute) {
-                setStepToSkipped(nextNode, nextStep);
-                updateJobTime(job, nextStep, tree, nextNode);
-                setJobStatusAndSave(job, Job.Status.RUNNING, null);
-
-                return toNextStep(context);
-            }
-
-            // TODO: run condition
-            setJobStatusAndSave(job, Job.Status.RUNNING, null);
-            stepService.toStatus(nextStep, Step.Status.RUNNING, null);
-            agentService.dispatch(cmd, agent);
-            logInfo(job, "send to agent: step={}, agent={}", nextNode.getName(), agent.getName());
-            return true;
+            return execute(job, next.get());
         }
 
         return false;
+    }
+
+    private boolean execute(Job job, StepNode node) throws ScriptException {
+        NodeTree tree = ymlManager.getTree(job);
+
+        job.setCurrentPath(node.getPathAsString());
+        setJobStatusAndSave(job, Job.Status.RUNNING, null);
+
+        Step step = stepService.get(job.getId(), node.getPathAsString());
+        CmdIn cmd = cmdManager.createShellCmd(job, step, tree);
+        boolean canExecute = conditionManager.run(cmd);
+
+        if (!canExecute) {
+            setStepToSkipped(node, step);
+            updateJobTime(job, step, tree, node);
+            setJobStatusAndSave(job, Job.Status.RUNNING, null);
+
+            // set next node again due to skip
+            StepNode next = tree.nextRootStep(node.getPath());
+            if (Objects.isNull(next)) {
+                return false;
+            }
+            return execute(job, next);
+        }
+
+        // skip group node
+        if (node.hasChildren()) {
+            StepNode next = tree.next(node.getPath());
+            return execute(job, next);
+        }
+
+        setJobStatusAndSave(job, Job.Status.RUNNING, null);
+        stepService.toStatus(step, Step.Status.RUNNING, null);
+
+        Agent agent = agentService.get(job.getAgentId());
+        agentService.dispatch(cmd, agent);
+        logInfo(job, "send to agent: step={}, agent={}", node.getName(), agent.getName());
+        return true;
     }
 
     private void setStepToSkipped(StepNode node, Step step) {

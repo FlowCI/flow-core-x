@@ -45,6 +45,7 @@ public abstract class Node implements Serializable {
     /**
      * Parent could be FlowNode or StepNode
      */
+    @JsonIgnore
     protected Node parent;
 
     /**

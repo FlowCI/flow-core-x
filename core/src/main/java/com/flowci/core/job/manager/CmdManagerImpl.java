@@ -61,7 +61,7 @@ public class CmdManagerImpl implements CmdManager {
                 .setDockers(findDockerOptions(node))
                 .setScripts(linkScript(node))
                 .setEnvFilters(linkFilters(node))
-                .setInputs(linkInputs(node))
+                .setInputs(linkInputs(node).merge(job.getContext()))
                 .setTimeout(job.getTimeout());
 
         if (node.hasPlugin()) {

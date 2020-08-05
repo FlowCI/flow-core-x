@@ -161,6 +161,7 @@ public class CmdManagerTest extends SpringScenario {
 
         // input should be overwrite
         Assert.assertEquals("overwrite-parent", cmdStep2_1.getInputs().get("STEP_2"));
+        Assert.assertEquals("overwrite-parent", cmdStep2_1.getInputs().get("STEP_2"));
 
         // scripts should be linked
         Assert.assertEquals("echo 2", cmdStep2_1.getScripts().get(0));
