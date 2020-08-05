@@ -76,6 +76,10 @@ public class StepYml extends YmlBase<StepNode> {
         }
 
         if (ObjectsHelper.hasCollection(steps)) {
+            if (node.hasPlugin()) {
+                throw new YmlException("The plugin section is not allowed on the step with sub steps");
+            }
+
             setSteps(node);
         }
 

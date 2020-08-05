@@ -1,0 +1,29 @@
+steps:
+  - condition: |
+      println(FLOW_WORKSPACE);
+      return true;
+    envs:
+      FLOW_WORKSPACE: "echo step"
+      FLOW_VERSION: "echo step version"
+    docker:
+      image: "ubuntu:18.04"
+    allow_failure: true
+
+  - name: step2
+    condition: |
+      return true;
+    dockers:
+      - image: "ubuntu:18.04"
+        is_runtime: true
+      - image: "mysql"
+    script: "echo 2"
+    plugin: "invalid"
+
+    steps:
+      - name: step-2-1
+        script: |
+          echo "step-1 in step2"
+
+      - name: step-2-2
+        script: |
+          echo "step-2 in step2"

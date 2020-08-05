@@ -81,4 +81,14 @@ public abstract class Node implements Serializable {
     public boolean hasDocker() {
         return !dockers.isEmpty();
     }
+
+    @JsonIgnore
+    public boolean hasChildren() {
+        return !children.isEmpty();
+    }
+
+    @JsonIgnore
+    public boolean hasParent() {
+        return parent != null;
+    }
 }

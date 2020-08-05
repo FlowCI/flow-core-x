@@ -17,18 +17,19 @@
 package com.flowci.core.job.manager;
 
 import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.agent.domain.ShellKill;
 import com.flowci.core.agent.domain.ShellIn;
+import com.flowci.core.agent.domain.ShellKill;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.DockerOption;
+import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
-import com.flowci.tree.FlowNode;
+import com.flowci.tree.Node;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.StepNode;
@@ -36,7 +37,7 @@ import com.flowci.util.ObjectsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * @author yang
@@ -49,7 +50,6 @@ public class CmdManagerImpl implements CmdManager {
 
     @Override
     public CmdIn createShellCmd(Job job, Step step, NodeTree tree) {
-        FlowNode root = tree.getRoot();
         StepNode node = tree.get(NodePath.create(step.getNodePath()));
 
         ShellIn in = new ShellIn()
@@ -58,20 +58,11 @@ public class CmdManagerImpl implements CmdManager {
                 .setJobId(job.getId())
                 .setCondition(node.getCondition())
                 .setAllowFailure(node.isAllowFailure())
-                .setDockers(node.getDockers())
+                .setDockers(findDockerOptions(node))
+                .setScripts(linkScript(node))
+                .setEnvFilters(linkFilters(node))
+                .setInputs(linkInputs(node))
                 .setTimeout(job.getTimeout());
-
-        // apply flow level docker if step level is not specified
-        if (!node.hasDocker()) {
-            if (root.hasDocker()) {
-                in.setDockers(root.getDockers());
-            }
-        }
-
-        // load setting from yaml StepNode
-        in.addScript(node.getScript());
-        in.addEnvFilters(node.getExports());
-        in.getInputs().merge(job.getContext()).merge(node.getEnvironments());
 
         if (node.hasPlugin()) {
             setPlugin(node.getPlugin(), in);
@@ -92,6 +83,58 @@ public class CmdManagerImpl implements CmdManager {
     @Override
     public CmdIn createKillCmd() {
         return new ShellKill();
+    }
+
+    private StringVars linkInputs(Node current) {
+        StringVars output = new StringVars();
+
+        if (current.hasParent()) {
+            Node parent = current.getParent();
+            output.merge(linkInputs(parent));
+        }
+
+        output.merge(current.getEnvironments());
+        return output;
+    }
+
+    private Set<String> linkFilters(StepNode current) {
+        Set<String> output = new LinkedHashSet<>();
+
+        if (current.hasParent()) {
+            Node parent = current.getParent();
+            if (parent instanceof StepNode) {
+                output.addAll(linkFilters((StepNode) parent));
+            }
+        }
+
+        output.addAll(current.getExports());
+        return output;
+    }
+
+    private List<String> linkScript(StepNode current) {
+        List<String> output = new LinkedList<>();
+
+        if (current.hasParent()) {
+            Node parent = current.getParent();
+            if (parent instanceof StepNode) {
+                output.addAll(linkScript((StepNode) parent));
+            }
+        }
+
+        output.add(current.getScript());
+        return output;
+    }
+
+    private List<DockerOption> findDockerOptions(Node current) {
+        if (current.hasDocker()) {
+            return current.getDockers();
+        }
+
+        if (current.hasParent()) {
+            return findDockerOptions(current.getParent());
+        }
+
+        return new LinkedList<>();
     }
 
     private void setPlugin(String name, ShellIn cmd) {

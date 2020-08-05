@@ -64,7 +64,8 @@ public class YmlParserTest {
         Assert.assertEquals(1, root.getTrigger().getTag().size());
 
         // verify docker
-        Assert.assertTrue(root.getDockers().size() > 0);;
+        Assert.assertTrue(root.getDockers().size() > 0);
+        ;
         Assert.assertEquals("helloworld:0.1", root.getDockers().get(0).getImage());
 
         // verify notifications
@@ -183,6 +184,15 @@ public class YmlParserTest {
 
         StepNode step2_2 = step2.getChildren().get(1);
         Assert.assertEquals(step2, step2_2.getParent());
+
+        NodeTree tree = NodeTree.create(root);
+        Assert.assertEquals(5, tree.getSteps().size());
+    }
+
+    @Test(expected = YmlException.class)
+    public void should_throw_ex_when_plugin_defined_in_parent_step() throws IOException {
+        content = loadContent("parent-step-with-plugin.yml");
+        YmlParser.load("root", content);
     }
 
     private String loadContent(String resource) throws IOException {
