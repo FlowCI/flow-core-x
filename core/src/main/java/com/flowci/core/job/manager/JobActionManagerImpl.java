@@ -622,16 +622,16 @@ public class JobActionManagerImpl implements JobActionManager {
      */
     private void dispatch(Job job, Agent agent) throws ScriptException {
         NodeTree tree = ymlManager.getTree(job);
-        StepNode next = tree.next(NodePath.create(job.getCurrentPath()));
+        StepNode nextNode = tree.next(NodePath.create(job.getCurrentPath()));
 
         // do not accept job without regular steps
-        if (Objects.isNull(next)) {
+        if (Objects.isNull(nextNode)) {
             log.debug("Next node cannot be found when process job {}", job);
             return;
         }
 
-        String nextPath = next.getPathAsString();
-        log.debug("Next step of job {} is {}", job.getId(), next.getName());
+        String nextPath = nextNode.getPathAsString();
+        log.debug("Next step of job {} is {}", job.getId(), nextNode.getName());
 
         // set path, agent id, agent name and status to job
         job.setCurrentPath(nextPath);
@@ -644,12 +644,9 @@ public class JobActionManagerImpl implements JobActionManager {
         boolean canExecute = conditionManager.run(cmd);
 
         if (!canExecute) {
-            nextStep.setStartAt(new Date());
-            nextStep.setFinishAt(new Date());
-            updateJobTime(job, nextStep, tree, next);
-
+            setStepToSkipped(nextNode, nextStep);
+            updateJobTime(job, nextStep, tree, nextNode);
             setJobStatusAndSave(job, Job.Status.RUNNING, null);
-            stepService.toStatus(nextStep, Executed.Status.SKIPPED, Step.MessageSkippedOnCondition);
 
             JobSmContext context = new JobSmContext();
             context.job = job;
@@ -663,7 +660,7 @@ public class JobActionManagerImpl implements JobActionManager {
         setJobStatusAndSave(job, Job.Status.RUNNING, null);
         stepService.toStatus(nextStep, Executed.Status.RUNNING, null);
         agentService.dispatch(cmd, agent);
-        logInfo(job, "send to agent: step={}, agent={}", next.getName(), agent.getName());
+        logInfo(job, "send to agent: step={}, agent={}", nextNode.getName(), agent.getName());
     }
 
     /**
@@ -695,11 +692,11 @@ public class JobActionManagerImpl implements JobActionManager {
         // to next step
         Optional<StepNode> next = findNext(tree, node, step.isSuccess());
         if (next.isPresent()) {
-            String nextPath = next.get().getPathAsString();
-            Step nextStep = stepService.get(job.getId(), nextPath);
+            StepNode nextNode = next.get();
+            Step nextStep = stepService.get(job.getId(), nextNode.getPathAsString());
             context.setStep(nextStep);
 
-            job.setCurrentPath(nextPath);
+            job.setCurrentPath(nextNode.getPathAsString());
             setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
             Agent agent = agentService.get(job.getAgentId());
@@ -707,12 +704,10 @@ public class JobActionManagerImpl implements JobActionManager {
             boolean canExecute = conditionManager.run(cmd);
 
             if (!canExecute) {
-                nextStep.setStartAt(new Date());
-                nextStep.setFinishAt(new Date());
-                updateJobTime(job, nextStep, tree, next.get());
-
+                setStepToSkipped(nextNode, nextStep);
+                updateJobTime(job, nextStep, tree, nextNode);
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
-                stepService.toStatus(nextStep, Step.Status.SKIPPED, Step.MessageSkippedOnCondition);
+
                 return toNextStep(context);
             }
 
@@ -720,11 +715,24 @@ public class JobActionManagerImpl implements JobActionManager {
             setJobStatusAndSave(job, Job.Status.RUNNING, null);
             stepService.toStatus(nextStep, Step.Status.RUNNING, null);
             agentService.dispatch(cmd, agent);
-            logInfo(job, "send to agent: step={}, agent={}", next.get().getName(), agent.getName());
+            logInfo(job, "send to agent: step={}, agent={}", nextNode.getName(), agent.getName());
             return true;
         }
 
         return false;
+    }
+
+    private void setStepToSkipped(StepNode node, Step step) {
+        step.setStartAt(new Date());
+        step.setFinishAt(new Date());
+        stepService.toStatus(step, Step.Status.SKIPPED, Step.MessageSkippedOnCondition);
+
+        for (StepNode subNode : node.getChildren()) {
+            Step subStep = stepService.get(step.getJobId(), subNode.getPathAsString());
+            subStep.setStartAt(new Date());
+            subStep.setFinishAt(new Date());
+            stepService.toStatus(subStep, Executed.Status.SKIPPED, Step.MessageSkippedOnCondition);
+        }
     }
 
     private void toFinishStatus(JobSmContext context) {

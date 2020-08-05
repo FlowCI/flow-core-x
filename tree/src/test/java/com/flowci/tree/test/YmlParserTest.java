@@ -187,6 +187,14 @@ public class YmlParserTest {
 
         NodeTree tree = NodeTree.create(root);
         Assert.assertEquals(5, tree.getSteps().size());
+        Assert.assertEquals("step2", tree.nextRootStep(NodePath.create("root", "step-1")).getName());
+        Assert.assertEquals("create test", tree.nextRootStep(NodePath.create("root", "step2")).getName());
+
+        StepNode step3 = tree.nextRootStep(NodePath.create("root", "step2", "step-2-1"));
+        Assert.assertNotNull(step3);
+        Assert.assertEquals("create test", step3.getName());
+
+        Assert.assertNull(tree.nextRootStep(step3.getPath()));
     }
 
     @Test(expected = YmlException.class)
