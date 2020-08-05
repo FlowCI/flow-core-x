@@ -67,6 +67,9 @@ public class Step implements Executed {
 
     private List<DockerOption> dockers;
 
+    // parent node path
+    private String parent;
+
     // children step node path
     private List<String> children;
 

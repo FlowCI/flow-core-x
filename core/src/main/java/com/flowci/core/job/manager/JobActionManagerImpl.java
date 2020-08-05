@@ -662,8 +662,12 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     private boolean execute(Job job, StepNode node) throws ScriptException {
-        NodeTree tree = ymlManager.getTree(job);
+        // check null that indicate no node can be executed
+        if (Objects.isNull(node)) {
+            return false;
+        }
 
+        NodeTree tree = ymlManager.getTree(job);
         job.setCurrentPath(node.getPathAsString());
         setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
@@ -677,10 +681,12 @@ public class JobActionManagerImpl implements JobActionManager {
             setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
             // set next node again due to skip
-            StepNode next = tree.nextRootStep(node.getPath());
-            if (Objects.isNull(next)) {
-                return false;
+            if (node.hasChildren()) {
+                StepNode next = tree.nextRootStep(node.getPath());
+                return execute(job, next);
             }
+
+            StepNode next = tree.next(node.getPath());
             return execute(job, next);
         }
 
@@ -747,17 +753,17 @@ public class JobActionManagerImpl implements JobActionManager {
         job.setFinishAt(step.getFinishAt());
     }
 
-    private void updateJobContextAndLatestStatus(Job job, StepNode node, Step cmd) {
+    private void updateJobContextAndLatestStatus(Job job, StepNode node, Step step) {
         // merge output to job context
         Vars<String> context = job.getContext();
-        context.merge(cmd.getOutput());
+        context.merge(step.getOutput());
 
         context.put(Variables.Job.StartAt, job.startAtInStr());
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
         context.put(Variables.Job.Steps, stepService.toVarString(job, node));
 
-        job.setStatusToContext(StatusHelper.convert(cmd));
-        job.setErrorToContext(cmd.getError());
+        job.setStatusToContext(StatusHelper.convert(step));
+        job.setErrorToContext(step.getError());
     }
 
     private Optional<StepNode> findNext(NodeTree tree, Node current, boolean isSuccess) {

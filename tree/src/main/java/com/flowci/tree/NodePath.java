@@ -117,6 +117,10 @@ public final class NodePath implements Serializable {
         pathInStr = builder.deleteCharAt(builder.length() - 1).toString();
     }
 
+    public boolean isRoot() {
+        return paths.size() == 1;
+    }
+
     public NodePath parent() {
         if ((paths.size() - 1) >= 0) {
             paths.remove(paths.size() - 1);

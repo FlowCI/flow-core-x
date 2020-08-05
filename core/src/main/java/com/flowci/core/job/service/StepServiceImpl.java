@@ -25,6 +25,7 @@ import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.StepUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.exception.NotFoundException;
+import com.flowci.tree.Node;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.StepNode;
@@ -134,6 +135,14 @@ public class StepServiceImpl implements StepService {
         entity.setError(err);
         executedCmdDao.save(entity);
 
+        // update parent status
+        NodePath parentPath = NodePath.create(entity.getParent());
+        if (!parentPath.isRoot()) {
+            Step parentStep = get(entity.getJobId(), parentPath.getPathInStr());
+            parentStep.setStatus(entity.getStatus());
+            executedCmdDao.save(parentStep);
+        }
+
         String jobId = entity.getJobId();
         jobStepCache.invalidate(jobId);
 
@@ -186,6 +195,7 @@ public class StepServiceImpl implements StepService {
                 .setAllowFailure(node.isAllowFailure())
                 .setPlugin(node.getPlugin())
                 .setDockers(node.getDockers())
+                .setParent(node.getParent().getPathAsString())
                 .setChildren(childrenPaths(node));
     }
 

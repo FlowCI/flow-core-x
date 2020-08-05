@@ -58,4 +58,9 @@ public class StepNode extends Node {
     public boolean hasScript() {
         return !Strings.isNullOrEmpty(script);
     }
+
+    @JsonIgnore
+    public boolean isRootStep() {
+        return parent instanceof FlowNode;
+    }
 }

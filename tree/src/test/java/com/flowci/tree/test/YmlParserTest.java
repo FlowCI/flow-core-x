@@ -65,7 +65,6 @@ public class YmlParserTest {
 
         // verify docker
         Assert.assertTrue(root.getDockers().size() > 0);
-        ;
         Assert.assertEquals("helloworld:0.1", root.getDockers().get(0).getImage());
 
         // verify notifications
