@@ -140,6 +140,48 @@ public class CmdManagerTest extends SpringScenario {
         Assert.assertEquals("ubuntu:19.04", docker.getImage());
     }
 
+    @Test
+    public void should_handle_step_in_step() throws IOException {
+        // given: flow and job
+        Flow flow = flowService.create("hello");
+        Yml yml = ymlService.saveYml(flow, StringHelper.toString(load("step-in-step.yml")));
+
+        Job job = jobService.create(flow, yml.getRaw(), Job.Trigger.MANUAL, new StringVars());
+        Assert.assertNotNull(job);
+
+        // when: create shell cmd
+        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+        NodeTree tree = NodeTree.create(root);
+
+        StepNode step2_1 = tree.get(NodePath.create(flow.getName(), "step2", "step-2-1"));
+        StepNode step2_2 = tree.get(NodePath.create(flow.getName(), "step2", "step-2-2"));
+
+        // then: verify step 2 - 1 cmd
+        ShellIn cmdStep2_1 = (ShellIn) cmdManager.createShellCmd(job, stepService.get(job.getId(), step2_1.getPathAsString()), tree);
+
+        // input should be overwrite
+        Assert.assertEquals("overwrite-parent", cmdStep2_1.getInputs().get("STEP_2"));
+
+        // scripts should be linked
+        Assert.assertEquals("echo 2", cmdStep2_1.getScripts().get(0));
+        Assert.assertEquals("echo \"step-2-1\"\n", cmdStep2_1.getScripts().get(1));
+
+        // docker should from parent step
+        Assert.assertEquals("ubuntu:18.04", cmdStep2_1.getDockers().get(0).getImage());
+        Assert.assertEquals("mysql", cmdStep2_1.getDockers().get(1).getImage());
+
+        // then: verify step 2 - 2 cmd
+        ShellIn cmdStep2_2 = (ShellIn) cmdManager.createShellCmd(job, stepService.get(job.getId(), step2_2.getPathAsString()), tree);
+        Assert.assertEquals("parent", cmdStep2_2.getInputs().get("STEP_2"));
+
+        // scripts should be linked
+        Assert.assertEquals("echo 2", cmdStep2_2.getScripts().get(0));
+        Assert.assertEquals("echo \"step-2-2\"\n", cmdStep2_2.getScripts().get(1));
+
+        // docker should be applied from step2-2
+        Assert.assertEquals("redis", cmdStep2_2.getDockers().get(0).getImage());
+    }
+
     private Plugin createDummyPlugin() {
         Input intInput = new Input();
         intInput.setName("GIT_DEFAULT_VAL");
