@@ -67,6 +67,9 @@ public class Step implements Executed {
 
     private List<DockerOption> dockers;
 
+    // children step node path
+    private List<String> children;
+
     /**
      * Process id
      */
