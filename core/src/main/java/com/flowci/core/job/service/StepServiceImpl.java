@@ -137,7 +137,7 @@ public class StepServiceImpl implements StepService {
 
         // update parent status
         NodePath parentPath = NodePath.create(entity.getParent());
-        if (!parentPath.isRoot()) {
+        if (!entity.isRootStep()) {
             Step parentStep = get(entity.getJobId(), parentPath.getPathInStr());
             parentStep.setStatus(entity.getStatus());
             executedCmdDao.save(parentStep);
@@ -195,6 +195,7 @@ public class StepServiceImpl implements StepService {
                 .setAllowFailure(node.isAllowFailure())
                 .setPlugin(node.getPlugin())
                 .setDockers(node.getDockers())
+                .setRootStep(node.isRootStep())
                 .setParent(node.getParent().getPathAsString())
                 .setChildren(childrenPaths(node));
     }
