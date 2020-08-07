@@ -40,8 +40,8 @@ public class StepNode extends Node {
      */
     private boolean allowFailure = ALLOW_FAILURE_DEFAULT;
 
-    public StepNode(String name) {
-        super(name);
+    public StepNode(String name, Node parent) {
+        super(name, parent);
     }
 
     @JsonIgnore
@@ -52,5 +52,15 @@ public class StepNode extends Node {
     @JsonIgnore
     public boolean hasCondition() {
         return !Strings.isNullOrEmpty(condition);
+    }
+
+    @JsonIgnore
+    public boolean hasScript() {
+        return !Strings.isNullOrEmpty(script);
+    }
+
+    @JsonIgnore
+    public boolean isRootStep() {
+        return parent instanceof FlowNode;
     }
 }

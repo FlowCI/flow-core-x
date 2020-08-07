@@ -54,7 +54,7 @@ public class NodeTree {
     }
 
     /**
-     * Get next Node instance from path
+     * Find next Node instance from path
      */
     public StepNode next(NodePath path) {
         if (path.equals(root.getPath())) {
@@ -62,7 +62,27 @@ public class NodeTree {
         }
 
         StepNode step = get(path);
-        return findNext(step, steps);
+        return findNext(step);
+    }
+
+    /**
+     * Find step node instance that parent is flow
+     */
+    public StepNode nextRootStep(NodePath path) {
+        if (path.equals(root.getPath())) {
+            return steps.get(0);
+        }
+
+        StepNode next = findNext(get(path));
+        if (Objects.isNull(next)) {
+            return null;
+        }
+
+        if (next.getParent() instanceof FlowNode) {
+            return next;
+        }
+
+        return nextRootStep(next.getPath());
     }
 
     /**
@@ -80,7 +100,7 @@ public class NodeTree {
         return step;
     }
 
-    private StepNode findNext(StepNode current, List<StepNode> steps) {
+    private StepNode findNext(StepNode current) {
         if (steps.isEmpty()) {
             return null;
         }
@@ -93,6 +113,7 @@ public class NodeTree {
         if (next > steps.size() - 1) {
             return null;
         }
+
         return steps.get(next);
     }
 
@@ -104,13 +125,8 @@ public class NodeTree {
         }
     }
 
-    /**
-     * Reset node path and parent reference and put to cache
-     */
     private void buildTree(Node root) {
         for (StepNode step : root.getChildren()) {
-            step.setPath(NodePath.create(root.getPath(), step.getName()));
-            step.setParent(root);
             steps.add(step);
             buildTree(step);
         }

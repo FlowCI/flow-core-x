@@ -441,7 +441,7 @@ public class JobServiceTest extends ZookeeperScenario {
     @Test(timeout = 30 * 1000)
     public void should_cancel_job_if_agent_offline() throws IOException, InterruptedException {
         // init:
-        yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-before.yml")));
+        yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-condition.yml")));
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
 
         // mock agent online

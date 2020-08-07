@@ -36,13 +36,13 @@ public final class ShellIn extends CmdIn {
     @JsonIgnore
     private String condition;
 
-    private List<String> scripts = new LinkedList<>();
+    private List<String> scripts;
 
     private int timeout = 1800;
 
-    private Vars<String> inputs = new StringVars();
+    private Vars<String> inputs;
 
-    private Set<String> envFilters = new LinkedHashSet<>();
+    private Set<String> envFilters;
 
     public ShellIn() {
         super(Type.SHELL);
