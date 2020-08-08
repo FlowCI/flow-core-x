@@ -18,6 +18,7 @@ package com.flowci.core.common.config;
 
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.rabbit.RabbitOperations;
+import com.flowci.util.StringHelper;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -90,5 +91,23 @@ public class QueueConfig {
     @Bean("agentQueueManager")
     public RabbitOperations agentQueueManager(Connection rabbitConnection) throws IOException {
         return new RabbitOperations(rabbitConnection, 1);
+    }
+
+    @Bean("localBroadcastQueue")
+    public String localBroadcastQueue() {
+        return "bc.q." + StringHelper.randomString(8);
+    }
+
+    @Bean("broadcastQueueManager")
+    public RabbitOperations broadcastQueueManager(Connection rabbitConnection, String localBroadcastQueue) throws IOException {
+        RabbitOperations manager = new RabbitOperations(rabbitConnection, 10);
+        manager.declareTemp(localBroadcastQueue);
+        manager.declareExchangeAndBind(
+                rabbitProperties.getBroadcastEx(),
+                BuiltinExchangeType.FANOUT,
+                localBroadcastQueue,
+                StringHelper.EMPTY
+        );
+        return manager;
     }
 }

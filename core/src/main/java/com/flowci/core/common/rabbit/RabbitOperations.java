@@ -96,6 +96,16 @@ public class RabbitOperations implements AutoCloseable {
         }
     }
 
+    public boolean sendToEx(String ex, byte[] body, Map<String, Object> headers) {
+        try {
+            AMQP.BasicProperties props = new AMQP.BasicProperties.Builder().headers(headers).build();
+            this.channel.basicPublish(ex, StringHelper.EMPTY, props, body);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     /**
      * Send to routing key with default exchange
      */
