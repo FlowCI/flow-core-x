@@ -147,9 +147,11 @@ public class AppProperties {
 
         private String callbackQueue;
 
-        private String shellLogEx; // fanout exchange for shell log
+        private String shellLogQueue; // fanout exchange for shell log
 
-        private String ttyLogEx; // fanout exchange for tty log
+        private String ttyLogQueue;
+
+        private String broadcastEx; // fanout exchange for broadcast event
 
         private String jobDlQueue; // job dead letter queue
 

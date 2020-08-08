@@ -24,8 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-
 /**
  * @author yang
  */
@@ -39,6 +37,7 @@ public class SocketPushManager {
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
 
+    // TODO: push event to broadcast queue, subscribe from that queue and sendout
     public void push(String topic, PushEvent event, Object obj) {
         try {
             PushBody push = new PushBody(event, obj);

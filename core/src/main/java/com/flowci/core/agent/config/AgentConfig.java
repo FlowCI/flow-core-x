@@ -18,15 +18,14 @@ package com.flowci.core.agent.config;
 
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Variables.App;
-import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.domain.Settings;
-import java.util.Objects;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.Objects;
 
 /**
  * @author yang
@@ -53,8 +52,8 @@ public class AgentConfig {
         Settings.RabbitMQ mq = new Settings.RabbitMQ();
         mq.setUri(getRabbitUri());
         mq.setCallback(rabbitProperties.getCallbackQueue());
-        mq.setShellLogEx(rabbitProperties.getShellLogEx());
-        mq.setTtyLogEx(rabbitProperties.getTtyLogEx());
+        mq.setShellLog(rabbitProperties.getShellLogQueue());
+        mq.setTtyLog(rabbitProperties.getTtyLogQueue());
 
         Settings settings = new Settings();
         settings.setZookeeper(zk);

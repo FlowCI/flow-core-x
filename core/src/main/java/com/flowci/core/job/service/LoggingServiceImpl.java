@@ -17,6 +17,7 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.agent.domain.CmdStdLog;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SocketPushManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
@@ -77,7 +78,7 @@ public class LoggingServiceImpl implements LoggingService {
     private final Cache<String, Map<String, Queue<byte[]>>> logCache = CacheHelper.createLocalCache(50, 3600);
 
     @Autowired
-    private String ttyLogQueue;
+    private AppProperties.RabbitMQ rabbitProperties;
 
     @Autowired
     private String topicForTtyLogs;
@@ -86,7 +87,7 @@ public class LoggingServiceImpl implements LoggingService {
     private String topicForLogs;
 
     @Autowired
-    private String shellLogQueue;
+    private RabbitOperations receiverQueueManager;
 
     @Autowired
     private SocketPushManager socketPushManager;
@@ -95,18 +96,17 @@ public class LoggingServiceImpl implements LoggingService {
     private FileManager fileManager;
 
     @Autowired
-    private RabbitOperations logQueueManager;
-
-    @Autowired
     private StepService stepService;
 
     @EventListener(ContextRefreshedEvent.class)
     public void onStart() throws IOException {
         // shell log content will be json {cmdId: xx, content: b64 log}
-        logQueueManager.startConsumer(shellLogQueue, true, new CmdStdLogHandler());
+        String shellLogQueue = rabbitProperties.getShellLogQueue();
+        receiverQueueManager.startConsumer(shellLogQueue, true, new CmdStdLogHandler());
 
         // tty log conent will be b64 std out/err
-        logQueueManager.startConsumer(ttyLogQueue, true, new TtyLogHandler());
+        String ttyLogQueue = rabbitProperties.getTtyLogQueue();
+        receiverQueueManager.startConsumer(ttyLogQueue, true, new TtyLogHandler());
     }
 
     /**
