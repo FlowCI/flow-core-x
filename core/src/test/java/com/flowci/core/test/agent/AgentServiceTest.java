@@ -87,14 +87,14 @@ public class AgentServiceTest extends ZookeeperScenario {
         ThreadPoolTaskExecutor executor = ThreadHelper.createTaskExecutor(5, 5, 0, "mock-tryLock-");
 
         // when:
-        Agent agent = agentService.find(Status.CREATED, ImmutableSet.of("android")).get(0);
+        Agent agent = agentService.find(ImmutableSet.of("android")).get(0);
         Assert.assertNotNull(agent);
 
         // when: make agent online
         mockAgentOnline(agentService.getPath(idle));
 
         // then: find available agent
-        Agent available = agentService.find(Status.IDLE, null).get(0);
+        Agent available = agentService.find(null).get(0);
         Assert.assertEquals(idle, available);
 
         // when: try lock agent in multiple thread

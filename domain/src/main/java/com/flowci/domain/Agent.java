@@ -40,8 +40,6 @@ public class Agent implements Serializable {
 
     public enum Status {
 
-        CREATED,
-
         OFFLINE,
 
         BUSY,
@@ -92,7 +90,7 @@ public class Agent implements Serializable {
 
     private Set<String> tags = Collections.emptySet();
 
-    private Status status = Status.CREATED;
+    private Status status = Status.OFFLINE;
 
     private Date statusUpdatedAt;
 
@@ -123,26 +121,6 @@ public class Agent implements Serializable {
     @JsonIgnore
     public boolean hasJob() {
         return !Strings.isNullOrEmpty(jobId);
-    }
-
-    @JsonIgnore
-    public boolean isBusy() {
-        return isOnline() && status == Status.BUSY;
-    }
-
-    @JsonIgnore
-    public boolean isIdle() {
-        return isOnline() && status == Status.IDLE;
-    }
-
-    @JsonIgnore
-    public boolean isOffline() {
-        return status == Status.OFFLINE;
-    }
-
-    @JsonIgnore
-    public boolean isOnline() {
-        return !isOffline();
     }
 
     @JsonIgnore

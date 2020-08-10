@@ -17,6 +17,8 @@
 package com.flowci.core.test;
 
 import com.flowci.core.agent.dao.AgentDao;
+import com.flowci.core.common.config.AppConfig;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.rabbit.QueueOperations;
@@ -102,10 +104,10 @@ public abstract class SpringScenario {
     private MongoTemplate mongoTemplate;
 
     @Autowired
-    private QueueOperations callbackQueueManager;
+    private AppProperties.RabbitMQ rabbitProperties;
 
     @Autowired
-    private QueueOperations loggingQueueManager;
+    private RabbitOperations receiverQueueManager;
 
     @Autowired
     private RabbitOperations agentQueueManager;
@@ -138,8 +140,9 @@ public abstract class SpringScenario {
 
     @After
     public void queueCleanUp() {
-        callbackQueueManager.purge();
-        loggingQueueManager.purge();
+        receiverQueueManager.purge(rabbitProperties.getCallbackQueue());
+        receiverQueueManager.purge(rabbitProperties.getShellLogQueue());
+        receiverQueueManager.purge(rabbitProperties.getTtyLogQueue());
 
         for (Agent agent : agentDao.findAll()) {
             agentQueueManager.delete(agent.getQueueName());
