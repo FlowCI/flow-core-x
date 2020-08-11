@@ -209,14 +209,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         DockerManager dockerManager = manager.get();
         ContainerManager cm = dockerManager.getContainerManager();
 
-
         for (Agent agent : agents) {
-            // add just created agent to list to start later
-            if (agent.getStatus() == Agent.Status.CREATED) {
-                startList.add(agent);
-                continue;
-            }
-
             // try to resume, add to start list if failed
             if (agent.getStatus() == Agent.Status.OFFLINE) {
                 try {

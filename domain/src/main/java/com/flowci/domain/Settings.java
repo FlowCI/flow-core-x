@@ -57,11 +57,11 @@ public class Settings implements Serializable {
         // queue name for step callback
         private String callback;
 
-        // exchange name for shell log
-        private String shellLogEx;
+        // queue name for shell log
+        private String shellLog;
 
-        // exchange name for tty log
-        private String ttyLogEx;
+        // queue name for tty log
+        private String ttyLog;
     }
 
 }

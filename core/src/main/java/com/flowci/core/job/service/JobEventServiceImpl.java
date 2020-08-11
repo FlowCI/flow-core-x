@@ -21,9 +21,9 @@ import com.flowci.core.agent.domain.CmdOut;
 import com.flowci.core.agent.domain.ShellOut;
 import com.flowci.core.agent.domain.TtyCmd;
 import com.flowci.core.agent.event.AgentStatusEvent;
+import com.flowci.core.agent.manager.AgentStatusManager;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.common.rabbit.QueueOperations;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.event.FlowCreatedEvent;
@@ -63,19 +63,22 @@ public class JobEventServiceImpl implements JobEventService {
     private RabbitOperations jobsQueueManager;
 
     @Autowired
-    private QueueOperations callbackQueueManager;
-
-    @Autowired
-    private JobService jobService;
-
-    @Autowired
-    private StepService stepService;
+    private RabbitOperations receiverQueueManager;
 
     @Autowired
     private JobActionManager jobActionManager;
 
     @Autowired
     private TaskExecutor appTaskExecutor;
+
+    @Autowired
+    private AgentStatusManager agentStatusManager;
+
+    @Autowired
+    private JobService jobService;
+
+    @Autowired
+    private StepService stepService;
 
     //====================================================================
     //        %% Internal events
@@ -119,7 +122,7 @@ public class JobEventServiceImpl implements JobEventService {
             return;
         }
 
-        if (!agent.isOffline()) {
+        if (!agentStatusManager.isOffline(agent)) {
             return;
         }
 
@@ -139,7 +142,8 @@ public class JobEventServiceImpl implements JobEventService {
 
     @EventListener(value = ContextRefreshedEvent.class)
     public void startCallbackQueueConsumer() throws IOException {
-        callbackQueueManager.startConsumer(false, (header, raw, envelope) -> {
+        String callbackQueue = rabbitProperties.getCallbackQueue();
+        receiverQueueManager.startConsumer(callbackQueue, false, ((headers, raw, envelope) -> {
             byte ind = raw[0];
             byte[] body = Arrays.copyOfRange(raw, 1, raw.length);
 
@@ -167,7 +171,7 @@ public class JobEventServiceImpl implements JobEventService {
             }
 
             return true;
-        });
+        }));
     }
 
     @EventListener(value = ContextRefreshedEvent.class)

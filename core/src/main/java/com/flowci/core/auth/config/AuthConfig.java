@@ -19,54 +19,20 @@ package com.flowci.core.auth.config;
 import com.flowci.core.agent.domain.AgentAction;
 import com.flowci.core.agent.domain.AgentHostAction;
 import com.flowci.core.auth.domain.PermissionMap;
-import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.config.domain.ConfigAction;
-import com.flowci.core.secret.domain.SecretAction;
 import com.flowci.core.flow.domain.FlowAction;
 import com.flowci.core.job.domain.JobAction;
+import com.flowci.core.secret.domain.SecretAction;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.domain.UserAction;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author yang
  */
 @Configuration
 public class AuthConfig {
-
-    private static final String CACHE_ONLINE = "online_users";
-
-    private static final String CACHE_REFRESH_TOKEN = "refresh_tokens";
-
-    private static final long MaxCacheSize = 500;
-
-    @Autowired
-    private AppProperties.Auth authProperties;
-
-    @Bean
-    public Cache onlineUsersCache() {
-        return new CaffeineCache(CACHE_ONLINE,
-                Caffeine.newBuilder()
-                        .maximumSize(MaxCacheSize)
-                        .expireAfterWrite(authProperties.getExpireSeconds(), TimeUnit.SECONDS)
-                        .build());
-    }
-
-    @Bean
-    public Cache refreshTokenCache() {
-        return new CaffeineCache(CACHE_REFRESH_TOKEN,
-                Caffeine.newBuilder()
-                        .maximumSize(MaxCacheSize)
-                        .expireAfterWrite(authProperties.getRefreshExpiredSeconds(), TimeUnit.SECONDS)
-                        .build());
-    }
 
     @Bean
     public PermissionMap actionMap() {

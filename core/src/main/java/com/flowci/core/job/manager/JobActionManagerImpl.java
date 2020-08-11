@@ -1,6 +1,7 @@
 package com.flowci.core.job.manager;
 
 import com.flowci.core.agent.domain.CmdIn;
+import com.flowci.core.agent.manager.AgentStatusManager;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.git.GitClient;
@@ -121,6 +122,9 @@ public class JobActionManagerImpl implements JobActionManager {
 
     @Autowired
     private ConditionManager conditionManager;
+
+    @Autowired
+    private AgentStatusManager agentStatusManager;
 
     @Autowired
     private LocalTaskService localTaskService;
@@ -439,7 +443,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 setRestStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
 
-                if (agent.isOnline()) {
+                if (agentStatusManager.isOnline(agent)) {
                     CmdIn killCmd = cmdManager.createKillCmd();
                     agentService.dispatch(killCmd, agent);
                     agentService.tryRelease(agent.getId());
@@ -502,7 +506,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 String reason = context.reasonForCancel;
                 Agent agent = agentService.get(job.getAgentId());
 
-                if (agent.isOnline()) {
+                if (agentStatusManager.isOnline(agent)) {
                     Sm.execute(context.getCurrent(), Cancelling, context);
                     return;
                 }

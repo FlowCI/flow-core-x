@@ -17,7 +17,6 @@
 package com.flowci.core.common.config;
 
 import com.flowci.core.common.helper.ThreadHelper;
-import com.flowci.core.common.rabbit.QueueOperations;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.util.StringHelper;
 import com.rabbitmq.client.BuiltinExchangeType;
@@ -61,44 +60,16 @@ public class QueueConfig {
         return factory.newConnection(rabbitTaskExecutor.getThreadPoolExecutor());
     }
 
-    @Bean("callbackQueueManager")
-    public QueueOperations callbackQueueManager(Connection rabbitConnection) throws IOException {
-        String queue = rabbitProperties.getCallbackQueue();
-        QueueOperations manager = new QueueOperations(rabbitConnection, 10, queue);
-        manager.declare(true);
-        return manager;
-    }
+    @Bean("receiverQueueManager")
+    public RabbitOperations receiverQueueManager(Connection rabbitConnection) throws IOException {
+        String callbackQueue = rabbitProperties.getCallbackQueue();
+        String shellLogQueue = rabbitProperties.getShellLogQueue();
+        String ttyLogQueue = rabbitProperties.getTtyLogQueue();
 
-    @Bean("shellLogQueue")
-    public String getShellLogQ() {
-        return "shelllog.q." + StringHelper.randomString(8);
-    }
-
-    @Bean("ttyLogQueue")
-    public String getTtyLogQ() {
-        return "ttylog.q." + StringHelper.randomString(8);
-    }
-
-    @Bean("logQueueManager")
-    public RabbitOperations logQueueManager(Connection rabbitConnection,
-                                            String shellLogQueue,
-                                            String ttyLogQueue) throws IOException {
         RabbitOperations manager = new RabbitOperations(rabbitConnection, 10);
-        manager.declareTemp(shellLogQueue);
-        manager.declareExchangeAndBind(
-                rabbitProperties.getShellLogEx(),
-                BuiltinExchangeType.FANOUT,
-                shellLogQueue,
-                StringHelper.EMPTY
-        );
-
-        manager.declareTemp(ttyLogQueue);
-        manager.declareExchangeAndBind(
-                rabbitProperties.getTtyLogEx(),
-                BuiltinExchangeType.FANOUT,
-                ttyLogQueue,
-                StringHelper.EMPTY
-        );
+        manager.declare(callbackQueue, true);
+        manager.declare(shellLogQueue, true);
+        manager.declare(ttyLogQueue, true);
         return manager;
     }
 
@@ -120,5 +91,23 @@ public class QueueConfig {
     @Bean("agentQueueManager")
     public RabbitOperations agentQueueManager(Connection rabbitConnection) throws IOException {
         return new RabbitOperations(rabbitConnection, 1);
+    }
+
+    @Bean("localBroadcastQueue")
+    public String localBroadcastQueue() {
+        return "bc.q." + StringHelper.randomString(8);
+    }
+
+    @Bean("broadcastQueueManager")
+    public RabbitOperations broadcastQueueManager(Connection rabbitConnection, String localBroadcastQueue) throws IOException {
+        RabbitOperations manager = new RabbitOperations(rabbitConnection, 10);
+        manager.declareTemp(localBroadcastQueue);
+        manager.declareExchangeAndBind(
+                rabbitProperties.getBroadcastEx(),
+                BuiltinExchangeType.FANOUT,
+                localBroadcastQueue,
+                StringHelper.EMPTY
+        );
+        return manager;
     }
 }
