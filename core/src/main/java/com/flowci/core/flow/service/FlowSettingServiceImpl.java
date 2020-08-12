@@ -129,10 +129,11 @@ public class FlowSettingServiceImpl implements FlowSettingService {
 
     @EventListener
     public void onGitHookEvent(GitHookEvent event) {
+        GitTrigger trigger = event.getTrigger();
         Flow flow = flowDao.findByName(event.getFlow());
 
         if (event.isPingEvent()) {
-            GitPingTrigger ping = (GitPingTrigger) event.getTrigger();
+            GitPingTrigger ping = (GitPingTrigger) trigger;
 
             WebhookStatus ws = new WebhookStatus();
             ws.setAdded(true);
@@ -144,6 +145,11 @@ public class FlowSettingServiceImpl implements FlowSettingService {
             return;
         }
 
+        if (trigger.isSkip()) {
+            log.info("Ignore git trigger {} since skip message", trigger);
+            return;
+        }
+
         Optional<Yml> optional = ymlDao.findById(flow.getId());
         if (!optional.isPresent()) {
             log.warn("No available yml for flow {}", flow.getName());
@@ -152,13 +158,13 @@ public class FlowSettingServiceImpl implements FlowSettingService {
 
         Yml yml = optional.get();
         FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
-        if (!canStartJob(root, event.getTrigger())) {
+        if (!canStartJob(root, trigger)) {
             log.debug("Cannot start job since filter not matched on flow {}", flow.getName());
             return;
         }
 
-        StringVars gitInput = event.getTrigger().toVariableMap();
-        Job.Trigger jobTrigger = event.getTrigger().toJobTrigger();
+        StringVars gitInput = trigger.toVariableMap();
+        Job.Trigger jobTrigger = trigger.toJobTrigger();
 
         eventManager.publish(new CreateNewJobEvent(this, flow, yml.getRaw(), jobTrigger, gitInput));
     }
