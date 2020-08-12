@@ -33,6 +33,8 @@ public class DockerOption {
 
     private String image;
 
+    private String name;
+
     private List<String> entrypoint;
 
     private List<String> command;

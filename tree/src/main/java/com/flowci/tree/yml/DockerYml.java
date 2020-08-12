@@ -31,6 +31,8 @@ public class DockerYml {
 
     private String image;
 
+    private String name;
+
     private String network_mode;
 
     private List<String> ports;
@@ -53,6 +55,7 @@ public class DockerYml {
         DockerOption option = new DockerOption();
         option.setImage(image);
 
+        ObjectsHelper.ifNotNull(name, option::setName);
         ObjectsHelper.ifNotNull(network_mode, option::setNetworkMode);
         ObjectsHelper.ifNotNull(ports, option::setPorts);
         ObjectsHelper.ifNotNull(entrypoint, option::setEntrypoint);
