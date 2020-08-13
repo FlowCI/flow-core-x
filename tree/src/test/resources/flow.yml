@@ -41,5 +41,5 @@ steps:
        - "6400:6400"
        - "2700:2700"
      entrypoint: ["/bin/sh"]
-     network_mode: host
+     network: host
    script: "echo 2"

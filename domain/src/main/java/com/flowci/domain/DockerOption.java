@@ -33,11 +33,13 @@ public class DockerOption {
 
     private String image;
 
+    private String name;
+
     private List<String> entrypoint;
 
     private List<String> command;
 
-    private String networkMode = "bridge";
+    private String network;
 
     private String user = "root"; // default user
 

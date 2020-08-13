@@ -21,6 +21,7 @@ import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.CmdSentEvent;
+import com.flowci.core.agent.manager.AgentStatusManager;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.flow.dao.FlowDao;
@@ -103,6 +104,9 @@ public class JobServiceTest extends ZookeeperScenario {
 
     @Autowired
     private AgentService agentService;
+
+    @Autowired
+    private AgentStatusManager statusManager;
 
     @Autowired
     private JobActionManager jobActionManager;
@@ -472,7 +476,7 @@ public class JobServiceTest extends ZookeeperScenario {
         });
 
         agent.setJobId(job.getId());
-        agent.setStatus(Agent.Status.OFFLINE);
+        statusManager.set(agent, Agent.Status.OFFLINE);
         agentDao.save(agent); // persistent agent status to db
 
         multicastEvent(new AgentStatusEvent(this, agent));
