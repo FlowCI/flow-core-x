@@ -94,7 +94,7 @@ public class YmlParserTest {
         Assert.assertEquals("6400:6400", dockerOption.getPorts().get(0));
         Assert.assertEquals("2700:2700", dockerOption.getPorts().get(1));
         Assert.assertEquals("/bin/sh", dockerOption.getEntrypoint().get(0));
-        Assert.assertEquals("host", dockerOption.getNetworkMode());
+        Assert.assertEquals("host", dockerOption.getNetwork());
     }
 
     @Test
