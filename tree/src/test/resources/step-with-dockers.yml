@@ -11,7 +11,7 @@ steps:
         - "6400:6400"
         - "2700:2700"
       entrypoint: ["/bin/sh"]
-      network_mode: host
+      network: host
     allow_failure: true
 
   - name: step2
@@ -29,5 +29,5 @@ steps:
         command: ["mysql", "-hlocalhost"]
         environment:
           MY_PW: "12345"
-        network_mode: none
+        network: none
     script: "echo 2"
