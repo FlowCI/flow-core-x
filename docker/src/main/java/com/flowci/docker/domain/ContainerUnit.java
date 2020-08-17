@@ -21,4 +21,9 @@ public class ContainerUnit implements Unit {
     public String getName() {
         return container.getNames()[0];
     }
+
+    @Override
+    public String getStatus() {
+        return container.getStatus();
+    }
 }

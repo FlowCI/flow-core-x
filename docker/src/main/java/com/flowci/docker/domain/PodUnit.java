@@ -19,4 +19,9 @@ public class PodUnit implements Unit {
     public String getName() {
         return pod.getMetadata().getName();
     }
+
+    @Override
+    public String getStatus() {
+        return pod.getStatus().getPhase();
+    }
 }

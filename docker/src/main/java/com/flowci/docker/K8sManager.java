@@ -6,19 +6,22 @@ import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Frame;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class K8sManager implements DockerManager {
 
-    private final static String Label = "flow-ci";
+    private final static String LabelType = "flow-ci-type";
+    private final static String LabelTypeValueAgent = "agent";
 
-    private final static String LabelValueAgent = "agent";
+    private final static String LabelName = "flow-ci-name";
 
     private CoreV1Api api;
 
@@ -62,11 +65,15 @@ public class K8sManager implements DockerManager {
         @Override
         public List<Unit> list(String statusFilter, String nameFilter) throws Exception {
             V1PodList podList = api.listNamespacedPod(option.getNamespace(), null, null, null, null, null, null, null, null, null);
-            return null;
+            List<Unit> list = new ArrayList<>(podList.getItems().size());
+            for (V1Pod pod : podList.getItems()) {
+                list.add(new PodUnit(pod));
+            }
+            return list;
         }
 
         @Override
-        public InspectContainerResponse inspect(String containerId) throws Exception {
+        public InspectContainerResponse inspect(String podName) throws Exception {
             return null;
         }
 
@@ -76,22 +83,22 @@ public class K8sManager implements DockerManager {
         }
 
         @Override
-        public void wait(String containerId, int timeoutInSeconds, Consumer<Frame> onLog) throws Exception {
+        public void wait(String podName, int timeoutInSeconds, Consumer<Frame> onLog) throws Exception {
 
         }
 
         @Override
-        public void stop(String containerId) throws Exception {
+        public void stop(String podName) throws Exception {
 
         }
 
         @Override
-        public void resume(String containerId) throws Exception {
+        public void resume(String podName) throws Exception {
 
         }
 
         @Override
-        public void delete(String containerId) throws Exception {
+        public void delete(String podName) throws Exception {
 
         }
     }
