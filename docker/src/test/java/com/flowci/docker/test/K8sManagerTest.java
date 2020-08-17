@@ -5,12 +5,12 @@ import com.flowci.docker.K8sManager;
 import com.flowci.docker.domain.K8sOption;
 import com.flowci.docker.domain.KubeConfigOption;
 import com.flowci.docker.domain.Unit;
+import com.flowci.util.StringHelper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.List;
 
 public class K8sManagerTest {
@@ -19,8 +19,8 @@ public class K8sManagerTest {
 
     @Before
     public void init() throws Exception {
-        InputStream kubeconfig = load("kubeconfig");
-        K8sOption option = new KubeConfigOption("test", new InputStreamReader(kubeconfig));
+        InputStream is = load("kubeconfig");
+        K8sOption option = new KubeConfigOption("test", StringHelper.toString(is));
         manager = new K8sManager(option);
     }
 

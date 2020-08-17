@@ -1,12 +1,12 @@
 package com.flowci.docker.domain;
 
-import io.kubernetes.client.openapi.models.V1Pod;
+import io.fabric8.kubernetes.api.model.Pod;
 
 public class PodUnit implements Unit {
 
-    private final V1Pod pod;
+    private final Pod pod;
 
-    public PodUnit(V1Pod pod) {
+    public PodUnit(Pod pod) {
         this.pod = pod;
     }
 

@@ -8,7 +8,6 @@ import com.flowci.docker.domain.SSHOption;
 import com.flowci.docker.domain.Unit;
 import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.command.InspectContainerResponse;
-import com.github.dockerjava.api.model.Container;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;

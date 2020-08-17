@@ -33,8 +33,8 @@
         </dependency>
 
         <dependency>
-            <groupId>io.kubernetes</groupId>
-            <artifactId>client-java</artifactId>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
         </dependency>
 
         <dependency>
