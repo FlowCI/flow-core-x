@@ -36,6 +36,7 @@ import com.flowci.docker.DockerManager;
 import com.flowci.docker.DockerSSHManager;
 import com.flowci.docker.domain.DockerStartOption;
 import com.flowci.docker.domain.SSHOption;
+import com.flowci.docker.domain.Unit;
 import com.flowci.domain.Agent;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
@@ -167,7 +168,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
 
         ContainerManager cm = optional.get().getContainerManager();
-        List<Container> containerList;
+        List<Unit> containerList;
 
         try {
             containerList = cm.list(null, ContainerNamePrefix + "*");
@@ -185,7 +186,7 @@ public class AgentHostServiceImpl implements AgentHostService {
 
         for (AgentItemWrapper item : containerSet) {
             try {
-                List<Container> list = cm.list(null, item.getName());
+                List<Unit> list = cm.list(null, item.getName());
                 if (list.size() > 0) {
                     cm.delete(list.get(0).getId());
                 }
@@ -213,7 +214,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             // try to resume, add to start list if failed
             if (agent.getStatus() == Agent.Status.OFFLINE) {
                 try {
-                    List<Container> list = cm.list(null, getContainerName(agent));
+                    List<Unit> list = cm.list(null, getContainerName(agent));
 
                     // container not exist
                     if (list.isEmpty()) {
@@ -221,7 +222,7 @@ public class AgentHostServiceImpl implements AgentHostService {
                         continue;
                     }
 
-                    Container container = list.get(0);
+                    Unit container = list.get(0);
                     cm.resume(container.getId());
                     log.info("Agent {} been resumed", agent.getName());
                     return true;
@@ -311,8 +312,8 @@ public class AgentHostServiceImpl implements AgentHostService {
 
         ContainerManager cm = optional.get().getContainerManager();
         try {
-            List<Container> containers = cm.list(null, ContainerNamePrefix + "*");
-            for (Container c : containers) {
+            List<Unit> containers = cm.list(null, ContainerNamePrefix + "*");
+            for (Unit c : containers) {
                 cm.delete(c.getId());
             }
         } catch (Exception e) {
@@ -569,8 +570,8 @@ public class AgentHostServiceImpl implements AgentHostService {
                 return ((Agent) object).getName();
             }
 
-            if (object instanceof Container) {
-                return ((Container) object).getNames()[0];
+            if (object instanceof Unit) {
+                return ((Unit) object).getName();
             }
 
             throw new IllegalArgumentException();

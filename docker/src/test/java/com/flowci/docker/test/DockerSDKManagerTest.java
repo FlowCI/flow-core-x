@@ -4,6 +4,7 @@ import com.flowci.docker.ContainerManager;
 import com.flowci.docker.DockerManager;
 import com.flowci.docker.DockerSDKManager;
 import com.flowci.docker.domain.DockerStartOption;
+import com.flowci.docker.domain.Unit;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
 import org.junit.*;
@@ -37,7 +38,7 @@ public class DockerSDKManagerTest {
 
     @Test
     public void should_list_containers() throws Exception {
-        List<Container> containers = manager.getContainerManager().list(null, null);
+        List<Unit> containers = manager.getContainerManager().list(null, null);
         Assert.assertNotNull(containers);
     }
 

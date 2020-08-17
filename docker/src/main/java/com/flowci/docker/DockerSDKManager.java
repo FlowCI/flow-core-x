@@ -1,7 +1,9 @@
 package com.flowci.docker;
 
+import com.flowci.docker.domain.ContainerUnit;
 import com.flowci.docker.domain.DockerCallback;
 import com.flowci.docker.domain.DockerStartOption;
+import com.flowci.docker.domain.Unit;
 import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.*;
@@ -17,6 +19,7 @@ import lombok.extern.log4j.Log4j2;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -88,7 +91,7 @@ public class DockerSDKManager implements DockerManager {
     private class ContainerManagerImpl implements ContainerManager {
 
         @Override
-        public List<Container> list(String statusFilter, String nameFilter) throws Exception {
+        public List<Unit> list(String statusFilter, String nameFilter) throws Exception {
             try (DockerClient client = newClient()) {
                 ListContainersCmd cmd = client.listContainersCmd().withShowAll(true);
 
@@ -100,7 +103,12 @@ public class DockerSDKManager implements DockerManager {
                     cmd.withStatusFilter(Lists.newArrayList(statusFilter));
                 }
 
-                return cmd.exec();
+                List<Container> containers = cmd.exec();
+                List<Unit> list = new ArrayList<>(containers.size());
+                for (Container c : containers) {
+                    list.add(new ContainerUnit(c));
+                }
+                return list;
             }
         }
 

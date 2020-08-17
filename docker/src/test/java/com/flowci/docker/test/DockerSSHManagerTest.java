@@ -5,6 +5,7 @@ import com.flowci.docker.DockerManager;
 import com.flowci.docker.DockerSSHManager;
 import com.flowci.docker.domain.DockerStartOption;
 import com.flowci.docker.domain.SSHOption;
+import com.flowci.docker.domain.Unit;
 import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Container;
@@ -30,7 +31,7 @@ public class DockerSSHManagerTest {
 
     @Test
     public void should_list_containers() throws Exception {
-        List<Container> list = manager.getContainerManager().list(null, null);
+        List<Unit> list = manager.getContainerManager().list(null, null);
         Assert.assertNotNull(list);
     }
 

@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.docker.domain.ContainerUnit;
 import com.flowci.docker.domain.DockerStartOption;
 import com.flowci.docker.domain.SSHOption;
+import com.flowci.docker.domain.Unit;
 import com.flowci.domain.ObjectWrapper;
 import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.command.InspectContainerResponse;
@@ -109,7 +111,7 @@ public class DockerSSHManager implements DockerManager {
     private class ContainerManagerImpl implements ContainerManager {
 
         @Override
-        public List<Container> list(String statusFilter, String nameFilter) throws Exception {
+        public List<Unit> list(String statusFilter, String nameFilter) throws Exception {
             StringBuilder cmd = new StringBuilder();
             cmd.append("docker ps -a ");
             if (StringHelper.hasValue(statusFilter)) {
@@ -120,10 +122,11 @@ public class DockerSSHManager implements DockerManager {
             }
             cmd.append(FormatAsJson);
 
-            List<Container> list = new LinkedList<>();
+            List<Unit> list = new LinkedList<>();
             Output output = runCmd(cmd.toString(), (line) -> {
                 try {
-                    list.add(mapper.readValue(line, Container.class));
+                    Container container = mapper.readValue(line, Container.class);
+                    list.add(new ContainerUnit(container));
                 } catch (JsonProcessingException ignore) {
                 }
             });
