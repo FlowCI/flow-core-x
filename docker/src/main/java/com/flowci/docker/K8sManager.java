@@ -122,12 +122,12 @@ public class K8sManager implements DockerManager {
 
         @Override
         public void delete(String podName) throws Exception {
-            Pod pod = getPod(podName);
-            if (pod.getStatus().getPhase().equals(PodUnit.Terminating)) {
-                return;
-            }
+            Boolean delete = client.pods()
+                    .inNamespace(option.getNamespace())
+                    .withName(podName)
+                    .withGracePeriod(0)
+                    .delete();
 
-            Boolean delete = client.pods().inNamespace(option.getNamespace()).delete(pod);
             if (!delete) {
                 throw new Exception(String.format("Pod %s not deleted", podName));
             }

@@ -13,11 +13,18 @@ import java.util.Optional;
  */
 public class PodUnit implements Unit {
 
-    public static final String Running = "Running";
+    public abstract static class Phase {
 
-    public static final String Terminating = "Terminating";
+        public static final String Pending = "Pending";
 
-    public static final String RunError = "RunContainerError";
+        public static final String Running = "Running";
+
+        public static final String Terminating = "Terminating";
+
+        public static final String Succeeded = "Succeeded";
+
+        public static final String RunError = "RunContainerError";
+    }
 
     private final Pod pod;
 

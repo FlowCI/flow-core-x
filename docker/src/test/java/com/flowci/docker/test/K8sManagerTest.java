@@ -58,6 +58,9 @@ public class K8sManagerTest {
         Unit inspect = cm.inspect(pod);
         Assert.assertNotNull(inspect);
         Assert.assertFalse(inspect.isRunning());
+        Assert.assertEquals(PodUnit.Phase.Succeeded, inspect.getStatus());
+
+        Assert.assertNotNull(inspect.getExitCode());
         Assert.assertEquals(0, inspect.getExitCode().intValue());
     }
 
