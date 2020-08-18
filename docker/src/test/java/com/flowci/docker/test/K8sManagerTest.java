@@ -46,14 +46,14 @@ public class K8sManagerTest {
 
         option.setCommand("/bin/bash");
         option.addArg("-c");
-        option.addArg("echo helloworld\necho end\necho helloworld");
+        option.addArg("echo helloworld\nsleep 5\necho end\necho helloworld");
 
         ContainerManager cm = manager.getContainerManager();
 
         String pod = cm.start(option);
         Assert.assertNotNull(pod);
 
-        Thread.sleep(10 * 1000);
+        cm.wait(pod, 1500, null);
 
         Unit inspect = cm.inspect(pod);
         Assert.assertNotNull(inspect);

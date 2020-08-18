@@ -7,13 +7,21 @@ import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+
+import static com.flowci.docker.domain.PodUnit.Phase.Failed;
+import static com.flowci.docker.domain.PodUnit.Phase.Succeeded;
 
 public class K8sManager implements DockerManager {
 
@@ -70,7 +78,7 @@ public class K8sManager implements DockerManager {
 
         @Override
         public Unit inspect(String podName) throws Exception {
-            return new PodUnit(getPod(podName));
+            return new PodUnit(podResource(podName).get());
         }
 
         @Override
@@ -107,7 +115,27 @@ public class K8sManager implements DockerManager {
 
         @Override
         public void wait(String podName, int timeoutInSeconds, Consumer<Frame> onLog) throws Exception {
+            podResource(podName).waitUntilReady(
+                    timeoutInSeconds,
+                    TimeUnit.SECONDS
+            );
 
+            LogWatch watch = podResource(podName).watchLog();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(watch.getOutput()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println(line);
+                }
+            }
+
+            podResource(podName).waitUntilCondition(
+                    pod -> {
+                        String phase = pod.getStatus().getPhase();
+                        return phase.equals(Succeeded) || phase.equals(Failed);
+                    },
+                    timeoutInSeconds,
+                    TimeUnit.SECONDS
+            );
         }
 
         @Override
@@ -122,9 +150,7 @@ public class K8sManager implements DockerManager {
 
         @Override
         public void delete(String podName) throws Exception {
-            Boolean delete = client.pods()
-                    .inNamespace(option.getNamespace())
-                    .withName(podName)
+            Boolean delete = podResource(podName)
                     .withGracePeriod(0)
                     .delete();
 
@@ -132,10 +158,6 @@ public class K8sManager implements DockerManager {
                 throw new Exception(String.format("Pod %s not deleted", podName));
             }
         }
-    }
-
-    private Pod getPod(String name) {
-        return client.pods().inNamespace(option.getNamespace()).withName(name).get();
     }
 
     private List<Pod> listPods(String name, String status) {
@@ -151,5 +173,11 @@ public class K8sManager implements DockerManager {
         }
 
         return operation.list().getItems();
+    }
+
+    private PodResource<Pod, DoneablePod> podResource(String name) {
+        return client.pods()
+                .inNamespace(option.getNamespace())
+                .withName(name);
     }
 }

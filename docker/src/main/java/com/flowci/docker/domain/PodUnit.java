@@ -23,6 +23,8 @@ public class PodUnit implements Unit {
 
         public static final String Succeeded = "Succeeded";
 
+        public static final String Failed = "Failed";
+
         public static final String RunError = "RunContainerError";
     }
 
