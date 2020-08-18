@@ -4,6 +4,7 @@ import com.flowci.domain.StringVars;
 import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -49,5 +50,11 @@ public class DockerStartOption {
 
     public List<String> toEnvList() {
         return env.toList();
+    }
+
+    public List<EnvVar> toK8sVarList() {
+        List<EnvVar> list = new ArrayList<>(env.size());
+        env.forEach((k, v) -> list.add(new EnvVar(k, v, null)));
+        return list;
     }
 }
