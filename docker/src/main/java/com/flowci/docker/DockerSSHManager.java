@@ -132,7 +132,7 @@ public class DockerSSHManager implements DockerManager {
         }
 
         @Override
-        public Inspected inspect(String containerId) throws Exception {
+        public Unit inspect(String containerId) throws Exception {
             String cmd = String.format("docker inspect %s %s", containerId, FormatAsJson);
             final ObjectWrapper<InspectContainerResponse> inspected = new ObjectWrapper<>();
 
@@ -148,7 +148,7 @@ public class DockerSSHManager implements DockerManager {
                 throw new Exception(String.format("Unable to inspect container %s result", containerId));
             }
 
-            return new ContainerInspected(inspected.getValue());
+            return new ContainerUnit(inspected.getValue());
         }
 
         @Override

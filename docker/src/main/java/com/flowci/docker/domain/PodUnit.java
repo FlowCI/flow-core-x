@@ -1,8 +1,23 @@
 package com.flowci.docker.domain;
 
+import io.fabric8.kubernetes.api.model.ContainerStateRunning;
+import io.fabric8.kubernetes.api.model.ContainerStateTerminated;
+import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.Pod;
 
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Single container pod unit
+ */
 public class PodUnit implements Unit {
+
+    public static final String Running = "Running";
+
+    public static final String Terminating = "Terminating";
+
+    public static final String RunError = "RunContainerError";
 
     private final Pod pod;
 
@@ -23,5 +38,42 @@ public class PodUnit implements Unit {
     @Override
     public String getStatus() {
         return pod.getStatus().getPhase();
+    }
+
+    @Override
+    public Long getExitCode() {
+        Optional<ContainerStateTerminated> optional = getTerminated();
+        if (optional.isPresent()) {
+            return optional.get().getExitCode().longValue();
+        }
+        return null;
+    }
+
+    @Override
+    public Boolean isRunning() {
+        return getRunning().isPresent();
+    }
+
+    private Optional<ContainerStateRunning> getRunning() {
+        List<ContainerStatus> containers = pod.getStatus().getContainerStatuses();
+        if (containers.isEmpty()) {
+            return Optional.empty();
+        }
+
+        ContainerStatus container = containers.get(0);
+        ContainerStateRunning running = container.getState().getRunning();
+        return Optional.ofNullable(running);
+    }
+
+
+    private Optional<ContainerStateTerminated> getTerminated() {
+        List<ContainerStatus> containers = pod.getStatus().getContainerStatuses();
+        if (containers.isEmpty()) {
+            return Optional.empty();
+        }
+
+        ContainerStatus container = containers.get(0);
+        ContainerStateTerminated terminated = container.getState().getTerminated();
+        return Optional.ofNullable(terminated);
     }
 }

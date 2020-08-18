@@ -1,29 +1,40 @@
 package com.flowci.docker.domain;
 
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Container;
 import lombok.Getter;
 
 @Getter
 public class ContainerUnit implements Unit {
 
-    private final Container container;
+    private final String id;
 
-    public ContainerUnit(Container container) {
-        this.container = container;
+    private final String name;
+
+    private final String status;
+
+    private final Long exitCode;
+
+    private final Boolean running;
+
+    public ContainerUnit(Container c) {
+        this.id = c.getId();
+        this.name = c.getNames()[0];
+        this.status = c.getStatus();
+        this.exitCode = null;
+        this.running = null;
+    }
+
+    public ContainerUnit(InspectContainerResponse r) {
+        this.id = r.getId();
+        this.name = r.getName();
+        this.status = r.getState().getStatus();
+        this.exitCode = r.getState().getExitCodeLong();
+        this.running = r.getState().getRunning();
     }
 
     @Override
-    public String getId() {
-        return container.getId();
-    }
-
-    @Override
-    public String getName() {
-        return container.getNames()[0];
-    }
-
-    @Override
-    public String getStatus() {
-        return container.getStatus();
+    public Boolean isRunning() {
+        return running;
     }
 }

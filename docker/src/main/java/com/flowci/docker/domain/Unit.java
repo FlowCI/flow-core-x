@@ -5,18 +5,13 @@ package com.flowci.docker.domain;
  */
 public interface Unit {
 
-    /**
-     * Unit id
-     */
     String getId();
 
-    /**
-     * Name of unit
-     */
     String getName();
 
-    /**
-     * Unit status
-     */
     String getStatus();
+
+    Long getExitCode();
+
+    Boolean isRunning();
 }

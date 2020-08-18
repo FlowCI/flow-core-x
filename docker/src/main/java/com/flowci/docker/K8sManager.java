@@ -2,7 +2,6 @@ package com.flowci.docker;
 
 import com.flowci.docker.domain.*;
 import com.flowci.util.StringHelper;
-import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Frame;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.Config;
@@ -22,15 +21,6 @@ public class K8sManager implements DockerManager {
     private final static String LabelTypeValueAgent = "agent";
 
     private final static String LabelName = "flow-ci-name";
-
-    public abstract static class Status {
-
-        public static final String Running = "Running";
-
-        public static final String Terminating = "Terminating";
-
-        public static final String RunError = "RunContainerError";
-    }
 
     private final KubernetesClient client;
 
@@ -79,8 +69,8 @@ public class K8sManager implements DockerManager {
         }
 
         @Override
-        public Inspected inspect(String podName) throws Exception {
-            return null;
+        public Unit inspect(String podName) throws Exception {
+            return new PodUnit(getPod(podName));
         }
 
         @Override
@@ -103,6 +93,7 @@ public class K8sManager implements DockerManager {
             Pod pod = new PodBuilder()
                     .withNewSpec()
                     .withContainers(c)
+                    .withRestartPolicy("Never")
                     .endSpec()
                     .withNewMetadata()
                     .withName(so.getName())
@@ -131,13 +122,8 @@ public class K8sManager implements DockerManager {
 
         @Override
         public void delete(String podName) throws Exception {
-            List<Pod> pods = listPods(podName, null);
-            if (pods.isEmpty()) {
-                return;
-            }
-
-            Pod pod = pods.get(0);
-            if (pod.getStatus().getPhase().equals(Status.Terminating)) {
+            Pod pod = getPod(podName);
+            if (pod.getStatus().getPhase().equals(PodUnit.Terminating)) {
                 return;
             }
 
@@ -146,6 +132,10 @@ public class K8sManager implements DockerManager {
                 throw new Exception(String.format("Pod %s not deleted", podName));
             }
         }
+    }
+
+    private Pod getPod(String name) {
+        return client.pods().inNamespace(option.getNamespace()).withName(name).get();
     }
 
     private List<Pod> listPods(String name, String status) {

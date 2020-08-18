@@ -46,14 +46,19 @@ public class K8sManagerTest {
 
         option.setCommand("/bin/bash");
         option.addArg("-c");
-        option.addArg("echo helloworld\nsleep 10\necho end\necho helloworld");
+        option.addArg("echo helloworld\necho end\necho helloworld");
 
         ContainerManager cm = manager.getContainerManager();
 
         String pod = cm.start(option);
         Assert.assertNotNull(pod);
 
-        cm.inspect(pod);
+        Thread.sleep(10 * 1000);
+
+        Unit inspect = cm.inspect(pod);
+        Assert.assertNotNull(inspect);
+        Assert.assertFalse(inspect.isRunning());
+        Assert.assertEquals(0, inspect.getExitCode().intValue());
     }
 
     protected InputStream load(String resource) {

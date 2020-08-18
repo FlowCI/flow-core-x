@@ -110,10 +110,10 @@ public class DockerSDKManager implements DockerManager {
         }
 
         @Override
-        public Inspected inspect(String containerId) throws Exception {
+        public Unit inspect(String containerId) throws Exception {
             try (DockerClient client = newClient()) {
                 InspectContainerResponse exec = client.inspectContainerCmd(containerId).exec();
-                return new ContainerInspected(exec);
+                return new ContainerUnit(exec);
             }
         }
 
