@@ -34,7 +34,7 @@ import com.flowci.core.user.domain.User;
 import com.flowci.docker.ContainerManager;
 import com.flowci.docker.DockerManager;
 import com.flowci.docker.DockerSSHManager;
-import com.flowci.docker.domain.DockerStartOption;
+import com.flowci.docker.domain.ContainerStartOption;
 import com.flowci.docker.domain.SSHOption;
 import com.flowci.docker.domain.Unit;
 import com.flowci.domain.Agent;
@@ -46,7 +46,6 @@ import com.flowci.zookeeper.ZookeeperException;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.RemovalListener;
-import com.github.dockerjava.api.model.Container;
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -370,8 +369,8 @@ public class AgentHostServiceImpl implements AgentHostService {
     //        %% Private functions
     //====================================================================
 
-    private DockerStartOption buildStartOption(Agent agent) {
-        DockerStartOption option = new DockerStartOption();
+    private ContainerStartOption buildStartOption(Agent agent) {
+        ContainerStartOption option = new ContainerStartOption();
         option.setImage(DefaultImage);
         option.setName(getContainerName(agent));
 

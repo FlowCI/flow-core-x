@@ -16,7 +16,7 @@ import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.docker.ContainerManager;
 import com.flowci.docker.DockerManager;
 import com.flowci.docker.ImageManager;
-import com.flowci.docker.domain.DockerStartOption;
+import com.flowci.docker.domain.ContainerStartOption;
 import com.flowci.domain.LocalTask;
 import com.flowci.exception.StatusException;
 import com.flowci.tree.NodeTree;
@@ -115,7 +115,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
         ExecutedLocalTask exec = optional.get();
         updateStatusTimeAndSave(exec, Executed.Status.RUNNING, null);
 
-        DockerStartOption option = new DockerStartOption();
+        ContainerStartOption option = new ContainerStartOption();
         option.setImage(DefaultImage);
         option.addEntryPoint("/bin/bash");
         option.addEntryPoint("-c");
@@ -178,7 +178,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
         eventManager.publish(new TaskUpdateEvent(this, t.getJobId(), list, false));
     }
 
-    private void runDockerTask(DockerStartOption option, ExecutedLocalTask r) throws Exception {
+    private void runDockerTask(ContainerStartOption option, ExecutedLocalTask r) throws Exception {
         ContainerManager cm = dockerManager.getContainerManager();
         ImageManager im = dockerManager.getImageManager();
         String image = option.getImage();

@@ -3,10 +3,9 @@ package com.flowci.docker.test;
 import com.flowci.docker.ContainerManager;
 import com.flowci.docker.DockerManager;
 import com.flowci.docker.DockerSDKManager;
-import com.flowci.docker.domain.DockerStartOption;
+import com.flowci.docker.domain.ContainerStartOption;
 import com.flowci.docker.domain.Unit;
 import com.github.dockerjava.api.exception.NotFoundException;
-import com.github.dockerjava.api.model.Container;
 import org.junit.*;
 
 import java.util.List;
@@ -44,7 +43,7 @@ public class DockerSDKManagerTest {
 
     @Test
     public void should_create_start_and_delete_container() throws Exception {
-        DockerStartOption option = new DockerStartOption();
+        ContainerStartOption option = new ContainerStartOption();
         option.setImage("ubuntu:18.04");
         option.addEnv("FLOW_TEST", "hello.world");
 

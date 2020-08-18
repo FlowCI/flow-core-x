@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flowci.docker.domain.ContainerUnit;
-import com.flowci.docker.domain.DockerStartOption;
-import com.flowci.docker.domain.SSHOption;
-import com.flowci.docker.domain.Unit;
+import com.flowci.docker.domain.*;
 import com.flowci.domain.ObjectWrapper;
 import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.command.InspectContainerResponse;
@@ -156,7 +153,12 @@ public class DockerSSHManager implements DockerManager {
         }
 
         @Override
-        public String start(DockerStartOption option) throws Exception {
+        public String start(StartOption startOption) throws Exception {
+            if (!(startOption instanceof ContainerStartOption)) {
+                throw new IllegalArgumentException();
+            }
+
+            ContainerStartOption option = (ContainerStartOption) startOption;
             StringBuilder cmd = new StringBuilder();
             cmd.append("docker run -d ");
 

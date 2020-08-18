@@ -14,28 +14,14 @@ import java.util.List;
 
 @Getter
 @Setter
-public class DockerStartOption {
-
-    private String image;
-
-    private String name;
+public class ContainerStartOption extends StartOption {
 
     private final List<String> entrypoint = new LinkedList<>();
 
-    private final StringVars env = new StringVars();
-
     private final StringVars bind = new StringVars();
-
-    public boolean hasName() {
-        return StringHelper.hasValue(name);
-    }
 
     public void addEntryPoint(String cmd) {
         this.entrypoint.add(cmd);
-    }
-
-    public void addEnv(String k, String v) {
-        this.env.put(k, v);
     }
 
     public void addBind(String src, String target) {
@@ -45,16 +31,6 @@ public class DockerStartOption {
     public List<Bind> toBindList() {
         List<Bind> list = new ArrayList<>(bind.size());
         bind.forEach((s, t) -> list.add(new Bind(s, new Volume(t))));
-        return list;
-    }
-
-    public List<String> toEnvList() {
-        return env.toList();
-    }
-
-    public List<EnvVar> toK8sVarList() {
-        List<EnvVar> list = new ArrayList<>(env.size());
-        env.forEach((k, v) -> list.add(new EnvVar(k, v, null)));
         return list;
     }
 }

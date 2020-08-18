@@ -1,9 +1,6 @@
 package com.flowci.docker;
 
-import com.flowci.docker.domain.ContainerUnit;
-import com.flowci.docker.domain.DockerCallback;
-import com.flowci.docker.domain.DockerStartOption;
-import com.flowci.docker.domain.Unit;
+import com.flowci.docker.domain.*;
 import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.*;
@@ -120,7 +117,13 @@ public class DockerSDKManager implements DockerManager {
         }
 
         @Override
-        public String start(DockerStartOption option) throws Exception {
+        public String start(StartOption startOption) throws Exception {
+            if (!(startOption instanceof ContainerStartOption)) {
+                throw new IllegalArgumentException();
+            }
+
+            ContainerStartOption option = (ContainerStartOption) startOption;
+
             try (DockerClient client = newClient()) {
                 CreateContainerCmd createCmd = client.createContainerCmd(option.getImage());
                 createCmd.withEnv(option.toEnvList());

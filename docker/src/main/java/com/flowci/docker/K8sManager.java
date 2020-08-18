@@ -28,6 +28,8 @@ public class K8sManager implements DockerManager {
         public static final String Running = "Running";
 
         public static final String Terminating = "Terminating";
+
+        public static final String RunError = "RunContainerError";
     }
 
     private KubernetesClient client;
@@ -82,13 +84,20 @@ public class K8sManager implements DockerManager {
         }
 
         @Override
-        public String start(DockerStartOption so) throws Exception {
+        public String start(StartOption startOption) throws Exception {
+            if (!(startOption instanceof PodStartOption)) {
+                throw new IllegalArgumentException();
+            }
+
+            PodStartOption so = (PodStartOption) startOption;
+
             Container c = new ContainerBuilder()
                     .withImage(so.getImage())
                     .withImagePullPolicy("Always")
                     .withName(so.getName())
                     .withEnv(so.toK8sVarList())
-                    .withCommand(so.getEntrypoint())
+                    .withCommand(so.getCommand())
+                    .withArgs(so.getArgs())
                     .build();
 
             Pod pod = new PodBuilder()
