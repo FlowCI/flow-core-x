@@ -32,7 +32,7 @@ public class K8sManager implements DockerManager {
         public static final String RunError = "RunContainerError";
     }
 
-    private KubernetesClient client;
+    private final KubernetesClient client;
 
     private final K8sOption option;
 
@@ -79,7 +79,7 @@ public class K8sManager implements DockerManager {
         }
 
         @Override
-        public InspectContainerResponse inspect(String podName) throws Exception {
+        public Inspected inspect(String podName) throws Exception {
             return null;
         }
 

@@ -189,7 +189,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
             r.setContainerId(cid);
 
             cm.wait(cid, DefaultTimeout, (frame -> log.debug(new String(frame.getPayload()))));
-            Long exitCode = cm.inspect(cid).getState().getExitCodeLong();
+            Long exitCode = cm.inspect(cid).getExitCode();
             r.setCode(exitCode.intValue());
         } finally {
             if (r.hasContainerId()) {

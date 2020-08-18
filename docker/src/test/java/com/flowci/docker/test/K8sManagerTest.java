@@ -1,5 +1,6 @@
 package com.flowci.docker.test;
 
+import com.flowci.docker.ContainerManager;
 import com.flowci.docker.DockerManager;
 import com.flowci.docker.K8sManager;
 import com.flowci.docker.domain.*;
@@ -37,7 +38,7 @@ public class K8sManagerTest {
     }
 
     @Test
-    public void should_create_pod() throws Exception {
+    public void should_create_and_inspect_pod() throws Exception {
         PodStartOption option = new PodStartOption();
         option.setName(podName);
         option.setImage("ubuntu:18.04");
@@ -45,10 +46,14 @@ public class K8sManagerTest {
 
         option.setCommand("/bin/bash");
         option.addArg("-c");
-        option.addArg("\"echo helloworld\nsleep 10\necho end\necho helloworld\"");
+        option.addArg("echo helloworld\nsleep 10\necho end\necho helloworld");
 
-        String pod = manager.getContainerManager().start(option);
+        ContainerManager cm = manager.getContainerManager();
+
+        String pod = cm.start(option);
         Assert.assertNotNull(pod);
+
+        cm.inspect(pod);
     }
 
     protected InputStream load(String resource) {

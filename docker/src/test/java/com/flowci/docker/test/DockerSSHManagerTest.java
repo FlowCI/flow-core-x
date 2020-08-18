@@ -4,10 +4,10 @@ import com.flowci.docker.ContainerManager;
 import com.flowci.docker.DockerManager;
 import com.flowci.docker.DockerSSHManager;
 import com.flowci.docker.domain.ContainerStartOption;
+import com.flowci.docker.domain.Inspected;
 import com.flowci.docker.domain.SSHOption;
 import com.flowci.docker.domain.Unit;
 import com.flowci.util.StringHelper;
-import com.github.dockerjava.api.command.InspectContainerResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -68,7 +68,7 @@ public class DockerSSHManagerTest {
 
     @Test
     public void should_inspect_container() throws Exception {
-        InspectContainerResponse inspect = manager.getContainerManager().inspect("a86fc2720b11");
+        Inspected inspect = manager.getContainerManager().inspect("a86fc2720b11");
         Assert.assertNotNull(inspect);
     }
 

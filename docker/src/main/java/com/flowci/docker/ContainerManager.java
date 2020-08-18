@@ -1,8 +1,8 @@
 package com.flowci.docker;
 
+import com.flowci.docker.domain.Inspected;
 import com.flowci.docker.domain.StartOption;
 import com.flowci.docker.domain.Unit;
-import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Frame;
 
 import java.util.List;
@@ -12,7 +12,7 @@ public interface ContainerManager {
 
     List<Unit> list(String statusFilter, String nameFilter) throws Exception;
 
-    InspectContainerResponse inspect(String id) throws Exception;
+    Inspected inspect(String id) throws Exception;
 
     String start(StartOption option) throws Exception;
 

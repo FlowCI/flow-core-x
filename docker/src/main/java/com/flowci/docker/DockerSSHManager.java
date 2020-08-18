@@ -30,8 +30,7 @@ public class DockerSSHManager implements DockerManager {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-
-    private Session session;
+    private final Session session;
 
     private final ContainerManager containerManager = new ContainerManagerImpl();
 
@@ -133,7 +132,7 @@ public class DockerSSHManager implements DockerManager {
         }
 
         @Override
-        public InspectContainerResponse inspect(String containerId) throws Exception {
+        public Inspected inspect(String containerId) throws Exception {
             String cmd = String.format("docker inspect %s %s", containerId, FormatAsJson);
             final ObjectWrapper<InspectContainerResponse> inspected = new ObjectWrapper<>();
 
@@ -149,7 +148,7 @@ public class DockerSSHManager implements DockerManager {
                 throw new Exception(String.format("Unable to inspect container %s result", containerId));
             }
 
-            return inspected.getValue();
+            return new ContainerInspected(inspected.getValue());
         }
 
         @Override
@@ -206,8 +205,8 @@ public class DockerSSHManager implements DockerManager {
 
         @Override
         public void stop(String containerId) throws Exception {
-            InspectContainerResponse.ContainerState state = inspect(containerId).getState();
-            Boolean running = state.getRunning();
+            Boolean running = inspect(containerId).isRunning();
+
             if (running != null && running) {
                 String cmd = String.format("docker stop %s", containerId);
                 Output output = runCmd(cmd, null);
