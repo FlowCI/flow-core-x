@@ -10,12 +10,14 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
+import io.fabric8.kubernetes.client.dsl.Resource;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -45,6 +47,17 @@ public class K8sManager implements DockerManager {
         }
 
         throw new UnsupportedOperationException("Unsupported k8s option");
+    }
+
+    public void createNamespace() {
+        Resource<Namespace, DoneableNamespace> resource = client.namespaces().withName(option.getNamespace());
+        Namespace namespace = resource.get();
+        if (Objects.isNull(namespace)) {
+            Namespace built = new NamespaceBuilder()
+                    .withMetadata(new ObjectMetaBuilder().withName(option.getNamespace()).build())
+                    .build();
+            resource.create(built);
+        }
     }
 
     public void createEndpoint(K8sCreateEndpointOption createOption) throws Exception {

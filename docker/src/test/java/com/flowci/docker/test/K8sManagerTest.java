@@ -63,7 +63,7 @@ public class K8sManagerTest {
     @Test
     public void should_create_endpoint() throws Exception {
         K8sManager m = (K8sManager) manager;
-
+        m.createNamespace();
         m.createEndpoint(new K8sCreateEndpointOption("ci-server", "192.168.0.104", 8080));
         m.createEndpoint(new K8sCreateEndpointOption("ci-zk", "192.168.0.104", 2181));
         m.createEndpoint(new K8sCreateEndpointOption("ci-rabbit", "192.168.0.104", 5672));
