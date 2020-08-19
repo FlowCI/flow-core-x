@@ -142,7 +142,7 @@ public class DockerSDKManager implements DockerManager {
         }
 
         @Override
-        public void wait(String containerId, int timeoutInSeconds, Consumer<Frame> onLog) throws Exception {
+        public void wait(String containerId, int timeoutInSeconds, Consumer<Output> onLog) throws Exception {
             Instant expire = Instant.now().plus(timeoutInSeconds, ChronoUnit.SECONDS);
 
             try (DockerClient client = newClient()) {
@@ -220,16 +220,16 @@ public class DockerSDKManager implements DockerManager {
 
     private static class FrameCallback extends DockerCallback<Frame> {
 
-        private final Consumer<Frame> onLog;
+        private final Consumer<Output> onLog;
 
-        private FrameCallback(Consumer<Frame> onLog) {
+        private FrameCallback(Consumer<Output> onLog) {
             this.onLog = onLog;
         }
 
         @Override
-        public void onNext(Frame object) {
+        public void onNext(Frame frame) {
             if (this.onLog != null) {
-                onLog.accept(object);
+                onLog.accept(new Output(frame));
             }
         }
     }

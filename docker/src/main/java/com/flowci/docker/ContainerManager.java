@@ -1,8 +1,8 @@
 package com.flowci.docker;
 
+import com.flowci.docker.domain.Output;
 import com.flowci.docker.domain.StartOption;
 import com.flowci.docker.domain.Unit;
-import com.github.dockerjava.api.model.Frame;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -15,7 +15,7 @@ public interface ContainerManager {
 
     String start(StartOption option) throws Exception;
 
-    void wait(String id, int timeoutInSeconds, Consumer<Frame> onLog) throws Exception;
+    void wait(String id, int timeoutInSeconds, Consumer<Output> onLog) throws Exception;
 
     void stop(String id) throws Exception;
 

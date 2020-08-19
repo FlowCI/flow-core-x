@@ -2,7 +2,6 @@ package com.flowci.docker;
 
 import com.flowci.docker.domain.*;
 import com.flowci.util.StringHelper;
-import com.github.dockerjava.api.model.Frame;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -13,7 +12,6 @@ import io.fabric8.kubernetes.client.dsl.PodResource;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +23,9 @@ import static com.flowci.docker.domain.PodUnit.Phase.Succeeded;
 
 public class K8sManager implements DockerManager {
 
-    private final static String LabelType = "flow-ci-type";
-    private final static String LabelTypeValueAgent = "agent";
+    private final static String LabelApp = "flow-ci-app";
 
-    private final static String LabelName = "flow-ci-name";
+    private final static String LabelAppAgent = "agent";
 
     private final KubernetesClient client;
 
@@ -105,7 +102,7 @@ public class K8sManager implements DockerManager {
                     .endSpec()
                     .withNewMetadata()
                     .withName(so.getName())
-                    .addToLabels(LabelType, LabelTypeValueAgent)
+                    .addToLabels(LabelApp, LabelAppAgent)
                     .endMetadata()
                     .build();
 
@@ -114,7 +111,7 @@ public class K8sManager implements DockerManager {
         }
 
         @Override
-        public void wait(String podName, int timeoutInSeconds, Consumer<Frame> onLog) throws Exception {
+        public void wait(String podName, int timeoutInSeconds, Consumer<Output> onLog) throws Exception {
             podResource(podName).waitUntilReady(
                     timeoutInSeconds,
                     TimeUnit.SECONDS
@@ -124,7 +121,9 @@ public class K8sManager implements DockerManager {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(watch.getOutput()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    System.out.println(line);
+                    if (onLog != null) {
+                        onLog.accept(new Output(line));
+                    }
                 }
             }
 
@@ -172,7 +171,7 @@ public class K8sManager implements DockerManager {
             operation.withField("status.phase", status);
         }
 
-        return operation.list().getItems();
+        return operation.withLabel(LabelApp).list().getItems();
     }
 
     private PodResource<Pod, DoneablePod> podResource(String name) {
