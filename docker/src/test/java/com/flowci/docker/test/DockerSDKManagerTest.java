@@ -56,7 +56,7 @@ public class DockerSDKManagerTest {
         Assert.assertNotNull(cid);
 
         cm.wait(cid, 60, (frame -> {
-            System.out.print(new String(frame.getPayload()));
+            System.out.print(new String(frame.getData()));
         }));
 
         cm.stop(cid);

@@ -5,7 +5,6 @@ import com.flowci.docker.DockerManager;
 import com.flowci.docker.K8sManager;
 import com.flowci.docker.domain.*;
 import com.flowci.util.StringHelper;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,11 +23,6 @@ public class K8sManagerTest {
         InputStream is = load("kubeconfig");
         K8sOption option = new KubeConfigOption("test", StringHelper.toString(is));
         manager = new K8sManager(option);
-    }
-
-    @After
-    public void clean() throws Exception {
-        manager.getContainerManager().delete(podName);
     }
 
     @Test
@@ -53,7 +47,7 @@ public class K8sManagerTest {
         String pod = cm.start(option);
         Assert.assertNotNull(pod);
 
-        cm.wait(pod, 1500, null);
+        cm.wait(pod, 1500, output -> System.out.println(new String(output.getData())));
 
         Unit inspect = cm.inspect(pod);
         Assert.assertNotNull(inspect);
@@ -62,6 +56,17 @@ public class K8sManagerTest {
 
         Assert.assertNotNull(inspect.getExitCode());
         Assert.assertEquals(0, inspect.getExitCode().intValue());
+
+        manager.getContainerManager().delete(podName);
+    }
+
+    @Test
+    public void should_create_endpoint() throws Exception {
+        K8sManager m = (K8sManager) manager;
+
+        m.createEndpoint(new K8sCreateEndpointOption("ci-server", "192.168.0.104", 8080));
+        m.createEndpoint(new K8sCreateEndpointOption("ci-zk", "192.168.0.104", 2181));
+        m.createEndpoint(new K8sCreateEndpointOption("ci-rabbit", "192.168.0.104", 5672));
     }
 
     protected InputStream load(String resource) {

@@ -12,6 +12,8 @@ public class PodStartOption extends StartOption {
 
     private String command;
 
+    private String label = "app";
+
     private List<String> args = new LinkedList<>();
 
     public void addArg(String arg) {

@@ -6,6 +6,7 @@ import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
@@ -25,13 +26,13 @@ public class K8sManager implements DockerManager {
 
     private final static String LabelApp = "flow-ci-app";
 
-    private final static String LabelAppAgent = "agent";
-
     private final KubernetesClient client;
 
     private final K8sOption option;
 
     private final ContainerManager cm = new ContainerManagerImpl();
+
+    private final ImageManager im = new ImageManagerImpl();
 
     public K8sManager(K8sOption option) throws IOException {
         this.option = option;
@@ -46,6 +47,42 @@ public class K8sManager implements DockerManager {
         throw new UnsupportedOperationException("Unsupported k8s option");
     }
 
+    public void createEndpoint(K8sCreateEndpointOption createOption) throws Exception {
+        EndpointPort epPort = new EndpointPortBuilder()
+                .withProtocol(createOption.getProtocol())
+                .withPort(createOption.getPort())
+                .build();
+
+        ServicePort svcPort = new ServicePortBuilder()
+                .withProtocol(createOption.getProtocol())
+                .withPort(createOption.getPort())
+                .build();
+
+        ObjectMeta metadata = new ObjectMetaBuilder().withName(createOption.getName()).build();
+        EndpointAddress address = new EndpointAddressBuilder().withIp(createOption.getIp()).build();
+        ServiceSpec spec = new ServiceSpecBuilder().withPorts(svcPort).build();
+
+        Endpoints ep = new EndpointsBuilder()
+                .withMetadata(metadata)
+                .withSubsets(new EndpointSubsetBuilder()
+                        .withAddresses(address)
+                        .withPorts(epPort)
+                        .build())
+                .build();
+
+        Service svc = new ServiceBuilder()
+                .withMetadata(metadata)
+                .withSpec(spec)
+                .build();
+
+        try {
+            client.endpoints().inNamespace(option.getNamespace()).createOrReplace(ep);
+            client.services().inNamespace(option.getNamespace()).createOrReplace(svc);
+        } catch (KubernetesClientException e) {
+            throw new Exception(e.getMessage());
+        }
+    }
+
     @Override
     public ContainerManager getContainerManager() {
         return cm;
@@ -53,7 +90,7 @@ public class K8sManager implements DockerManager {
 
     @Override
     public ImageManager getImageManager() {
-        return null;
+        return im;
     }
 
     @Override
@@ -102,7 +139,7 @@ public class K8sManager implements DockerManager {
                     .endSpec()
                     .withNewMetadata()
                     .withName(so.getName())
-                    .addToLabels(LabelApp, LabelAppAgent)
+                    .addToLabels(LabelApp, so.getLabel())
                     .endMetadata()
                     .build();
 
@@ -156,6 +193,14 @@ public class K8sManager implements DockerManager {
             if (!delete) {
                 throw new Exception(String.format("Pod %s not deleted", podName));
             }
+        }
+    }
+
+    private class ImageManagerImpl implements ImageManager {
+
+        @Override
+        public void pull(String image, int timeoutInSeconds, Consumer<String> progress) throws Exception {
+            // ignore
         }
     }
 

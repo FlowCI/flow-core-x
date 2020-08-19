@@ -58,7 +58,7 @@ public class DockerSSHManagerTest {
         Assert.assertNotNull(cid);
 
         cm.wait(cid, 60, (frame -> {
-            System.out.println(new String(frame.getPayload()));
+            System.out.println(new String(frame.getData()));
         }));
 
         cm.stop(cid);
