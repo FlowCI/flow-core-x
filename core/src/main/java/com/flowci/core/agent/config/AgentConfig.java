@@ -47,14 +47,17 @@ public class AgentConfig {
         return createSettings(rabbitProperties.getUri().toString(), zkProperties.getHost());
     }
 
-    @Bean("k8sSettings")
-    public Settings k8sSettings() {
+    @Bean("k8sHosts")
+    public K8sAgentHost.Hosts k8sHosts() {
         String serverUrl = appProperties.getUrl();
         String rabbitUrl = rabbitProperties.getUri().toString();
         String zkUrl = zkProperties.getHost();
+        return K8sAgentHost.buildHosts(serverUrl, rabbitUrl, zkUrl);
+    }
 
-        K8sAgentHost.Hosts hosts = K8sAgentHost.buildHosts(serverUrl, rabbitUrl, zkUrl);
-        return createSettings(hosts.getRabbitUrl(), hosts.getZkUrl());
+    @Bean("k8sSettings")
+    public Settings k8sSettings(K8sAgentHost.Hosts k8sHosts) {
+        return createSettings(k8sHosts.getRabbitUrl(), k8sHosts.getZkUrl());
     }
 
     @Bean("k8sEndpoints")

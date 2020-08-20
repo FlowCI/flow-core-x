@@ -47,11 +47,13 @@ public class K8sAgentHost extends AgentHost {
     private final static String ZkEp = "flow-ci-zk-%d";
 
     @NonNull
-    private String secret; // secret for config file
-
     private String namespace;
 
-    private List<Endpoint> endpoints;
+    @NonNull
+    private String url; // k8s master url
+
+    @NonNull
+    private String secret; // secret for config file
 
     public K8sAgentHost() {
         setType(Type.K8s);

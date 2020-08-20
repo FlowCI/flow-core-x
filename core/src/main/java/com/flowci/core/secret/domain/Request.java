@@ -58,4 +58,12 @@ public abstract class Request {
         @NotEmpty
         public String token;
     }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    public static class CreateKubeConfig extends Base {
+
+        @NotEmpty
+        public String content;
+    }
 }

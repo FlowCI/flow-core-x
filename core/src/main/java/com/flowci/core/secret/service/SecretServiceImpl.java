@@ -24,6 +24,7 @@ import com.flowci.core.secret.domain.*;
 import com.flowci.core.secret.event.CreateAuthEvent;
 import com.flowci.core.secret.event.CreateRsaEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
+import com.flowci.docker.K8sManager;
 import com.flowci.domain.SecretField;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
@@ -156,6 +157,19 @@ public class SecretServiceImpl implements SecretService {
             fileManager.save(keyStore.getOriginalFilename(), keyStore.getInputStream(), secret.getPath());
             return save(secret);
         } catch (IOException e) {
+            throw new StatusException(e.getMessage());
+        }
+    }
+
+    @Override
+    public KubeConfigSecret createKubeConfig(String name, String content) {
+        try {
+            K8sManager.parse(content);
+            KubeConfigSecret secret = new KubeConfigSecret();
+            secret.setName(name);
+            secret.setContent(SecretField.of(content));
+            return save(secret);
+        } catch (Exception e) {
             throw new StatusException(e.getMessage());
         }
     }

@@ -77,4 +77,9 @@ public interface SecretService {
      * Create Android Sign Secret
      */
     AndroidSign createAndroidSign(String name, MultipartFile keyStore, AndroidSignOption option);
+
+    /**
+     * Create kube config secret
+     */
+    KubeConfigSecret createKubeConfig(String name, String content);
 }

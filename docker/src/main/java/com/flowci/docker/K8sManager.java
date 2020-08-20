@@ -26,6 +26,10 @@ import static com.flowci.docker.domain.PodUnit.Phase.Succeeded;
 
 public class K8sManager implements DockerManager {
 
+    public static Config parse(String content) throws IOException {
+        return Config.fromKubeconfig(content);
+    }
+
     private final static String LabelApp = "flow-ci-app";
 
     private final KubernetesClient client;
@@ -41,7 +45,7 @@ public class K8sManager implements DockerManager {
 
         if (option instanceof KubeConfigOption) {
             String content = ((KubeConfigOption) option).getKubeConfig();
-            Config config = Config.fromKubeconfig(content);
+            Config config = parse(content);
             client = new DefaultKubernetesClient(config);
             return;
         }
