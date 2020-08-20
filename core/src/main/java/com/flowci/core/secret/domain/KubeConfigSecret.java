@@ -13,6 +13,6 @@ public class KubeConfigSecret extends Secret {
     private SecretField content;
 
     public KubeConfigSecret() {
-        setCategory(Category.KubeConfig);
+        setCategory(Category.KUBE_CONFIG);
     }
 }

@@ -3,7 +3,6 @@ package com.flowci.docker;
 import com.flowci.docker.domain.*;
 import com.flowci.util.StringHelper;
 import io.fabric8.kubernetes.api.model.*;
-import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
@@ -11,6 +10,7 @@ import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,8 +26,13 @@ import static com.flowci.docker.domain.PodUnit.Phase.Succeeded;
 
 public class K8sManager implements DockerManager {
 
-    public static Config parse(String content) throws IOException {
-        return Config.fromKubeconfig(content);
+    public static boolean validate(String content) {
+        try {
+            KubeConfigUtils.parseConfigFromString(content);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private final static String LabelApp = "flow-ci-app";
@@ -45,8 +50,7 @@ public class K8sManager implements DockerManager {
 
         if (option instanceof KubeConfigOption) {
             String content = ((KubeConfigOption) option).getKubeConfig();
-            Config config = parse(content);
-            client = new DefaultKubernetesClient(config);
+            client = new DefaultKubernetesClient(io.fabric8.kubernetes.client.Config.fromKubeconfig(content));
             return;
         }
 

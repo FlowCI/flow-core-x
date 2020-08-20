@@ -48,7 +48,7 @@ public class Secret extends Mongoable {
 
         ANDROID_SIGN,
 
-        KubeConfig
+        KUBE_CONFIG
     }
 
     @Indexed(name = "index_secret_name", unique = true)
