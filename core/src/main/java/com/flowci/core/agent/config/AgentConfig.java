@@ -16,16 +16,15 @@
 
 package com.flowci.core.agent.config;
 
+import com.flowci.core.agent.domain.K8sAgentHost;
 import com.flowci.core.common.config.AppProperties;
-import com.flowci.core.common.domain.Variables.App;
 import com.flowci.domain.Settings;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
-import java.util.Objects;
+import java.util.List;
 
 /**
  * @author yang
@@ -35,7 +34,7 @@ import java.util.Objects;
 public class AgentConfig {
 
     @Autowired
-    private Environment env;
+    private AppProperties appProperties;
 
     @Autowired
     private AppProperties.Zookeeper zkProperties;
@@ -45,12 +44,35 @@ public class AgentConfig {
 
     @Bean("baseSettings")
     public Settings baseSettings() {
+        return createSettings(rabbitProperties.getUri().toString(), zkProperties.getHost());
+    }
+
+    @Bean("k8sSettings")
+    public Settings k8sSettings() {
+        String serverUrl = appProperties.getUrl();
+        String rabbitUrl = rabbitProperties.getUri().toString();
+        String zkUrl = zkProperties.getHost();
+
+        K8sAgentHost.Hosts hosts = K8sAgentHost.buildHosts(serverUrl, rabbitUrl, zkUrl);
+        return createSettings(hosts.getRabbitUrl(), hosts.getZkUrl());
+    }
+
+    @Bean("k8sEndpoints")
+    public List<K8sAgentHost.Endpoint> k8sEps() {
+        String serverUrl = appProperties.getUrl();
+        String rabbitUrl = rabbitProperties.getUri().toString();
+        String zkUrl = zkProperties.getHost();
+
+        return K8sAgentHost.buildEndpoints(serverUrl, rabbitUrl, zkUrl);
+    }
+
+    private Settings createSettings(String rabbitUri, String zkUrl) {
         Settings.Zookeeper zk = new Settings.Zookeeper();
         zk.setRoot(zkProperties.getAgentRoot());
-        zk.setHost(getZkHost());
+        zk.setHost(zkUrl);
 
         Settings.RabbitMQ mq = new Settings.RabbitMQ();
-        mq.setUri(getRabbitUri());
+        mq.setUri(rabbitUri);
         mq.setCallback(rabbitProperties.getCallbackQueue());
         mq.setShellLog(rabbitProperties.getShellLogQueue());
         mq.setTtyLog(rabbitProperties.getTtyLogQueue());
@@ -61,20 +83,5 @@ public class AgentConfig {
 
         log.info(settings);
         return settings;
-    }
-
-    private String getZkHost() {
-        return env.getProperty(App.ZookeeperHost, zkProperties.getHost());
-    }
-
-    private String getRabbitUri() {
-        String uri = rabbitProperties.getUri().toString();
-        String domain = env.getProperty(App.RabbitHost);
-
-        if (Objects.isNull(domain)) {
-            return uri;
-        }
-
-        return uri.replace(rabbitProperties.getUri().getHost(), domain);
     }
 }
