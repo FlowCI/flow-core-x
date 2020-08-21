@@ -95,6 +95,9 @@ public class AgentHostServiceImpl implements AgentHostService {
     private String serverUrl;
 
     @Autowired
+    private List<K8sAgentHost.Endpoint> k8sEndpoints;
+
+    @Autowired
     private AgentDao agentDao;
 
     @Autowired
@@ -515,7 +518,18 @@ public class AgentHostServiceImpl implements AgentHostService {
             KubeConfigSecret secret = (KubeConfigSecret) getSecret(k8sHost.getSecret(), KUBE_CONFIG);
 
             K8sOption option = new KubeConfigOption(k8sHost.getNamespace(), secret.getContent().getData());
-            return new K8sManager(option);
+            K8sManager manager = new K8sManager(option);
+
+            manager.createNamespace();
+            log.info("namespace {} initialized", k8sHost.getNamespace());
+
+            for (K8sAgentHost.Endpoint ep : k8sEndpoints) {
+                K8sCreateEndpointOption endpointOption = new K8sCreateEndpointOption(ep.getName(), ep.getIp(), ep.getPort());
+                manager.createEndpoint(endpointOption);
+                log.info("endpoint {} initialized", k8sHost.getNamespace());
+            }
+
+            return manager;
         }
 
         @Override
