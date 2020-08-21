@@ -50,9 +50,6 @@ public class K8sAgentHost extends AgentHost {
     private String namespace;
 
     @NonNull
-    private String url; // k8s master url
-
-    @NonNull
     private String secret; // secret for config file
 
     public K8sAgentHost() {

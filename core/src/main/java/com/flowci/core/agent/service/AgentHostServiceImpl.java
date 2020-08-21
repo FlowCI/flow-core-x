@@ -19,6 +19,7 @@ package com.flowci.core.agent.service;
 import com.flowci.core.agent.dao.AgentDao;
 import com.flowci.core.agent.dao.AgentHostDao;
 import com.flowci.core.agent.domain.AgentHost;
+import com.flowci.core.agent.domain.K8sAgentHost;
 import com.flowci.core.agent.domain.LocalUnixAgentHost;
 import com.flowci.core.agent.domain.SshAgentHost;
 import com.flowci.core.agent.event.AgentCreatedEvent;
@@ -27,6 +28,7 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.job.event.NoIdleAgentEvent;
+import com.flowci.core.secret.domain.KubeConfigSecret;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
@@ -34,9 +36,8 @@ import com.flowci.core.user.domain.User;
 import com.flowci.docker.ContainerManager;
 import com.flowci.docker.DockerManager;
 import com.flowci.docker.DockerSSHManager;
-import com.flowci.docker.domain.ContainerStartOption;
-import com.flowci.docker.domain.SSHOption;
-import com.flowci.docker.domain.Unit;
+import com.flowci.docker.K8sManager;
+import com.flowci.docker.domain.*;
 import com.flowci.domain.Agent;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
@@ -65,6 +66,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static com.flowci.core.agent.domain.Variables.*;
+import static com.flowci.core.secret.domain.Secret.Category.KUBE_CONFIG;
 import static com.flowci.core.secret.domain.Secret.Category.SSH_RSA;
 
 @Log4j2
@@ -117,8 +119,9 @@ public class AgentHostServiceImpl implements AgentHostService {
     private AgentService agentService;
 
     {
-        mapping.put(LocalUnixAgentHost.class, new OnLocalSocketHostCreate());
-        mapping.put(SshAgentHost.class, new OnSshHostCreate());
+        mapping.put(LocalUnixAgentHost.class, new LocalSocketHostHandler());
+        mapping.put(SshAgentHost.class, new SshHostHandler());
+        mapping.put(K8sAgentHost.class, new K8sHostHandler());
     }
 
     //====================================================================
@@ -235,7 +238,8 @@ public class AgentHostServiceImpl implements AgentHostService {
         // start from offline, and delete if cannot be started
         for (Agent agent : startList) {
             try {
-                cm.start(buildStartOption(agent));
+                StartOption startOption = mapping.get(host.getClass()).buildStartOption(agent);
+                cm.start(startOption);
                 log.info("Agent {} been started", agent.getName());
                 return true;
             } catch (Exception e) {
@@ -253,7 +257,8 @@ public class AgentHostServiceImpl implements AgentHostService {
             Agent agent = null;
             try {
                 agent = agentService.create(name, host.getTags(), Optional.of(host.getId()));
-                cm.start(buildStartOption(agent));
+                StartOption startOption = mapping.get(host.getClass()).buildStartOption(agent);
+                cm.start(startOption);
                 eventManager.publish(new AgentCreatedEvent(this, agent, host));
                 log.info("Agent {} been created and started", name);
                 return true;
@@ -369,21 +374,6 @@ public class AgentHostServiceImpl implements AgentHostService {
     //        %% Private functions
     //====================================================================
 
-    private ContainerStartOption buildStartOption(Agent agent) {
-        ContainerStartOption option = new ContainerStartOption();
-        option.setImage(DefaultImage);
-        option.setName(getContainerName(agent));
-
-        option.addEnv(SERVER_URL, serverUrl);
-        option.addEnv(AGENT_TOKEN, agent.getToken());
-        option.addEnv(AGENT_LOG_LEVEL, "DEBUG");
-        option.addEnv(AGENT_VOLUMES, System.getenv(AGENT_VOLUMES));
-        option.addEnv(AGENT_WORKSPACE, DefaultWorkspace);
-
-        option.addBind(DockerSock, DockerSock);
-        return option;
-    }
-
     public String getContainerName(Agent agent) {
         return String.format("%s.%s", ContainerNamePrefix, agent.getName());
     }
@@ -476,14 +466,67 @@ public class AgentHostServiceImpl implements AgentHostService {
     //        %% Private classes
     //====================================================================
 
+    private Secret getSecret(String secret, Secret.Category expected) {
+        GetSecretEvent event = new GetSecretEvent(this, secret);
+        eventManager.publish(event);
+
+        Secret c = event.getFetched();
+        Preconditions.checkArgument(c != null, "Secret not found");
+        Preconditions.checkArgument(c.getCategory() == expected, "Invalid secret category");
+
+        return c;
+    }
+
     private interface OnCreateAndInit {
 
         void create(AgentHost host);
 
         DockerManager init(AgentHost host) throws Exception;
+
+        StartOption buildStartOption(Agent agent);
     }
 
-    private class OnLocalSocketHostCreate implements OnCreateAndInit {
+    private abstract class AbstractHandler implements OnCreateAndInit {
+
+        protected void initStartOption(StartOption option, Agent agent) {
+            option.setImage(DefaultImage);
+            option.setName(getContainerName(agent));
+
+            option.addEnv(SERVER_URL, serverUrl);
+            option.addEnv(AGENT_TOKEN, agent.getToken());
+            option.addEnv(AGENT_LOG_LEVEL, "DEBUG");
+            option.addEnv(AGENT_VOLUMES, System.getenv(AGENT_VOLUMES));
+            option.addEnv(AGENT_WORKSPACE, DefaultWorkspace);
+        }
+    }
+
+    private class K8sHostHandler extends AbstractHandler {
+
+        @Override
+        public void create(AgentHost host) {
+            K8sAgentHost k8sHost = (K8sAgentHost) host;
+            Preconditions.checkArgument(k8sHost.getSecret() != null, "Secret name must be defined");
+            agentHostDao.insert(k8sHost);
+        }
+
+        @Override
+        public DockerManager init(AgentHost host) throws Exception {
+            K8sAgentHost k8sHost = (K8sAgentHost) host;
+            KubeConfigSecret secret = (KubeConfigSecret) getSecret(k8sHost.getSecret(), KUBE_CONFIG);
+
+            K8sOption option = new KubeConfigOption(k8sHost.getNamespace(), secret.getContent().getData());
+            return new K8sManager(option);
+        }
+
+        @Override
+        public StartOption buildStartOption(Agent agent) {
+            PodStartOption option = new PodStartOption();
+            initStartOption(option, agent);
+            return option;
+        }
+    }
+
+    private class LocalSocketHostHandler extends AbstractHandler {
 
         @Override
         public void create(AgentHost host) {
@@ -510,6 +553,14 @@ public class AgentHostServiceImpl implements AgentHostService {
             return dockerManager;
         }
 
+        @Override
+        public StartOption buildStartOption(Agent agent) {
+            ContainerStartOption option = new ContainerStartOption();
+            initStartOption(option, agent);
+            option.addBind(DockerSock, DockerSock);
+            return option;
+        }
+
         private boolean hasCreated() {
             return agentHostDao.findAllByType(AgentHost.Type.LocalUnixSocket).size() > 0;
         }
@@ -523,7 +574,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
     }
 
-    private class OnSshHostCreate implements OnCreateAndInit {
+    private class SshHostHandler extends AbstractHandler {
 
         @Override
         public void create(AgentHost host) {
@@ -535,17 +586,18 @@ public class AgentHostServiceImpl implements AgentHostService {
         @Override
         public DockerManager init(AgentHost host) throws Exception {
             SshAgentHost sshHost = (SshAgentHost) host;
-            GetSecretEvent event = new GetSecretEvent(this, sshHost.getSecret());
-            eventManager.publish(event);
-
-            Secret c = event.getFetched();
-            Preconditions.checkArgument(c != null, "Secret not found");
-            Preconditions.checkArgument(c.getCategory() == SSH_RSA, "Invalid credential category");
-
-            RSASecret rsa = (RSASecret) c;
+            RSASecret rsa = (RSASecret) getSecret(sshHost.getSecret(), SSH_RSA);
 
             SSHOption option = SSHOption.of(rsa.getPrivateKey(), sshHost.getIp(), sshHost.getUser(), sshHost.getPort());
             return new DockerSSHManager(option);
+        }
+
+        @Override
+        public StartOption buildStartOption(Agent agent) {
+            ContainerStartOption option = new ContainerStartOption();
+            initStartOption(option, agent);
+            option.addBind(DockerSock, DockerSock);
+            return option;
         }
     }
 

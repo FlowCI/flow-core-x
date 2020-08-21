@@ -29,7 +29,7 @@ import java.util.Set;
 
 @Getter
 @Setter
-public class CreateOrUpdateSshAgentHost {
+public class SaveAgentHost {
 
     private String id;
 
@@ -41,14 +41,13 @@ public class CreateOrUpdateSshAgentHost {
     @NotEmpty
     private String name;
 
-    @NotEmpty
     private String secret;
 
-    @NotEmpty
     private String user;
 
-    @NotEmpty
     private String ip;
+
+    private String namespace;
 
     @Min(1)
     @Max(Integer.MAX_VALUE)
@@ -63,10 +62,10 @@ public class CreateOrUpdateSshAgentHost {
             SshAgentHost host = new SshAgentHost();
             host.setId(id);
             host.setName(name);
+            host.setTags(tags);
             host.setSecret(secret);
             host.setUser(user);
             host.setIp(ip);
-            host.setTags(tags);
             host.setMaxSize(maxSize);
             host.setPort(port);
             return host;
@@ -76,7 +75,18 @@ public class CreateOrUpdateSshAgentHost {
             LocalUnixAgentHost host = new LocalUnixAgentHost();
             host.setId(id);
             host.setName(name);
+            host.setTags(tags);
             host.setMaxSize(maxSize);
+            return host;
+        }
+
+        if (type == AgentHost.Type.K8s) {
+            K8sAgentHost host = new K8sAgentHost();
+            host.setId(id);
+            host.setName(name);
+            host.setTags(tags);
+            host.setSecret(secret);
+            host.setNamespace(namespace);
             return host;
         }
 
