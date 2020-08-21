@@ -17,6 +17,7 @@
 package com.flowci.core.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.core.agent.domain.K8sAgentHost;
 import com.flowci.core.agent.domain.LocalUnixAgentHost;
 import com.flowci.core.agent.domain.SshAgentHost;
 import com.flowci.core.common.mongo.EncryptConverter;
@@ -89,6 +90,7 @@ public class MongoConfig extends AbstractMongoConfiguration {
 
         context.addEntity(LocalUnixAgentHost.class);
         context.addEntity(SshAgentHost.class);
+        context.addEntity(K8sAgentHost.class);
 
         return context;
     }
