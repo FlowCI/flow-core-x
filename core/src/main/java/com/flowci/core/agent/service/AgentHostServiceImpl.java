@@ -256,7 +256,9 @@ public class AgentHostServiceImpl implements AgentHostService {
 
         // create new agent
         if (agents.size() < host.getMaxSize()) {
-            String name = String.format("%s-%s", host.getName(), StringHelper.randomString(5));
+            String random = StringHelper.randomString(5).toLowerCase();
+            String name = String.format("%s-%s", host.getName(), random);
+
             Agent agent = null;
             try {
                 agent = agentService.create(name, host.getTags(), Optional.of(host.getId()));
@@ -378,7 +380,7 @@ public class AgentHostServiceImpl implements AgentHostService {
     //====================================================================
 
     public String getContainerName(Agent agent) {
-        return String.format("%s.%s", ContainerNamePrefix, agent.getName());
+        return String.format("%s-%s", ContainerNamePrefix, agent.getName());
     }
 
     private void initZkNodeForCronTask() {
