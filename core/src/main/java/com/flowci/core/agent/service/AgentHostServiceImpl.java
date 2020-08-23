@@ -95,6 +95,9 @@ public class AgentHostServiceImpl implements AgentHostService {
     private String serverUrl;
 
     @Autowired
+    private K8sAgentHost.Hosts k8sHosts;
+
+    @Autowired
     private List<K8sAgentHost.Endpoint> k8sEndpoints;
 
     @Autowired
@@ -522,14 +525,18 @@ public class AgentHostServiceImpl implements AgentHostService {
             K8sOption option = new KubeConfigOption(k8sHost.getNamespace(), secret.getContent().getData());
             K8sManager manager = new K8sManager(option);
 
+            // create namespace
             manager.createNamespace();
             log.info("namespace {} initialized", k8sHost.getNamespace());
 
+            // create endpoints
             for (K8sAgentHost.Endpoint ep : k8sEndpoints) {
                 K8sCreateEndpointOption endpointOption = new K8sCreateEndpointOption(ep.getName(), ep.getIp(), ep.getPort());
                 manager.createEndpoint(endpointOption);
                 log.info("endpoint {} initialized", k8sHost.getNamespace());
             }
+
+            // TODO: create volume of pyenv
 
             return manager;
         }
@@ -538,6 +545,8 @@ public class AgentHostServiceImpl implements AgentHostService {
         public StartOption buildStartOption(Agent agent) {
             PodStartOption option = new PodStartOption();
             initStartOption(option, agent);
+
+            option.addEnv(SERVER_URL, k8sHosts.getServerUrl());
             return option;
         }
     }

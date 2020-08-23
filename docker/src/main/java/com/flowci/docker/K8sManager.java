@@ -1,6 +1,7 @@
 package com.flowci.docker;
 
 import com.flowci.docker.domain.*;
+import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -143,26 +144,7 @@ public class K8sManager implements DockerManager {
             }
 
             PodStartOption so = (PodStartOption) startOption;
-
-            Container c = new ContainerBuilder()
-                    .withImage(so.getImage())
-                    .withImagePullPolicy("Always")
-                    .withName(so.getName())
-                    .withEnv(so.toK8sVarList())
-                    .withCommand(so.getCommand())
-                    .withArgs(so.getArgs())
-                    .build();
-
-            Pod pod = new PodBuilder()
-                    .withNewSpec()
-                    .withContainers(c)
-                    .withRestartPolicy("Never")
-                    .endSpec()
-                    .withNewMetadata()
-                    .withName(so.getName())
-                    .addToLabels(LabelApp, so.getLabel())
-                    .endMetadata()
-                    .build();
+            Pod pod = so.buildPod(LabelApp).build();
 
             pod = client.pods().inNamespace(option.getNamespace()).create(pod);
             return new PodUnit(pod).getId();
@@ -170,7 +152,8 @@ public class K8sManager implements DockerManager {
 
         @Override
         public void wait(String podName, int timeoutInSeconds, Consumer<Output> onLog) throws Exception {
-            podResource(podName).waitUntilReady(
+            podResource(podName).waitUntilCondition(
+                    pod -> PodUnit.Phase.isPending(pod.getStatus().getPhase()),
                     timeoutInSeconds,
                     TimeUnit.SECONDS
             );
@@ -186,10 +169,7 @@ public class K8sManager implements DockerManager {
             }
 
             podResource(podName).waitUntilCondition(
-                    pod -> {
-                        String phase = pod.getStatus().getPhase();
-                        return phase.equals(Succeeded) || phase.equals(Failed);
-                    },
+                    pod -> PodUnit.Phase.isFinish(pod.getStatus().getPhase()),
                     timeoutInSeconds,
                     TimeUnit.SECONDS
             );

@@ -35,12 +35,11 @@ public class K8sManagerTest {
     public void should_create_and_inspect_pod() throws Exception {
         PodStartOption option = new PodStartOption();
         option.setName(podName);
-        option.setImage("ubuntu:18.04");
-        option.addEnv("FLOW_TEST", "hello.world");
+        option.setImage("flowci/agent");
 
-        option.setCommand("/bin/bash");
-        option.addArg("-c");
-        option.addArg("echo helloworld\nsleep 5\necho end\necho helloworld");
+        option.addEnv("FLOWCI_SERVER_URL", "http://192.168.0.104:8080");
+        option.addEnv("FLOWCI_AGENT_TOKEN", "315d734d-65f4-45de-a0c4-f6fd40d14369");
+        option.addEnv("FLOWCI_AGENT_WORKSPACE", "/ws");
 
         ContainerManager cm = manager.getContainerManager();
 

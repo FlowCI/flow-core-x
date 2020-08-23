@@ -25,7 +25,15 @@ public class PodUnit implements Unit {
 
         public static final String Failed = "Failed";
 
-        public static final String RunError = "RunContainerError";
+        public static final String Terminated = "Terminated";
+
+        public static boolean isPending(String phase) {
+            return phase.equals(Pending);
+        }
+
+        public static boolean isFinish(String phase) {
+            return phase.equals(Succeeded) || phase.equals(Failed) || phase.equals(Terminated);
+        }
     }
 
     private final Pod pod;

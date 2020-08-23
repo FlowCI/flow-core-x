@@ -87,6 +87,7 @@ public class SaveAgentHost {
             host.setTags(tags);
             host.setSecret(secret);
             host.setNamespace(namespace);
+            host.setMaxSize(maxSize);
             return host;
         }
 
