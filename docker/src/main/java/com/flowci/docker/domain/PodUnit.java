@@ -27,11 +27,12 @@ public class PodUnit implements Unit {
 
         public static final String Terminated = "Terminated";
 
-        public static boolean isPending(String phase) {
-            return phase.equals(Pending);
+        public static boolean isPending(Pod pod) {
+            return pod.getStatus().getPhase().equals(Pending);
         }
 
-        public static boolean isFinish(String phase) {
+        public static boolean isFinish(Pod pod) {
+            String phase = pod.getStatus().getPhase();
             return phase.equals(Succeeded) || phase.equals(Failed) || phase.equals(Terminated);
         }
     }

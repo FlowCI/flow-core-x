@@ -153,7 +153,7 @@ public class K8sManager implements DockerManager {
         @Override
         public void wait(String podName, int timeoutInSeconds, Consumer<Output> onLog) throws Exception {
             podResource(podName).waitUntilCondition(
-                    pod -> PodUnit.Phase.isPending(pod.getStatus().getPhase()),
+                    PodUnit.Phase::isPending,
                     timeoutInSeconds,
                     TimeUnit.SECONDS
             );
@@ -169,7 +169,7 @@ public class K8sManager implements DockerManager {
             }
 
             podResource(podName).waitUntilCondition(
-                    pod -> PodUnit.Phase.isFinish(pod.getStatus().getPhase()),
+                    PodUnit.Phase::isFinish,
                     timeoutInSeconds,
                     TimeUnit.SECONDS
             );
