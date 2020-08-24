@@ -497,7 +497,7 @@ public class AgentHostServiceImpl implements AgentHostService {
     private abstract class AbstractHandler implements OnCreateAndInit {
 
         protected void initStartOption(StartOption option, Agent agent) {
-            option.setImage(DefaultImage);
+            option.setImage("flowci/agent:dev");
             option.setName(getContainerName(agent));
 
             option.addEnv(SERVER_URL, serverUrl);

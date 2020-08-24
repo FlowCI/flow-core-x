@@ -177,12 +177,12 @@ public class K8sManager implements DockerManager {
 
         @Override
         public void stop(String podName) throws Exception {
-            // ignore: stop pod not supported
+            throw new UnsupportedOperationException("Un-support stop pod on k8s");
         }
 
         @Override
         public void resume(String podName) throws Exception {
-            // ignore: resume pod not supported
+            throw new UnsupportedOperationException("Un-support resume pod on k8s");
         }
 
         @Override
