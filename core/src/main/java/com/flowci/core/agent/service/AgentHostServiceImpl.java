@@ -547,6 +547,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             initStartOption(option, agent);
 
             option.addEnv(SERVER_URL, k8sHosts.getServerUrl());
+            option.addEnv(AGENT_K8S, Boolean.TRUE.toString());
             return option;
         }
     }
