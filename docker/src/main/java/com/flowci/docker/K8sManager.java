@@ -1,7 +1,6 @@
 package com.flowci.docker;
 
 import com.flowci.docker.domain.*;
-import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -21,9 +20,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
-import static com.flowci.docker.domain.PodUnit.Phase.Failed;
-import static com.flowci.docker.domain.PodUnit.Phase.Succeeded;
 
 public class K8sManager implements DockerManager {
 
@@ -122,6 +118,12 @@ public class K8sManager implements DockerManager {
 
     private class ContainerManagerImpl implements ContainerManager {
 
+        /**
+         * List all pods
+         * @param statusFilter pod phase
+         * @param nameFilter pod name, or if end with wildcard, then find from label.
+         *                   ex: ci-agent-* will fetch name from label
+         */
         @Override
         public List<Unit> list(String statusFilter, String nameFilter) throws Exception {
             List<Pod> pods = listPods(nameFilter, statusFilter);
@@ -144,7 +146,7 @@ public class K8sManager implements DockerManager {
             }
 
             PodStartOption so = (PodStartOption) startOption;
-            Pod pod = so.buildPod(LabelApp).build();
+            Pod pod = so.buildPod(LabelApp, so.getLabel()).build();
 
             pod = client.pods().inNamespace(option.getNamespace()).create(pod);
             return new PodUnit(pod).getId();
@@ -210,14 +212,19 @@ public class K8sManager implements DockerManager {
                 .inNamespace(option.getNamespace());
 
         if (StringHelper.hasValue(name)) {
-            operation.withField("metadata.name", name);
+            if (name.endsWith("*")) {
+                operation.withLabel(LabelApp, name.replace("*", ""));
+            }
+            else {
+                operation.withField("metadata.name", name);
+            }
         }
 
         if (StringHelper.hasValue(status)) {
             operation.withField("status.phase", status);
         }
 
-        return operation.withLabel(LabelApp).list().getItems();
+        return operation.list().getItems();
     }
 
     private PodResource<Pod, DoneablePod> podResource(String name) {

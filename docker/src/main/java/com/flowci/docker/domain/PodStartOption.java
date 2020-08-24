@@ -24,7 +24,7 @@ public class PodStartOption extends StartOption {
         this.args.add(arg);
     }
 
-    public PodBuilder buildPod(String labelKey) {
+    public PodBuilder buildPod(String labelKey, String labelVal) {
         return new PodBuilder()
                 .withNewSpec()
                 .withContainers(buildContainer().build())
@@ -32,7 +32,7 @@ public class PodStartOption extends StartOption {
                 .endSpec()
                 .withNewMetadata()
                 .withName(getName())
-                .addToLabels(labelKey, labelKey)
+                .addToLabels(labelKey, labelVal)
                 .endMetadata();
     }
 

@@ -81,7 +81,7 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     private static final String ContainerNamePrefix = "ci-agent";
 
-    private final Map<Class<?>, OnCreateAndInit> mapping = new HashMap<>(3);
+    private final Map<Class<?>, HostAdaptor> mapping = new HashMap<>(3);
 
     private final Cache<AgentHost, DockerManager> poolManagerCache =
             CacheHelper.createLocalCache(10, 600, new PoolManagerRemover());
@@ -125,9 +125,9 @@ public class AgentHostServiceImpl implements AgentHostService {
     private AgentService agentService;
 
     {
-        mapping.put(LocalUnixAgentHost.class, new LocalSocketHostHandler());
-        mapping.put(SshAgentHost.class, new SshHostHandler());
-        mapping.put(K8sAgentHost.class, new K8sHostHandler());
+        mapping.put(LocalUnixAgentHost.class, new LocalSocketHostAdaptor());
+        mapping.put(SshAgentHost.class, new SshHostAdaptor());
+        mapping.put(K8sAgentHost.class, new K8sHostAdaptor());
     }
 
     //====================================================================
@@ -485,7 +485,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         return c;
     }
 
-    private interface OnCreateAndInit {
+    private interface HostAdaptor {
 
         void create(AgentHost host);
 
@@ -494,7 +494,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         StartOption buildStartOption(Agent agent);
     }
 
-    private abstract class AbstractHandler implements OnCreateAndInit {
+    private abstract class AbstractHostAdaptor implements HostAdaptor {
 
         protected void initStartOption(StartOption option, Agent agent) {
             option.setImage("flowci/agent:dev");
@@ -508,7 +508,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
     }
 
-    private class K8sHostHandler extends AbstractHandler {
+    private class K8sHostAdaptor extends AbstractHostAdaptor {
 
         @Override
         public void create(AgentHost host) {
@@ -546,13 +546,15 @@ public class AgentHostServiceImpl implements AgentHostService {
             PodStartOption option = new PodStartOption();
             initStartOption(option, agent);
 
+            option.setLabel(ContainerNamePrefix);
+
             option.addEnv(SERVER_URL, k8sHosts.getServerUrl());
             option.addEnv(AGENT_K8S, Boolean.TRUE.toString());
             return option;
         }
     }
 
-    private class LocalSocketHostHandler extends AbstractHandler {
+    private class LocalSocketHostAdaptor extends AbstractHostAdaptor {
 
         @Override
         public void create(AgentHost host) {
@@ -600,7 +602,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
     }
 
-    private class SshHostHandler extends AbstractHandler {
+    private class SshHostAdaptor extends AbstractHostAdaptor {
 
         @Override
         public void create(AgentHost host) {

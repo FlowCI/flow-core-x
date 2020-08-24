@@ -36,6 +36,7 @@ public class K8sManagerTest {
         PodStartOption option = new PodStartOption();
         option.setName(podName);
         option.setImage("flowci/agent");
+        option.setLabel("ci-agent");
 
         option.addEnv("FLOWCI_SERVER_URL", "http://192.168.0.104:8080");
         option.addEnv("FLOWCI_AGENT_TOKEN", "315d734d-65f4-45de-a0c4-f6fd40d14369");
@@ -45,6 +46,10 @@ public class K8sManagerTest {
 
         String pod = cm.start(option);
         Assert.assertNotNull(pod);
+
+        // test wildcard
+        List<Unit> list = cm.list(null, "ci-agent*");
+        Assert.assertEquals(1, list.size());
 
         cm.wait(pod, 1500, output -> System.out.println(new String(output.getData())));
 
