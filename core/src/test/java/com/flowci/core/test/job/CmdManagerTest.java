@@ -139,7 +139,9 @@ public class CmdManagerTest extends SpringScenario {
         DockerOption docker = cmdIn.getDockers().get(0);
         Assert.assertNotNull(docker);
         Assert.assertEquals("ubuntu:19.04", docker.getImage());
-        Assert.assertEquals(String.format("%s-%s", flow.getName(), "plugin-test"), docker.getName());
+
+        String containerNamePrefix = String.format("%s-%s", flow.getName(), "plugin-test");
+        Assert.assertTrue(docker.getName().startsWith(containerNamePrefix));
     }
 
     @Test

@@ -34,6 +34,7 @@ import com.flowci.tree.NodePath;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
+import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -94,7 +95,8 @@ public class CmdManagerImpl implements CmdManager {
 
     private String getDefaultContainerName(StepNode node) {
         NodePath path = node.getPath();
-        return path.getPathInStr().replace(NodePath.PathSeparator, "-");
+        String stepStr = path.getPathInStr().replace(NodePath.PathSeparator, "-");
+        return String.format("%s-%s", stepStr, StringHelper.randomString(5));
     }
 
     private StringVars linkInputs(Node current) {
