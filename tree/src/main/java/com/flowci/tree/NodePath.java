@@ -35,7 +35,7 @@ import org.yaml.snakeyaml.error.YAMLException;
 @EqualsAndHashCode(of = {"pathInStr"})
 public final class NodePath implements Serializable {
 
-    private static final String PathSeparator = "/";
+    public static final String PathSeparator = "/";
 
     private static final Set<String> Reserved = Sets.newHashSet("*", ";", ".", "/");
 

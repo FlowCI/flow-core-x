@@ -73,6 +73,13 @@ public class CmdManagerImpl implements CmdManager {
             in.setAllowFailure(node.isAllowFailure());
         }
 
+        // auto create default container name
+        for (DockerOption option : in.getDockers()) {
+            if (!option.hasName()) {
+                option.setName(getDefaultContainerName(node));
+            }
+        }
+
         if (!isDockerEnabled(job.getContext())) {
             in.getDockers().clear();
         }
@@ -83,6 +90,11 @@ public class CmdManagerImpl implements CmdManager {
     @Override
     public CmdIn createKillCmd() {
         return new ShellKill();
+    }
+
+    private String getDefaultContainerName(StepNode node) {
+        NodePath path = node.getPath();
+        return path.getPathInStr().replace(NodePath.PathSeparator, "-");
     }
 
     private StringVars linkInputs(Node current) {
