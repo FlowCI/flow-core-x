@@ -6,7 +6,9 @@ public abstract class Variables {
 
     public static final String AGENT_TOKEN = "FLOWCI_AGENT_TOKEN";
 
-    public static final String AGENT_K8S = "FLOWCI_AGENT_K8S";
+    public static final String AGENT_K8S_ENABLED = "FLOWCI_AGENT_K8S_ENABLED";
+
+    public static final String AGENT_K8S_IN_CLUSTER = "FLOWCI_AGENT_K8S_IN_CLUSTER";
 
     public static final String AGENT_LOG_LEVEL = "FLOWCI_AGENT_LOG_LEVEL";
 

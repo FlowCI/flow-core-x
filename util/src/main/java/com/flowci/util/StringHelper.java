@@ -98,6 +98,6 @@ public abstract class StringHelper {
     public static String randomString(int length) {
         byte[] buffer = new byte[length];
         random.nextBytes(buffer);
-        return encoder.encodeToString(buffer);
+        return encoder.encodeToString(buffer).toLowerCase();
     }
 }

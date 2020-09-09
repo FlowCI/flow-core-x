@@ -259,7 +259,7 @@ public class AgentHostServiceImpl implements AgentHostService {
 
         // create new agent
         if (agents.size() < host.getMaxSize()) {
-            String random = StringHelper.randomString(5).toLowerCase();
+            String random = StringHelper.randomString(5);
             String name = String.format("%s-%s", host.getName(), random);
 
             Agent agent = null;
@@ -536,8 +536,6 @@ public class AgentHostServiceImpl implements AgentHostService {
                 log.info("endpoint {} initialized", k8sHost.getNamespace());
             }
 
-            // TODO: create volume of pyenv
-
             return manager;
         }
 
@@ -549,7 +547,8 @@ public class AgentHostServiceImpl implements AgentHostService {
             option.setLabel(ContainerNamePrefix);
 
             option.addEnv(SERVER_URL, k8sHosts.getServerUrl());
-            option.addEnv(AGENT_K8S, Boolean.TRUE.toString());
+            option.addEnv(AGENT_K8S_ENABLED, Boolean.TRUE.toString());
+            option.addEnv(AGENT_K8S_IN_CLUSTER, Boolean.TRUE.toString());
             return option;
         }
     }
