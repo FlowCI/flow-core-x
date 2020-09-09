@@ -96,7 +96,7 @@ public class CmdManagerImpl implements CmdManager {
     private String getDefaultContainerName(StepNode node) {
         NodePath path = node.getPath();
         String stepStr = path.getNodePathWithoutSpace().replace(NodePath.PathSeparator, "-");
-        return String.format("%s-%s", stepStr, StringHelper.randomString(5));
+        return StringHelper.escapeNumber(String.format("%s-%s", stepStr, StringHelper.randomString(5)));
     }
 
     private StringVars linkInputs(Node current) {

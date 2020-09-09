@@ -20,4 +20,9 @@ public class StringHelperTest {
             Assert.assertTrue(set.add(val));
         }
     }
+
+    @Test
+    public void should_escape_number_in_string() {
+        Assert.assertEquals("abcdbcc", StringHelper.escapeNumber("a123bc2"));
+    }
 }

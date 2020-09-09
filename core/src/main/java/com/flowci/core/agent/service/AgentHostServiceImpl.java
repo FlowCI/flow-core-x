@@ -549,6 +549,8 @@ public class AgentHostServiceImpl implements AgentHostService {
             option.addEnv(SERVER_URL, k8sHosts.getServerUrl());
             option.addEnv(AGENT_K8S_ENABLED, Boolean.TRUE.toString());
             option.addEnv(AGENT_K8S_IN_CLUSTER, Boolean.TRUE.toString());
+
+            // TODO: check is deployed in the k8s cluster
             return option;
         }
     }
