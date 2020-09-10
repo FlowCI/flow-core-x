@@ -109,6 +109,10 @@ public abstract class StringHelper {
             if (c >= 48 && c <= 57) { // ascii value
                 c += 49; // to lower a - j
             }
+
+            if (c == '_') {
+                c = 'z';
+            }
             builder.append(c);
         }
         return builder.toString();
