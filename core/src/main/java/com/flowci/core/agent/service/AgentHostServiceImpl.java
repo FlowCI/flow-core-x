@@ -73,7 +73,7 @@ import static com.flowci.core.secret.domain.Secret.Category.SSH_RSA;
 @Service
 public class AgentHostServiceImpl implements AgentHostService {
 
-    private static final String DefaultImage = "flowci/agent:latest";
+    private static final String DefaultImage = "flowci/agent:dev";
 
     private static final String DefaultWorkspace = "/ws";
 
@@ -244,7 +244,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         // start from offline, and delete if cannot be started
         for (Agent agent : startList) {
             try {
-                StartOption startOption = mapping.get(host.getClass()).buildStartOption(agent);
+                StartOption startOption = mapping.get(host.getClass()).buildStartOption(host, agent);
                 cm.start(startOption);
                 log.info("Agent {} been started", agent.getName());
                 return true;
@@ -265,7 +265,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             Agent agent = null;
             try {
                 agent = agentService.create(name, host.getTags(), Optional.of(host.getId()));
-                StartOption startOption = mapping.get(host.getClass()).buildStartOption(agent);
+                StartOption startOption = mapping.get(host.getClass()).buildStartOption(host, agent);
                 cm.start(startOption);
                 eventManager.publish(new AgentCreatedEvent(this, agent, host));
                 log.info("Agent {} been created and started", name);
@@ -491,13 +491,13 @@ public class AgentHostServiceImpl implements AgentHostService {
 
         DockerManager init(AgentHost host) throws Exception;
 
-        StartOption buildStartOption(Agent agent);
+        StartOption buildStartOption(AgentHost host, Agent agent);
     }
 
     private abstract class AbstractHostAdaptor implements HostAdaptor {
 
         protected void initStartOption(StartOption option, Agent agent) {
-            option.setImage("flowci/agent:dev");
+            option.setImage(DefaultImage);
             option.setName(getContainerName(agent));
 
             option.addEnv(SERVER_URL, serverUrl);
@@ -521,26 +521,33 @@ public class AgentHostServiceImpl implements AgentHostService {
         public DockerManager init(AgentHost host) throws Exception {
             K8sAgentHost k8sHost = (K8sAgentHost) host;
             KubeConfigSecret secret = (KubeConfigSecret) getSecret(k8sHost.getSecret(), KUBE_CONFIG);
+            String namespace = k8sHost.getNamespace();
 
-            K8sOption option = new KubeConfigOption(k8sHost.getNamespace(), secret.getContent().getData());
+            K8sOption option = new KubeConfigOption(namespace, secret.getContent().getData());
             K8sManager manager = new K8sManager(option);
 
             // create namespace
-            manager.createNamespace();
-            log.info("namespace {} initialized", k8sHost.getNamespace());
+            if (!manager.hasNamespace()) {
+                throw new Exception(String.format("namespace '%s' not exist", namespace));
+            }
 
             // create endpoints
             for (K8sAgentHost.Endpoint ep : k8sEndpoints) {
                 K8sCreateEndpointOption endpointOption = new K8sCreateEndpointOption(ep.getName(), ep.getIp(), ep.getPort());
                 manager.createEndpoint(endpointOption);
-                log.info("endpoint {} initialized", k8sHost.getNamespace());
+                log.info("endpoint {} initialized", namespace);
             }
 
+            // create default service account user to cluster-admin in order to operate pod from in-cluster agent
+            String rbacName = "flow-ci-agent-rbac";
+            manager.createClusterRoleBindingToAdmin(new RoleBindingOption(rbacName, "default"));
+            log.info("rbac {} initialized", rbacName);
             return manager;
         }
 
         @Override
-        public StartOption buildStartOption(Agent agent) {
+        public StartOption buildStartOption(AgentHost host, Agent agent) {
+            K8sAgentHost k8sHost = (K8sAgentHost) host;
             PodStartOption option = new PodStartOption();
             initStartOption(option, agent);
 
@@ -549,6 +556,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             option.addEnv(SERVER_URL, k8sHosts.getServerUrl());
             option.addEnv(AGENT_K8S_ENABLED, Boolean.TRUE.toString());
             option.addEnv(AGENT_K8S_IN_CLUSTER, Boolean.TRUE.toString());
+            option.addEnv(AGENT_K8S_NAMESPACE, k8sHost.getNamespace());
 
             // TODO: check is deployed in the k8s cluster
             return option;
@@ -583,7 +591,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
 
         @Override
-        public StartOption buildStartOption(Agent agent) {
+        public StartOption buildStartOption(AgentHost host, Agent agent) {
             ContainerStartOption option = new ContainerStartOption();
             initStartOption(option, agent);
             option.addBind(DockerSock, DockerSock);
@@ -622,7 +630,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
 
         @Override
-        public StartOption buildStartOption(Agent agent) {
+        public StartOption buildStartOption(AgentHost host, Agent agent) {
             ContainerStartOption option = new ContainerStartOption();
             initStartOption(option, agent);
             option.addBind(DockerSock, DockerSock);

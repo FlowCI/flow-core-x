@@ -3,6 +3,10 @@ package com.flowci.docker;
 import com.flowci.docker.domain.*;
 import com.flowci.util.StringHelper;
 import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
+import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
+import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
+import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
@@ -54,6 +58,11 @@ public class K8sManager implements DockerManager {
         throw new UnsupportedOperationException("Unsupported k8s option");
     }
 
+    public boolean hasNamespace() {
+        Namespace namespace = client.namespaces().withName(option.getNamespace()).get();
+        return namespace != null;
+    }
+
     public void createNamespace() {
         Resource<Namespace, DoneableNamespace> resource = client.namespaces().withName(option.getNamespace());
         Namespace namespace = resource.get();
@@ -101,6 +110,52 @@ public class K8sManager implements DockerManager {
         }
     }
 
+    /**
+     * Create ClusterRoleBinding to set service account user
+     * "system:serviceaccount:(NAMESPACE):(SERVICEACCOUNT)" to role
+     */
+    public void createClusterRoleBindingToAdmin(RoleBindingOption option) throws Exception {
+        String namespace = this.option.getNamespace();
+
+        RoleBinding roleBinding = client.rbac()
+                .roleBindings()
+                .inNamespace(namespace)
+                .withName(option.getName())
+                .get();
+
+        if (roleBinding != null) {
+            return;
+        }
+
+        RoleBinding build = new RoleBindingBuilder()
+                .withMetadata(
+                        new ObjectMetaBuilder()
+                                .withName(option.getName())
+                                .build()
+                )
+                .withSubjects(
+                        new SubjectBuilder()
+                                .withKind("ServiceAccount")
+                                .withName(option.getAccountName())
+                                .withNamespace(namespace)
+                                .build()
+                )
+                .withRoleRef(
+                        new RoleRefBuilder()
+                                .withKind("ClusterRole")
+                                .withName("cluster-admin")
+                                .withApiGroup("rbac.authorization.k8s.io")
+                                .build()
+                )
+                .build();
+
+        try {
+            client.rbac().roleBindings().inNamespace(namespace).create(build);
+        } catch (KubernetesClientException e) {
+            throw new Exception(e.getMessage());
+        }
+    }
+
     @Override
     public ContainerManager getContainerManager() {
         return cm;
@@ -120,9 +175,10 @@ public class K8sManager implements DockerManager {
 
         /**
          * List all pods
+         *
          * @param statusFilter pod phase
-         * @param nameFilter pod name, or if end with wildcard, then find from label.
-         *                   ex: ci-agent-* will fetch name from label
+         * @param nameFilter   pod name, or if end with wildcard, then find from label.
+         *                     ex: ci-agent-* will fetch name from label
          */
         @Override
         public List<Unit> list(String statusFilter, String nameFilter) throws Exception {
@@ -214,8 +270,7 @@ public class K8sManager implements DockerManager {
         if (StringHelper.hasValue(name)) {
             if (name.endsWith("*")) {
                 operation.withLabel(LabelApp, name.replace("*", ""));
-            }
-            else {
+            } else {
                 operation.withField("metadata.name", name);
             }
         }
