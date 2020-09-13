@@ -24,6 +24,7 @@ import com.flowci.core.agent.domain.LocalUnixAgentHost;
 import com.flowci.core.agent.domain.SshAgentHost;
 import com.flowci.core.agent.event.AgentCreatedEvent;
 import com.flowci.core.agent.event.AgentHostStatusEvent;
+import com.flowci.core.agent.manager.AgentStatusManager;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -108,6 +109,9 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @Autowired
     private SpringEventManager eventManager;
+
+    @Autowired
+    private AgentStatusManager statusManager;
 
     @Autowired
     private ZookeeperClient zk;
@@ -219,25 +223,27 @@ public class AgentHostServiceImpl implements AgentHostService {
         ContainerManager cm = dockerManager.getContainerManager();
 
         for (Agent agent : agents) {
-            // try to resume, add to start list if failed
-            if (agent.getStatus() == Agent.Status.OFFLINE) {
-                try {
-                    List<Unit> list = cm.list(null, getContainerName(agent));
+            if (statusManager.get(agent) != Agent.Status.OFFLINE) {
+                continue;
+            }
 
-                    // container not exist
-                    if (list.isEmpty()) {
-                        startList.add(agent);
-                        continue;
-                    }
+            // try to resume if offline, add to start list if failed
+            try {
+                List<Unit> list = cm.list(null, getContainerName(agent));
 
-                    Unit container = list.get(0);
-                    cm.resume(container.getId());
-                    log.info("Agent {} been resumed", agent.getName());
-                    return true;
-                } catch (Exception e) {
-                    log.warn("Unable to resume agent {}", agent.getName());
+                // container not exist
+                if (list.isEmpty()) {
                     startList.add(agent);
+                    continue;
                 }
+
+                Unit container = list.get(0);
+                cm.resume(container.getId());
+                log.info("Agent {} been resumed", agent.getName());
+                return true;
+            } catch (Exception e) {
+                log.warn("Unable to resume agent {}", agent.getName());
+                startList.add(agent);
             }
         }
 
