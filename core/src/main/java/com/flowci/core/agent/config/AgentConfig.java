@@ -24,17 +24,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
-
 /**
  * @author yang
  */
 @Log4j2
 @Configuration
 public class AgentConfig {
-
-    @Autowired
-    private AppProperties appProperties;
 
     @Autowired
     private AppProperties.Zookeeper zkProperties;
@@ -47,26 +42,9 @@ public class AgentConfig {
         return createSettings(rabbitProperties.getUri().toString(), zkProperties.getHost());
     }
 
-    @Bean("k8sHosts")
-    public K8sAgentHost.Hosts k8sHosts() {
-        String serverUrl = appProperties.getUrl();
-        String rabbitUrl = rabbitProperties.getUri().toString();
-        String zkUrl = zkProperties.getHost();
-        return K8sAgentHost.buildHosts(serverUrl, rabbitUrl, zkUrl);
-    }
-
     @Bean("k8sSettings")
     public Settings k8sSettings(K8sAgentHost.Hosts k8sHosts) {
         return createSettings(k8sHosts.getRabbitUrl(), k8sHosts.getZkUrl());
-    }
-
-    @Bean("k8sEndpoints")
-    public List<K8sAgentHost.Endpoint> k8sEps() {
-        String serverUrl = appProperties.getUrl();
-        String rabbitUrl = rabbitProperties.getUri().toString();
-        String zkUrl = zkProperties.getHost();
-
-        return K8sAgentHost.buildEndpoints(serverUrl, rabbitUrl, zkUrl);
     }
 
     private Settings createSettings(String rabbitUri, String zkUrl) {

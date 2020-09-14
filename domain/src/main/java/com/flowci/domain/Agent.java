@@ -84,6 +84,8 @@ public class Agent implements Serializable {
      */
     private String hostId;
 
+    private boolean k8sCluster;
+
     private Common.OS os = OS.UNKNOWN;
 
     private Resource resource = new Resource();
