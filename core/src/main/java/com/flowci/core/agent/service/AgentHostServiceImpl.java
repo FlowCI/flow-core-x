@@ -389,7 +389,7 @@ public class AgentHostServiceImpl implements AgentHostService {
     //====================================================================
 
     public String getContainerName(Agent agent) {
-        return String.format("%s-%s", ContainerNamePrefix, agent.getName());
+        return String.format("%s-%s", ContainerNamePrefix, StringHelper.escapeNumber(agent.getName()));
     }
 
     private void initZkNodeForCronTask() {
@@ -553,7 +553,6 @@ public class AgentHostServiceImpl implements AgentHostService {
 
         @Override
         public StartOption buildStartOption(AgentHost host, Agent agent) {
-            K8sAgentHost k8sHost = (K8sAgentHost) host;
             PodStartOption option = new PodStartOption();
             initStartOption(option, agent);
 
@@ -562,7 +561,6 @@ public class AgentHostServiceImpl implements AgentHostService {
             option.addEnv(SERVER_URL, k8sHosts.getServerUrl());
             option.addEnv(AGENT_K8S_ENABLED, Boolean.TRUE.toString());
             option.addEnv(AGENT_K8S_IN_CLUSTER, Boolean.TRUE.toString());
-            option.addEnv(AGENT_K8S_NAMESPACE, k8sHost.getNamespace());
 
             // TODO: check is deployed in the k8s cluster
             return option;

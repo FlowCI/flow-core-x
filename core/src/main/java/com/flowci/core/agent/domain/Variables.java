@@ -10,8 +10,6 @@ public abstract class Variables {
 
     public static final String AGENT_K8S_IN_CLUSTER = "FLOWCI_AGENT_K8S_IN_CLUSTER";
 
-    public static final String AGENT_K8S_NAMESPACE = "FLOWCI_AGENT_K8S_NAMESPACE";
-
     public static final String AGENT_LOG_LEVEL = "FLOWCI_AGENT_LOG_LEVEL";
 
     public static final String AGENT_VOLUMES = "FLOWCI_AGENT_VOLUMES";

@@ -2,8 +2,7 @@ package com.flowci.docker.domain;
 
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
-import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -37,11 +36,22 @@ public class PodStartOption extends StartOption {
     }
 
     private ContainerBuilder buildContainer() {
+        List<EnvVar> env = toK8sVarList();
+
+        // set default vars for container
+        Variables.PodVarsAndFieldPath.forEach((var, fieldPath) -> {
+            env.add(new EnvVarBuilder()
+                    .withName(var)
+                    .withValueFrom(new EnvVarSource(null, new ObjectFieldSelector(null, fieldPath), null, null))
+                    .build()
+            );
+        });
+
         ContainerBuilder builder = new ContainerBuilder()
                 .withImage(getImage())
                 .withImagePullPolicy("Always")
                 .withName(getName())
-                .withEnv(toK8sVarList());
+                .withEnv(env);
 
         if (StringHelper.hasValue(command)) {
             builder.withCommand(command);
