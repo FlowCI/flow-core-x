@@ -532,7 +532,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             K8sOption option = new KubeConfigOption(namespace, secret.getContent().getData());
             K8sManager manager = new K8sManager(option);
 
-            // create namespace
+            // check namespace
             if (!manager.hasNamespace()) {
                 throw new Exception(String.format("namespace '%s' not exist", namespace));
             }
@@ -544,10 +544,6 @@ public class AgentHostServiceImpl implements AgentHostService {
                 log.info("endpoint {} initialized", namespace);
             }
 
-            // create default service account user to cluster-admin in order to operate pod from in-cluster agent
-            String rbacName = "flow-ci-agent-rbac";
-            manager.createClusterRoleBindingToAdmin(new RoleBindingOption(rbacName, "default"));
-            log.info("rbac {} initialized", rbacName);
             return manager;
         }
 

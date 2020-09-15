@@ -19,14 +19,10 @@ public class PodStartOption extends StartOption {
 
     private List<String> args = new LinkedList<>();
 
-    public void addArg(String arg) {
-        this.args.add(arg);
-    }
-
     public PodBuilder buildPod(String labelKey, String labelVal) {
         return new PodBuilder()
                 .withNewSpec()
-                .withContainers(buildContainer().build())
+                .withContainers(containerForImage(), defaultDockerContainer())
                 .withRestartPolicy("Never")
                 .endSpec()
                 .withNewMetadata()
@@ -35,7 +31,19 @@ public class PodStartOption extends StartOption {
                 .endMetadata();
     }
 
-    private ContainerBuilder buildContainer() {
+    private Container defaultDockerContainer() {
+        return new ContainerBuilder()
+                .withImage("docker:dind")
+                .withImagePullPolicy("Always")
+                .withName("docker-runtime")
+                .withNewSecurityContext()
+                .withPrivileged(true)
+                .and()
+                .withEnv(new EnvVar("DOCKER_TLS_CERTDIR", "", null))
+                .build();
+    }
+
+    private Container containerForImage() {
         List<EnvVar> env = toK8sVarList();
 
         // set default vars for container
@@ -46,6 +54,9 @@ public class PodStartOption extends StartOption {
                     .build()
             );
         });
+
+        // set docker host to docker-runtime container
+        env.add(new EnvVar("DOCKER_HOST", "tcp://localhost:2375", null));
 
         ContainerBuilder builder = new ContainerBuilder()
                 .withImage(getImage())
@@ -61,6 +72,6 @@ public class PodStartOption extends StartOption {
             builder.withArgs(args);
         }
 
-        return builder;
+        return builder.build();
     }
 }
