@@ -93,6 +93,9 @@ public class AgentHostServiceImpl implements AgentHostService {
     private AppProperties appProperties;
 
     @Autowired
+    private AppProperties.K8s k8sProperties;
+
+    @Autowired
     private String serverUrl;
 
     @Autowired
@@ -215,6 +218,8 @@ public class AgentHostServiceImpl implements AgentHostService {
             log.warn("Fail to get pool manager of host: {}", host.getName());
             return false;
         }
+
+        log.info("try to start agent from host {}", host.getName());
 
         List<Agent> agents = agentDao.findAllByHostId(host.getId());
         List<Agent> startList = new LinkedList<>();
@@ -537,13 +542,20 @@ public class AgentHostServiceImpl implements AgentHostService {
                 throw new Exception(String.format("namespace '%s' not exist", namespace));
             }
 
-            // create endpoints
-            for (K8sAgentHost.Endpoint ep : k8sEndpoints) {
-                K8sCreateEndpointOption endpointOption = new K8sCreateEndpointOption(ep.getName(), ep.getIp(), ep.getPort());
-                manager.createEndpoint(endpointOption);
-                log.info("endpoint {} initialized", namespace);
+            log.debug("namespace {} found", namespace);
+
+            // create endpoints if service deployed outside k8s
+            if (!k8sProperties.enabled()) {
+                log.debug("create endpoints in k8s");
+
+                for (K8sAgentHost.Endpoint ep : k8sEndpoints) {
+                    K8sCreateEndpointOption endpointOption = new K8sCreateEndpointOption(ep.getName(), ep.getIp(), ep.getPort());
+                    manager.createEndpoint(endpointOption);
+                    log.info("endpoint {} initialized", namespace);
+                }
             }
 
+            log.debug("k8s manager initialized");
             return manager;
         }
 

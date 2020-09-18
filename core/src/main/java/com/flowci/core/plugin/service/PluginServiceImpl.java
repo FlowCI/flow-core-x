@@ -200,6 +200,8 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public void clone(List<PluginRepoInfo> repos) {
+        log.info("Loading plugins");
+
         for (PluginRepoInfo repo : repos) {
             appTaskExecutor.execute(() -> {
                 try {

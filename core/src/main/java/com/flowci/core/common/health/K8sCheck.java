@@ -16,9 +16,11 @@ public class K8sCheck extends AbstractHealthIndicator {
     @Override
     protected void doHealthCheck(Health.Builder builder) throws Exception {
         Status status = k8sProperties.enabled() ? Status.UP : Status.DOWN;
-        builder.status(status)
-                .withDetail("namespace", k8sProperties.getNamespace())
-                .withDetail("pod", k8sProperties.getPod())
-                .withDetail("pod ip", k8sProperties.getPodIp());
+        builder.status(status);
+        if (status == Status.UP) {
+            builder.withDetail("namespace", k8sProperties.getNamespace())
+                    .withDetail("pod", k8sProperties.getPod())
+                    .withDetail("pod ip", k8sProperties.getPodIp());
+        }
     }
 }
