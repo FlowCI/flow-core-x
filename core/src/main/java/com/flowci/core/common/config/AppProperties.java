@@ -195,7 +195,8 @@ public class AppProperties {
 
         private String podIp;
 
-        public boolean enabled() {
+        // indicate that is deployed in cluster
+        public boolean isInCluster() {
             return StringHelper.hasValue(namespace)
                     && StringHelper.hasValue(pod)
                     && StringHelper.hasValue(podIp);

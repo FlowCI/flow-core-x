@@ -545,7 +545,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             log.debug("namespace {} found", namespace);
 
             // create endpoints if service deployed outside k8s
-            if (!k8sProperties.enabled()) {
+            if (!k8sProperties.isInCluster()) {
                 log.debug("create endpoints in k8s");
 
                 for (K8sAgentHost.Endpoint ep : k8sEndpoints) {

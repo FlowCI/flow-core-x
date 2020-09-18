@@ -49,7 +49,7 @@ public class AgentConfig {
     public Settings k8sSettings(K8sAgentHost.Hosts k8sHosts) {
         // do not apply k8s endpoints as settings
         // in k8s cluster the value from env var should be endpoints
-        if (k8sProperties.enabled()) {
+        if (k8sProperties.isInCluster()) {
             return createSettings(rabbitProperties.getUri().toString(), zkProperties.getHost());
         }
 
