@@ -4,15 +4,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flowci.docker.domain.DockerStartOption;
-import com.flowci.docker.domain.SSHOption;
+import com.flowci.docker.domain.*;
 import com.flowci.domain.ObjectWrapper;
 import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Container;
-import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.Image;
-import com.github.dockerjava.api.model.StreamType;
 import com.jcraft.jsch.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,8 +28,7 @@ public class DockerSSHManager implements DockerManager {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-
-    private Session session;
+    private final Session session;
 
     private final ContainerManager containerManager = new ContainerManagerImpl();
 
@@ -84,24 +80,24 @@ public class DockerSSHManager implements DockerManager {
                 return;
             }
             String cmd = String.format("docker pull %s", image);
-            Output output = runCmd(cmd, (log) -> {
+            Result result = runCmd(cmd, (log) -> {
                 if (progress != null) {
                     progress.accept(log);
                 }
             });
-            throwExceptionIfError(output);
+            throwExceptionIfError(result);
         }
 
         private List<Image> findImage(String image) throws Exception {
             String cmd = String.format("docker image ls --filter reference=\"%s\" %s", image, FormatAsJson);
             List<Image> list = new LinkedList<>();
-            Output output = runCmd(cmd, (line) -> {
+            Result result = runCmd(cmd, (line) -> {
                 try {
                     list.add(mapper.readValue(line, Image.class));
                 } catch (JsonProcessingException ignore) {
                 }
             });
-            throwExceptionIfError(output);
+            throwExceptionIfError(result);
             return list;
         }
     }
@@ -109,7 +105,7 @@ public class DockerSSHManager implements DockerManager {
     private class ContainerManagerImpl implements ContainerManager {
 
         @Override
-        public List<Container> list(String statusFilter, String nameFilter) throws Exception {
+        public List<Unit> list(String statusFilter, String nameFilter) throws Exception {
             StringBuilder cmd = new StringBuilder();
             cmd.append("docker ps -a ");
             if (StringHelper.hasValue(statusFilter)) {
@@ -120,40 +116,46 @@ public class DockerSSHManager implements DockerManager {
             }
             cmd.append(FormatAsJson);
 
-            List<Container> list = new LinkedList<>();
-            Output output = runCmd(cmd.toString(), (line) -> {
+            List<Unit> list = new LinkedList<>();
+            Result result = runCmd(cmd.toString(), (line) -> {
                 try {
-                    list.add(mapper.readValue(line, Container.class));
+                    Container container = mapper.readValue(line, Container.class);
+                    list.add(new ContainerUnit(container));
                 } catch (JsonProcessingException ignore) {
                 }
             });
 
-            throwExceptionIfError(output);
+            throwExceptionIfError(result);
             return list;
         }
 
         @Override
-        public InspectContainerResponse inspect(String containerId) throws Exception {
+        public Unit inspect(String containerId) throws Exception {
             String cmd = String.format("docker inspect %s %s", containerId, FormatAsJson);
             final ObjectWrapper<InspectContainerResponse> inspected = new ObjectWrapper<>();
 
-            Output output = runCmd(cmd, (line) -> {
+            Result result = runCmd(cmd, (line) -> {
                 try {
                     inspected.setValue(mapper.readValue(line, InspectContainerResponse.class));
                 } catch (JsonProcessingException ignore) {
                 }
             });
-            throwExceptionIfError(output);
+            throwExceptionIfError(result);
 
             if (!inspected.hasValue()) {
                 throw new Exception(String.format("Unable to inspect container %s result", containerId));
             }
 
-            return inspected.getValue();
+            return new ContainerUnit(inspected.getValue());
         }
 
         @Override
-        public String start(DockerStartOption option) throws Exception {
+        public String start(StartOption startOption) throws Exception {
+            if (!(startOption instanceof ContainerStartOption)) {
+                throw new IllegalArgumentException();
+            }
+
+            ContainerStartOption option = (ContainerStartOption) startOption;
             StringBuilder cmd = new StringBuilder();
             cmd.append("docker run -d ");
 
@@ -178,8 +180,8 @@ public class DockerSSHManager implements DockerManager {
             }
 
             ObjectWrapper<String> cid = new ObjectWrapper<>();
-            Output output = runCmd(cmd.toString(), cid::setValue);
-            throwExceptionIfError(output);
+            Result result = runCmd(cmd.toString(), cid::setValue);
+            throwExceptionIfError(result);
 
             if (!cid.hasValue()) {
                 throw new Exception("Unable to get container line from output");
@@ -188,50 +190,51 @@ public class DockerSSHManager implements DockerManager {
             return cid.getValue();
         }
 
+
         @Override
-        public void wait(String containerId, int timeoutInSeconds, Consumer<Frame> onLog) throws Exception {
+        public void wait(String containerId, int timeoutInSeconds, Consumer<Output> onLog) throws Exception {
             String cmd = String.format("docker logs -f %s", containerId);
-            Output output = runCmd(cmd, (log) -> {
+            Result result = runCmd(cmd, (log) -> {
                 if (onLog != null) {
-                    onLog.accept(new Frame(StreamType.RAW, log.getBytes()));
+                    onLog.accept(new Output(log.getBytes()));
                 }
             });
-            throwExceptionIfError(output);
+            throwExceptionIfError(result);
         }
 
         @Override
         public void stop(String containerId) throws Exception {
-            InspectContainerResponse.ContainerState state = inspect(containerId).getState();
-            Boolean running = state.getRunning();
+            Boolean running = inspect(containerId).isRunning();
+
             if (running != null && running) {
                 String cmd = String.format("docker stop %s", containerId);
-                Output output = runCmd(cmd, null);
-                throwExceptionIfError(output);
+                Result result = runCmd(cmd, null);
+                throwExceptionIfError(result);
             }
         }
 
         @Override
         public void resume(String containerId) throws Exception {
             String cmd = String.format("docker start %s", containerId);
-            Output output = runCmd(cmd, null);
-            throwExceptionIfError(output);
+            Result result = runCmd(cmd, null);
+            throwExceptionIfError(result);
         }
 
         @Override
         public void delete(String containerId) throws Exception {
             String cmd = String.format("docker rm -f %s", containerId);
-            Output output = runCmd(cmd, null);
-            throwExceptionIfError(output);
+            Result result = runCmd(cmd, null);
+            throwExceptionIfError(result);
         }
     }
 
-    private void throwExceptionIfError(Output output) throws Exception {
-        if (output.getExit() != 0) {
-            throw new Exception(output.getErr());
+    private void throwExceptionIfError(Result result) throws Exception {
+        if (result.getExit() != 0) {
+            throw new Exception(result.getErr());
         }
     }
 
-    private Output runCmd(String bash, Consumer<String> handler) throws JSchException, IOException {
+    private Result runCmd(String bash, Consumer<String> handler) throws JSchException, IOException {
         if (Objects.isNull(session)) {
             throw new IllegalStateException("Please init ssh session first");
         }
@@ -249,7 +252,7 @@ public class DockerSSHManager implements DockerManager {
 
                 channel.connect(ChannelTimeout);
 
-                return Output.of(
+                return Result.of(
                         collectOutput(out, handler).toString(),
                         collectOutput(err, null).toString(),
                         channel.getExitStatus()
@@ -280,7 +283,7 @@ public class DockerSSHManager implements DockerManager {
 
     @AllArgsConstructor(staticName = "of")
     @Getter
-    private static class Output {
+    private static class Result {
 
         final String out;
 

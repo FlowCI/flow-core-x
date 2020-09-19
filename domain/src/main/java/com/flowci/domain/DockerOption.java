@@ -16,7 +16,9 @@
 
 package com.flowci.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -60,4 +62,9 @@ public class DockerOption {
     private boolean deleteContainer = true;
 
     private String containerId;
+
+    @JsonIgnore
+    public boolean hasName() {
+        return StringHelper.hasValue(name);
+    }
 }

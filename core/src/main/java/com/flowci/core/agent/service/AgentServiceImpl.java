@@ -93,6 +93,9 @@ public class AgentServiceImpl implements AgentService {
     private Settings baseSettings;
 
     @Autowired
+    private Settings k8sSettings;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
@@ -114,12 +117,13 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public Settings connect(AgentInit init) {
         Agent target = getByToken(init.getToken());
+        target.setK8sCluster(init.isK8sCluster());
         target.setUrl("http://" + init.getIp() + ":" + init.getPort());
         target.setOs(init.getOs());
         target.setResource(init.getResource());
         agentDao.save(target);
 
-        Settings settings = ObjectsHelper.copy(baseSettings);
+        Settings settings = target.isK8sCluster() ? ObjectsHelper.copy(k8sSettings) : ObjectsHelper.copy(baseSettings);
         settings.setAgent(target);
         return settings;
     }

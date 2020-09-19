@@ -3,11 +3,10 @@ package com.flowci.docker.test;
 import com.flowci.docker.ContainerManager;
 import com.flowci.docker.DockerManager;
 import com.flowci.docker.DockerSSHManager;
-import com.flowci.docker.domain.DockerStartOption;
+import com.flowci.docker.domain.ContainerStartOption;
 import com.flowci.docker.domain.SSHOption;
+import com.flowci.docker.domain.Unit;
 import com.flowci.util.StringHelper;
-import com.github.dockerjava.api.command.InspectContainerResponse;
-import com.github.dockerjava.api.model.Container;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -30,7 +29,7 @@ public class DockerSSHManagerTest {
 
     @Test
     public void should_list_containers() throws Exception {
-        List<Container> list = manager.getContainerManager().list(null, null);
+        List<Unit> list = manager.getContainerManager().list(null, null);
         Assert.assertNotNull(list);
     }
 
@@ -46,7 +45,7 @@ public class DockerSSHManagerTest {
 
     @Test
     public void should_create_start_and_delete_container() throws Exception {
-        DockerStartOption option = new DockerStartOption();
+        ContainerStartOption option = new ContainerStartOption();
         option.setImage("ubuntu:18.04");
         option.addEnv("FLOW_TEST", "hello.world");
 
@@ -59,7 +58,7 @@ public class DockerSSHManagerTest {
         Assert.assertNotNull(cid);
 
         cm.wait(cid, 60, (frame -> {
-            System.out.println(new String(frame.getPayload()));
+            System.out.println(new String(frame.getData()));
         }));
 
         cm.stop(cid);
@@ -68,7 +67,7 @@ public class DockerSSHManagerTest {
 
     @Test
     public void should_inspect_container() throws Exception {
-        InspectContainerResponse inspect = manager.getContainerManager().inspect("a86fc2720b11");
+        Unit inspect = manager.getContainerManager().inspect("a86fc2720b11");
         Assert.assertNotNull(inspect);
     }
 

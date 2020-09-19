@@ -24,14 +24,17 @@ import com.flowci.core.secret.domain.*;
 import com.flowci.core.secret.event.CreateAuthEvent;
 import com.flowci.core.secret.event.CreateRsaEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
+import com.flowci.docker.K8sManager;
 import com.flowci.domain.SecretField;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
+import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.util.StringHelper;
+import io.fabric8.kubernetes.client.Config;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -42,6 +45,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -156,6 +160,22 @@ public class SecretServiceImpl implements SecretService {
             fileManager.save(keyStore.getOriginalFilename(), keyStore.getInputStream(), secret.getPath());
             return save(secret);
         } catch (IOException e) {
+            throw new StatusException(e.getMessage());
+        }
+    }
+
+    @Override
+    public KubeConfigSecret createKubeConfig(String name, String content) {
+        if (!K8sManager.validate(content)) {
+            throw new ArgumentException("Illegal kubeconfig content");
+        }
+
+        try {
+            KubeConfigSecret secret = new KubeConfigSecret();
+            secret.setName(name);
+            secret.setContent(SecretField.of(content));
+            return save(secret);
+        } catch (Exception e) {
             throw new StatusException(e.getMessage());
         }
     }

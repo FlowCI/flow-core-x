@@ -17,6 +17,7 @@
 package com.flowci.util;
 
 import com.google.common.base.Strings;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -98,6 +99,22 @@ public abstract class StringHelper {
     public static String randomString(int length) {
         byte[] buffer = new byte[length];
         random.nextBytes(buffer);
-        return encoder.encodeToString(buffer);
+        return encoder.encodeToString(buffer).toLowerCase();
+    }
+
+    public static String escapeNumber(String input) {
+        StringBuilder builder = new StringBuilder(input.length());
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (c >= 48 && c <= 57) { // ascii value
+                c += 49; // to lower a - j
+            }
+
+            if (c == '_') {
+                c = 'z';
+            }
+            builder.append(c);
+        }
+        return builder.toString();
     }
 }

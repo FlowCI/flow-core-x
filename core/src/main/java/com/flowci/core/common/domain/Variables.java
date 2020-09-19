@@ -27,10 +27,6 @@ public abstract class Variables {
 
         public static final String Host = "FLOWCI_SERVER_HOST";
 
-        public static final String RabbitHost = "FLOWCI_RABBIT_HOST";
-
-        public static final String ZookeeperHost = "FLOWCI_ZOOKEEPER_HOST";
-
     }
 
     public abstract static class Flow {

@@ -28,6 +28,8 @@ import lombok.Setter;
 @Setter
 public class AgentInit {
 
+    private boolean k8sCluster; // is agent running in k8s cluster
+
     private String token;
 
     private String ip;

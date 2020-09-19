@@ -41,6 +41,7 @@
         <java-jwt.version>3.8.1</java-jwt.version>
         <minio.version>6.0.11</minio.version>
         <log4j-core.version>2.11.2</log4j-core.version>
+        <kubernetes-client.version>4.10.3</kubernetes-client.version>
     </properties>
 
     <build>
@@ -305,6 +306,12 @@
                 <artifactId>groovy-all</artifactId>
                 <version>3.0.4</version>
                 <type>pom</type>
+            </dependency>
+
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>kubernetes-client</artifactId>
+                <version>${kubernetes-client.version}</version>
             </dependency>
 
             <dependency>

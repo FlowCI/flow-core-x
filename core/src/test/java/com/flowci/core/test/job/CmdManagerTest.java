@@ -135,9 +135,13 @@ public class CmdManagerTest extends SpringScenario {
         Assert.assertEquals("60", inputs.get("GIT_DEFAULT_VAL"));
 
         // then: docker option should from step
-        DockerOption docker = plugin.getDocker();
+        Assert.assertEquals(1, cmdIn.getDockers().size());
+        DockerOption docker = cmdIn.getDockers().get(0);
         Assert.assertNotNull(docker);
         Assert.assertEquals("ubuntu:19.04", docker.getImage());
+
+        String containerNamePrefix = String.format("%s-%s", flow.getName(), "plugin-test");
+        Assert.assertTrue(docker.getName().startsWith(containerNamePrefix));
     }
 
     @Test

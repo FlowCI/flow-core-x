@@ -19,6 +19,8 @@ package com.flowci.core.common.config;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
+
+import com.flowci.util.StringHelper;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -182,5 +184,22 @@ public class AppProperties {
         private String key;
 
         private String secret;
+    }
+
+    @Data
+    public static class K8s {
+
+        private String namespace;
+
+        private String pod;
+
+        private String podIp;
+
+        // indicate that is deployed in cluster
+        public boolean isInCluster() {
+            return StringHelper.hasValue(namespace)
+                    && StringHelper.hasValue(pod)
+                    && StringHelper.hasValue(podIp);
+        }
     }
 }

@@ -34,6 +34,7 @@ import com.flowci.tree.NodePath;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
+import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -73,6 +74,13 @@ public class CmdManagerImpl implements CmdManager {
             in.setAllowFailure(node.isAllowFailure());
         }
 
+        // auto create default container name
+        for (DockerOption option : in.getDockers()) {
+            if (!option.hasName()) {
+                option.setName(getDefaultContainerName(node));
+            }
+        }
+
         if (!isDockerEnabled(job.getContext())) {
             in.getDockers().clear();
         }
@@ -83,6 +91,12 @@ public class CmdManagerImpl implements CmdManager {
     @Override
     public CmdIn createKillCmd() {
         return new ShellKill();
+    }
+
+    private String getDefaultContainerName(StepNode node) {
+        NodePath path = node.getPath();
+        String stepStr = path.getNodePathWithoutSpace().replace(NodePath.PathSeparator, "-");
+        return StringHelper.escapeNumber(String.format("%s-%s", stepStr, StringHelper.randomString(5)));
     }
 
     private StringVars linkInputs(Node current) {
