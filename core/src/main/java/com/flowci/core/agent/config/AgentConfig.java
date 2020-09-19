@@ -16,7 +16,6 @@
 
 package com.flowci.core.agent.config;
 
-import com.flowci.core.agent.domain.K8sAgentHost;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.domain.Settings;
 import lombok.extern.log4j.Log4j2;
@@ -37,23 +36,9 @@ public class AgentConfig {
     @Autowired
     private AppProperties.RabbitMQ rabbitProperties;
 
-    @Autowired
-    private AppProperties.K8s k8sProperties;
-
     @Bean("baseSettings")
     public Settings baseSettings() {
         return createSettings(rabbitProperties.getUri().toString(), zkProperties.getHost());
-    }
-
-    @Bean("k8sSettings")
-    public Settings k8sSettings(K8sAgentHost.Hosts k8sHosts) {
-        // do not apply k8s endpoints as settings
-        // in k8s cluster the value from env var should be endpoints
-        if (k8sProperties.isInCluster()) {
-            return createSettings(rabbitProperties.getUri().toString(), zkProperties.getHost());
-        }
-
-        return createSettings(k8sHosts.getRabbitUrl(), k8sHosts.getZkUrl());
     }
 
     private Settings createSettings(String rabbitUri, String zkUrl) {

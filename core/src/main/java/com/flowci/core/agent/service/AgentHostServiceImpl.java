@@ -93,16 +93,7 @@ public class AgentHostServiceImpl implements AgentHostService {
     private AppProperties appProperties;
 
     @Autowired
-    private AppProperties.K8s k8sProperties;
-
-    @Autowired
     private String serverUrl;
-
-    @Autowired
-    private K8sAgentHost.Hosts k8sHosts;
-
-    @Autowired
-    private List<K8sAgentHost.Endpoint> k8sEndpoints;
 
     @Autowired
     private AgentDao agentDao;
@@ -542,19 +533,6 @@ public class AgentHostServiceImpl implements AgentHostService {
                 throw new Exception(String.format("namespace '%s' not exist", namespace));
             }
 
-            log.debug("namespace {} found", namespace);
-
-            // create endpoints if service deployed outside k8s
-            if (!k8sProperties.isInCluster()) {
-                log.debug("create endpoints in k8s");
-
-                for (K8sAgentHost.Endpoint ep : k8sEndpoints) {
-                    K8sCreateEndpointOption endpointOption = new K8sCreateEndpointOption(ep.getName(), ep.getIp(), ep.getPort());
-                    manager.createEndpoint(endpointOption);
-                    log.info("endpoint {} initialized", namespace);
-                }
-            }
-
             log.debug("k8s manager initialized");
             return manager;
         }
@@ -566,7 +544,6 @@ public class AgentHostServiceImpl implements AgentHostService {
 
             option.setLabel(ContainerNamePrefix);
 
-            option.addEnv(SERVER_URL, k8sHosts.getServerUrl());
             option.addEnv(AGENT_K8S_ENABLED, Boolean.TRUE.toString());
             option.addEnv(AGENT_K8S_IN_CLUSTER, Boolean.TRUE.toString());
 
