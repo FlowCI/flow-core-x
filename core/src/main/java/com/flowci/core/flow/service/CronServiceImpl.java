@@ -57,7 +57,7 @@ public class CronServiceImpl implements CronService {
     private final Map<String, ScheduledFuture<?>> scheduled = new ConcurrentHashMap<>();
 
     @Autowired
-    private TaskScheduler taskScheduler;
+    private TaskScheduler cronScheduler;
 
     @Autowired
     private YmlDao ymlDao;
@@ -111,7 +111,7 @@ public class CronServiceImpl implements CronService {
 
         // schedule next cron task
         String expression = "0 " + flow.getCron();
-        ScheduledFuture<?> schedule = taskScheduler.schedule(new CronRunner(flow), new CronTrigger(expression));
+        ScheduledFuture<?> schedule = cronScheduler.schedule(new CronRunner(flow), new CronTrigger(expression));
         scheduled.put(flow.getId(), schedule);
     }
 
