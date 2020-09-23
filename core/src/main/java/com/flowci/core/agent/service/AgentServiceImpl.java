@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.dao.AgentDao;
 import com.flowci.core.agent.domain.AgentInit;
 import com.flowci.core.agent.domain.CmdIn;
+import com.flowci.core.agent.domain.Util;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.event.OnConnectedEvent;
@@ -64,8 +65,6 @@ import java.util.function.Function;
 @Log4j2
 @Service
 public class AgentServiceImpl implements AgentService {
-
-    private static final String LockPathSuffix = "-lock";
 
     private static final long RetryIntervalOnNotFound = 10 * 1000; // 10 seconds
 
@@ -207,7 +206,7 @@ public class AgentServiceImpl implements AgentService {
 
         // lock and set status to busy
         try {
-            String zkLockPath = getLockPath(agent);
+            String zkLockPath = Util.getZkLockPath(zkProperties.getAgentRoot(), agent);
             zk.lock(zkLockPath, path -> {
                 agent.setJobId(jobId);
                 updateAgentStatus(agent, Status.BUSY, true);
@@ -296,7 +295,7 @@ public class AgentServiceImpl implements AgentService {
     public void lockNodeCleanup() {
         List<String> children = zk.children(zkProperties.getAgentRoot());
         for (String path : children) {
-            String agentId = getAgentIdFromLockPath(path);
+            String agentId = Util.getAgentIdFromLockPath(path);
             Optional<Agent> optional = agentDao.findById(agentId);
 
             if (!optional.isPresent()) {
@@ -365,7 +364,7 @@ public class AgentServiceImpl implements AgentService {
     //====================================================================
 
     private void syncLockNode(Agent agent, boolean isCreate) {
-        String lockPath = getLockPath(agent);
+        String lockPath = Util.getZkLockPath(zkProperties.getAgentRoot(), agent);
 
         if (isCreate) {
             try {
@@ -396,15 +395,6 @@ public class AgentServiceImpl implements AgentService {
                 agentDao.save(agent);
             }
         }
-    }
-
-    private String getLockPath(Agent agent) {
-        String root = zkProperties.getAgentRoot();
-        return root + Agent.PATH_SLASH + agent.getId() + LockPathSuffix;
-    }
-
-    private String getAgentIdFromLockPath(String lockPath) {
-        return lockPath.replace(LockPathSuffix, "");
     }
 
     private Optional<Agent> acquire(String jobId, Selector selector) {

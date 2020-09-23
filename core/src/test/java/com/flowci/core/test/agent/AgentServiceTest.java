@@ -19,7 +19,6 @@ package com.flowci.core.test.agent;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.event.CmdSentEvent;
-import com.flowci.core.agent.manager.AgentStatusManager;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.ThreadHelper;
@@ -28,17 +27,16 @@ import com.flowci.domain.Agent;
 import com.flowci.domain.Agent.Status;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.ImmutableSet;
-
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author yang
@@ -50,9 +48,6 @@ public class AgentServiceTest extends ZookeeperScenario {
 
     @Autowired
     private ZookeeperClient zk;
-
-    @Autowired
-    private AgentStatusManager agentStatusManager;
 
     @Autowired
     private AgentService agentService;
@@ -75,7 +70,7 @@ public class AgentServiceTest extends ZookeeperScenario {
         Agent agent = agentService.create("hello.test", ImmutableSet.of("local", "android"), Optional.empty());
 
         // when:
-        Agent online = mockAgentOnline(agentService.getPath(agent));
+        Agent online = mockAgentOnline(agent.getToken());
 
         // then:
         Assert.assertEquals(agent, online);
@@ -95,8 +90,8 @@ public class AgentServiceTest extends ZookeeperScenario {
         Assert.assertNotNull(agent);
 
         // when: make agent online
-        mockAgentOnline(agentService.getPath(idle));
-        Assert.assertEquals(Status.IDLE, agentStatusManager.get(idle));
+        mockAgentOnline(idle.getToken());
+        Assert.assertEquals(Status.IDLE, agent.getStatus());
 
         // when: try lock agent in multiple thread
         AtomicInteger numOfLocked = new AtomicInteger(0);
@@ -108,8 +103,7 @@ public class AgentServiceTest extends ZookeeperScenario {
                 Optional<Agent> optional = agentService.tryLock("dummyJobId", idle.getId());
                 if (optional.isPresent()) {
                     numOfLocked.incrementAndGet();
-                }
-                else {
+                } else {
                     numOfFailure.incrementAndGet();
                 }
 
@@ -121,14 +115,14 @@ public class AgentServiceTest extends ZookeeperScenario {
         counterForLock.await(10, TimeUnit.SECONDS);
         Assert.assertEquals(1, numOfLocked.get());
         Assert.assertEquals(4, numOfFailure.get());
-        Assert.assertEquals(Status.BUSY, getAgentStatus(agentService.getPath(idle)));
+        Assert.assertEquals(Status.BUSY, getAgentStatus(idle.getToken()));
 
         // when: release agent and mock event from agent
         agentService.tryRelease(idle.getId());
 //        mockReleaseAgent(agentService.getPath(available));
 
         // then: the status should be idle
-        Status statusFromZk = getAgentStatus(agentService.getPath(idle));
+        Status statusFromZk = getAgentStatus(idle.getToken());
         Assert.assertEquals(Status.IDLE, statusFromZk);
 
         ThreadHelper.sleep(2000);

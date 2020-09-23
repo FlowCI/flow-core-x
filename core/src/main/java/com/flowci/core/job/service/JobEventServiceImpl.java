@@ -21,7 +21,6 @@ import com.flowci.core.agent.domain.CmdOut;
 import com.flowci.core.agent.domain.ShellOut;
 import com.flowci.core.agent.domain.TtyCmd;
 import com.flowci.core.agent.event.AgentStatusEvent;
-import com.flowci.core.agent.manager.AgentStatusManager;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
@@ -72,9 +71,6 @@ public class JobEventServiceImpl implements JobEventService {
     private TaskExecutor appTaskExecutor;
 
     @Autowired
-    private AgentStatusManager agentStatusManager;
-
-    @Autowired
     private JobService jobService;
 
     @Autowired
@@ -122,7 +118,7 @@ public class JobEventServiceImpl implements JobEventService {
             return;
         }
 
-        if (!agentStatusManager.isOffline(agent)) {
+        if (!agent.isOffline()) {
             return;
         }
 
