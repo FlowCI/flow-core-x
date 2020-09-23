@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.domain.AgentInit;
 import com.flowci.core.agent.event.OnConnectedEvent;
 import com.flowci.core.agent.event.OnDisconnectedEvent;
-import com.flowci.core.agent.event.OnStatusEvent;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.domain.Agent;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,6 +18,7 @@ import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Log4j2
@@ -29,8 +28,6 @@ public class AgentEventManager extends BinaryWebSocketHandler {
     private final static int EventLength = 10;
 
     private final static String EventConnect = "connect___";
-
-    private final static String EventStateChange = "status____";
 
     private final static String EventShellLog = "slog______";
 
@@ -76,28 +73,7 @@ public class AgentEventManager extends BinaryWebSocketHandler {
         String body = getBody(bytes);
 
         if (EventConnect.equals(event)) {
-            try {
-                AgentInit init = objectMapper.readValue(body, AgentInit.class);
-                init.setToken(token);
-                init.setIp(session.getRemoteAddress() == null ? null : session.getRemoteAddress().toString());
-
-                eventManager.publish(new OnConnectedEvent(this, token, session, init));
-                agentSessionStore.put(token, session);
-                writeMessage(token, new ResponseMessage<Void>(StatusCode.OK, null));
-            } catch (Exception e) {
-                log.warn(e);
-                writeMessage(token, new ResponseMessage<Void>(StatusCode.FATAL, e.getMessage(), null));
-            }
-            return;
-        }
-
-        if (EventStateChange.equals(event)) {
-            try {
-                Agent.Status status = Agent.Status.valueOf(body);
-                eventManager.publish(new OnStatusEvent(this, token, session, status));
-            } catch (IllegalArgumentException e) {
-                log.warn("Illegal body message for status update");
-            }
+            onConnected(session, token, body);
             return;
         }
 
@@ -119,6 +95,23 @@ public class AgentEventManager extends BinaryWebSocketHandler {
         String token = getToken(session);
         eventManager.publish(new OnDisconnectedEvent(this, token, session));
         agentSessionStore.remove(token, session);
+    }
+
+    private void onConnected(WebSocketSession session, String token, String body) {
+        try {
+            AgentInit init = objectMapper.readValue(body, AgentInit.class);
+            Objects.requireNonNull(init.getStatus(), "Agent status is missing");
+
+            init.setToken(token);
+            init.setIp(session.getRemoteAddress() == null ? null : session.getRemoteAddress().toString());
+
+            eventManager.publish(new OnConnectedEvent(this, token, session, init));
+            agentSessionStore.put(token, session);
+            writeMessage(token, new ResponseMessage<Void>(StatusCode.OK, null));
+        } catch (Exception e) {
+            log.warn(e);
+            writeMessage(token, new ResponseMessage<Void>(StatusCode.FATAL, e.getMessage(), null));
+        }
     }
 
     private static String getToken(WebSocketSession session) {

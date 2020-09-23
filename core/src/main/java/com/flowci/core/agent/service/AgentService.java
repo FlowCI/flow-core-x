@@ -17,7 +17,6 @@
 package com.flowci.core.agent.service;
 
 import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.agent.event.OnConnectedEvent;
 import com.flowci.core.job.domain.Job;
 import com.flowci.domain.Agent;
 
@@ -45,11 +44,6 @@ public interface AgentService {
      * Get agent by token
      */
     Agent getByToken(String token);
-
-    /**
-     * Get zookeeper path
-     */
-    String getPath(Agent agent);
 
     /**
      * Check agent token is existed
@@ -120,10 +114,5 @@ public interface AgentService {
      * Dispatch cmd to agent
      */
     void dispatch(CmdIn cmd, Agent agent);
-
-    /**
-     * Handle on connected event
-     */
-    void onConnected(OnConnectedEvent event);
 
 }
