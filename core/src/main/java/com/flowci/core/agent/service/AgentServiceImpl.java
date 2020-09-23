@@ -23,8 +23,12 @@ import com.flowci.core.agent.domain.AgentInit;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.CmdSentEvent;
+import com.flowci.core.agent.event.OnConnectedEvent;
+import com.flowci.core.agent.manager.AgentEventManager;
 import com.flowci.core.agent.manager.AgentStatusManager;
 import com.flowci.core.common.config.AppProperties;
+import com.flowci.core.common.domain.StatusCode;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -34,7 +38,6 @@ import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
 import com.flowci.domain.Agent;
 import com.flowci.domain.Agent.Status;
-import com.flowci.domain.Settings;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.Selector;
@@ -90,12 +93,6 @@ public class AgentServiceImpl implements AgentService {
     private SpringEventManager eventManager;
 
     @Autowired
-    private Settings baseSettings;
-
-    @Autowired
-    private Settings k8sSettings;
-
-    @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
@@ -114,18 +111,18 @@ public class AgentServiceImpl implements AgentService {
     //        %% Public Methods
     //====================================================================
 
+    @EventListener
     @Override
-    public Settings connect(AgentInit init) {
-        Agent target = getByToken(init.getToken());
-        target.setK8sCluster(init.isK8sCluster());
+    public void onConnected(OnConnectedEvent event) {
+        Agent target = getByToken(event.getToken());
+        AgentInit init = event.getInit();
+
+        target.setK8sCluster(init.getK8sCluster());
         target.setUrl("http://" + init.getIp() + ":" + init.getPort());
         target.setOs(init.getOs());
         target.setResource(init.getResource());
-        agentDao.save(target);
 
-        Settings settings = target.isK8sCluster() ? ObjectsHelper.copy(k8sSettings) : ObjectsHelper.copy(baseSettings);
-        settings.setAgent(target);
-        return settings;
+        agentDao.save(target);
     }
 
     @Override

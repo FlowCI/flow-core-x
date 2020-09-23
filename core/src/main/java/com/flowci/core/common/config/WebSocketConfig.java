@@ -16,8 +16,9 @@
 
 package com.flowci.core.common.config;
 
-import com.flowci.core.agent.controller.AgentActionController;
+import com.flowci.core.agent.manager.AgentEventManager;
 import com.flowci.core.common.helper.ThreadHelper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -33,6 +34,9 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
 @EnableWebSocket
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSocketConfigurer {
+
+    @Autowired
+    private AgentEventManager agentEventManager;
 
     /**
      * To subscribe git test status update for flow
@@ -145,6 +149,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new AgentActionController(), "/ws/agent").setAllowedOrigins("*");
+        registry.addHandler(agentEventManager, "/ws/agent").setAllowedOrigins("*");
     }
 }

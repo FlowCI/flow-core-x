@@ -16,11 +16,10 @@
 
 package com.flowci.core.agent.service;
 
-import com.flowci.core.agent.domain.AgentInit;
 import com.flowci.core.agent.domain.CmdIn;
+import com.flowci.core.agent.event.OnConnectedEvent;
 import com.flowci.core.job.domain.Job;
 import com.flowci.domain.Agent;
-import com.flowci.domain.Settings;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,8 +30,6 @@ import java.util.function.Function;
  * @author yang
  */
 public interface AgentService {
-
-    Settings connect(AgentInit initData);
 
     /**
      * Get agent by id
@@ -94,6 +91,7 @@ public interface AgentService {
 
     /**
      * Try to lock agent resource, and set agent status to BUSY
+     *
      * @return return agent instance, otherwise return empty
      */
     Optional<Agent> tryLock(String jobId, String agentId);
@@ -122,5 +120,10 @@ public interface AgentService {
      * Dispatch cmd to agent
      */
     void dispatch(CmdIn cmd, Agent agent);
+
+    /**
+     * Handle on connected event
+     */
+    void onConnected(OnConnectedEvent event);
 
 }

@@ -83,15 +83,6 @@ public class AgentController {
     //      Functions require agent token header
     // --------------------------------------------------------
 
-    @PostMapping("/api/connect")
-    public Settings connect(@RequestHeader(AgentAuth.HeaderAgentToken) String token,
-                            @RequestBody AgentInit init,
-                            HttpServletRequest request) {
-        init.setToken(token);
-        init.setIp(request.getRemoteHost());
-        return agentService.connect(init);
-    }
-
     @PostMapping("/api/profile")
     public void profile(@RequestHeader(AgentAuth.HeaderAgentToken) String token,
                                @RequestBody Agent.Resource resource) {
