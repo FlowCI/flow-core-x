@@ -2,9 +2,9 @@ package com.flowci.core.agent.manager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.domain.AgentInit;
-import com.flowci.core.agent.event.OnCmdOutEvent;
-import com.flowci.core.agent.event.OnConnectedEvent;
-import com.flowci.core.agent.event.OnDisconnectedEvent;
+import com.flowci.core.agent.domain.ShellLog;
+import com.flowci.core.agent.domain.TtyCmd;
+import com.flowci.core.agent.event.*;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Handle event from agent via websocket
  */
-
 @Log4j2
 @Component
 public class AgentEventManager extends BinaryWebSocketHandler {
@@ -90,15 +89,17 @@ public class AgentEventManager extends BinaryWebSocketHandler {
         }
 
         if (EventCmdOut.equals(event)) {
-            onCmdOut(session, token, body);
+            onCmdOut(token, body);
             return;
         }
 
         if (EventShellLog.equals(event)) {
+            onShellLog(body);
             return;
         }
 
         if (EventTTYLog.equals(event)) {
+            onTtyLog(body);
         }
     }
 
@@ -132,11 +133,29 @@ public class AgentEventManager extends BinaryWebSocketHandler {
         }
     }
 
-    private void onCmdOut(WebSocketSession session, String token, byte[] body) {
+    private void onCmdOut(String token, byte[] body) {
         try {
-            eventManager.publish(new OnCmdOutEvent(this, token, session, body));
-            log.debug("Agent {} got cmd back: {}", token, body);
+            eventManager.publish(new OnCmdOutEvent(this, body));
+            log.debug("Agent {} got cmd back: {}", token, new String(body));
         } catch (Exception e) {
+            log.warn(e);
+        }
+    }
+
+    private void onShellLog(byte[] body) {
+        try {
+            ShellLog item = objectMapper.readValue(body, ShellLog.class);
+            eventManager.publish(new OnShellLogEvent(this, item.getJobId(), item.getStepId(), item.getLog()));
+        } catch (IOException e) {
+            log.warn(e);
+        }
+    }
+
+    private void onTtyLog(byte[] body) {
+        try {
+            TtyCmd.Log item = objectMapper.readValue(body, TtyCmd.Log.class);
+            eventManager.publish(new OnTTYLogEvent(this, item.getId(), item.getLog()));
+        } catch (IOException e) {
             log.warn(e);
         }
     }

@@ -78,7 +78,7 @@ public class JobEventServiceImpl implements JobEventService {
     //        %% Internal events
     //====================================================================
 
-    @EventListener(FlowInitEvent.class)
+    @EventListener
     public void startJobQueueConsumers(FlowInitEvent event) {
         for (Flow flow : event.getFlows()) {
             declareJobQueueAndStartConsumer(flow);
@@ -108,7 +108,7 @@ public class JobEventServiceImpl implements JobEventService {
         });
     }
 
-    @EventListener(value = AgentStatusEvent.class)
+    @EventListener
     public void updateJobAndStepWhenOffline(AgentStatusEvent event) {
         Agent agent = event.getAgent();
 

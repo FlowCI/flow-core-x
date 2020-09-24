@@ -60,19 +60,6 @@ public class QueueConfig {
         return factory.newConnection(rabbitTaskExecutor.getThreadPoolExecutor());
     }
 
-    @Bean("receiverQueueManager")
-    public RabbitOperations receiverQueueManager(Connection rabbitConnection) throws IOException {
-        String callbackQueue = rabbitProperties.getCallbackQueue();
-        String shellLogQueue = rabbitProperties.getShellLogQueue();
-        String ttyLogQueue = rabbitProperties.getTtyLogQueue();
-
-        RabbitOperations manager = new RabbitOperations(rabbitConnection, 10);
-        manager.declare(callbackQueue, true);
-        manager.declare(shellLogQueue, true);
-        manager.declare(ttyLogQueue, true);
-        return manager;
-    }
-
     @Bean("jobsQueueManager")
     public RabbitOperations jobsQueueManager(Connection rabbitConnection) throws IOException {
         RabbitOperations manager = new RabbitOperations(rabbitConnection, 1);
