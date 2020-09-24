@@ -16,6 +16,8 @@
 
 package com.flowci.core.job.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.event.OnShellLogEvent;
 import com.flowci.core.agent.event.OnTTYLogEvent;
 import com.flowci.core.common.helper.CacheHelper;
@@ -24,6 +26,7 @@ import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Step;
+import com.flowci.core.job.domain.StepLogItem;
 import com.flowci.core.job.event.CacheShellLogEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.exception.NotFoundException;
@@ -74,6 +77,9 @@ public class LoggingServiceImpl implements LoggingService {
     private String topicForLogs;
 
     @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private SocketPushManager socketPushManager;
 
     @Autowired
@@ -89,7 +95,7 @@ public class LoggingServiceImpl implements LoggingService {
     public void cacheShellLog(CacheShellLogEvent event) {
         Map<String, Queue<byte[]>> cache = logCache.getIfPresent(event.getJobId());
         if (cache != null) {
-            cache.get(event.getStepId()).add(event.getLog());
+            cache.get(event.getStepId()).add(event.getBody());
         }
     }
 
@@ -103,10 +109,16 @@ public class LoggingServiceImpl implements LoggingService {
     public void sendShellLogToClient(OnShellLogEvent event) {
         String jobId = event.getJobId();
         String stepId = event.getStepId();
-        byte[] body = event.getB64Log().getBytes();
+        String b64Log = event.getB64Log();
 
-        eventManager.publish(new CacheShellLogEvent(this, jobId, stepId, body));
-        socketPushManager.push(topicForLogs + "/" + jobId, body);
+        try {
+            byte[] bytes = objectMapper.writeValueAsBytes(new StepLogItem(stepId, b64Log));
+
+            eventManager.publish(new CacheShellLogEvent(this, jobId, stepId, bytes));
+            socketPushManager.push(topicForLogs + "/" + jobId, bytes);
+        } catch (JsonProcessingException e) {
+            log.warn(e);
+        }
     }
 
     @EventListener

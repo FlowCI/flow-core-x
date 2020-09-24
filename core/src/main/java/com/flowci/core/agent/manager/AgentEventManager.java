@@ -62,6 +62,11 @@ public class AgentEventManager extends BinaryWebSocketHandler {
 
     public void writeMessage(String token, byte[] bytes) throws IOException {
         WebSocketSession session = agentSessionStore.get(token);
+        if (session == null) {
+            log.warn("Agent {} not connected", token);
+            return;
+        }
+
         session.sendMessage(new BinaryMessage(bytes));
     }
 
