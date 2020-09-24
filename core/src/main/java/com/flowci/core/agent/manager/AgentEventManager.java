@@ -61,6 +61,11 @@ public class AgentEventManager extends BinaryWebSocketHandler {
         }
     }
 
+    public void writeMessage(String token, byte[] bytes) throws IOException {
+        WebSocketSession session = agentSessionStore.get(token);
+        session.sendMessage(new BinaryMessage(bytes));
+    }
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         // ignore, handle connect event on connect event

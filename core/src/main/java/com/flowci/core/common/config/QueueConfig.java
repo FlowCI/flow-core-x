@@ -88,11 +88,6 @@ public class QueueConfig {
         return manager;
     }
 
-    @Bean("agentQueueManager")
-    public RabbitOperations agentQueueManager(Connection rabbitConnection) throws IOException {
-        return new RabbitOperations(rabbitConnection, 1);
-    }
-
     @Bean("wsBroadcastQueue")
     public String wsBroadcastQueue() {
         return "bc.ws.q." + StringHelper.randomString(8);

@@ -16,18 +16,17 @@
 
 package com.flowci.core.agent.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.dao.AgentDao;
 import com.flowci.core.agent.domain.AgentInit;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.Util;
 import com.flowci.core.agent.event.*;
+import com.flowci.core.agent.manager.AgentEventManager;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
@@ -76,13 +75,13 @@ public class AgentServiceImpl implements AgentService {
     private AgentDao agentDao;
 
     @Autowired
-    private RabbitOperations agentQueueManager;
-
-    @Autowired
     private SpringEventManager eventManager;
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private AgentEventManager agentEventManager;
 
     // key is flow id,
     private final Map<String, AcquireLock> acquireLocks = new ConcurrentHashMap<>();
@@ -162,7 +161,6 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public void delete(Agent agent) {
         agentDao.delete(agent);
-        agentQueueManager.delete(agent.getQueueName());
         log.debug("{} has been deleted", agent);
     }
 
@@ -254,13 +252,9 @@ public class AgentServiceImpl implements AgentService {
 
         try {
             agentDao.insert(agent);
-            agentQueueManager.declare(agent.getQueueName(), false);
             return agent;
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Agent name {0} is already defined", name);
-        } catch (IOException e) {
-            log.warn("Unable to declare agent queue, cause {}", e.getMessage());
-            return agent;
         }
     }
 
@@ -289,10 +283,10 @@ public class AgentServiceImpl implements AgentService {
     public void dispatch(CmdIn cmd, Agent agent) {
         try {
             byte[] body = objectMapper.writeValueAsBytes(cmd);
-            agentQueueManager.send(agent.getQueueName(), body);
+            agentEventManager.writeMessage(agent.getToken(), body);
             eventManager.publish(new CmdSentEvent(this, agent, cmd));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            log.warn(e);
         }
     }
 

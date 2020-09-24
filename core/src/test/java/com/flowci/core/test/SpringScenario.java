@@ -110,9 +110,6 @@ public abstract class SpringScenario {
     private RabbitOperations receiverQueueManager;
 
     @Autowired
-    private RabbitOperations agentQueueManager;
-
-    @Autowired
     private RabbitOperations jobsQueueManager;
 
     @Autowired
@@ -143,10 +140,6 @@ public abstract class SpringScenario {
         receiverQueueManager.purge(rabbitProperties.getCallbackQueue());
         receiverQueueManager.purge(rabbitProperties.getShellLogQueue());
         receiverQueueManager.purge(rabbitProperties.getTtyLogQueue());
-
-        for (Agent agent : agentDao.findAll()) {
-            agentQueueManager.delete(agent.getQueueName());
-        }
 
         for (Flow flow : flowDao.findAll()) {
             jobsQueueManager.delete(flow.getQueueName());
