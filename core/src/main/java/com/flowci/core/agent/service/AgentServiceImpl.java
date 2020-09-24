@@ -339,7 +339,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @EventListener
-    public void notifyToFindAvailableAgent(AgentStatusEvent event) {
+    public void notifyToFindAgent(AgentStatusEvent event) {
         Agent agent = event.getAgent();
 
         if (!agent.hasJob()) {
@@ -350,10 +350,12 @@ public class AgentServiceImpl implements AgentService {
             return;
         }
 
-        // TODO: Broadcast event to all nodes
         eventManager.publish(new AgentIdleEvent(this, agent));
+    }
 
-        // notify all consumer to find agent
+    @EventListener
+    public void doNotifyToFindAgent(AgentIdleEvent event) {
+        Agent agent = event.getAgent();
         acquireLocks.computeIfPresent(agent.getJobId(), (s, lock) -> {
             ThreadHelper.notifyAll(lock);
             return lock;

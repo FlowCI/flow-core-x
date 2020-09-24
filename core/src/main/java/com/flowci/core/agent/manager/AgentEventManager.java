@@ -21,6 +21,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Handle event from agent via websocket
+ */
+
 @Log4j2
 @Component
 public class AgentEventManager extends BinaryWebSocketHandler {
@@ -108,6 +112,7 @@ public class AgentEventManager extends BinaryWebSocketHandler {
             eventManager.publish(new OnConnectedEvent(this, token, session, init));
             agentSessionStore.put(token, session);
             writeMessage(token, new ResponseMessage<Void>(StatusCode.OK, null));
+            log.debug("Agent {} is connected with status {}", token, init.getStatus());
         } catch (Exception e) {
             log.warn(e);
             writeMessage(token, new ResponseMessage<Void>(StatusCode.FATAL, e.getMessage(), null));
