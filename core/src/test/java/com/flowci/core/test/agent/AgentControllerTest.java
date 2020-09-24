@@ -27,7 +27,6 @@ import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.Agent;
-import com.flowci.domain.Settings;
 import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.exception.ErrorCode;
 import com.google.common.collect.Sets;
@@ -57,10 +56,6 @@ public class AgentControllerTest extends SpringScenario {
 
     private static final TypeReference<ResponseMessage<List<Agent>>> AgentListResponseType =
             new TypeReference<ResponseMessage<List<Agent>>>() {
-            };
-
-    private static final TypeReference<ResponseMessage<Settings>> SettingsResponseType =
-            new TypeReference<ResponseMessage<Settings>>() {
             };
 
     @Autowired
@@ -118,41 +113,6 @@ public class AgentControllerTest extends SpringScenario {
         ResponseMessage<Agent> responseOfGetAgent =
                 mockMvcHelper.expectSuccessAndReturnClass(get("/agents/" + created.getToken()), AgentResponseType);
         Assert.assertEquals(ErrorCode.NOT_FOUND, responseOfGetAgent.getCode());
-    }
-
-    @Test
-    public void should_create_agent_and_connect() throws Throwable {
-        // init:
-        Agent agent = createAgent("hello.agent", Sets.newHashSet("test"), StatusCode.OK);
-
-        // then: verify agent
-        Assert.assertNotNull(agent);
-        Assert.assertNotNull(agent.getId());
-        Assert.assertNotNull(agent.getToken());
-
-        Assert.assertEquals("hello.agent", agent.getName());
-        Assert.assertTrue(agent.getTags().contains("test"));
-
-        // when: request to connect agent
-        sessionManager.remove();
-
-        AgentInit connect = new AgentInit();
-        connect.setPort(8080);
-
-        ResponseMessage<Settings> settingsR = mockMvcHelper.expectSuccessAndReturnClass(
-                post("/agents/api/connect")
-                        .header("AGENT-TOKEN", agent.getToken())
-                        .content(objectMapper.writeValueAsBytes(connect))
-                        .contentType(MediaType.APPLICATION_JSON), SettingsResponseType);
-        Assert.assertEquals(StatusCode.OK, settingsR.getCode());
-
-        // then:
-        Settings settings = settingsR.getData();
-        Assert.assertEquals(rabbitConfig.getCallbackQueue(), settings.getQueue().getCallback());
-
-        Assert.assertEquals("/flow-agents-test", settings.getZookeeper().getRoot());
-        Assert.assertEquals("127.0.0.1:2181", settings.getZookeeper().getHost());
-        Assert.assertEquals("amqp://guest:guest@127.0.0.1:5672", settings.getQueue().getUri());
     }
 
     @Test
