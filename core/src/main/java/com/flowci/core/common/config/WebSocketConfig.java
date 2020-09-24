@@ -149,6 +149,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(agentEventManager, "/ws/agent").setAllowedOrigins("*");
+        registry.addHandler(agentEventManager, "/agent").setAllowedOrigins("*");
     }
 }

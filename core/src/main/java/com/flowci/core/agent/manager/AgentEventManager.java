@@ -2,6 +2,7 @@ package com.flowci.core.agent.manager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.domain.AgentInit;
+import com.flowci.core.agent.event.OnCmdOutEvent;
 import com.flowci.core.agent.event.OnConnectedEvent;
 import com.flowci.core.agent.event.OnDisconnectedEvent;
 import com.flowci.core.common.domain.StatusCode;
@@ -32,6 +33,8 @@ public class AgentEventManager extends BinaryWebSocketHandler {
     private final static int EventLength = 10;
 
     private final static String EventConnect = "connect___";
+
+    private final static String EventCmdOut = "cmd_out___";
 
     private final static String EventShellLog = "slog______";
 
@@ -74,10 +77,15 @@ public class AgentEventManager extends BinaryWebSocketHandler {
 
         String token = getToken(session);
         String event = getEvent(bytes);
-        String body = getBody(bytes);
+        byte[] body = getBody(bytes);
 
         if (EventConnect.equals(event)) {
             onConnected(session, token, body);
+            return;
+        }
+
+        if (EventCmdOut.equals(event)) {
+            onCmdOut(session, token, body);
             return;
         }
 
@@ -101,7 +109,7 @@ public class AgentEventManager extends BinaryWebSocketHandler {
         agentSessionStore.remove(token, session);
     }
 
-    private void onConnected(WebSocketSession session, String token, String body) {
+    private void onConnected(WebSocketSession session, String token, byte[] body) {
         try {
             AgentInit init = objectMapper.readValue(body, AgentInit.class);
             Objects.requireNonNull(init.getStatus(), "Agent status is missing");
@@ -119,6 +127,15 @@ public class AgentEventManager extends BinaryWebSocketHandler {
         }
     }
 
+    private void onCmdOut(WebSocketSession session, String token, byte[] body) {
+        try {
+            eventManager.publish(new OnCmdOutEvent(this, token, session, body));
+            log.debug("Agent {} got cmd back: {}", token, body);
+        } catch (Exception e) {
+            log.warn(e);
+        }
+    }
+
     private static String getToken(WebSocketSession session) {
         return session.getHandshakeHeaders().get(HeaderToken).get(0);
     }
@@ -127,7 +144,7 @@ public class AgentEventManager extends BinaryWebSocketHandler {
         return new String(Arrays.copyOf(bytes, EventLength)).trim();
     }
 
-    private static String getBody(byte[] bytes) {
-        return new String(Arrays.copyOfRange(bytes, EventLength + 1, bytes.length)).trim();
+    private static byte[] getBody(byte[] bytes) {
+        return Arrays.copyOfRange(bytes, EventLength + 1, bytes.length);
     }
 }
