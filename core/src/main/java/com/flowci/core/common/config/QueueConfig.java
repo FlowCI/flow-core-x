@@ -93,19 +93,34 @@ public class QueueConfig {
         return new RabbitOperations(rabbitConnection, 1);
     }
 
-    @Bean("localBroadcastQueue")
-    public String localBroadcastQueue() {
-        return "bc.q." + StringHelper.randomString(8);
+    @Bean("wsBroadcastQueue")
+    public String wsBroadcastQueue() {
+        return "bc.ws.q." + StringHelper.randomString(8);
+    }
+
+    @Bean
+    public String eventBroadcastQueue() {
+        return "bc.event.q." + StringHelper.randomString(8);
     }
 
     @Bean("broadcastQueueManager")
-    public RabbitOperations broadcastQueueManager(Connection rabbitConnection, String localBroadcastQueue) throws IOException {
+    public RabbitOperations broadcastQueueManager(Connection rabbitConnection,
+                                                  String wsBroadcastQueue,
+                                                  String eventBroadcastQueue) throws IOException {
         RabbitOperations manager = new RabbitOperations(rabbitConnection, 10);
-        manager.declareTemp(localBroadcastQueue);
+        manager.declareTemp(wsBroadcastQueue);
         manager.declareExchangeAndBind(
-                rabbitProperties.getBroadcastEx(),
+                rabbitProperties.getWsBroadcastEx(),
                 BuiltinExchangeType.FANOUT,
-                localBroadcastQueue,
+                wsBroadcastQueue,
+                StringHelper.EMPTY
+        );
+
+        manager.declareTemp(eventBroadcastQueue);
+        manager.declareExchangeAndBind(
+                rabbitProperties.getEventBroadcastEx(),
+                BuiltinExchangeType.FANOUT,
+                eventBroadcastQueue,
                 StringHelper.EMPTY
         );
         return manager;

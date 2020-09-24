@@ -22,10 +22,7 @@ import com.flowci.core.agent.dao.AgentDao;
 import com.flowci.core.agent.domain.AgentInit;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.Util;
-import com.flowci.core.agent.event.AgentStatusEvent;
-import com.flowci.core.agent.event.CmdSentEvent;
-import com.flowci.core.agent.event.OnConnectedEvent;
-import com.flowci.core.agent.event.OnDisconnectedEvent;
+import com.flowci.core.agent.event.*;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.helper.ThreadHelper;
@@ -50,6 +47,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,6 +86,17 @@ public class AgentServiceImpl implements AgentService {
 
     // key is flow id,
     private final Map<String, AcquireLock> acquireLocks = new ConcurrentHashMap<>();
+
+    @PostConstruct
+    public void initRootNode() {
+        String root = zkProperties.getAgentRoot();
+
+        try {
+            zk.create(CreateMode.PERSISTENT, root, null);
+        } catch (ZookeeperException ignore) {
+
+        }
+    }
 
     //====================================================================
     //        %% Public Methods
@@ -340,6 +349,9 @@ public class AgentServiceImpl implements AgentService {
         if (!agent.isIdle()) {
             return;
         }
+
+        // TODO: Broadcast event to all nodes
+        eventManager.publish(new AgentIdleEvent(this, agent));
 
         // notify all consumer to find agent
         acquireLocks.computeIfPresent(agent.getJobId(), (s, lock) -> {

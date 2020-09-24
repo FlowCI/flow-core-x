@@ -51,14 +51,14 @@ public class SocketPushManager {
     private SimpMessagingTemplate simpMessagingTemplate;
 
     @Autowired
-    private String localBroadcastQueue;
+    private String wsBroadcastQueue;
 
     @Autowired
     private RabbitOperations broadcastQueueManager;
 
     @EventListener(ContextRefreshedEvent.class)
     public void subscribeBroadcastQueue() throws IOException {
-        broadcastQueueManager.startConsumer(localBroadcastQueue, true, (headers, body, envelope) -> {
+        broadcastQueueManager.startConsumer(wsBroadcastQueue, true, (headers, body, envelope) -> {
             try {
                 String topic = headers.get(HeaderTopic).toString();
                 simpMessagingTemplate.convertAndSend(topic, body);
@@ -83,7 +83,7 @@ public class SocketPushManager {
         try {
             Map<String, Object> headers = new HashMap<>(1);
             headers.put(HeaderTopic, topic);
-            broadcastQueueManager.sendToEx(rabbitProperties.getBroadcastEx(), bytes, headers);
+            broadcastQueueManager.sendToEx(rabbitProperties.getWsBroadcastEx(), bytes, headers);
         } catch (Exception e) {
             log.warn(e.getMessage());
         }

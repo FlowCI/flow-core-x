@@ -17,11 +17,9 @@
 package com.flowci.core.test;
 
 import com.flowci.core.agent.dao.AgentDao;
-import com.flowci.core.common.config.AppConfig;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.SessionManager;
-import com.flowci.core.common.rabbit.QueueOperations;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.domain.Flow;
@@ -57,9 +55,11 @@ import java.util.List;
 @Log4j2
 @RunWith(SpringRunner.class)
 @SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = Config.class,
         properties = {"spring.main.allow-bean-definition-overriding=true"}
 )
+
 @AutoConfigureMockMvc
 public abstract class SpringScenario {
 

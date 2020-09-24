@@ -153,7 +153,9 @@ public class AppProperties {
 
         private String ttyLogQueue;
 
-        private String broadcastEx; // fanout exchange for broadcast event
+        private String wsBroadcastEx; // fanout exchange for websocket broadcast event
+
+        private String eventBroadcastEx; // fanout exchange for event broadcast event
 
         private String jobDlQueue; // job dead letter queue
 
