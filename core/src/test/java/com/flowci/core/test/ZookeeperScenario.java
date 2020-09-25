@@ -106,10 +106,6 @@ public abstract class ZookeeperScenario extends SpringScenario {
         return wrapper.getValue();
     }
 
-    protected Status getAgentStatus(String agentPath) {
-        return Status.fromBytes(zk.get(agentPath));
-    }
-
     private static class AgentStatusChangeListener implements ApplicationListener<AgentStatusEvent> {
 
         public final CountDownLatch counter;

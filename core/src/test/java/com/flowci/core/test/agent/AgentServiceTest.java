@@ -90,7 +90,7 @@ public class AgentServiceTest extends ZookeeperScenario {
         Assert.assertNotNull(agent);
 
         // when: make agent online
-        mockAgentOnline(idle.getToken());
+        agent = mockAgentOnline(idle.getToken());
         Assert.assertEquals(Status.IDLE, agent.getStatus());
 
         // when: try lock agent in multiple thread
@@ -115,19 +115,13 @@ public class AgentServiceTest extends ZookeeperScenario {
         counterForLock.await(10, TimeUnit.SECONDS);
         Assert.assertEquals(1, numOfLocked.get());
         Assert.assertEquals(4, numOfFailure.get());
-        Assert.assertEquals(Status.BUSY, getAgentStatus(idle.getToken()));
+        Assert.assertEquals(Status.BUSY, agentService.get(agent.getId()).getStatus());
 
         // when: release agent and mock event from agent
         agentService.tryRelease(idle.getId());
-//        mockReleaseAgent(agentService.getPath(available));
 
         // then: the status should be idle
-        Status statusFromZk = getAgentStatus(idle.getToken());
-        Assert.assertEquals(Status.IDLE, statusFromZk);
-
-        ThreadHelper.sleep(2000);
-        Status statusFromDB = agentService.get(idle.getId()).getStatus();
-        Assert.assertEquals(Status.IDLE, statusFromDB);
+        Assert.assertEquals(Status.IDLE, agentService.get(agent.getId()).getStatus());
     }
 
     @Test
