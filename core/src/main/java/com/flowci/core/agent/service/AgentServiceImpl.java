@@ -87,6 +87,11 @@ public class AgentServiceImpl implements AgentService {
     private final Map<String, AcquireLock> acquireLocks = new ConcurrentHashMap<>();
 
     @PostConstruct
+    public void initAgentStatus() {
+        agentDao.updateAllStatus(Status.OFFLINE);
+    }
+
+    @PostConstruct
     public void initRootNode() {
         String root = zkProperties.getAgentRoot();
 
