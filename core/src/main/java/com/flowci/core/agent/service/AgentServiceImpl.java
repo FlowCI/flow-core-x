@@ -52,6 +52,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+import static com.flowci.domain.Agent.Status.IDLE;
+import static com.flowci.domain.Agent.Status.OFFLINE;
+
 /**
  * Manage agent from zookeeper nodes
  * - The ephemeral node present agent, path is /{root}/{agent id}
@@ -88,7 +91,7 @@ public class AgentServiceImpl implements AgentService {
 
     @PostConstruct
     public void initAgentStatus() {
-        agentDao.updateAllStatus(Status.OFFLINE);
+        agentDao.updateAllStatus(OFFLINE);
     }
 
     @PostConstruct
@@ -221,7 +224,7 @@ public class AgentServiceImpl implements AgentService {
             String zkLockPath = Util.getZkLockPath(zkProperties.getAgentRoot(), agent);
             zk.lock(zkLockPath, path -> {
                 agent.setJobId(jobId);
-                updateAgentStatus(agent, Status.BUSY, true);
+                updateAgentStatusAndSave(agent, Status.BUSY);
             });
             return Optional.of(agent);
         } catch (ZookeeperException e) {
@@ -233,12 +236,15 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public void tryRelease(String agentId) {
         Agent agent = get(agentId);
-        if (agent.isIdle()) {
-            return;
-        }
-
         agent.setJobId(null);
-        updateAgentStatus(agent, Status.IDLE, true);
+
+        switch (agent.getStatus()) {
+            case OFFLINE:
+                updateAgentStatusAndSave(agent, OFFLINE);
+                return;
+            case BUSY:
+                updateAgentStatusAndSave(agent, IDLE);
+        }
     }
 
     @Override
@@ -325,7 +331,7 @@ public class AgentServiceImpl implements AgentService {
         target.setOs(init.getOs());
         target.setResource(init.getResource());
 
-        updateAgentStatus(target, init.getStatus(), true);
+        updateAgentStatusAndSave(target, init.getStatus());
         syncLockNode(target, true);
     }
 
@@ -333,7 +339,7 @@ public class AgentServiceImpl implements AgentService {
     public void onDisconnected(OnDisconnectedEvent event) {
         Agent target = getByToken(event.getToken());
 
-        updateAgentStatus(target, Status.OFFLINE, true);
+        updateAgentStatusAndSave(target, OFFLINE);
         syncLockNode(target, false);
     }
 
@@ -395,19 +401,16 @@ public class AgentServiceImpl implements AgentService {
         }
     }
 
-    private void updateAgentStatus(Agent agent, Status status, boolean save) {
-        try {
-            if (agent.getStatus() == status) {
-                return;
-            }
-
-            agent.setStatus(status);
-            eventManager.publish(new AgentStatusEvent(this, agent));
-        } finally {
-            if (save) {
-                agentDao.save(agent);
-            }
+    private void updateAgentStatusAndSave(Agent agent, Status status) {
+        if (agent.getStatus() == status) {
+            agentDao.save(agent);
+            return;
         }
+
+        agent.setStatus(status);
+        agentDao.save(agent);
+
+        eventManager.publish(new AgentStatusEvent(this, agent));
     }
 
     private Optional<Agent> acquire(String jobId, Selector selector) {
