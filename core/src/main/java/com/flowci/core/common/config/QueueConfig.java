@@ -60,19 +60,6 @@ public class QueueConfig {
         return factory.newConnection(rabbitTaskExecutor.getThreadPoolExecutor());
     }
 
-    @Bean("receiverQueueManager")
-    public RabbitOperations receiverQueueManager(Connection rabbitConnection) throws IOException {
-        String callbackQueue = rabbitProperties.getCallbackQueue();
-        String shellLogQueue = rabbitProperties.getShellLogQueue();
-        String ttyLogQueue = rabbitProperties.getTtyLogQueue();
-
-        RabbitOperations manager = new RabbitOperations(rabbitConnection, 10);
-        manager.declare(callbackQueue, true);
-        manager.declare(shellLogQueue, true);
-        manager.declare(ttyLogQueue, true);
-        return manager;
-    }
-
     @Bean("jobsQueueManager")
     public RabbitOperations jobsQueueManager(Connection rabbitConnection) throws IOException {
         RabbitOperations manager = new RabbitOperations(rabbitConnection, 1);
@@ -88,24 +75,34 @@ public class QueueConfig {
         return manager;
     }
 
-    @Bean("agentQueueManager")
-    public RabbitOperations agentQueueManager(Connection rabbitConnection) throws IOException {
-        return new RabbitOperations(rabbitConnection, 1);
+    @Bean("wsBroadcastQueue")
+    public String wsBroadcastQueue() {
+        return "bc.ws.q." + StringHelper.randomString(8);
     }
 
-    @Bean("localBroadcastQueue")
-    public String localBroadcastQueue() {
-        return "bc.q." + StringHelper.randomString(8);
+    @Bean
+    public String eventBroadcastQueue() {
+        return "bc.event.q." + StringHelper.randomString(8);
     }
 
     @Bean("broadcastQueueManager")
-    public RabbitOperations broadcastQueueManager(Connection rabbitConnection, String localBroadcastQueue) throws IOException {
+    public RabbitOperations broadcastQueueManager(Connection rabbitConnection,
+                                                  String wsBroadcastQueue,
+                                                  String eventBroadcastQueue) throws IOException {
         RabbitOperations manager = new RabbitOperations(rabbitConnection, 10);
-        manager.declareTemp(localBroadcastQueue);
+        manager.declareTemp(wsBroadcastQueue);
         manager.declareExchangeAndBind(
-                rabbitProperties.getBroadcastEx(),
+                rabbitProperties.getWsBroadcastEx(),
                 BuiltinExchangeType.FANOUT,
-                localBroadcastQueue,
+                wsBroadcastQueue,
+                StringHelper.EMPTY
+        );
+
+        manager.declareTemp(eventBroadcastQueue);
+        manager.declareExchangeAndBind(
+                rabbitProperties.getEventBroadcastEx(),
+                BuiltinExchangeType.FANOUT,
+                eventBroadcastQueue,
                 StringHelper.EMPTY
         );
         return manager;

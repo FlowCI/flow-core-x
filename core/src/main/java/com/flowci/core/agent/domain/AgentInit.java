@@ -28,7 +28,7 @@ import lombok.Setter;
 @Setter
 public class AgentInit {
 
-    private boolean k8sCluster; // is agent running in k8s cluster
+    private Boolean k8sCluster; // is agent running in k8s cluster
 
     private String token;
 
@@ -37,6 +37,8 @@ public class AgentInit {
     private Integer port;
 
     private Common.OS os;
+
+    private Agent.Status status;
 
     private Agent.Resource resource = new Agent.Resource();
 }

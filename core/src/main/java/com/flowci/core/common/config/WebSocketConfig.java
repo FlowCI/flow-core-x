@@ -16,22 +16,27 @@
 
 package com.flowci.core.common.config;
 
+import com.flowci.core.agent.manager.AgentEventManager;
 import com.flowci.core.common.helper.ThreadHelper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.*;
+import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 
 /**
  * @author yang
  */
 @Configuration
+@EnableWebSocket
 @EnableWebSocketMessageBroker
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSocketConfigurer {
+
+    @Autowired
+    private AgentEventManager agentEventManager;
 
     /**
      * To subscribe git test status update for flow
@@ -132,5 +137,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureClientOutboundChannel(ChannelRegistration registration) {
         ThreadPoolTaskExecutor executor = ThreadHelper.createTaskExecutor(10, 5, 10, "ws-outbound-");
         registration.taskExecutor(executor);
+    }
+
+    @Bean
+    public ServletServerContainerFactoryBean createWebSocketContainer() {
+        int bufferSize = 64 * 1024;
+        ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
+        container.setMaxTextMessageBufferSize(bufferSize);
+        container.setMaxBinaryMessageBufferSize(bufferSize);
+        return container;
+    }
+
+    @Override
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        registry.addHandler(agentEventManager, "/agent").setAllowedOrigins("*");
     }
 }

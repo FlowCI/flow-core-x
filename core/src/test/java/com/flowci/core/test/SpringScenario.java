@@ -16,12 +16,8 @@
 
 package com.flowci.core.test;
 
-import com.flowci.core.agent.dao.AgentDao;
-import com.flowci.core.common.config.AppConfig;
-import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.SessionManager;
-import com.flowci.core.common.rabbit.QueueOperations;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.domain.Flow;
@@ -30,7 +26,6 @@ import com.flowci.core.test.auth.AuthHelper;
 import com.flowci.core.test.flow.FlowMockHelper;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
-import com.flowci.domain.Agent;
 import com.flowci.exception.NotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.junit.After;
@@ -57,9 +52,11 @@ import java.util.List;
 @Log4j2
 @RunWith(SpringRunner.class)
 @SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = Config.class,
         properties = {"spring.main.allow-bean-definition-overriding=true"}
 )
+
 @AutoConfigureMockMvc
 public abstract class SpringScenario {
 
@@ -104,19 +101,7 @@ public abstract class SpringScenario {
     private MongoTemplate mongoTemplate;
 
     @Autowired
-    private AppProperties.RabbitMQ rabbitProperties;
-
-    @Autowired
-    private RabbitOperations receiverQueueManager;
-
-    @Autowired
-    private RabbitOperations agentQueueManager;
-
-    @Autowired
     private RabbitOperations jobsQueueManager;
-
-    @Autowired
-    private AgentDao agentDao;
 
     @Autowired
     private FlowDao flowDao;
@@ -140,14 +125,6 @@ public abstract class SpringScenario {
 
     @After
     public void queueCleanUp() {
-        receiverQueueManager.purge(rabbitProperties.getCallbackQueue());
-        receiverQueueManager.purge(rabbitProperties.getShellLogQueue());
-        receiverQueueManager.purge(rabbitProperties.getTtyLogQueue());
-
-        for (Agent agent : agentDao.findAll()) {
-            agentQueueManager.delete(agent.getQueueName());
-        }
-
         for (Flow flow : flowDao.findAll()) {
             jobsQueueManager.delete(flow.getQueueName());
         }

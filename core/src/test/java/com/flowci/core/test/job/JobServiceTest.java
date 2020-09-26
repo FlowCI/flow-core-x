@@ -21,7 +21,6 @@ import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.CmdSentEvent;
-import com.flowci.core.agent.manager.AgentStatusManager;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.flow.dao.FlowDao;
@@ -104,9 +103,6 @@ public class JobServiceTest extends ZookeeperScenario {
 
     @Autowired
     private AgentService agentService;
-
-    @Autowired
-    private AgentStatusManager statusManager;
 
     @Autowired
     private JobActionManager jobActionManager;
@@ -224,7 +220,7 @@ public class JobServiceTest extends ZookeeperScenario {
         yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-notify.yml")));
 
         Agent agent = agentService.create("hello.agent", null, Optional.empty());
-        mockAgentOnline(agentService.getPath(agent));
+        mockAgentOnline(agent.getToken());
 
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
 
@@ -450,7 +446,7 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // mock agent online
         Agent agent = agentService.create("hello.agent.2", null, Optional.empty());
-        mockAgentOnline(agentService.getPath(agent));
+        mockAgentOnline(agent.getToken());
 
         // given: start job and wait for running
         jobActionManager.toStart(job);
@@ -476,7 +472,7 @@ public class JobServiceTest extends ZookeeperScenario {
         });
 
         agent.setJobId(job.getId());
-        statusManager.set(agent, Agent.Status.OFFLINE);
+        agent.setStatus(Agent.Status.OFFLINE);
         agentDao.save(agent); // persistent agent status to db
 
         multicastEvent(new AgentStatusEvent(this, agent));

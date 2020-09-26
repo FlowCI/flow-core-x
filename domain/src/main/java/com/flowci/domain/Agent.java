@@ -129,4 +129,20 @@ public class Agent implements Serializable {
     public String getQueueName() {
         return "queue.agent." + id;
     }
+
+    public boolean isBusy() {
+        return status == Agent.Status.BUSY;
+    }
+
+    public boolean isIdle() {
+        return status == Agent.Status.IDLE;
+    }
+
+    public boolean isOffline() {
+        return status == Agent.Status.OFFLINE;
+    }
+
+    public boolean isOnline() {
+        return !isOffline();
+    }
 }

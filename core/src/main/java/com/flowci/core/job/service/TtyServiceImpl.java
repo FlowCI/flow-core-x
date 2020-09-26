@@ -1,7 +1,6 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.agent.domain.TtyCmd;
-import com.flowci.core.agent.manager.AgentStatusManager;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.job.domain.Job;
@@ -22,9 +21,6 @@ public class TtyServiceImpl implements TtyService {
 
     @Autowired
     private AgentService agentService;
-
-    @Autowired
-    private AgentStatusManager agentStatusManager;
 
     @Autowired
     private SpringEventManager eventManager;
@@ -55,7 +51,7 @@ public class TtyServiceImpl implements TtyService {
         }
 
         Agent agent = agentService.get(job.getAgentId());
-        if (!agentStatusManager.isBusy(agent)) {
+        if (!agent.isBusy()) {
             throw new StatusException("Cannot open tty since agent not available");
         }
 

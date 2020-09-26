@@ -24,7 +24,6 @@ import com.flowci.core.agent.domain.LocalUnixAgentHost;
 import com.flowci.core.agent.domain.SshAgentHost;
 import com.flowci.core.agent.event.AgentCreatedEvent;
 import com.flowci.core.agent.event.AgentHostStatusEvent;
-import com.flowci.core.agent.manager.AgentStatusManager;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -103,9 +102,6 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @Autowired
     private SpringEventManager eventManager;
-
-    @Autowired
-    private AgentStatusManager statusManager;
 
     @Autowired
     private ZookeeperClient zk;
@@ -219,7 +215,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         ContainerManager cm = dockerManager.getContainerManager();
 
         for (Agent agent : agents) {
-            if (statusManager.get(agent) != Agent.Status.OFFLINE) {
+            if (!agent.isOffline()) {
                 continue;
             }
 
