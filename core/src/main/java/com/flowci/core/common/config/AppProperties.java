@@ -16,10 +16,6 @@
 
 package com.flowci.core.common.config;
 
-import java.net.URI;
-import java.net.URL;
-import java.nio.file.Path;
-
 import com.flowci.util.StringHelper;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
@@ -29,8 +25,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
 
 /**
  * @author yang
@@ -48,9 +46,6 @@ public class AppProperties {
 
     // static site resource
     private Path siteDir;
-
-    @NotBlank
-    private String url;
 
     @NotBlank
     @Length(max = 16, min = 16)

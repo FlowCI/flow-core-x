@@ -28,6 +28,7 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.common.service.SettingService;
 import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.secret.domain.KubeConfigSecret;
 import com.flowci.core.secret.domain.RSASecret;
@@ -56,6 +57,7 @@ import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -87,10 +89,10 @@ public class AgentHostServiceImpl implements AgentHostService {
     private String collectTaskZkPath;
 
     @Autowired
-    private AppProperties appProperties;
+    private Environment environment;
 
     @Autowired
-    private String serverUrl;
+    private AppProperties appProperties;
 
     @Autowired
     private AgentDao agentDao;
@@ -115,6 +117,9 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @Autowired
     private AgentService agentService;
+
+    @Autowired
+    private SettingService settingService;
 
     {
         mapping.put(LocalUnixAgentHost.class, new LocalSocketHostAdaptor());
@@ -493,10 +498,10 @@ public class AgentHostServiceImpl implements AgentHostService {
     private abstract class AbstractHostAdaptor implements HostAdaptor {
 
         protected void initStartOption(StartOption option, Agent agent) {
-            option.setImage(System.getenv(Variables.Agent.DockerImage));
+            option.setImage(environment.getProperty(Variables.Agent.DockerImage, "flowci/agent"));
             option.setName(getContainerName(agent));
 
-            option.addEnv(Variables.Agent.ServerUrl, serverUrl);
+            option.addEnv(Variables.Agent.ServerUrl, settingService.get().getServerUrl());
             option.addEnv(Variables.Agent.Token, agent.getToken());
             option.addEnv(Variables.Agent.LogLevel, System.getenv(Variables.App.LogLevel));
             option.addEnv(Variables.Agent.Volumes, System.getenv(Variables.Agent.Volumes));

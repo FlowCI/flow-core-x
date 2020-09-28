@@ -62,9 +62,6 @@ public class FlowServiceTest extends SpringScenario {
     private GitService gitService;
 
     @Autowired
-    private String serverUrl;
-
-    @Autowired
     private SecretService secretService;
 
     private String defaultYml;
@@ -86,10 +83,6 @@ public class FlowServiceTest extends SpringScenario {
         VarValue nameVar = vars.get(Variables.Flow.Name);
         Assert.assertEquals(flow.getName(), nameVar.getData());
         Assert.assertFalse(nameVar.isEditable());
-
-        VarValue webhookVar = vars.get(Variables.Flow.Webhook);
-        Assert.assertEquals(serverUrl + "/webhooks/" + flow.getName(), webhookVar.getData());
-        Assert.assertFalse(webhookVar.isEditable());
     }
 
     @Test

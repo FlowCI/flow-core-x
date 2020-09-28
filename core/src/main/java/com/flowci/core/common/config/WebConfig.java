@@ -87,6 +87,7 @@ public class WebConfig {
                         .addPathPatterns("/plugins/**")
                         .addPathPatterns("/secrets/**")
                         .addPathPatterns("/configs/**")
+                        .addPathPatterns("/system/**")
                         .addPathPatterns("/auth/logout")
                         .excludePathPatterns("/agents/api/**");
 

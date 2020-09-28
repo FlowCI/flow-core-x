@@ -25,7 +25,7 @@ public abstract class Variables {
 
         public static final String LogLevel = "FLOWCI_LOG_LEVEL";
 
-        public static final String Url = "FLOWCI_SERVER_URL";
+        public static final String ServerUrl = "FLOWCI_SERVER_URL";
 
         public static final String Host = "FLOWCI_SERVER_HOST";
 
@@ -34,8 +34,6 @@ public abstract class Variables {
     public abstract static class Flow {
 
         public static final String Name = "FLOWCI_FLOW_NAME";
-
-        public static final String Webhook = "FLOWCI_FLOW_WEBHOOK";
 
         public static final String GitUrl = "FLOWCI_GIT_URL"; // set
 

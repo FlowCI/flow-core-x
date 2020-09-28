@@ -8,7 +8,7 @@ import org.springframework.boot.actuate.health.Status;
 import org.springframework.stereotype.Component;
 
 @Component
-public class K8sCheck extends AbstractHealthIndicator {
+public class K8s extends AbstractHealthIndicator {
 
     @Autowired
     private AppProperties.K8s k8sProperties;

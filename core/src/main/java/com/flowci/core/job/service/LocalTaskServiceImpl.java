@@ -3,6 +3,7 @@ package com.flowci.core.job.service;
 import com.flowci.core.api.adviser.ApiAuth;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.ExecutedLocalTaskDao;
 import com.flowci.core.job.domain.Executed;
@@ -40,9 +41,6 @@ public class LocalTaskServiceImpl implements LocalTaskService {
     private static final int DefaultTimeout = 300; // seconds
 
     @Autowired
-    private String serverUrl;
-
-    @Autowired
     private ExecutedLocalTaskDao executedLocalTaskDao;
 
     @Autowired
@@ -56,6 +54,9 @@ public class LocalTaskServiceImpl implements LocalTaskService {
 
     @Autowired
     private YmlManager ymlManager;
+
+    @Autowired
+    private SettingService settingService;
 
     @Override
     public void init(Job job) {
@@ -120,7 +121,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
         option.addEntryPoint("/bin/bash");
         option.addEntryPoint("-c");
         option.getEnv()
-                .putAndReturn(Variables.App.Url, serverUrl)
+                .putAndReturn(Variables.Agent.ServerUrl, settingService.get().getServerUrl())
                 .putAndReturn(Variables.Agent.Token, ApiAuth.LocalTaskToken)
                 .putAndReturn(Variables.Agent.Workspace, "/ws/")
                 .putAndReturn(Variables.Agent.PluginDir, "/ws/.plugins")

@@ -19,6 +19,7 @@ package com.flowci.core.job.service;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.dao.JobDescDao;
@@ -74,9 +75,6 @@ public class JobServiceImpl implements JobService {
     //====================================================================
 
     @Autowired
-    private String serverUrl;
-
-    @Autowired
     private JobDao jobDao;
 
     @Autowired
@@ -112,6 +110,9 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private LocalTaskService localTaskService;
+
+    @Autowired
+    private SettingService settingService;
 
     //====================================================================
     //        %% Public functions
@@ -318,7 +319,7 @@ public class JobServiceImpl implements JobService {
         StringVars context = new StringVars();
         context.mergeFromTypedVars(flow.getLocally());
 
-        context.put(Variables.App.Url, serverUrl);
+        context.put(Variables.App.ServerUrl, settingService.get().getServerUrl());
 
         context.put(Variables.Flow.Name, flow.getName());
         context.put(Variables.Flow.GitRepo, flow.getName());
