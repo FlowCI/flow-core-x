@@ -25,7 +25,7 @@ public abstract class Variables {
 
         public static final String LogLevel = "FLOWCI_LOG_LEVEL";
 
-        public static final String Url = "FLOWCI_SERVER_URL";
+        public static final String ServerUrl = "FLOWCI_SERVER_URL";
 
         public static final String Host = "FLOWCI_SERVER_HOST";
 
@@ -74,6 +74,8 @@ public abstract class Variables {
     public abstract static class Agent {
 
         public static final String DockerImage = "FLOWCI_AGENT_IMAGE";
+
+        public static final String ServerUrl = "FLOWCI_SERVER_URL";
 
         public static final String Token = "FLOWCI_AGENT_TOKEN";
 

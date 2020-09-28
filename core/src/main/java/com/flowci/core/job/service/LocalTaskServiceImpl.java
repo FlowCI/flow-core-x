@@ -121,7 +121,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
         option.addEntryPoint("/bin/bash");
         option.addEntryPoint("-c");
         option.getEnv()
-                .putAndReturn(Variables.App.Url, settingService.get().getServerUrl())
+                .putAndReturn(Variables.Agent.ServerUrl, settingService.get().getServerUrl())
                 .putAndReturn(Variables.Agent.Token, ApiAuth.LocalTaskToken)
                 .putAndReturn(Variables.Agent.Workspace, "/ws/")
                 .putAndReturn(Variables.Agent.PluginDir, "/ws/.plugins")

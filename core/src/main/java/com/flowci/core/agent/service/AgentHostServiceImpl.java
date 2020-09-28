@@ -497,7 +497,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             option.setImage(System.getenv(Variables.Agent.DockerImage));
             option.setName(getContainerName(agent));
 
-            option.addEnv(Variables.App.Url, settingService.get().getServerUrl());
+            option.addEnv(Variables.Agent.ServerUrl, settingService.get().getServerUrl());
             option.addEnv(Variables.Agent.Token, agent.getToken());
             option.addEnv(Variables.Agent.LogLevel, System.getenv(Variables.App.LogLevel));
             option.addEnv(Variables.Agent.Volumes, System.getenv(Variables.Agent.Volumes));

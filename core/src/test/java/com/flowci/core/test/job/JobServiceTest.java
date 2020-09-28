@@ -141,7 +141,7 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // then: default vars
         Assert.assertTrue(context.containsKey(Variables.Flow.Name));
-        Assert.assertTrue(context.containsKey(Variables.App.Url));
+        Assert.assertTrue(context.containsKey(Variables.App.ServerUrl));
 
         Assert.assertTrue(context.containsKey(Variables.Job.Status));
         Assert.assertTrue(context.containsKey(Variables.Job.BuildNumber));
