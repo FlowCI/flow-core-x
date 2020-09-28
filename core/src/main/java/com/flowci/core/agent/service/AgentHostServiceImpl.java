@@ -28,6 +28,7 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.common.service.SettingService;
 import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.secret.domain.KubeConfigSecret;
 import com.flowci.core.secret.domain.RSASecret;
@@ -90,9 +91,6 @@ public class AgentHostServiceImpl implements AgentHostService {
     private AppProperties appProperties;
 
     @Autowired
-    private String serverUrl;
-
-    @Autowired
     private AgentDao agentDao;
 
     @Autowired
@@ -115,6 +113,9 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @Autowired
     private AgentService agentService;
+
+    @Autowired
+    private SettingService settingService;
 
     {
         mapping.put(LocalUnixAgentHost.class, new LocalSocketHostAdaptor());
@@ -496,7 +497,7 @@ public class AgentHostServiceImpl implements AgentHostService {
             option.setImage(System.getenv(Variables.Agent.DockerImage));
             option.setName(getContainerName(agent));
 
-            option.addEnv(Variables.Agent.ServerUrl, serverUrl);
+            option.addEnv(Variables.App.Url, settingService.get().getServerUrl());
             option.addEnv(Variables.Agent.Token, agent.getToken());
             option.addEnv(Variables.Agent.LogLevel, System.getenv(Variables.App.LogLevel));
             option.addEnv(Variables.Agent.Volumes, System.getenv(Variables.Agent.Volumes));

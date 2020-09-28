@@ -35,8 +35,6 @@ public abstract class Variables {
 
         public static final String Name = "FLOWCI_FLOW_NAME";
 
-        public static final String Webhook = "FLOWCI_FLOW_WEBHOOK";
-
         public static final String GitUrl = "FLOWCI_GIT_URL"; // set
 
         public static final String GitBranch = "FLOWCI_GIT_BRANCH"; // set
@@ -76,8 +74,6 @@ public abstract class Variables {
     public abstract static class Agent {
 
         public static final String DockerImage = "FLOWCI_AGENT_IMAGE";
-
-        public static final String ServerUrl = "FLOWCI_SERVER_URL";
 
         public static final String Token = "FLOWCI_AGENT_TOKEN";
 

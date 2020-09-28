@@ -24,7 +24,6 @@ import com.flowci.util.FileHelper;
 import lombok.extern.log4j.Log4j2;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.MultipartProperties;
@@ -41,7 +40,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.Executor;
@@ -72,16 +70,6 @@ public class AppConfig {
     public void initUploadDir() throws IOException {
         Path path = Paths.get(multipartProperties.getLocation());
         FileHelper.createDirectory(path);
-    }
-
-    @Bean("serverUrl")
-    public String serverUrl() throws URISyntaxException {
-        URIBuilder builder = new URIBuilder(appProperties.getUrl());
-        String url = builder.toString();
-        if (url.endsWith("/")) {
-            url = url.substring(0, url.length() - 1);
-        }
-        return url;
     }
 
     @Bean("tmpDir")
