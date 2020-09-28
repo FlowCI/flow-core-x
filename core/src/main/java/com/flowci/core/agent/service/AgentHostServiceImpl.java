@@ -73,8 +73,6 @@ import static com.flowci.core.secret.domain.Secret.Category.SSH_RSA;
 @Service
 public class AgentHostServiceImpl implements AgentHostService {
 
-    private static final String DefaultImage = "flowci/agent:dev";
-
     private static final String DefaultWorkspace = "/ws";
 
     private static final String DockerSock = "/var/run/docker.sock";
@@ -495,12 +493,12 @@ public class AgentHostServiceImpl implements AgentHostService {
     private abstract class AbstractHostAdaptor implements HostAdaptor {
 
         protected void initStartOption(StartOption option, Agent agent) {
-            option.setImage(DefaultImage);
+            option.setImage(System.getenv(Variables.Agent.DockerImage));
             option.setName(getContainerName(agent));
 
             option.addEnv(Variables.Agent.ServerUrl, serverUrl);
             option.addEnv(Variables.Agent.Token, agent.getToken());
-            option.addEnv(Variables.Agent.LogLevel, "DEBUG");
+            option.addEnv(Variables.Agent.LogLevel, System.getenv(Variables.App.LogLevel));
             option.addEnv(Variables.Agent.Volumes, System.getenv(Variables.Agent.Volumes));
             option.addEnv(Variables.Agent.Workspace, DefaultWorkspace);
         }

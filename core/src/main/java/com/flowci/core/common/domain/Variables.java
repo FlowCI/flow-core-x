@@ -23,6 +23,8 @@ public abstract class Variables {
 
     public abstract static class App {
 
+        public static final String LogLevel = "FLOWCI_LOG_LEVEL";
+
         public static final String Url = "FLOWCI_SERVER_URL";
 
         public static final String Host = "FLOWCI_SERVER_HOST";
