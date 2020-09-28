@@ -73,10 +73,22 @@ public abstract class Variables {
 
     public abstract static class Agent {
 
+        public static final String DockerImage = "FLOWCI_AGENT_IMAGE";
+
+        public static final String ServerUrl = "FLOWCI_SERVER_URL";
+
         public static final String Token = "FLOWCI_AGENT_TOKEN";
 
         public static final String Workspace = "FLOWCI_AGENT_WORKSPACE";
 
         public static final String PluginDir = "FLOWCI_AGENT_PLUGIN_DIR";
+
+        public static final String K8sEnabled = "FLOWCI_AGENT_K8S_ENABLED";
+
+        public static final String K8sInCluster = "FLOWCI_AGENT_K8S_IN_CLUSTER";
+
+        public static final String LogLevel = "FLOWCI_AGENT_LOG_LEVEL";
+
+        public static final String Volumes = "FLOWCI_AGENT_VOLUMES";
     }
 }

@@ -25,6 +25,7 @@ import com.flowci.core.agent.domain.SshAgentHost;
 import com.flowci.core.agent.event.AgentCreatedEvent;
 import com.flowci.core.agent.event.AgentHostStatusEvent;
 import com.flowci.core.common.config.AppProperties;
+import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.job.event.NoIdleAgentEvent;
@@ -65,7 +66,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static com.flowci.core.agent.domain.Variables.*;
 import static com.flowci.core.secret.domain.Secret.Category.KUBE_CONFIG;
 import static com.flowci.core.secret.domain.Secret.Category.SSH_RSA;
 
@@ -79,7 +79,7 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     private static final String DockerSock = "/var/run/docker.sock";
 
-    private static final String ContainerNamePrefix = "ci-agent";
+    private static final String ContainerNamePrefix = "flowci-agent";
 
     private final Map<Class<?>, HostAdaptor> mapping = new HashMap<>(3);
 
@@ -498,11 +498,11 @@ public class AgentHostServiceImpl implements AgentHostService {
             option.setImage(DefaultImage);
             option.setName(getContainerName(agent));
 
-            option.addEnv(SERVER_URL, serverUrl);
-            option.addEnv(AGENT_TOKEN, agent.getToken());
-            option.addEnv(AGENT_LOG_LEVEL, "DEBUG");
-            option.addEnv(AGENT_VOLUMES, System.getenv(AGENT_VOLUMES));
-            option.addEnv(AGENT_WORKSPACE, DefaultWorkspace);
+            option.addEnv(Variables.Agent.ServerUrl, serverUrl);
+            option.addEnv(Variables.Agent.Token, agent.getToken());
+            option.addEnv(Variables.Agent.LogLevel, "DEBUG");
+            option.addEnv(Variables.Agent.Volumes, System.getenv(Variables.Agent.Volumes));
+            option.addEnv(Variables.Agent.Workspace, DefaultWorkspace);
         }
     }
 
@@ -540,8 +540,8 @@ public class AgentHostServiceImpl implements AgentHostService {
 
             option.setLabel(ContainerNamePrefix);
 
-            option.addEnv(AGENT_K8S_ENABLED, Boolean.TRUE.toString());
-            option.addEnv(AGENT_K8S_IN_CLUSTER, Boolean.TRUE.toString());
+            option.addEnv(Variables.Agent.K8sEnabled, Boolean.TRUE.toString());
+            option.addEnv(Variables.Agent.K8sInCluster, Boolean.TRUE.toString());
 
             // TODO: check is deployed in the k8s cluster
             return option;
