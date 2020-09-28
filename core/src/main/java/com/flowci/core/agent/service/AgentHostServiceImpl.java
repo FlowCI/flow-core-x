@@ -57,6 +57,7 @@ import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -86,6 +87,9 @@ public class AgentHostServiceImpl implements AgentHostService {
             CacheHelper.createLocalCache(10, 600, new PoolManagerRemover());
 
     private String collectTaskZkPath;
+
+    @Autowired
+    private Environment environment;
 
     @Autowired
     private AppProperties appProperties;
@@ -494,7 +498,7 @@ public class AgentHostServiceImpl implements AgentHostService {
     private abstract class AbstractHostAdaptor implements HostAdaptor {
 
         protected void initStartOption(StartOption option, Agent agent) {
-            option.setImage(System.getenv(Variables.Agent.DockerImage));
+            option.setImage(environment.getProperty(Variables.Agent.DockerImage, "flowci/agent"));
             option.setName(getContainerName(agent));
 
             option.addEnv(Variables.Agent.ServerUrl, settingService.get().getServerUrl());

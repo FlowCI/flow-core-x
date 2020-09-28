@@ -3,9 +3,9 @@ package com.flowci.core.common.service;
 import com.flowci.core.common.dao.SettingsDao;
 import com.flowci.core.common.domain.Settings;
 import com.flowci.core.common.domain.Variables;
-import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -13,6 +13,9 @@ import java.util.Optional;
 
 @Service
 public class SettingServiceImpl implements SettingService {
+
+    @Autowired
+    private Environment environment;
 
     @Autowired
     private ServerProperties serverProperties;
@@ -28,12 +31,12 @@ public class SettingServiceImpl implements SettingService {
     public void setDefaultValue() {
         Optional<Settings> optional = settingsDao.findById(Settings.DefaultId);
         if (!optional.isPresent()) {
-            String serverUrl = System.getenv(Variables.App.ServerUrl);
 
-            if (!StringHelper.hasValue(serverUrl)) {
-                String address = serverProperties.getAddress().toString().replace("/", "");
-                serverUrl = String.format("http://%s:%s", address, serverProperties.getPort());
-            }
+            String address = serverProperties.getAddress().toString().replace("/", "");
+            String serverUrl = environment.getProperty(
+                    Variables.App.ServerUrl,
+                    String.format("http://%s:%s", address, serverProperties.getPort())
+            );
 
             Settings s = new Settings();
             s.setServerUrl(serverUrl);
