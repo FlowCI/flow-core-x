@@ -22,8 +22,9 @@ public class SettingServiceImpl implements SettingService {
     public void setDefaultValue() {
         Optional<Settings> optional = settingsDao.findById(Settings.DefaultId);
         if (!optional.isPresent()) {
+            String address = serverProperties.getAddress().toString().replace("/", "");
             Settings s = new Settings();
-            s.setServerUrl(String.format("http://%s:%s", serverProperties.getAddress(), serverProperties.getPort()));
+            s.setServerUrl(String.format("http://%s:%s", address, serverProperties.getPort()));
             settingsDao.save(s);
         }
     }
@@ -35,6 +36,9 @@ public class SettingServiceImpl implements SettingService {
 
     @Override
     public void save(Settings settings) {
-        settingsDao.save(settings);
+        Settings o = get();
+        o.setServerUrl(settings.getServerUrl());
+
+        settingsDao.save(o);
     }
 }

@@ -57,6 +57,7 @@ public class AuthConfig {
         permissionMap.add(User.Role.Developer, AgentAction.GET, AgentAction.LIST);
         permissionMap.add(User.Role.Developer, AgentHostAction.GET, AgentHostAction.LIST);
         permissionMap.add(User.Role.Developer, UserAction.CHANGE_PASSWORD, UserAction.UPDATE_AVATAR);
+        permissionMap.add(User.Role.Developer, Settings.Action.GET);
 
         return permissionMap;
     }
