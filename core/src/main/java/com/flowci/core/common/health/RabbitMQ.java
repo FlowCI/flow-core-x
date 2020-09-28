@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-public class RabbitMQCheck extends AbstractHealthIndicator {
+public class RabbitMQ extends AbstractHealthIndicator {
 
     @Autowired
     private Connection connection;

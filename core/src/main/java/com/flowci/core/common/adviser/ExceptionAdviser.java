@@ -34,15 +34,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Log4j2
 @ControllerAdvice({
-    "com.flowci.core.auth",
-    "com.flowci.core.user",
-    "com.flowci.core.flow",
-    "com.flowci.core.job",
-    "com.flowci.core.agent",
-    "com.flowci.core.stats",
-    "com.flowci.core.secret",
-    "com.flowci.core.plugin",
-    "com.flowci.core.config"
+        "com.flowci.core.auth",
+        "com.flowci.core.user",
+        "com.flowci.core.flow",
+        "com.flowci.core.job",
+        "com.flowci.core.agent",
+        "com.flowci.core.stats",
+        "com.flowci.core.secret",
+        "com.flowci.core.plugin",
+        "com.flowci.core.config",
+        "com.flowci.core.common.controller"
 })
 public class ExceptionAdviser {
 
@@ -50,8 +51,8 @@ public class ExceptionAdviser {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     @ExceptionHandler({
-        MethodArgumentNotValidException.class,
-        MissingServletRequestParameterException.class
+            MethodArgumentNotValidException.class,
+            MissingServletRequestParameterException.class
     })
     public ResponseMessage<Object> inputArgumentException(Exception e) {
         return new ResponseMessage<>(ErrorCode.INVALID_ARGUMENT, e.getMessage(), null);
