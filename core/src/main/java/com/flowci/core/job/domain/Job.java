@@ -28,6 +28,7 @@ import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableSet;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -44,6 +45,11 @@ import java.util.Set;
 @Getter
 @Setter
 @Document(collection = "job")
+@CompoundIndex(
+        name = "index_job_flowid_and_buildnum",
+        def = "{'flowId': 1, 'buildNumber': 1}",
+        unique = true
+)
 public class Job extends Mongoable implements Pathable {
 
     public enum Trigger {
