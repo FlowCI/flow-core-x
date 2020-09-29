@@ -16,7 +16,7 @@
 
 package com.flowci.core.agent.dao;
 
-import com.flowci.domain.Agent;
+import com.flowci.core.agent.domain.Agent;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort.Direction;

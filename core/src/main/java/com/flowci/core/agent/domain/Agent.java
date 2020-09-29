@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package com.flowci.domain;
+package com.flowci.core.agent.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.core.common.domain.Mongoable;
 import com.flowci.domain.Common.OS;
+import com.flowci.domain.SimpleKeyPair;
 import com.google.common.base.Strings;
 import lombok.*;
 import lombok.experimental.Accessors;
 
-import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
@@ -30,11 +32,11 @@ import java.util.Set;
 /**
  * @author yang
  */
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @Accessors(chain = true)
-@EqualsAndHashCode(of = {"id"})
-public class Agent implements Serializable {
+public class Agent extends Mongoable {
 
     public static final String PATH_SLASH = "/";
 
@@ -73,8 +75,6 @@ public class Agent implements Serializable {
         private int freeDisk; // in MB
     }
 
-    private String id;
-
     private String name;
 
     private String token;
@@ -88,7 +88,7 @@ public class Agent implements Serializable {
 
     private boolean k8sCluster;
 
-    private Common.OS os = OS.UNKNOWN;
+    private OS os = OS.UNKNOWN;
 
     private Resource resource = new Resource();
 
@@ -99,6 +99,8 @@ public class Agent implements Serializable {
     private Date statusUpdatedAt;
 
     private String jobId;
+
+    private String containerId; // for started from host
 
     @JsonIgnore
     private SimpleKeyPair rsa;
@@ -118,8 +120,14 @@ public class Agent implements Serializable {
     }
 
     @JsonIgnore
-    public boolean hasUrl() {
-        return !Strings.isNullOrEmpty(url);
+    public boolean isStartingOver(int seconds) {
+        if (status == Status.STARTING) {
+            Instant expire = createdAt.toInstant().plusSeconds(seconds);
+            if (Instant.now().isAfter(expire)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @JsonIgnore
@@ -132,18 +140,22 @@ public class Agent implements Serializable {
         return "queue.agent." + id;
     }
 
+    @JsonIgnore
     public boolean isBusy() {
         return status == Status.BUSY;
     }
 
+    @JsonIgnore
     public boolean isIdle() {
         return status == Status.IDLE;
     }
 
+    @JsonIgnore
     public boolean isOffline() {
         return status == Status.OFFLINE;
     }
 
+    @JsonIgnore
     public boolean isOnline() {
         return !isOffline();
     }

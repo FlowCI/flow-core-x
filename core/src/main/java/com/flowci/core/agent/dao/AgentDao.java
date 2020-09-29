@@ -16,7 +16,7 @@
 
 package com.flowci.core.agent.dao;
 
-import com.flowci.domain.Agent;
+import com.flowci.core.agent.domain.Agent;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

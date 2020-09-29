@@ -1,7 +1,5 @@
 package com.flowci.core.agent.domain;
 
-import com.flowci.domain.Agent;
-
 public abstract class Util {
 
     private static final String LockPathSuffix = "-lock";

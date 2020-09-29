@@ -1,6 +1,6 @@
 package com.flowci.core.agent.dao;
 
-import com.flowci.domain.Agent;
+import com.flowci.core.agent.domain.Agent;
 
 public interface CustomAgentDao {
 

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.event.AgentIdleEvent;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.domain.Agent;
+import com.flowci.core.agent.domain.Agent;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;

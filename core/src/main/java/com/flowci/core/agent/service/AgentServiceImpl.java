@@ -30,8 +30,8 @@ import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
-import com.flowci.domain.Agent;
-import com.flowci.domain.Agent.Status;
+import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.domain.Agent.Status;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.Selector;
@@ -52,8 +52,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import static com.flowci.domain.Agent.Status.IDLE;
-import static com.flowci.domain.Agent.Status.OFFLINE;
+import static com.flowci.core.agent.domain.Agent.Status.IDLE;
+import static com.flowci.core.agent.domain.Agent.Status.OFFLINE;
 
 /**
  * Manage agent from zookeeper nodes

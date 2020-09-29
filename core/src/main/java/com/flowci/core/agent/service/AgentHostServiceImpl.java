@@ -39,7 +39,7 @@ import com.flowci.docker.DockerManager;
 import com.flowci.docker.DockerSSHManager;
 import com.flowci.docker.K8sManager;
 import com.flowci.docker.domain.*;
-import com.flowci.domain.Agent;
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.util.StringHelper;
@@ -267,9 +267,11 @@ public class AgentHostServiceImpl implements AgentHostService {
                 agent = agentService.create(name, host.getTags(), Optional.of(host.getId()));
 
                 StartOption startOption = mapping.get(host.getClass()).buildStartOption(host, agent);
+                String cid = cm.start(startOption);
+
+                agent.setContainerId(cid);
                 agentService.update(agent, Agent.Status.STARTING);
 
-                cm.start(startOption);
                 log.info("Agent {} been created and started", name);
                 return true;
             } catch (Exception e) {
@@ -308,7 +310,27 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @Override
     public void collect(AgentHost host) {
-        // TODO: not implemented
+        Optional<DockerManager> optional = getDockerManager(host);
+        if (!optional.isPresent()) {
+            log.warn("unable to collect agents in host {} since fail to get pool manager", host.getName());
+            return;
+        }
+
+        DockerManager manager = optional.get();
+        List<Agent> agents = agentDao.findAllByHostId(host.getId());
+
+        for (Agent agent : agents) {
+            // delete agent if not started after 60 seconds
+            if (agent.isStartingOver(60)) {
+                try {
+                    manager.getContainerManager().delete(agent.getContainerId());
+                    agentService.delete(agent);
+                    log.info("Agent {} is collected since not started over 60 seconds", agent.getName());
+                } catch (Exception e) {
+                    log.warn("failed to collect agent {} : {}", agent.getName(), e.getMessage());
+                }
+            }
+        }
     }
 
     @Override

@@ -17,6 +17,7 @@
 package com.flowci.core.test.job;
 
 import com.flowci.core.agent.dao.AgentDao;
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.event.AgentStatusEvent;
