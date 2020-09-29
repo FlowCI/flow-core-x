@@ -159,4 +159,9 @@ public class Agent extends Mongoable {
     public boolean isOnline() {
         return !isOffline();
     }
+
+    @JsonIgnore
+    public boolean isStarting() {
+        return status == Status.STARTING;
+    }
 }

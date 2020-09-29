@@ -91,7 +91,14 @@ public class AgentServiceImpl implements AgentService {
 
     @PostConstruct
     public void initAgentStatus() {
-        agentDao.updateAllStatus(OFFLINE);
+        for (Agent agent : agentDao.findAll()) {
+            if (agent.isStarting() || agent.isOffline()) {
+                continue;
+            }
+
+            agent.setStatus(OFFLINE);
+            agentDao.save(agent);
+        }
     }
 
     @PostConstruct
