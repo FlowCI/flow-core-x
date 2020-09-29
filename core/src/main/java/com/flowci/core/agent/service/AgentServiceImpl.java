@@ -27,6 +27,7 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.common.manager.SpringTaskManager;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
@@ -81,6 +82,9 @@ public class AgentServiceImpl implements AgentService {
     private SpringEventManager eventManager;
 
     @Autowired
+    private SpringTaskManager taskManager;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
@@ -91,25 +95,16 @@ public class AgentServiceImpl implements AgentService {
 
     @PostConstruct
     public void initAgentStatus() {
-        for (Agent agent : agentDao.findAll()) {
-            if (agent.isStarting() || agent.isOffline()) {
-                continue;
+        taskManager.run("init-agent-status", () -> {
+            for (Agent agent : agentDao.findAll()) {
+                if (agent.isStarting() || agent.isOffline()) {
+                    continue;
+                }
+
+                agent.setStatus(OFFLINE);
+                agentDao.save(agent);
             }
-
-            agent.setStatus(OFFLINE);
-            agentDao.save(agent);
-        }
-    }
-
-    @PostConstruct
-    public void initRootNode() {
-        String root = zkProperties.getAgentRoot();
-
-        try {
-            zk.create(CreateMode.PERSISTENT, root, null);
-        } catch (ZookeeperException ignore) {
-
-        }
+        });
     }
 
     //====================================================================

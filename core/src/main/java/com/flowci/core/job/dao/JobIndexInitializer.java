@@ -16,14 +16,15 @@
 
 package com.flowci.core.job.dao;
 
+import com.flowci.core.common.manager.SpringTaskManager;
 import com.flowci.core.job.domain.Step;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.index.CompoundIndexDefinition;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import org.bson.Document;
 
 @Component
 public class JobIndexInitializer {
@@ -31,13 +32,18 @@ public class JobIndexInitializer {
     @Autowired
     protected MongoOperations mongoOps;
 
+    @Autowired
+    private SpringTaskManager taskManager;
+
     @PostConstruct
     public void createIndexOnExecutedCmd() {
-        Document fields = new Document();
-        fields.put("flowId", 1);
-        fields.put("buildNumber", 1);
+        taskManager.run("init-job-index", () -> {
+            Document fields = new Document();
+            fields.put("flowId", 1);
+            fields.put("buildNumber", 1);
 
-        mongoOps.indexOps(Step.class)
-                .ensureIndex(new CompoundIndexDefinition(fields));
+            mongoOps.indexOps(Step.class)
+                    .ensureIndex(new CompoundIndexDefinition(fields));
+        });
     }
 }

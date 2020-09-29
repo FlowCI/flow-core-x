@@ -75,16 +75,6 @@ public class CronServiceImpl implements CronService {
     //        %% Internal events
     //====================================================================
 
-    @EventListener(ContextRefreshedEvent.class)
-    public void initZkRoot() {
-        try {
-            String root = zkProperties.getCronRoot();
-            zk.create(CreateMode.PERSISTENT, root, null);
-        } catch (ZookeeperException ignore) {
-
-        }
-    }
-
     @EventListener(FlowInitEvent.class)
     public void initFlowCron(FlowInitEvent event) {
         for (Flow flow : event.getFlows()) {

@@ -23,6 +23,8 @@ import com.flowci.domain.SimpleKeyPair;
 import com.google.common.base.Strings;
 import lombok.*;
 import lombok.experimental.Accessors;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -36,6 +38,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @Accessors(chain = true)
+@Document
 public class Agent extends Mongoable {
 
     public static final String PATH_SLASH = "/";
@@ -75,8 +78,10 @@ public class Agent extends Mongoable {
         private int freeDisk; // in MB
     }
 
+    @Indexed(name = "index_agent_name", unique = true)
     private String name;
 
+    @Indexed(name = "index_agent_token", unique = true)
     private String token;
 
     private String url;
