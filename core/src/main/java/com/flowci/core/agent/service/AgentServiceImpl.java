@@ -169,7 +169,7 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public void delete(Agent agent) {
         agentDao.delete(agent);
-        log.debug("{} has been deleted", agent);
+        log.debug("{} has been deleted", agent.getName());
     }
 
     @Override
@@ -224,7 +224,7 @@ public class AgentServiceImpl implements AgentService {
             String zkLockPath = Util.getZkLockPath(zkProperties.getAgentRoot(), agent);
             zk.lock(zkLockPath, path -> {
                 agent.setJobId(jobId);
-                updateAgentStatusAndSave(agent, Status.BUSY);
+                update(agent, Status.BUSY);
             });
             return Optional.of(agent);
         } catch (ZookeeperException e) {
@@ -240,10 +240,10 @@ public class AgentServiceImpl implements AgentService {
 
         switch (agent.getStatus()) {
             case OFFLINE:
-                updateAgentStatusAndSave(agent, OFFLINE);
+                update(agent, OFFLINE);
                 return;
             case BUSY:
-                updateAgentStatusAndSave(agent, IDLE);
+                update(agent, IDLE);
         }
     }
 
@@ -263,6 +263,7 @@ public class AgentServiceImpl implements AgentService {
 
         try {
             agentDao.insert(agent);
+            eventManager.publish(new AgentCreatedEvent(this, agent));
             return agent;
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Agent name {0} is already defined", name);
@@ -287,6 +288,20 @@ public class AgentServiceImpl implements AgentService {
         Agent agent = getByToken(token);
         agent.setResource(resource);
         agentDao.save(agent);
+        return agent;
+    }
+
+    @Override
+    public Agent update(Agent agent, Status status) {
+        if (agent.getStatus() == status) {
+            agentDao.save(agent);
+            return agent;
+        }
+
+        agent.setStatus(status);
+        agentDao.save(agent);
+
+        eventManager.publish(new AgentStatusEvent(this, agent));
         return agent;
     }
 
@@ -331,7 +346,7 @@ public class AgentServiceImpl implements AgentService {
         target.setOs(init.getOs());
         target.setResource(init.getResource());
 
-        updateAgentStatusAndSave(target, init.getStatus());
+        update(target, init.getStatus());
         syncLockNode(target, true);
     }
 
@@ -339,7 +354,7 @@ public class AgentServiceImpl implements AgentService {
     public void onDisconnected(OnDisconnectedEvent event) {
         Agent target = getByToken(event.getToken());
 
-        updateAgentStatusAndSave(target, OFFLINE);
+        update(target, OFFLINE);
         syncLockNode(target, false);
     }
 
@@ -399,18 +414,6 @@ public class AgentServiceImpl implements AgentService {
         } catch (Throwable ignore) {
 
         }
-    }
-
-    private void updateAgentStatusAndSave(Agent agent, Status status) {
-        if (agent.getStatus() == status) {
-            agentDao.save(agent);
-            return;
-        }
-
-        agent.setStatus(status);
-        agentDao.save(agent);
-
-        eventManager.publish(new AgentStatusEvent(this, agent));
     }
 
     private Optional<Agent> acquire(String jobId, Selector selector) {

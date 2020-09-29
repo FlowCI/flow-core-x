@@ -16,7 +16,6 @@
 
 package com.flowci.core.agent.event;
 
-import com.flowci.core.agent.domain.AgentHost;
 import com.flowci.domain.Agent;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
@@ -26,11 +25,8 @@ public class AgentCreatedEvent extends ApplicationEvent {
 
     private final Agent agent;
 
-    private final AgentHost host;
-
-    public AgentCreatedEvent(Object source, Agent agent, AgentHost host) {
+    public AgentCreatedEvent(Object source, Agent agent) {
         super(source);
         this.agent = agent;
-        this.host = host;
     }
 }

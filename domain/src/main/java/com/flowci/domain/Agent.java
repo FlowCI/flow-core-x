@@ -42,9 +42,11 @@ public class Agent implements Serializable {
 
         OFFLINE,
 
-        BUSY,
+        STARTING, // sent start signal to provider
 
-        IDLE;
+        IDLE, // started, without running task
+
+        BUSY; // running a task
 
         public byte[] getBytes() {
             return this.toString().getBytes();
@@ -131,15 +133,15 @@ public class Agent implements Serializable {
     }
 
     public boolean isBusy() {
-        return status == Agent.Status.BUSY;
+        return status == Status.BUSY;
     }
 
     public boolean isIdle() {
-        return status == Agent.Status.IDLE;
+        return status == Status.IDLE;
     }
 
     public boolean isOffline() {
-        return status == Agent.Status.OFFLINE;
+        return status == Status.OFFLINE;
     }
 
     public boolean isOnline() {

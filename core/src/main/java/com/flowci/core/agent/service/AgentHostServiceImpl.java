@@ -22,7 +22,6 @@ import com.flowci.core.agent.domain.AgentHost;
 import com.flowci.core.agent.domain.K8sAgentHost;
 import com.flowci.core.agent.domain.LocalUnixAgentHost;
 import com.flowci.core.agent.domain.SshAgentHost;
-import com.flowci.core.agent.event.AgentCreatedEvent;
 import com.flowci.core.agent.event.AgentHostStatusEvent;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Variables;
@@ -217,12 +216,12 @@ public class AgentHostServiceImpl implements AgentHostService {
         DockerManager dockerManager = manager.get();
         ContainerManager cm = dockerManager.getContainerManager();
 
+        // try to resume if offline, add to start list if resume failed
         for (Agent agent : agents) {
             if (!agent.isOffline()) {
                 continue;
             }
 
-            // try to resume if offline, add to start list if failed
             try {
                 List<Unit> list = cm.list(null, getContainerName(agent));
 
@@ -266,9 +265,11 @@ public class AgentHostServiceImpl implements AgentHostService {
             Agent agent = null;
             try {
                 agent = agentService.create(name, host.getTags(), Optional.of(host.getId()));
+
                 StartOption startOption = mapping.get(host.getClass()).buildStartOption(host, agent);
+                agentService.update(agent, Agent.Status.STARTING);
+
                 cm.start(startOption);
-                eventManager.publish(new AgentCreatedEvent(this, agent, host));
                 log.info("Agent {} been created and started", name);
                 return true;
             } catch (Exception e) {

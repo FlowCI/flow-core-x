@@ -111,6 +111,11 @@ public interface AgentService {
     Agent update(String token, Agent.Resource resource);
 
     /**
+     * Update agent status
+     */
+    Agent update(Agent agent, Agent.Status status);
+
+    /**
      * Dispatch cmd to agent
      */
     void dispatch(CmdIn cmd, Agent agent);
