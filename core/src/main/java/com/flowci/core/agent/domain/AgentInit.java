@@ -16,7 +16,6 @@
 
 package com.flowci.core.agent.domain;
 
-import com.flowci.domain.Agent;
 import com.flowci.domain.Common;
 import lombok.Getter;
 import lombok.Setter;

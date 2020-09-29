@@ -21,8 +21,8 @@ import com.flowci.core.agent.domain.Util;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.OnConnectedEvent;
 import com.flowci.core.common.config.AppProperties;
-import com.flowci.domain.Agent;
-import com.flowci.domain.Agent.Status;
+import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.domain.Agent.Status;
 import com.flowci.domain.Common;
 import com.flowci.domain.ObjectWrapper;
 import com.flowci.zookeeper.ZookeeperClient;
@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.socket.adapter.standard.StandardWebSocketSession;
-import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 
 import java.util.HashMap;
 import java.util.Map;

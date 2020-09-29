@@ -1,6 +1,6 @@
 package com.flowci.core.agent.dao;
 
-import com.flowci.domain.Agent;
+import com.flowci.core.agent.domain.Agent;
 import com.mongodb.client.result.UpdateResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;

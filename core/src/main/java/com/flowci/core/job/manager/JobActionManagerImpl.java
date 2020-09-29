@@ -17,7 +17,7 @@ import com.flowci.core.job.service.StepService;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.domain.Agent;
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.domain.SimpleSecret;
 import com.flowci.domain.Vars;
 import com.flowci.exception.CIException;

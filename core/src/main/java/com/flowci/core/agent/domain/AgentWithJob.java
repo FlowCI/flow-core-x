@@ -17,7 +17,7 @@
 package com.flowci.core.agent.domain;
 
 import com.flowci.core.job.domain.Job;
-import com.flowci.domain.Agent.Status;
+import com.flowci.core.agent.domain.Agent.Status;
 import java.util.Set;
 import lombok.Data;
 

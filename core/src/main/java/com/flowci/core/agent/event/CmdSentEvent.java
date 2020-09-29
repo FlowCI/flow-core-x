@@ -17,7 +17,7 @@
 package com.flowci.core.agent.event;
 
 import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.domain.Agent;
+import com.flowci.core.agent.domain.Agent;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

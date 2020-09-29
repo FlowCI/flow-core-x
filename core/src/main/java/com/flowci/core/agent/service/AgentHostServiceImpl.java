@@ -18,16 +18,13 @@ package com.flowci.core.agent.service;
 
 import com.flowci.core.agent.dao.AgentDao;
 import com.flowci.core.agent.dao.AgentHostDao;
-import com.flowci.core.agent.domain.AgentHost;
-import com.flowci.core.agent.domain.K8sAgentHost;
-import com.flowci.core.agent.domain.LocalUnixAgentHost;
-import com.flowci.core.agent.domain.SshAgentHost;
-import com.flowci.core.agent.event.AgentCreatedEvent;
+import com.flowci.core.agent.domain.*;
 import com.flowci.core.agent.event.AgentHostStatusEvent;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.common.manager.SpringTaskManager;
 import com.flowci.core.common.service.SettingService;
 import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.secret.domain.KubeConfigSecret;
@@ -40,20 +37,15 @@ import com.flowci.docker.DockerManager;
 import com.flowci.docker.DockerSSHManager;
 import com.flowci.docker.K8sManager;
 import com.flowci.docker.domain.*;
-import com.flowci.domain.Agent;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.util.StringHelper;
-import com.flowci.zookeeper.ZookeeperClient;
-import com.flowci.zookeeper.ZookeeperException;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.RemovalListener;
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.curator.utils.ZKPaths;
-import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -86,8 +78,6 @@ public class AgentHostServiceImpl implements AgentHostService {
     private final Cache<AgentHost, DockerManager> poolManagerCache =
             CacheHelper.createLocalCache(10, 600, new PoolManagerRemover());
 
-    private String collectTaskZkPath;
-
     @Autowired
     private Environment environment;
 
@@ -104,16 +94,13 @@ public class AgentHostServiceImpl implements AgentHostService {
     private SpringEventManager eventManager;
 
     @Autowired
-    private ZookeeperClient zk;
-
-    @Autowired
-    private AppProperties.Zookeeper zkProperties;
-
-    @Autowired
     private TaskExecutor appTaskExecutor;
 
     @Autowired
     private DockerManager dockerManager;
+
+    @Autowired
+    private SpringTaskManager taskManager;
 
     @Autowired
     private AgentService agentService;
@@ -217,12 +204,12 @@ public class AgentHostServiceImpl implements AgentHostService {
         DockerManager dockerManager = manager.get();
         ContainerManager cm = dockerManager.getContainerManager();
 
+        // try to resume if offline, add to start list if resume failed
         for (Agent agent : agents) {
             if (!agent.isOffline()) {
                 continue;
             }
 
-            // try to resume if offline, add to start list if failed
             try {
                 List<Unit> list = cm.list(null, getContainerName(agent));
 
@@ -266,9 +253,13 @@ public class AgentHostServiceImpl implements AgentHostService {
             Agent agent = null;
             try {
                 agent = agentService.create(name, host.getTags(), Optional.of(host.getId()));
+
                 StartOption startOption = mapping.get(host.getClass()).buildStartOption(host, agent);
-                cm.start(startOption);
-                eventManager.publish(new AgentCreatedEvent(this, agent, host));
+                String cid = cm.start(startOption);
+
+                agent.setContainerId(cid);
+                agentService.update(agent, Agent.Status.STARTING);
+
                 log.info("Agent {} been created and started", name);
                 return true;
             } catch (Exception e) {
@@ -307,7 +298,27 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @Override
     public void collect(AgentHost host) {
-        // TODO: not implemented
+        Optional<DockerManager> optional = getDockerManager(host);
+        if (!optional.isPresent()) {
+            log.warn("unable to collect agents in host {} since fail to get pool manager", host.getName());
+            return;
+        }
+
+        DockerManager manager = optional.get();
+        List<Agent> agents = agentDao.findAllByHostId(host.getId());
+
+        for (Agent agent : agents) {
+            // delete agent if not started after 60 seconds
+            if (agent.isStartingOver(60)) {
+                try {
+                    manager.getContainerManager().delete(agent.getContainerId());
+                    agentService.delete(agent);
+                    log.info("Agent {} is collected since not started over 60 seconds", agent.getName());
+                } catch (Exception e) {
+                    log.warn("failed to collect agent {} : {}", agent.getName(), e.getMessage());
+                }
+            }
+        }
     }
 
     @Override
@@ -336,19 +347,11 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @Scheduled(cron = "0 0/5 * * * ?")
     public void scheduleCollect() {
-        try {
-            if (!lock()) {
-                return;
-            }
-
-            log.info("Start to collect agents from host");
+        taskManager.run("agent-host-collect", () -> {
             for (AgentHost host : list()) {
                 collect(host);
             }
-            log.info("Collection finished");
-        } finally {
-            clean();
-        }
+        });
     }
 
     //====================================================================
@@ -357,7 +360,6 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @EventListener
     public void onContextReady(ContextRefreshedEvent event) {
-        initZkNodeForCronTask();
         autoCreateLocalAgentHost();
         syncAgents();
     }
@@ -385,10 +387,6 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     public String getContainerName(Agent agent) {
         return String.format("%s-%s", ContainerNamePrefix, StringHelper.escapeNumber(agent.getName()));
-    }
-
-    private void initZkNodeForCronTask() {
-        collectTaskZkPath = ZKPaths.makePath(zkProperties.getCronRoot(), "agent-host-collect");
     }
 
     public void autoCreateLocalAgentHost() {
@@ -448,27 +446,6 @@ public class AgentHostServiceImpl implements AgentHostService {
         host.setStatus(newStatus);
         agentHostDao.save(host);
         eventManager.publish(new AgentHostStatusEvent(this, host));
-    }
-
-    /**
-     * check zk and lock
-     */
-    private boolean lock() {
-        try {
-            zk.create(CreateMode.EPHEMERAL, collectTaskZkPath, null);
-            return true;
-        } catch (ZookeeperException e) {
-            log.warn("Unable to init agent host collect task : {}", e.getMessage());
-            return false;
-        }
-    }
-
-    private void clean() {
-        try {
-            zk.delete(collectTaskZkPath, false);
-        } catch (ZookeeperException ignore) {
-
-        }
     }
 
     //====================================================================

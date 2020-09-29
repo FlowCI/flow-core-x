@@ -18,7 +18,7 @@ package com.flowci.core.agent.service;
 
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.job.domain.Job;
-import com.flowci.domain.Agent;
+import com.flowci.core.agent.domain.Agent;
 
 import java.util.List;
 import java.util.Optional;
@@ -109,6 +109,11 @@ public interface AgentService {
      * Update agent resource
      */
     Agent update(String token, Agent.Resource resource);
+
+    /**
+     * Update agent status
+     */
+    Agent update(Agent agent, Agent.Status status);
 
     /**
      * Dispatch cmd to agent
