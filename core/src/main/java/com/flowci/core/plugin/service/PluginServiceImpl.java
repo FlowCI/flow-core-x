@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.git.GitClient;
+import com.flowci.core.common.manager.HttpRequestManager;
 import com.flowci.core.common.manager.VarManager;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
@@ -89,6 +90,9 @@ public class PluginServiceImpl implements PluginService {
 
     @Autowired
     private VarManager varManager;
+
+    @Autowired
+    private HttpRequestManager httpManager;
 
     private final Object reloadLock = new Object();
 
@@ -191,7 +195,8 @@ public class PluginServiceImpl implements PluginService {
     public List<PluginRepoInfo> load(String repoUrl) {
         try {
             repoUrl = repoUrl + "?t=" + Instant.now().toEpochMilli();
-            return objectMapper.readValue(new URL(repoUrl), RepoListType);
+            String body = httpManager.get(repoUrl);
+            return objectMapper.readValue(body, RepoListType);
         } catch (Throwable e) {
             log.warn("Unable to load plugin repo '{}' : {}", repoUrl, e.getMessage());
             return Collections.emptyList();
