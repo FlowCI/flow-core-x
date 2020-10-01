@@ -20,15 +20,14 @@ import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.exception.YmlException;
 import com.flowci.tree.Node;
+import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author yang
@@ -47,6 +46,9 @@ public abstract class YmlBase<T extends Node> implements Serializable {
     // or dockers
     public List<DockerYml> dockers;
 
+    @NonNull
+    public List<StepYml> steps = new LinkedList<>();
+
     StringVars getVariableMap() {
         StringVars variables = new StringVars(envs.size());
         for (Map.Entry<String, String> entry : envs.entrySet()) {
@@ -61,7 +63,22 @@ public abstract class YmlBase<T extends Node> implements Serializable {
         }
     }
 
-    void setupDocker(T node) {
+    void setSteps(T parent) {
+        int index = 1;
+        Set<String> uniqueName = new HashSet<>(steps.size());
+
+        for (StepYml child : steps) {
+            StepNode step = child.toNode(parent, index++);
+
+            if (!uniqueName.add(step.getName())) {
+                throw new YmlException("Duplicate name {0} in step", step.getName());
+            }
+
+            parent.getChildren().add(step);
+        }
+    }
+
+    void setDocker(T node) {
         if (hasDocker() && hasDockers()) {
             throw new YmlException("Only accept either 'docker' or 'dockers' section");
         }

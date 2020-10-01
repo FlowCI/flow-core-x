@@ -54,6 +54,6 @@ public abstract class TtyCmd {
 
         private String id;
 
-        private String content;
+        private String log;
     }
 }

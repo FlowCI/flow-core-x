@@ -16,7 +16,6 @@
 
 package com.flowci.core.agent.domain;
 
-import com.flowci.domain.Agent;
 import com.flowci.domain.Common;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +27,8 @@ import lombok.Setter;
 @Setter
 public class AgentInit {
 
+    private Boolean k8sCluster; // is agent running in k8s cluster
+
     private String token;
 
     private String ip;
@@ -35,6 +36,8 @@ public class AgentInit {
     private Integer port;
 
     private Common.OS os;
+
+    private Agent.Status status;
 
     private Agent.Resource resource = new Agent.Resource();
 }

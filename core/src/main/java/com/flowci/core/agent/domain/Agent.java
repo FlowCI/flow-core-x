@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package com.flowci.domain;
+package com.flowci.core.agent.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.core.common.domain.Mongoable;
 import com.flowci.domain.Common.OS;
+import com.flowci.domain.SimpleKeyPair;
 import com.google.common.base.Strings;
 import lombok.*;
 import lombok.experimental.Accessors;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
@@ -30,23 +34,24 @@ import java.util.Set;
 /**
  * @author yang
  */
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @Accessors(chain = true)
-@EqualsAndHashCode(of = {"id"})
-public class Agent implements Serializable {
+@Document
+public class Agent extends Mongoable {
 
     public static final String PATH_SLASH = "/";
 
     public enum Status {
 
-        CREATED,
-
         OFFLINE,
 
-        BUSY,
+        STARTING, // sent start signal to provider
 
-        IDLE;
+        IDLE, // started, without running task
+
+        BUSY; // running a task
 
         public byte[] getBytes() {
             return this.toString().getBytes();
@@ -73,10 +78,10 @@ public class Agent implements Serializable {
         private int freeDisk; // in MB
     }
 
-    private String id;
-
+    @Indexed(name = "index_agent_name", unique = true)
     private String name;
 
+    @Indexed(name = "index_agent_token", unique = true)
     private String token;
 
     private String url;
@@ -86,17 +91,21 @@ public class Agent implements Serializable {
      */
     private String hostId;
 
-    private Common.OS os = OS.UNKNOWN;
+    private boolean k8sCluster;
+
+    private OS os = OS.UNKNOWN;
 
     private Resource resource = new Resource();
 
     private Set<String> tags = Collections.emptySet();
 
-    private Status status = Status.CREATED;
+    private Status status = Status.OFFLINE;
 
     private Date statusUpdatedAt;
 
     private String jobId;
+
+    private String containerId; // for started from host
 
     @JsonIgnore
     private SimpleKeyPair rsa;
@@ -116,8 +125,14 @@ public class Agent implements Serializable {
     }
 
     @JsonIgnore
-    public boolean hasUrl() {
-        return !Strings.isNullOrEmpty(url);
+    public boolean isStartingOver(int seconds) {
+        if (status == Status.STARTING) {
+            Instant expire = createdAt.toInstant().plusSeconds(seconds);
+            if (Instant.now().isAfter(expire)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @JsonIgnore
@@ -126,13 +141,18 @@ public class Agent implements Serializable {
     }
 
     @JsonIgnore
+    public String getQueueName() {
+        return "queue.agent." + id;
+    }
+
+    @JsonIgnore
     public boolean isBusy() {
-        return isOnline() && status == Status.BUSY;
+        return status == Status.BUSY;
     }
 
     @JsonIgnore
     public boolean isIdle() {
-        return isOnline() && status == Status.IDLE;
+        return status == Status.IDLE;
     }
 
     @JsonIgnore
@@ -146,7 +166,7 @@ public class Agent implements Serializable {
     }
 
     @JsonIgnore
-    public String getQueueName() {
-        return "queue.agent." + id;
+    public boolean isStarting() {
+        return status == Status.STARTING;
     }
 }

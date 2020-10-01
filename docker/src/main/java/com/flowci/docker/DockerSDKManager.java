@@ -1,7 +1,6 @@
 package com.flowci.docker;
 
-import com.flowci.docker.domain.DockerCallback;
-import com.flowci.docker.domain.DockerStartOption;
+import com.flowci.docker.domain.*;
 import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.*;
@@ -17,6 +16,7 @@ import lombok.extern.log4j.Log4j2;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -88,7 +88,7 @@ public class DockerSDKManager implements DockerManager {
     private class ContainerManagerImpl implements ContainerManager {
 
         @Override
-        public List<Container> list(String statusFilter, String nameFilter) throws Exception {
+        public List<Unit> list(String statusFilter, String nameFilter) throws Exception {
             try (DockerClient client = newClient()) {
                 ListContainersCmd cmd = client.listContainersCmd().withShowAll(true);
 
@@ -100,19 +100,31 @@ public class DockerSDKManager implements DockerManager {
                     cmd.withStatusFilter(Lists.newArrayList(statusFilter));
                 }
 
-                return cmd.exec();
+                List<Container> containers = cmd.exec();
+                List<Unit> list = new ArrayList<>(containers.size());
+                for (Container c : containers) {
+                    list.add(new ContainerUnit(c));
+                }
+                return list;
             }
         }
 
         @Override
-        public InspectContainerResponse inspect(String containerId) throws Exception {
+        public Unit inspect(String containerId) throws Exception {
             try (DockerClient client = newClient()) {
-                return client.inspectContainerCmd(containerId).exec();
+                InspectContainerResponse exec = client.inspectContainerCmd(containerId).exec();
+                return new ContainerUnit(exec);
             }
         }
 
         @Override
-        public String start(DockerStartOption option) throws Exception {
+        public String start(StartOption startOption) throws Exception {
+            if (!(startOption instanceof ContainerStartOption)) {
+                throw new IllegalArgumentException();
+            }
+
+            ContainerStartOption option = (ContainerStartOption) startOption;
+
             try (DockerClient client = newClient()) {
                 CreateContainerCmd createCmd = client.createContainerCmd(option.getImage());
                 createCmd.withEnv(option.toEnvList());
@@ -130,7 +142,7 @@ public class DockerSDKManager implements DockerManager {
         }
 
         @Override
-        public void wait(String containerId, int timeoutInSeconds, Consumer<Frame> onLog) throws Exception {
+        public void wait(String containerId, int timeoutInSeconds, Consumer<Output> onLog) throws Exception {
             Instant expire = Instant.now().plus(timeoutInSeconds, ChronoUnit.SECONDS);
 
             try (DockerClient client = newClient()) {
@@ -208,16 +220,16 @@ public class DockerSDKManager implements DockerManager {
 
     private static class FrameCallback extends DockerCallback<Frame> {
 
-        private final Consumer<Frame> onLog;
+        private final Consumer<Output> onLog;
 
-        private FrameCallback(Consumer<Frame> onLog) {
+        private FrameCallback(Consumer<Output> onLog) {
             this.onLog = onLog;
         }
 
         @Override
-        public void onNext(Frame object) {
+        public void onNext(Frame frame) {
             if (this.onLog != null) {
-                onLog.accept(object);
+                onLog.accept(new Output(frame));
             }
         }
     }

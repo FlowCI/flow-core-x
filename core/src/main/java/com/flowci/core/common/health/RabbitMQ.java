@@ -15,22 +15,29 @@
  *
  */
 
-package com.flowci.core.agent.health;
+package com.flowci.core.common.health;
 
-import com.flowci.domain.Settings;
+import com.rabbitmq.client.Connection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Component
-public class AgentSettingsCheck extends AbstractHealthIndicator {
+public class RabbitMQ extends AbstractHealthIndicator {
 
     @Autowired
-    private Settings baseSettings;
+    private Connection connection;
 
     @Override
-    protected void doHealthCheck(Health.Builder builder) throws Exception {
-        builder.withDetail("settings", baseSettings);
+    protected void doHealthCheck(Health.Builder builder) {
+        Map<String, Object> properties = connection.getServerProperties();
+        Status status = connection.isOpen() ? Status.UP : Status.DOWN;
+        builder.status(status)
+                .withDetail("address", connection.getAddress())
+                .withDetail("version", properties.get("version").toString());
     }
 }

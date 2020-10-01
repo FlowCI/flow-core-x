@@ -22,6 +22,7 @@ import com.flowci.zookeeper.LocalServer;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.flowci.zookeeper.ZookeeperException;
 import lombok.extern.log4j.Log4j2;
+import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -59,6 +60,10 @@ public class ZookeeperConfig {
 
         client = new ZookeeperClient(host, retry, timeout, appTaskExecutor);
         client.start();
+
+        initRoots(client, zkProperties.getCronRoot());
+        initRoots(client, zkProperties.getAgentRoot());
+
         return client;
     }
 
@@ -70,6 +75,14 @@ public class ZookeeperConfig {
 
         if (server != null) {
             server.stop();
+        }
+    }
+
+    private void initRoots(ZookeeperClient client, String rootPath) {
+        try {
+            client.create(CreateMode.PERSISTENT, rootPath, null);
+        } catch (ZookeeperException ignore) {
+
         }
     }
 

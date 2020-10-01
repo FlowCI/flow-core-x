@@ -18,6 +18,8 @@ package com.flowci.core.trigger.domain;
 
 import com.flowci.domain.StringVars;
 import java.io.Serializable;
+
+import com.flowci.util.StringHelper;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -58,5 +60,13 @@ public final class GitPushTrigger extends GitTrigger {
         map.put(Variables.GIT_COMMIT_URL, commitUrl);
         map.put(Variables.GIT_COMMIT_NUM, Integer.toString(numOfCommit));
         return map;
+    }
+
+    @Override
+    public boolean isSkip() {
+        if (!StringHelper.hasValue(message)) {
+            return false;
+        }
+        return message.contains(SkipMessage);
     }
 }

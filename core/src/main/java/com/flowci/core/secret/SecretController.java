@@ -91,6 +91,12 @@ public class SecretController {
         return secretService.createAndroidSign(name, keyStore, option);
     }
 
+    @PostMapping("/kubeconfig")
+    @Action(SecretAction.CREATE)
+    public Secret create(@Validated @RequestBody Request.CreateKubeConfig body) {
+        return secretService.createKubeConfig(body.getName(), body.getContent());
+    }
+
     @PostMapping("/rsa/gen")
     @Action(SecretAction.GENERATE_RSA)
     public SimpleKeyPair genByEmail() {

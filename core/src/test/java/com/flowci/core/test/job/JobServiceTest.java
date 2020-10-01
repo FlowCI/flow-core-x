@@ -17,6 +17,7 @@
 package com.flowci.core.test.job;
 
 import com.flowci.core.agent.dao.AgentDao;
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.event.AgentStatusEvent;
@@ -141,7 +142,7 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // then: default vars
         Assert.assertTrue(context.containsKey(Variables.Flow.Name));
-        Assert.assertTrue(context.containsKey(Variables.App.Url));
+        Assert.assertTrue(context.containsKey(Variables.App.ServerUrl));
 
         Assert.assertTrue(context.containsKey(Variables.Job.Status));
         Assert.assertTrue(context.containsKey(Variables.Job.BuildNumber));
@@ -220,7 +221,7 @@ public class JobServiceTest extends ZookeeperScenario {
         yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-notify.yml")));
 
         Agent agent = agentService.create("hello.agent", null, Optional.empty());
-        mockAgentOnline(agentService.getPath(agent));
+        mockAgentOnline(agent.getToken());
 
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
 
@@ -441,12 +442,12 @@ public class JobServiceTest extends ZookeeperScenario {
     @Test(timeout = 30 * 1000)
     public void should_cancel_job_if_agent_offline() throws IOException, InterruptedException {
         // init:
-        yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-before.yml")));
+        yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-condition.yml")));
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
 
         // mock agent online
         Agent agent = agentService.create("hello.agent.2", null, Optional.empty());
-        mockAgentOnline(agentService.getPath(agent));
+        mockAgentOnline(agent.getToken());
 
         // given: start job and wait for running
         jobActionManager.toStart(job);

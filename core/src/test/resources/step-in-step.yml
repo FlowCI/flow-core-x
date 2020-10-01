@@ -1,0 +1,37 @@
+steps:
+  - condition: |
+      println(FLOW_WORKSPACE);
+      return true;
+    envs:
+      FLOW_WORKSPACE: "echo step"
+      FLOW_VERSION: "echo step version"
+    docker:
+      image: "ubuntu:18.04"
+    allow_failure: true
+
+  - name: step2
+    condition: |
+      return true;
+    envs:
+      STEP_2: "parent"
+    dockers:
+      - image: "ubuntu:18.04"
+        is_runtime: true
+      - image: "mysql"
+    script: "echo 2"
+
+    steps:
+      - name: step-2-1
+        envs:
+          STEP_2: "overwrite-parent"
+        script: |
+          echo "step-2-1"
+
+      - name: step-2-2
+        docker:
+          image: "redis"
+        script: |
+          echo "step-2-2"
+
+  - name: create test
+    script: "echo end"

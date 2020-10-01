@@ -19,14 +19,14 @@ package com.flowci.tree;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
-import java.io.Serializable;
-import java.util.*;
-
 import com.google.common.collect.Sets;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.yaml.snakeyaml.error.YAMLException;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * @author yang
@@ -35,7 +35,7 @@ import org.yaml.snakeyaml.error.YAMLException;
 @EqualsAndHashCode(of = {"pathInStr"})
 public final class NodePath implements Serializable {
 
-    private static final String PathSeparator = "/";
+    public static final String PathSeparator = "/";
 
     private static final Set<String> Reserved = Sets.newHashSet("*", ";", ".", "/");
 
@@ -115,6 +115,14 @@ public final class NodePath implements Serializable {
             builder.append(name).append(PathSeparator);
         }
         pathInStr = builder.deleteCharAt(builder.length() - 1).toString();
+    }
+
+    public String getNodePathWithoutSpace() {
+        return pathInStr.replace(" ", "-");
+    }
+
+    public boolean isRoot() {
+        return paths.size() == 1;
     }
 
     public NodePath parent() {

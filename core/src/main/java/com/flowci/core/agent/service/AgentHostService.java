@@ -19,7 +19,6 @@ package com.flowci.core.agent.service;
 import java.util.List;
 
 import com.flowci.core.agent.domain.AgentHost;
-import com.flowci.domain.Agent;
 
 public interface AgentHostService {
 

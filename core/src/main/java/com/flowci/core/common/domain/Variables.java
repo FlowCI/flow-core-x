@@ -23,21 +23,17 @@ public abstract class Variables {
 
     public abstract static class App {
 
-        public static final String Url = "FLOWCI_SERVER_URL";
+        public static final String LogLevel = "FLOWCI_LOG_LEVEL";
+
+        public static final String ServerUrl = "FLOWCI_SERVER_URL";
 
         public static final String Host = "FLOWCI_SERVER_HOST";
-
-        public static final String RabbitHost = "FLOWCI_RABBIT_HOST";
-
-        public static final String ZookeeperHost = "FLOWCI_ZOOKEEPER_HOST";
 
     }
 
     public abstract static class Flow {
 
         public static final String Name = "FLOWCI_FLOW_NAME";
-
-        public static final String Webhook = "FLOWCI_FLOW_WEBHOOK";
 
         public static final String GitUrl = "FLOWCI_GIT_URL"; // set
 
@@ -77,10 +73,22 @@ public abstract class Variables {
 
     public abstract static class Agent {
 
+        public static final String DockerImage = "FLOWCI_AGENT_IMAGE";
+
+        public static final String ServerUrl = "FLOWCI_SERVER_URL";
+
         public static final String Token = "FLOWCI_AGENT_TOKEN";
 
         public static final String Workspace = "FLOWCI_AGENT_WORKSPACE";
 
         public static final String PluginDir = "FLOWCI_AGENT_PLUGIN_DIR";
+
+        public static final String K8sEnabled = "FLOWCI_AGENT_K8S_ENABLED";
+
+        public static final String K8sInCluster = "FLOWCI_AGENT_K8S_IN_CLUSTER";
+
+        public static final String LogLevel = "FLOWCI_AGENT_LOG_LEVEL";
+
+        public static final String Volumes = "FLOWCI_AGENT_VOLUMES";
     }
 }

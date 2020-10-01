@@ -18,9 +18,9 @@ package com.flowci.tree.yml;
 
 import com.flowci.exception.YmlException;
 import com.flowci.tree.*;
+import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 
 import java.util.*;
@@ -38,9 +38,6 @@ public class FlowYml extends YmlBase<FlowNode> {
     private TriggerFilter trigger = new TriggerFilter();
 
     private List<NotifyYml> notifications = new LinkedList<>();
-
-    @NonNull
-    private List<StepYml> steps = new LinkedList<>();
 
     public FlowYml(FlowNode node) {
         setEnvs(node.getEnvironments());
@@ -61,9 +58,14 @@ public class FlowYml extends YmlBase<FlowNode> {
         node.setTrigger(trigger);
         node.setEnvironments(getVariableMap());
 
-        setupDocker(node);
+        setDocker(node);
         setupNotifications(node);
-        setupSteps(node);
+
+        if (!ObjectsHelper.hasCollection(steps)) {
+            throw new YmlException("The 'steps' section must be defined");
+        }
+
+        setSteps(node);
         return node;
     }
 
@@ -79,23 +81,6 @@ public class FlowYml extends YmlBase<FlowNode> {
             }
 
             node.getNotifications().add(n.toObj());
-        }
-    }
-
-    private void setupSteps(FlowNode node) {
-        if (Objects.isNull(steps) || steps.isEmpty()) {
-            throw new YmlException("The 'steps' must be defined");
-        }
-
-        int index = 1;
-        Set<String> uniqueName = new HashSet<>(steps.size());
-
-        for (StepYml child : steps) {
-            StepNode step = child.toNode(index++);
-            if (!uniqueName.add(step.getName())) {
-                throw new YmlException("Duplicate name {0} in step", step.getName());
-            }
-            node.getChildren().add(step);
         }
     }
 }

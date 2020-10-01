@@ -16,11 +16,9 @@
 
 package com.flowci.core.agent.service;
 
-import com.flowci.core.agent.domain.AgentInit;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.job.domain.Job;
-import com.flowci.domain.Agent;
-import com.flowci.domain.Settings;
+import com.flowci.core.agent.domain.Agent;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,8 +29,6 @@ import java.util.function.Function;
  * @author yang
  */
 public interface AgentService {
-
-    Settings connect(AgentInit initData);
 
     /**
      * Get agent by id
@@ -50,11 +46,6 @@ public interface AgentService {
     Agent getByToken(String token);
 
     /**
-     * Get zookeeper path
-     */
-    String getPath(Agent agent);
-
-    /**
      * Check agent token is existed
      */
     boolean isExisted(String token);
@@ -67,11 +58,10 @@ public interface AgentService {
     /**
      * Find agent by status and tags from database
      *
-     * @param status Status
      * @param tags Agent tags, optional
      * @throws com.flowci.exception.NotFoundException
      */
-    List<Agent> find(Agent.Status status, Set<String> tags);
+    List<Agent> find(Set<String> tags);
 
     /**
      * Delete agent by token
@@ -95,6 +85,7 @@ public interface AgentService {
 
     /**
      * Try to lock agent resource, and set agent status to BUSY
+     *
      * @return return agent instance, otherwise return empty
      */
     Optional<Agent> tryLock(String jobId, String agentId);
@@ -118,6 +109,11 @@ public interface AgentService {
      * Update agent resource
      */
     Agent update(String token, Agent.Resource resource);
+
+    /**
+     * Update agent status
+     */
+    Agent update(Agent agent, Agent.Status status);
 
     /**
      * Dispatch cmd to agent

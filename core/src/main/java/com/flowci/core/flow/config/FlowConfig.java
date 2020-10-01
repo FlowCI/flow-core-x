@@ -27,6 +27,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
 import java.io.IOException;
 import java.util.List;
@@ -59,5 +61,10 @@ public class FlowConfig {
         List<Template> list = objectMapper.readValue(body, typeRef);
         log.info("Templates is loaded from {}", flowProperties.getTemplatesUrl());
         return list;
+    }
+
+    @Bean("cronScheduler")
+    public TaskScheduler concurrentTaskScheduler() {
+        return new ConcurrentTaskScheduler();
     }
 }

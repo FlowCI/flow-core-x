@@ -5,7 +5,7 @@ import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
-import com.flowci.domain.Agent;
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.exception.CIException;
 import com.flowci.exception.StatusException;
 import lombok.extern.log4j.Log4j2;

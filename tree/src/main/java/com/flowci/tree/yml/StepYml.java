@@ -17,8 +17,10 @@
 package com.flowci.tree.yml;
 
 import com.flowci.exception.YmlException;
+import com.flowci.tree.Node;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.StepNode;
+import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
 import lombok.Getter;
@@ -59,18 +61,26 @@ public class StepYml extends YmlBase<StepNode> {
         setAllow_failure(node.isAllowFailure());
     }
 
-    public StepNode toNode(int index) {
-        StepNode node = new StepNode(buildName(index));
+    public StepNode toNode(Node parent, int index) {
+        StepNode node = new StepNode(buildName(index), parent);
         node.setCondition(condition);
         node.setScript(script);
         node.setPlugin(plugin);
         node.setExports(Sets.newHashSet(exports));
         node.setAllowFailure(allow_failure);
         node.setEnvironments(getVariableMap());
-        setupDocker(node);
+        setDocker(node);
 
         if (StringHelper.hasValue(node.getName()) && !NodePath.validate(node.getName())) {
             throw new YmlException("Invalid name '{0}'", node.getName());
+        }
+
+        if (ObjectsHelper.hasCollection(steps)) {
+            if (node.hasPlugin()) {
+                throw new YmlException("The plugin section is not allowed on the step with sub steps");
+            }
+
+            setSteps(node);
         }
 
         return node;

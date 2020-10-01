@@ -58,9 +58,6 @@ import java.util.*;
 public class FlowServiceImpl implements FlowService {
 
     @Autowired
-    private String serverUrl;
-
-    @Autowired
     private FlowDao flowDao;
 
     @Autowired
@@ -303,10 +300,5 @@ public class FlowServiceImpl implements FlowService {
     private void setupDefaultVars(Flow flow) {
         Vars<VarValue> localVars = flow.getLocally();
         localVars.put(Variables.Flow.Name, VarValue.of(flow.getName(), VarType.STRING, false));
-        localVars.put(Variables.Flow.Webhook, VarValue.of(getWebhook(flow.getName()), VarType.HTTP_URL, false));
-    }
-
-    private String getWebhook(String name) {
-        return serverUrl + "/webhooks/" + name;
     }
 }

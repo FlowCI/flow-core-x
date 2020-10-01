@@ -29,6 +29,7 @@ import static com.flowci.core.trigger.domain.Variables.PR_TITLE;
 import static com.flowci.core.trigger.domain.Variables.PR_URL;
 
 import com.flowci.domain.StringVars;
+import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -80,6 +81,14 @@ public final class GitPrTrigger extends GitTrigger {
         map.put(PR_BASE_REPO_BRANCH, base.ref);
         map.put(PR_BASE_REPO_COMMIT, base.commit);
         return map;
+    }
+
+    @Override
+    public boolean isSkip() {
+        if (!StringHelper.hasValue(title)) {
+            return false;
+        }
+        return title.contains(SkipMessage);
     }
 
     @Getter

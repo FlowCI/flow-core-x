@@ -16,21 +16,28 @@
 
 package com.flowci.core.test;
 
+import com.flowci.core.agent.domain.AgentInit;
+import com.flowci.core.agent.domain.Util;
 import com.flowci.core.agent.event.AgentStatusEvent;
+import com.flowci.core.agent.event.OnConnectedEvent;
 import com.flowci.core.common.config.AppProperties;
-import com.flowci.domain.Agent;
-import com.flowci.domain.Agent.Status;
+import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.domain.Agent.Status;
+import com.flowci.domain.Common;
 import com.flowci.domain.ObjectWrapper;
 import com.flowci.zookeeper.ZookeeperClient;
 import lombok.extern.log4j.Log4j2;
-import org.apache.zookeeper.CreateMode;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.socket.adapter.standard.StandardWebSocketSession;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -39,6 +46,10 @@ import java.util.concurrent.TimeUnit;
  */
 @Log4j2
 public abstract class ZookeeperScenario extends SpringScenario {
+
+    private final HttpHeaders headers = new HttpHeaders();
+
+    private final Map<String, Object> attributes = new HashMap<>();
 
     @Autowired
     private ZookeeperClient zk;
@@ -57,18 +68,26 @@ public abstract class ZookeeperScenario extends SpringScenario {
         }
     }
 
-    protected Agent mockAgentOnline(String agentPath) throws InterruptedException {
+    protected Agent mockAgentOnline(String token) throws InterruptedException {
         CountDownLatch counter = new CountDownLatch(1);
         ObjectWrapper<Agent> wrapper = new ObjectWrapper<>();
         addEventListener(new AgentStatusChangeListener(counter, wrapper));
 
-        zk.create(CreateMode.EPHEMERAL, agentPath, Status.IDLE.getBytes());
+        AgentInit init = new AgentInit();
+        init.setOs(Common.OS.LINUX);
+        init.setStatus(Status.IDLE);
+        init.setK8sCluster(false);
+        init.setPort(2222);
+
+        StandardWebSocketSession session = new StandardWebSocketSession(headers, attributes, null, null, null);
+        multicastEvent(new OnConnectedEvent(this, token, session, init));
+
         counter.await(10, TimeUnit.SECONDS);
 
         Assert.assertNotNull(wrapper.getValue());
         Assert.assertEquals(Status.IDLE, wrapper.getValue().getStatus());
-        Assert.assertTrue(zk.exist(agentPath + "-lock"));
 
+        Assert.assertTrue(zk.exist(Util.getZkLockPath(zkProperties.getAgentRoot(), wrapper.getValue())));
         return wrapper.getValue();
     }
 
@@ -77,16 +96,13 @@ public abstract class ZookeeperScenario extends SpringScenario {
         ObjectWrapper<Agent> wrapper = new ObjectWrapper<>();
         addEventListener(new AgentStatusChangeListener(counter, wrapper));
 
+
         zk.delete(agentPath, true);
         counter.await(10, TimeUnit.SECONDS);
 
         Assert.assertNotNull(wrapper.getValue());
         Assert.assertEquals(Status.OFFLINE, wrapper.getValue().getStatus());
         return wrapper.getValue();
-    }
-
-    protected Status getAgentStatus(String agentPath) {
-        return Status.fromBytes(zk.get(agentPath));
     }
 
     private static class AgentStatusChangeListener implements ApplicationListener<AgentStatusEvent> {

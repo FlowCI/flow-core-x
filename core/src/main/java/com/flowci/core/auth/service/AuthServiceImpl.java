@@ -18,18 +18,20 @@
 package com.flowci.core.auth.service;
 
 import com.flowci.core.auth.annotation.Action;
+import com.flowci.core.auth.dao.UserAuthDao;
 import com.flowci.core.auth.domain.PermissionMap;
 import com.flowci.core.auth.domain.Tokens;
+import com.flowci.core.auth.domain.UserAuth;
 import com.flowci.core.auth.helper.JwtHelper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
 import com.flowci.exception.AuthenticationException;
+import com.flowci.exception.NotFoundException;
 import com.flowci.util.HashingHelper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -43,16 +45,13 @@ public class AuthServiceImpl implements AuthService {
     private AppProperties.Auth authProperties;
 
     @Autowired
+    private UserAuthDao userAuthDao;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
     private SessionManager sessionManager;
-
-    @Autowired
-    private Cache onlineUsersCache;
-
-    @Autowired
-    private Cache refreshTokenCache;
 
     @Autowired
     private PermissionMap permissionMap;
@@ -70,23 +69,23 @@ public class AuthServiceImpl implements AuthService {
             throw new AuthenticationException("Invalid password");
         }
 
-        // create token
         String token = JwtHelper.create(user, authProperties.getExpireSeconds());
-        sessionManager.set(user);
-        onlineUsersCache.put(email, user);
-
-        // create refresh token
         String refreshToken = HashingHelper.md5(email + passwordOnMd5);
-        refreshTokenCache.put(email, refreshToken);
 
+        UserAuth auth = new UserAuth();
+        auth.setEmail(email);
+        auth.setToken(token);
+        auth.setRefreshToken(refreshToken);
+        save(auth);
+
+        sessionManager.set(user);
         return new Tokens(token, refreshToken);
     }
 
     @Override
     public void logout() {
         User user = sessionManager.remove();
-        onlineUsersCache.evict(user.getEmail());
-        refreshTokenCache.evict(user.getEmail());
+        userAuthDao.deleteByEmail(user.getEmail());
     }
 
     @Override
@@ -107,20 +106,26 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = tokens.getRefreshToken();
         String email = JwtHelper.decode(token);
 
-        if (!Objects.equals(refreshTokenCache.get(email, String.class), refreshToken)) {
+        Optional<UserAuth> auth = userAuthDao.findByEmail(email);
+        if (!auth.isPresent()) {
+            throw new AuthenticationException("Not signed in");
+        }
+
+        UserAuth userAuth = auth.get();
+        if (!Objects.equals(userAuth.getRefreshToken(), refreshToken)) {
             throw new AuthenticationException("Invalid refresh token");
         }
 
         // find user from online cache or database
-        User user = onlineUsersCache.get(email, User.class);
+        User user = getUser(email);
         if (Objects.isNull(user)) {
-            user = userService.getByEmail(email);
+            throw new AuthenticationException("User not found");
         }
 
         boolean verify = JwtHelper.verify(token, user, false);
         if (verify) {
             String newToken = JwtHelper.create(user, authProperties.getExpireSeconds());
-            onlineUsersCache.put(email, user);
+            userAuthDao.update(userAuth.getId(), newToken);
             return new Tokens(newToken, refreshToken);
         }
 
@@ -141,7 +146,7 @@ public class AuthServiceImpl implements AuthService {
     public Optional<User> get(String token) {
         String email = JwtHelper.decode(token);
 
-        User user = onlineUsersCache.get(email, User.class);
+        User user = getUser(email);
         if (Objects.isNull(user)) {
             return Optional.empty();
         }
@@ -152,5 +157,23 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return Optional.empty();
+    }
+
+    private User getUser(String email) {
+        try {
+            return userService.getByEmail(email);
+        } catch (NotFoundException e) {
+            return null;
+        }
+    }
+
+    private void save(UserAuth auth) {
+        Optional<UserAuth> optional = userAuthDao.findByEmail(auth.getEmail());
+        if (optional.isPresent()) {
+            UserAuth exist = optional.get();
+            userAuthDao.update(exist.getId(), auth.getToken(), auth.getRefreshToken());
+            return;
+        }
+        userAuthDao.insert(auth);
     }
 }

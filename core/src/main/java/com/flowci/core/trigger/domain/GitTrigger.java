@@ -34,6 +34,8 @@ import java.io.Serializable;
 @ToString(of = {"source", "event"})
 public abstract class GitTrigger implements Serializable {
 
+    protected final static String SkipMessage = "[ci skip]";
+
     private GitSource source;
 
     private GitEvent event;
@@ -82,4 +84,6 @@ public abstract class GitTrigger implements Serializable {
 
         throw new NotFoundException("Cannot found related job trigger for {0}", event.name());
     }
+
+    public abstract boolean isSkip();
 }

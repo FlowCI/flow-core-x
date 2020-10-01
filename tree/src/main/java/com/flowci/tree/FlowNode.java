@@ -29,6 +29,6 @@ public class FlowNode extends Node {
     private List<LocalTask> notifications = new LinkedList<>();
 
     public FlowNode(String name) {
-        super(name);
+        super(name, null);
     }
 }

@@ -17,17 +17,15 @@
 package com.flowci.core.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.core.agent.domain.K8sAgentHost;
 import com.flowci.core.agent.domain.LocalUnixAgentHost;
 import com.flowci.core.agent.domain.SshAgentHost;
 import com.flowci.core.common.mongo.EncryptConverter;
 import com.flowci.core.common.mongo.VariableMapConverter;
-import com.flowci.core.secret.domain.AndroidSign;
+import com.flowci.core.secret.domain.*;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.TextConfig;
 import com.flowci.core.job.domain.JobItem;
-import com.flowci.core.secret.domain.AuthSecret;
-import com.flowci.core.secret.domain.RSASecret;
-import com.flowci.core.secret.domain.TokenSecret;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import lombok.extern.log4j.Log4j2;
@@ -88,9 +86,11 @@ public class MongoConfig extends AbstractMongoConfiguration {
         context.addEntity(RSASecret.class);
         context.addEntity(TokenSecret.class);
         context.addEntity(AndroidSign.class);
+        context.addEntity(KubeConfigSecret.class);
 
         context.addEntity(LocalUnixAgentHost.class);
         context.addEntity(SshAgentHost.class);
+        context.addEntity(K8sAgentHost.class);
 
         return context;
     }

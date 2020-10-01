@@ -3,6 +3,7 @@ package com.flowci.core.job.service;
 import com.flowci.core.api.adviser.ApiAuth;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.ExecutedLocalTaskDao;
 import com.flowci.core.job.domain.Executed;
@@ -16,7 +17,7 @@ import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.docker.ContainerManager;
 import com.flowci.docker.DockerManager;
 import com.flowci.docker.ImageManager;
-import com.flowci.docker.domain.DockerStartOption;
+import com.flowci.docker.domain.ContainerStartOption;
 import com.flowci.domain.LocalTask;
 import com.flowci.exception.StatusException;
 import com.flowci.tree.NodeTree;
@@ -40,9 +41,6 @@ public class LocalTaskServiceImpl implements LocalTaskService {
     private static final int DefaultTimeout = 300; // seconds
 
     @Autowired
-    private String serverUrl;
-
-    @Autowired
     private ExecutedLocalTaskDao executedLocalTaskDao;
 
     @Autowired
@@ -56,6 +54,9 @@ public class LocalTaskServiceImpl implements LocalTaskService {
 
     @Autowired
     private YmlManager ymlManager;
+
+    @Autowired
+    private SettingService settingService;
 
     @Override
     public void init(Job job) {
@@ -115,12 +116,12 @@ public class LocalTaskServiceImpl implements LocalTaskService {
         ExecutedLocalTask exec = optional.get();
         updateStatusTimeAndSave(exec, Executed.Status.RUNNING, null);
 
-        DockerStartOption option = new DockerStartOption();
+        ContainerStartOption option = new ContainerStartOption();
         option.setImage(DefaultImage);
         option.addEntryPoint("/bin/bash");
         option.addEntryPoint("-c");
         option.getEnv()
-                .putAndReturn(Variables.App.Url, serverUrl)
+                .putAndReturn(Variables.Agent.ServerUrl, settingService.get().getServerUrl())
                 .putAndReturn(Variables.Agent.Token, ApiAuth.LocalTaskToken)
                 .putAndReturn(Variables.Agent.Workspace, "/ws/")
                 .putAndReturn(Variables.Agent.PluginDir, "/ws/.plugins")
@@ -178,7 +179,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
         eventManager.publish(new TaskUpdateEvent(this, t.getJobId(), list, false));
     }
 
-    private void runDockerTask(DockerStartOption option, ExecutedLocalTask r) throws Exception {
+    private void runDockerTask(ContainerStartOption option, ExecutedLocalTask r) throws Exception {
         ContainerManager cm = dockerManager.getContainerManager();
         ImageManager im = dockerManager.getImageManager();
         String image = option.getImage();
@@ -188,8 +189,8 @@ public class LocalTaskServiceImpl implements LocalTaskService {
             String cid = cm.start(option);
             r.setContainerId(cid);
 
-            cm.wait(cid, DefaultTimeout, (frame -> log.debug(new String(frame.getPayload()))));
-            Long exitCode = cm.inspect(cid).getState().getExitCodeLong();
+            cm.wait(cid, DefaultTimeout, (output -> log.debug(new String(output.getData()))));
+            Long exitCode = cm.inspect(cid).getExitCode();
             r.setCode(exitCode.intValue());
         } finally {
             if (r.hasContainerId()) {

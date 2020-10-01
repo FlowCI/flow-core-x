@@ -67,6 +67,14 @@ public class Step implements Executed {
 
     private List<DockerOption> dockers;
 
+    private boolean isRootStep;
+
+    // parent node path
+    private String parent;
+
+    // children step node path
+    private List<String> children;
+
     /**
      * Process id
      */

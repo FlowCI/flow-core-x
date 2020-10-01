@@ -17,21 +17,18 @@
 package com.flowci.core.agent.controller;
 
 import com.flowci.core.agent.domain.AgentAction;
-import com.flowci.core.agent.domain.AgentInit;
 import com.flowci.core.agent.domain.CreateOrUpdateAgent;
 import com.flowci.core.agent.domain.DeleteAgent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.job.service.LoggingService;
-import com.flowci.domain.Agent;
-import com.flowci.domain.Settings;
+import com.flowci.core.agent.domain.Agent;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -82,15 +79,6 @@ public class AgentController {
     // --------------------------------------------------------
     //      Functions require agent token header
     // --------------------------------------------------------
-
-    @PostMapping("/api/connect")
-    public Settings connect(@RequestHeader(AgentAuth.HeaderAgentToken) String token,
-                            @RequestBody AgentInit init,
-                            HttpServletRequest request) {
-        init.setToken(token);
-        init.setIp(request.getRemoteHost());
-        return agentService.connect(init);
-    }
 
     @PostMapping("/api/profile")
     public void profile(@RequestHeader(AgentAuth.HeaderAgentToken) String token,

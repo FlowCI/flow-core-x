@@ -16,9 +16,7 @@
 
 package com.flowci.core.common.config;
 
-import java.net.URI;
-import java.net.URL;
-import java.nio.file.Path;
+import com.flowci.util.StringHelper;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -27,8 +25,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
 
 /**
  * @author yang
@@ -46,9 +46,6 @@ public class AppProperties {
 
     // static site resource
     private Path siteDir;
-
-    @NotBlank
-    private String url;
 
     @NotBlank
     @Length(max = 16, min = 16)
@@ -147,9 +144,13 @@ public class AppProperties {
 
         private String callbackQueue;
 
-        private String shellLogEx; // fanout exchange for shell log
+        private String shellLogQueue; // fanout exchange for shell log
 
-        private String ttyLogEx; // fanout exchange for tty log
+        private String ttyLogQueue;
+
+        private String wsBroadcastEx; // fanout exchange for websocket broadcast event
+
+        private String eventBroadcastEx; // fanout exchange for event broadcast event
 
         private String jobDlQueue; // job dead letter queue
 
@@ -180,5 +181,22 @@ public class AppProperties {
         private String key;
 
         private String secret;
+    }
+
+    @Data
+    public static class K8s {
+
+        private String namespace;
+
+        private String pod;
+
+        private String podIp;
+
+        // indicate that is deployed in cluster
+        public boolean isInCluster() {
+            return StringHelper.hasValue(namespace)
+                    && StringHelper.hasValue(pod)
+                    && StringHelper.hasValue(podIp);
+        }
     }
 }

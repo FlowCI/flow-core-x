@@ -21,9 +21,9 @@ import com.flowci.core.agent.domain.CmdOut;
 import com.flowci.core.agent.domain.ShellOut;
 import com.flowci.core.agent.domain.TtyCmd;
 import com.flowci.core.agent.event.AgentStatusEvent;
+import com.flowci.core.agent.event.OnCmdOutEvent;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.common.rabbit.QueueOperations;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.event.FlowCreatedEvent;
@@ -35,7 +35,7 @@ import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.core.job.manager.JobActionManager;
-import com.flowci.domain.Agent;
+import com.flowci.core.agent.domain.Agent;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -63,7 +63,10 @@ public class JobEventServiceImpl implements JobEventService {
     private RabbitOperations jobsQueueManager;
 
     @Autowired
-    private QueueOperations callbackQueueManager;
+    private JobActionManager jobActionManager;
+
+    @Autowired
+    private TaskExecutor appTaskExecutor;
 
     @Autowired
     private JobService jobService;
@@ -71,17 +74,11 @@ public class JobEventServiceImpl implements JobEventService {
     @Autowired
     private StepService stepService;
 
-    @Autowired
-    private JobActionManager jobActionManager;
-
-    @Autowired
-    private TaskExecutor appTaskExecutor;
-
     //====================================================================
     //        %% Internal events
     //====================================================================
 
-    @EventListener(FlowInitEvent.class)
+    @EventListener
     public void startJobQueueConsumers(FlowInitEvent event) {
         for (Flow flow : event.getFlows()) {
             declareJobQueueAndStartConsumer(flow);
@@ -111,7 +108,7 @@ public class JobEventServiceImpl implements JobEventService {
         });
     }
 
-    @EventListener(value = AgentStatusEvent.class)
+    @EventListener
     public void updateJobAndStepWhenOffline(AgentStatusEvent event) {
         Agent agent = event.getAgent();
 
@@ -127,6 +124,36 @@ public class JobEventServiceImpl implements JobEventService {
         jobActionManager.toCancelled(job, "Agent unexpected offline");
     }
 
+    @EventListener
+    public void handleCmdOutFromAgent(OnCmdOutEvent event) {
+        byte[] raw = event.getRaw();
+        byte ind = raw[0];
+        byte[] body = Arrays.copyOfRange(raw, 1, raw.length);
+
+        try {
+            switch (ind) {
+                case CmdOut.ShellOutInd:
+                    ShellOut shellOut = objectMapper.readValue(body, ShellOut.class);
+                    Step step = stepService.get(shellOut.getId());
+                    step.setFrom(shellOut);
+
+                    log.info("[Callback]: {}-{} = {}", step.getJobId(), step.getNodePath(), step.getStatus());
+                    handleCallback(step);
+                    break;
+
+                case CmdOut.TtyOutInd:
+                    TtyCmd.Out ttyOut = objectMapper.readValue(body, TtyCmd.Out.class);
+                    eventManager.publish(new TtyStatusUpdateEvent(this, ttyOut));
+                    break;
+
+                default:
+                    log.warn("Invalid message from callback queue: {}", new String(raw));
+            }
+        } catch (IOException e) {
+            log.warn("Unable to decode message from callback queue: {}", new String(raw));
+        }
+    }
+
     @Override
     public void handleCallback(Step step) {
         Job job = jobService.get(step.getJobId());
@@ -136,39 +163,6 @@ public class JobEventServiceImpl implements JobEventService {
     //====================================================================
     //        %% Rabbit events
     //====================================================================
-
-    @EventListener(value = ContextRefreshedEvent.class)
-    public void startCallbackQueueConsumer() throws IOException {
-        callbackQueueManager.startConsumer(false, (header, raw, envelope) -> {
-            byte ind = raw[0];
-            byte[] body = Arrays.copyOfRange(raw, 1, raw.length);
-
-            try {
-                switch (ind) {
-                    case CmdOut.ShellOutInd:
-                        ShellOut shellOut = objectMapper.readValue(body, ShellOut.class);
-                        Step step = stepService.get(shellOut.getId());
-                        step.setFrom(shellOut);
-
-                        log.info("[Callback]: {}-{} = {}", step.getJobId(), step.getNodePath(), step.getStatus());
-                        handleCallback(step);
-                        break;
-
-                    case CmdOut.TtyOutInd:
-                        TtyCmd.Out ttyOut = objectMapper.readValue(body, TtyCmd.Out.class);
-                        eventManager.publish(new TtyStatusUpdateEvent(this, ttyOut));
-                        break;
-
-                    default:
-                        log.warn("Invalid message from callback queue: {}", new String(raw));
-                }
-            } catch (IOException e) {
-                log.warn("Unable to decode message from callback queue: {}", new String(raw));
-            }
-
-            return true;
-        });
-    }
 
     @EventListener(value = ContextRefreshedEvent.class)
     public void startJobDeadLetterConsumer() throws IOException {

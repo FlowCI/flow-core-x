@@ -20,11 +20,12 @@ import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.ExecutedCmdDao;
 import com.flowci.core.job.domain.Executed;
-import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.StepUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.exception.NotFoundException;
+import com.flowci.tree.Node;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.StepNode;
@@ -33,10 +34,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Base64;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -137,6 +135,14 @@ public class StepServiceImpl implements StepService {
         entity.setError(err);
         executedCmdDao.save(entity);
 
+        // update parent status
+        NodePath parentPath = NodePath.create(entity.getParent());
+        if (!entity.isRootStep()) {
+            Step parentStep = get(entity.getJobId(), parentPath.getPathInStr());
+            parentStep.setStatus(entity.getStatus());
+            executedCmdDao.save(parentStep);
+        }
+
         String jobId = entity.getJobId();
         jobStepCache.invalidate(jobId);
 
@@ -188,6 +194,21 @@ public class StepServiceImpl implements StepService {
                 .setNodePath(node.getPathAsString())
                 .setAllowFailure(node.isAllowFailure())
                 .setPlugin(node.getPlugin())
-                .setDockers(node.getDockers());
+                .setDockers(node.getDockers())
+                .setRootStep(node.isRootStep())
+                .setParent(node.getParent().getPathAsString())
+                .setChildren(childrenPaths(node));
+    }
+
+    private static List<String> childrenPaths(StepNode node) {
+        if (!node.hasChildren()) {
+            return null;
+        }
+
+        List<String> paths = new ArrayList<>(node.getChildren().size());
+        for (StepNode child : node.getChildren()) {
+            paths.add(child.getPathAsString());
+        }
+        return paths;
     }
 }

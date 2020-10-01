@@ -19,21 +19,16 @@ package com.flowci.core.flow.service;
 import com.cronutils.model.CronType;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.parser.CronParser;
-import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.common.manager.SpringTaskManager;
 import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.event.FlowInitEvent;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.CreateNewJobEvent;
-import com.flowci.zookeeper.ZookeeperClient;
-import com.flowci.zookeeper.ZookeeperException;
 import lombok.extern.log4j.Log4j2;
-import org.apache.curator.utils.ZKPaths;
-import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -57,7 +52,7 @@ public class CronServiceImpl implements CronService {
     private final Map<String, ScheduledFuture<?>> scheduled = new ConcurrentHashMap<>();
 
     @Autowired
-    private TaskScheduler taskScheduler;
+    private TaskScheduler cronScheduler;
 
     @Autowired
     private YmlDao ymlDao;
@@ -66,24 +61,11 @@ public class CronServiceImpl implements CronService {
     private SpringEventManager eventManager;
 
     @Autowired
-    private AppProperties.Zookeeper zkProperties;
-
-    @Autowired
-    private ZookeeperClient zk;
+    private SpringTaskManager taskManager;
 
     //====================================================================
     //        %% Internal events
     //====================================================================
-
-    @EventListener(ContextRefreshedEvent.class)
-    public void initZkRoot() {
-        try {
-            String root = zkProperties.getCronRoot();
-            zk.create(CreateMode.PERSISTENT, root, null);
-        } catch (ZookeeperException ignore) {
-
-        }
-    }
 
     @EventListener(FlowInitEvent.class)
     public void initFlowCron(FlowInitEvent event) {
@@ -111,7 +93,7 @@ public class CronServiceImpl implements CronService {
 
         // schedule next cron task
         String expression = "0 " + flow.getCron();
-        ScheduledFuture<?> schedule = taskScheduler.schedule(new CronRunner(flow), new CronTrigger(expression));
+        ScheduledFuture<?> schedule = cronScheduler.schedule(new CronRunner(flow), new CronTrigger(expression));
         scheduled.put(flow.getId(), schedule);
     }
 
@@ -128,50 +110,23 @@ public class CronServiceImpl implements CronService {
 
         private final Flow flow;
 
-        private final String path;
-
         CronRunner(Flow flow) {
             this.flow = flow;
-            this.path = getFlowCronPath();
         }
 
         @Override
         public void run() {
-            if (lock()) {
+            String expression = flow.getCron();
+            String expressionBase64 = Base64.getEncoder().encodeToString(expression.getBytes());
+            String taskName = String.format("%s-%s", flow.getName(), expressionBase64);
+
+            taskManager.run(taskName, () -> {
                 Optional<Yml> yml = ymlDao.findById(flow.getId());
                 yml.ifPresent((obj) -> {
                     log.info("Start flow '{}' from cron task", flow.getName());
                     eventManager.publish(new CreateNewJobEvent(this, flow, obj.getRaw(), Trigger.SCHEDULER, null));
                 });
-                clean();
-            }
-        }
-
-        /**
-         * check zk and lock
-         */
-        private boolean lock() {
-            try {
-                zk.create(CreateMode.EPHEMERAL, path, null);
-                return true;
-            } catch (ZookeeperException e) {
-                log.warn("Unable to init cron : {}", e.getMessage());
-                return false;
-            }
-        }
-
-        private void clean() {
-            try {
-                zk.delete(path, false);
-            } catch (ZookeeperException ignore) {
-
-            }
-        }
-
-        private String getFlowCronPath() {
-            String expression = flow.getCron();
-            String expressionBase64 = Base64.getEncoder().encodeToString(expression.getBytes());
-            return ZKPaths.makePath(zkProperties.getCronRoot(), flow.getName() + "-" + expressionBase64);
+            });
         }
     }
 }

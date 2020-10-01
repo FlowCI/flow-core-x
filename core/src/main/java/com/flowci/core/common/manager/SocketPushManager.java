@@ -17,14 +17,20 @@
 package com.flowci.core.common.manager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.PushBody;
 import com.flowci.core.common.domain.PushEvent;
+import com.flowci.core.common.rabbit.RabbitOperations;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author yang
@@ -33,17 +39,41 @@ import java.io.IOException;
 @Component
 public class SocketPushManager {
 
+    private final static String HeaderTopic = "TOPIC";
+
     @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
+    private AppProperties.RabbitMQ rabbitProperties;
+
+    @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
+
+    @Autowired
+    private String wsBroadcastQueue;
+
+    @Autowired
+    private RabbitOperations broadcastQueueManager;
+
+    @EventListener(ContextRefreshedEvent.class)
+    public void subscribeBroadcastQueue() throws IOException {
+        broadcastQueueManager.startConsumer(wsBroadcastQueue, true, (headers, body, envelope) -> {
+            try {
+                String topic = headers.get(HeaderTopic).toString();
+                simpMessagingTemplate.convertAndSend(topic, body);
+            } catch (Exception e) {
+                log.warn(e);
+            }
+            return false;
+        });
+    }
 
     public void push(String topic, PushEvent event, Object obj) {
         try {
             PushBody push = new PushBody(event, obj);
-            String json = objectMapper.writeValueAsString(push);
-            simpMessagingTemplate.convertAndSend(topic, json);
+            byte[] data = objectMapper.writeValueAsBytes(push);
+            push(topic, data);
         } catch (Exception e) {
             log.warn(e.getMessage());
         }
@@ -51,7 +81,9 @@ public class SocketPushManager {
 
     public void push(String topic, byte[] bytes) {
         try {
-            simpMessagingTemplate.convertAndSend(topic, bytes);
+            Map<String, Object> headers = new HashMap<>(1);
+            headers.put(HeaderTopic, topic);
+            broadcastQueueManager.sendToEx(rabbitProperties.getWsBroadcastEx(), bytes, headers);
         } catch (Exception e) {
             log.warn(e.getMessage());
         }
