@@ -354,10 +354,13 @@ public class AgentServiceImpl implements AgentService {
 
     @EventListener
     public void onDisconnected(OnDisconnectedEvent event) {
-        Agent target = getByToken(event.getToken());
+        try {
+            Agent target = getByToken(event.getToken());
+            update(target, OFFLINE);
+            syncLockNode(target, false);
+        } catch (NotFoundException ignore) {
 
-        update(target, OFFLINE);
-        syncLockNode(target, false);
+        }
     }
 
     @EventListener
