@@ -10,8 +10,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -36,7 +34,9 @@ public final class ShellIn extends CmdIn {
     @JsonIgnore
     private String condition;
 
-    private List<String> scripts;
+    private List<String> bash;
+
+    private List<String> pwsh;
 
     private int timeout = 1800;
 
@@ -48,11 +48,11 @@ public final class ShellIn extends CmdIn {
         super(Type.SHELL);
     }
 
-    public void addScript(String script) {
+    public void addBash(String script) {
         if (Strings.isNullOrEmpty(script)) {
             return;
         }
-        scripts.add(script);
+        bash.add(script);
     }
 
     public void addEnvFilters(Set<String> exports) {

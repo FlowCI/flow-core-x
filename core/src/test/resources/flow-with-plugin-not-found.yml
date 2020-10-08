@@ -7,8 +7,8 @@ steps:
       FLOW_WORKSPACE: "echo step"
       FLOW_VERSION: "echo step version"
     allow_failure: true
-    plugin: "not found.."
+    bash: "not found.."
 
   - name: step2
     allow_failure: false
-    script: "echo 2"
+    bash: "echo 2"

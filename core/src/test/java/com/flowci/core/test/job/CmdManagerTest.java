@@ -127,7 +127,7 @@ public class CmdManagerTest extends SpringScenario {
 
         // then:
         Vars<String> inputs = cmdIn.getInputs();
-        List<String> scripts = cmdIn.getScripts();
+        List<String> scripts = cmdIn.getBash();
         Assert.assertEquals(2, scripts.size());
 
         Assert.assertEquals("gittest", cmdIn.getPlugin());
@@ -168,8 +168,8 @@ public class CmdManagerTest extends SpringScenario {
         Assert.assertEquals("overwrite-parent", cmdStep2_1.getInputs().get("STEP_2"));
 
         // scripts should be linked
-        Assert.assertEquals("echo 2", cmdStep2_1.getScripts().get(0));
-        Assert.assertEquals("echo \"step-2-1\"\n", cmdStep2_1.getScripts().get(1));
+        Assert.assertEquals("echo 2", cmdStep2_1.getBash().get(0));
+        Assert.assertEquals("echo \"step-2-1\"\n", cmdStep2_1.getBash().get(1));
 
         // docker should from parent step
         Assert.assertEquals("ubuntu:18.04", cmdStep2_1.getDockers().get(0).getImage());
@@ -180,8 +180,8 @@ public class CmdManagerTest extends SpringScenario {
         Assert.assertEquals("parent", cmdStep2_2.getInputs().get("STEP_2"));
 
         // scripts should be linked
-        Assert.assertEquals("echo 2", cmdStep2_2.getScripts().get(0));
-        Assert.assertEquals("echo \"step-2-2\"\n", cmdStep2_2.getScripts().get(1));
+        Assert.assertEquals("echo 2", cmdStep2_2.getBash().get(0));
+        Assert.assertEquals("echo \"step-2-2\"\n", cmdStep2_2.getBash().get(1));
 
         // docker should be applied from step2-2
         Assert.assertEquals("redis", cmdStep2_2.getDockers().get(0).getImage());

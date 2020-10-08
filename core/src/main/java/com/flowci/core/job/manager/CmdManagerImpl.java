@@ -46,6 +46,12 @@ import java.util.*;
 @Component
 public class CmdManagerImpl implements CmdManager {
 
+    private enum ShellType {
+        Bash,
+
+        PowerShell;
+    }
+
     @Autowired
     private SpringEventManager eventManager;
 
@@ -60,7 +66,8 @@ public class CmdManagerImpl implements CmdManager {
                 .setCondition(node.getCondition())
                 .setAllowFailure(node.isAllowFailure())
                 .setDockers(findDockerOptions(node))
-                .setScripts(linkScript(node))
+                .setBash(linkScript(node, ShellType.Bash))
+                .setPwsh(linkScript(node, ShellType.PowerShell))
                 .setEnvFilters(linkFilters(node))
                 .setInputs(linkInputs(node).merge(job.getContext(), false))
                 .setTimeout(job.getTimeout());
@@ -125,17 +132,24 @@ public class CmdManagerImpl implements CmdManager {
         return output;
     }
 
-    private List<String> linkScript(StepNode current) {
+    private List<String> linkScript(StepNode current, ShellType shellType) {
         List<String> output = new LinkedList<>();
 
         if (current.hasParent()) {
             Node parent = current.getParent();
             if (parent instanceof StepNode) {
-                output.addAll(linkScript((StepNode) parent));
+                output.addAll(linkScript((StepNode) parent, shellType));
             }
         }
 
-        output.add(current.getScript());
+        if (shellType == ShellType.Bash) {
+            output.add(current.getBash());
+        }
+
+        if (shellType == ShellType.PowerShell) {
+            output.add(current.getPwsh());
+        }
+
         return output;
     }
 
@@ -161,7 +175,7 @@ public class CmdManagerImpl implements CmdManager {
         cmd.setPlugin(name);
         cmd.setAllowFailure(plugin.isAllowFailure());
         cmd.addEnvFilters(plugin.getExports());
-        cmd.addScript(plugin.getScript());
+        cmd.addBash(plugin.getScript());
 
         // apply docker from plugin as run time if it's specified
         ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> {
