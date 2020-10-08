@@ -45,7 +45,9 @@ public class StepYml extends YmlBase<StepNode> {
      */
     private String condition;
 
-    private String script;
+    private String bash; // bash script
+
+    private String pwsh; // powershell script
 
     private String plugin;
 
@@ -56,7 +58,8 @@ public class StepYml extends YmlBase<StepNode> {
     StepYml(StepNode node) {
         setName(node.getName());
         setEnvs(node.getEnvironments());
-        setScript(node.getScript());
+        setBash(node.getBash());
+        setPwsh(node.getPwsh());
         setPlugin(node.getPlugin());
         setAllow_failure(node.isAllowFailure());
     }
@@ -64,7 +67,8 @@ public class StepYml extends YmlBase<StepNode> {
     public StepNode toNode(Node parent, int index) {
         StepNode node = new StepNode(buildName(index), parent);
         node.setCondition(condition);
-        node.setScript(script);
+        node.setBash(bash);
+        node.setPwsh(pwsh);
         node.setPlugin(plugin);
         node.setExports(Sets.newHashSet(exports));
         node.setAllowFailure(allow_failure);
