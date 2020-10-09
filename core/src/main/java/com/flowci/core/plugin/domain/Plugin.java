@@ -57,7 +57,9 @@ public class Plugin extends PluginRepoInfo {
 
     private DockerOption docker;
 
-    private String script;
+    private String bash;
+
+    private String pwsh;
 
     private String icon;
 
@@ -72,7 +74,8 @@ public class Plugin extends PluginRepoInfo {
         this.setInputs(src.inputs);
         this.setStatsTypes(src.statsTypes);
         this.setAllowFailure(src.allowFailure);
-        this.setScript(src.script);
+        this.setBash(src.bash);
+        this.setPwsh(src.pwsh);
         this.setDocker(src.docker);
     }
 }

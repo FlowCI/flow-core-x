@@ -9,9 +9,9 @@ steps:
   - name: step-docker
     docker:
       image: "step:0.1"
-    script: |
+    bash: |
       echo hello
 
   - name: flow-docker
-    script: |
+    bash: |
       echo "test"

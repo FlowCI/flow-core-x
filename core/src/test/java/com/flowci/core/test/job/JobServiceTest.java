@@ -295,7 +295,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertTrue(cmd.isAllowFailure());
         Assert.assertEquals("echo step version", cmd.getInputs().get("FLOW_VERSION"));
         Assert.assertEquals("echo step", cmd.getInputs().get("FLOW_WORKSPACE"));
-        Assert.assertEquals("echo hello\n", cmd.getScripts().get(0));
+        Assert.assertEquals("echo hello\n", cmd.getBash().get(0));
 
         // when: make dummy response from agent for step 1
         firstStep.setStatus(Step.Status.SUCCESS);
@@ -318,7 +318,7 @@ public class JobServiceTest extends ZookeeperScenario {
         cmd = (ShellIn) cmdForStep2.getValue();
         Assert.assertEquals(secondStep.getId(), cmd.getId());
         Assert.assertFalse(cmd.isAllowFailure());
-        Assert.assertEquals("echo 2", cmd.getScripts().get(0));
+        Assert.assertEquals("echo 2", cmd.getBash().get(0));
 
         // when: make dummy response from agent for step 2
         secondStep.setStatus(Step.Status.SUCCESS);

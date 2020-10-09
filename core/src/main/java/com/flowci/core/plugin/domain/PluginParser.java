@@ -22,10 +22,12 @@ import com.flowci.domain.VarType;
 import com.flowci.domain.Version;
 import com.flowci.tree.yml.DockerYml;
 import com.flowci.util.ObjectsHelper;
+import com.flowci.util.StringHelper;
 import com.flowci.util.YamlHelper;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.yaml.snakeyaml.Yaml;
+import sun.jvm.hotspot.oops.ObjectHeap;
 
 import java.io.InputStream;
 import java.util.LinkedList;
@@ -62,6 +64,10 @@ public class PluginParser {
 
         public Boolean allow_failure;
 
+        public String bash;
+
+        public String pwsh;
+
         public String script;
 
         public DockerYml docker;
@@ -69,7 +75,8 @@ public class PluginParser {
         public Plugin toPlugin() {
             Plugin plugin = new Plugin(name, Version.parse(version));
             plugin.setIcon(icon);
-            plugin.setScript(script);
+            plugin.setBash(bash);
+            plugin.setPwsh(pwsh);
 
             ObjectsHelper.ifNotNull(docker, val -> plugin.setDocker(val.toDockerOption()));
             ObjectsHelper.ifNotNull(exports, plugin::setExports);
@@ -84,6 +91,13 @@ public class PluginParser {
                     plugin.getInputs().add(wrapper.toVariable());
                 }
             });
+
+            // backward compatible, set script to bash
+            if (StringHelper.hasValue(script)) {
+                if (!StringHelper.hasValue(bash)) {
+                    plugin.setBash(script);
+                }
+            }
 
             return plugin;
         }

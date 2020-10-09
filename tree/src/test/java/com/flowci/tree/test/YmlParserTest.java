@@ -86,7 +86,8 @@ public class YmlParserTest {
 
         StepNode step2 = steps.get(1);
         Assert.assertEquals("step2", step2.getName());
-        Assert.assertEquals("echo 2", step2.getScript());
+        Assert.assertEquals("echo 2", step2.getBash());
+        Assert.assertEquals("echo powershell", step2.getPwsh());
 
         DockerOption dockerOption = step2.getDockers().get(0);
         Assert.assertNotNull(dockerOption);

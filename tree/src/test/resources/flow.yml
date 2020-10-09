@@ -42,4 +42,5 @@ steps:
        - "2700:2700"
      entrypoint: ["/bin/sh"]
      network: host
-   script: "echo 2"
+   bash: "echo 2"
+   pwsh: "echo powershell"

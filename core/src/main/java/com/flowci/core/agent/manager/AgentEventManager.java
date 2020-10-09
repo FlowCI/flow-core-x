@@ -120,6 +120,15 @@ public class AgentEventManager extends BinaryWebSocketHandler {
         agentSessionStore.remove(token, session);
     }
 
+    private <T> void writeMessage(WebSocketSession session, ResponseMessage<T> msg) {
+        try {
+            byte[] bytes = objectMapper.writeValueAsBytes(msg);
+            session.sendMessage(new BinaryMessage(bytes));
+        } catch (IOException e) {
+            log.warn(e);
+        }
+    }
+
     private void onConnected(WebSocketSession session, String token, byte[] body) {
         try {
             AgentInit init = objectMapper.readValue(body, AgentInit.class);
@@ -134,7 +143,7 @@ public class AgentEventManager extends BinaryWebSocketHandler {
             log.debug("Agent {} is connected with status {}", token, init.getStatus());
         } catch (Exception e) {
             log.warn(e);
-            writeMessage(token, new ResponseMessage<Void>(StatusCode.FATAL, e.getMessage(), null));
+            writeMessage(session, new ResponseMessage<Void>(StatusCode.FATAL, e.getMessage(), null));
         }
     }
 

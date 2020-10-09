@@ -6,8 +6,8 @@ steps:
 - envs:
     FLOW_WORKSPACE: "echo step"
     FLOW_VERSION: "echo step version"
-  script: |
+  bash: |
     echo shoulde failure
 
-- script: |
+- bash: |
     echo cannot run

@@ -7,7 +7,7 @@ steps:
     FLOW_WORKSPACE: "echo step"
     FLOW_VERSION: "echo step version"
   allow_failure: true
-  script: |
+  bash: |
     echo hello
 
 - name: plugin-test
@@ -15,5 +15,5 @@ steps:
     GIT_STR_VAL: "test"
     GIT_DEFAULT_VAL: "60"
   plugin: gittest
-  script: |
+  bash: |
     echo "plugin-test"

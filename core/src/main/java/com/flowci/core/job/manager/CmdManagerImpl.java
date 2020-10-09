@@ -60,7 +60,8 @@ public class CmdManagerImpl implements CmdManager {
                 .setCondition(node.getCondition())
                 .setAllowFailure(node.isAllowFailure())
                 .setDockers(findDockerOptions(node))
-                .setScripts(linkScript(node))
+                .setBash(linkScript(node, ShellIn.ShellType.Bash))
+                .setPwsh(linkScript(node, ShellIn.ShellType.PowerShell))
                 .setEnvFilters(linkFilters(node))
                 .setInputs(linkInputs(node).merge(job.getContext(), false))
                 .setTimeout(job.getTimeout());
@@ -125,17 +126,24 @@ public class CmdManagerImpl implements CmdManager {
         return output;
     }
 
-    private List<String> linkScript(StepNode current) {
+    private List<String> linkScript(StepNode current, ShellIn.ShellType shellType) {
         List<String> output = new LinkedList<>();
 
         if (current.hasParent()) {
             Node parent = current.getParent();
             if (parent instanceof StepNode) {
-                output.addAll(linkScript((StepNode) parent));
+                output.addAll(linkScript((StepNode) parent, shellType));
             }
         }
 
-        output.add(current.getScript());
+        if (shellType == ShellIn.ShellType.Bash) {
+            output.add(current.getBash());
+        }
+
+        if (shellType == ShellIn.ShellType.PowerShell) {
+            output.add(current.getPwsh());
+        }
+
         return output;
     }
 
@@ -161,7 +169,8 @@ public class CmdManagerImpl implements CmdManager {
         cmd.setPlugin(name);
         cmd.setAllowFailure(plugin.isAllowFailure());
         cmd.addEnvFilters(plugin.getExports());
-        cmd.addScript(plugin.getScript());
+        cmd.addScript(plugin.getBash(), ShellIn.ShellType.Bash);
+        cmd.addScript(plugin.getPwsh(), ShellIn.ShellType.PowerShell);
 
         // apply docker from plugin as run time if it's specified
         ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> {
