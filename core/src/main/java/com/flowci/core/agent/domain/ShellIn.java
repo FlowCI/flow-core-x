@@ -18,6 +18,12 @@ import java.util.Set;
 @Accessors(chain = true)
 public final class ShellIn extends CmdIn {
 
+    public enum ShellType {
+        Bash,
+
+        PowerShell;
+    }
+
     // from ExecutedCmd id
     private String id;
 
@@ -48,11 +54,18 @@ public final class ShellIn extends CmdIn {
         super(Type.SHELL);
     }
 
-    public void addBash(String script) {
+    public void addScript(String script, ShellType type) {
         if (Strings.isNullOrEmpty(script)) {
             return;
         }
-        bash.add(script);
+
+        if (type == ShellType.Bash) {
+            bash.add(script);
+        }
+
+        if (type == ShellType.PowerShell) {
+            pwsh.add(script);
+        }
     }
 
     public void addEnvFilters(Set<String> exports) {
