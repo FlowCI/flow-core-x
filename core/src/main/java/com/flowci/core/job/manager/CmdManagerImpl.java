@@ -64,7 +64,7 @@ public class CmdManagerImpl implements CmdManager {
                 .setPwsh(linkScript(node, ShellIn.ShellType.PowerShell))
                 .setEnvFilters(linkFilters(node))
                 .setInputs(linkInputs(node).merge(job.getContext(), false))
-                .setTimeout(job.getTimeout());
+                .setTimeout(linkTimeout(node, job.getTimeout()));
 
         if (node.hasPlugin()) {
             setPlugin(node.getPlugin(), in);
@@ -110,6 +110,21 @@ public class CmdManagerImpl implements CmdManager {
 
         output.merge(current.getEnvironments());
         return output;
+    }
+
+    private Integer linkTimeout(StepNode current, Integer defaultTimeout) {
+        if (current.hasTimeout()) {
+            return current.getTimeout();
+        }
+
+        if (current.hasParent()) {
+            Node parent = current.getParent();
+            if (parent instanceof StepNode) {
+                return linkTimeout((StepNode) parent, defaultTimeout);
+            }
+        }
+
+        return defaultTimeout;
     }
 
     private Set<String> linkFilters(StepNode current) {

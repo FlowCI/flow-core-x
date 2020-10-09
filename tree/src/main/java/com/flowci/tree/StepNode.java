@@ -36,6 +36,11 @@ public class StepNode extends Node {
      */
     private String plugin;
 
+    /**
+     * Step timeout in seconds
+     */
+    private Integer timeout;
+
     private Set<String> exports = new HashSet<>(0);
 
     private int order;
@@ -67,5 +72,10 @@ public class StepNode extends Node {
     @JsonIgnore
     public boolean isRootStep() {
         return parent instanceof FlowNode;
+    }
+
+    @JsonIgnore
+    public boolean hasTimeout() {
+        return timeout != null;
     }
 }
