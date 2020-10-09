@@ -53,6 +53,8 @@ public class StepYml extends YmlBase<StepNode> {
 
     private String plugin;
 
+    private Integer retry; // num of retry
+
     private Integer timeout; // timeout in seconds
 
     private List<String> exports = new LinkedList<>();
@@ -64,6 +66,7 @@ public class StepYml extends YmlBase<StepNode> {
         setEnvs(node.getEnvironments());
         setBash(node.getBash());
         setPwsh(node.getPwsh());
+        setRetry(node.getRetry());
         setTimeout(node.getTimeout());
         setPlugin(node.getPlugin());
         setAllow_failure(node.isAllowFailure());
@@ -74,6 +77,7 @@ public class StepYml extends YmlBase<StepNode> {
         node.setCondition(condition);
         node.setBash(bash);
         node.setPwsh(pwsh);
+        node.setRetry(retry);
         node.setTimeout(timeout);
         node.setPlugin(plugin);
         node.setExports(Sets.newHashSet(exports));
