@@ -49,6 +49,8 @@ public class StepYml extends YmlBase<StepNode> {
 
     private String pwsh; // powershell script
 
+    private String script; // keep it to compatible old yaml
+
     private String plugin;
 
     private List<String> exports = new LinkedList<>();
@@ -85,6 +87,11 @@ public class StepYml extends YmlBase<StepNode> {
             }
 
             setSteps(node);
+        }
+
+        // backward compatible, set script to bash
+        if (StringHelper.hasValue(script) && !StringHelper.hasValue(bash)) {
+            node.setBash(script);
         }
 
         return node;
