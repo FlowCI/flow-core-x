@@ -57,6 +57,10 @@ public class AppProperties {
 
     private boolean socketContainer;
 
+    private int corePoolSize;
+
+    private int maxPoolSize;
+
     @Bean("zkProperties")
     @ConfigurationProperties(prefix = "app.zookeeper")
     public Zookeeper zk() {
