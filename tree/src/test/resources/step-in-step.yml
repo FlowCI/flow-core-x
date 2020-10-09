@@ -16,16 +16,16 @@ steps:
       - image: "ubuntu:18.04"
         is_runtime: true
       - image: "mysql"
-    bash: "echo 2"
+    script: "echo 2"
 
     steps:
       - name: step-2-1
-        bash: |
+        script: |
           echo "step-1 in step2"
 
       - name: step-2-2
-        bash: |
+        script: |
           echo "step-2 in step2"
 
   - name: create test
-    bash: "echo end"
+    script: "echo end"

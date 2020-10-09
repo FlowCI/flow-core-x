@@ -140,7 +140,7 @@ public class LocalTaskServiceImpl implements LocalTaskService {
             }
 
             Plugin plugin = event.getFetched();
-            option.addEntryPoint(plugin.getBash());
+            option.addEntryPoint(plugin.getScript());
             option.addBind(event.getDir().toString(), "/ws/.plugins/" + plugin.getName());
             ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> option.setImage(docker.getImage()));
         }

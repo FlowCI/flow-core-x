@@ -11,9 +11,9 @@ steps:
     FLOW_WORKSPACE: "echo step"
     FLOW_VERSION: "echo step version"
   allow_failure: true
-  bash: |
+  script: |
     echo hello
 
 - name: step2
   allow_failure: false
-  bash: "echo 2"
+  script: "echo 2"

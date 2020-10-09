@@ -37,7 +37,7 @@ public class LocalTaskManagerTest extends SpringScenario {
         Plugin p = new Plugin();
         p.setName("test-plugin");
         p.setVersion(Version.parse("0.1.0"));
-        p.setBash("echo aaa \n echo bbb");
+        p.setScript("echo aaa \n echo bbb");
         p.setDocker(new DockerOption().setImage("sonarqube:latest"));
         pluginDao.save(p);
 

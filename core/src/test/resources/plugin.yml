@@ -33,7 +33,6 @@ stats:
 allow_failure: true
 
 script: |
+  PK_FILE=${FLOWCI_PLUGIN_WORKSPACE}/FLOWCI_RSA_PRIVATE_KEY
   chmod 400 ${PK_FILE}
-
-pwsh: |
-  $Env.PK_FILE=keyfile
+  ssh-agent bash -c 'ssh-add ${PK_FILE}; git clone -b ${GIT_BRANCH} ${GIT_URL}'

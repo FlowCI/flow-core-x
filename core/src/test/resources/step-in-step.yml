@@ -18,20 +18,20 @@ steps:
       - image: "ubuntu:18.04"
         is_runtime: true
       - image: "mysql"
-    bash: "echo 2"
+    script: "echo 2"
 
     steps:
       - name: step-2-1
         envs:
           STEP_2: "overwrite-parent"
-        bash: |
+        script: |
           echo "step-2-1"
 
       - name: step-2-2
         docker:
           image: "redis"
-        bash: |
+        script: |
           echo "step-2-2"
 
   - name: create test
-    bash: "echo end"
+    script: "echo end"

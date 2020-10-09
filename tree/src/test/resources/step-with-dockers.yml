@@ -30,4 +30,4 @@ steps:
         environment:
           MY_PW: "12345"
         network: none
-    bash: "echo 2"
+    script: "echo 2"

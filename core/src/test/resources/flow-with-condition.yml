@@ -12,9 +12,9 @@ steps:
     FLOW_VERSION: "echo step version"
   condition: |
     return false
-  bash: |
+  script: |
     echo hello
 
 - name: step2
   allow_failure: false
-  bash: "echo 2"
+  script: "echo 2"

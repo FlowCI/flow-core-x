@@ -22,14 +22,9 @@ public class StepNode extends Node {
     private String condition;
 
     /**
-     * bash script
+     * Node execute script, can be null
      */
-    private String bash;
-
-    /**
-     * powershell script
-     */
-    private String pwsh;
+    private String script;
 
     /**
      * Plugin name
@@ -61,7 +56,7 @@ public class StepNode extends Node {
 
     @JsonIgnore
     public boolean hasScript() {
-        return !Strings.isNullOrEmpty(bash) || !Strings.isNullOrEmpty(pwsh);
+        return !Strings.isNullOrEmpty(script);
     }
 
     @JsonIgnore

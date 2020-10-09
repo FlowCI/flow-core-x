@@ -56,13 +56,5 @@ public class PluginParserTest {
         Assert.assertEquals(2, exports.size());
         Assert.assertTrue(exports.contains("VAR_EXPORT_1"));
         Assert.assertTrue(exports.contains("VAR_EXPORT_2"));
-
-        String pwsh = plugin.getPwsh();
-        Assert.assertNotNull(pwsh);
-        Assert.assertEquals("$Env.PK_FILE=keyfile", pwsh.trim());
-
-        String bash = plugin.getBash();
-        Assert.assertNotNull(bash);
-        Assert.assertEquals("chmod 400 ${PK_FILE}", bash.trim());
     }
 }

@@ -27,4 +27,4 @@ steps:
 
 - name: step2
   allow_failure: false
-  bash: "echo 2"
+  script: "echo 2"

@@ -17,4 +17,4 @@ steps:
           MY_PW: "12345"
         network_mode: none
 
-    bash: "echo 2"
+    script: "echo 2"
