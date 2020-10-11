@@ -27,7 +27,6 @@ import com.flowci.util.YamlHelper;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.yaml.snakeyaml.Yaml;
-import sun.jvm.hotspot.oops.ObjectHeap;
 
 import java.io.InputStream;
 import java.util.LinkedList;
