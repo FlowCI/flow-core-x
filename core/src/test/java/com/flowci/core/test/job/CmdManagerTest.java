@@ -162,6 +162,8 @@ public class CmdManagerTest extends SpringScenario {
 
         // then: verify step 2 - 1 cmd
         ShellIn cmdStep2_1 = (ShellIn) cmdManager.createShellCmd(job, stepService.get(job.getId(), step2_1.getPathAsString()), tree);
+        Assert.assertEquals(500, cmdStep2_1.getTimeout());
+        Assert.assertEquals(2, cmdStep2_1.getRetry());
 
         // input should be overwrite
         Assert.assertEquals("overwrite-parent", cmdStep2_1.getInputs().get("STEP_2"));
@@ -178,6 +180,8 @@ public class CmdManagerTest extends SpringScenario {
         // then: verify step 2 - 2 cmd
         ShellIn cmdStep2_2 = (ShellIn) cmdManager.createShellCmd(job, stepService.get(job.getId(), step2_2.getPathAsString()), tree);
         Assert.assertEquals("parent", cmdStep2_2.getInputs().get("STEP_2"));
+        Assert.assertEquals(1000, cmdStep2_2.getTimeout());
+        Assert.assertEquals(5, cmdStep2_2.getRetry());
 
         // scripts should be linked
         Assert.assertEquals("echo 2", cmdStep2_2.getBash().get(0));

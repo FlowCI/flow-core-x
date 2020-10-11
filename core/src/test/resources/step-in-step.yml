@@ -19,6 +19,8 @@ steps:
         is_runtime: true
       - image: "mysql"
     bash: "echo 2"
+    timeout: 500
+    retry: 2
 
     steps:
       - name: step-2-1
@@ -28,6 +30,8 @@ steps:
           echo "step-2-1"
 
       - name: step-2-2
+        timeout: 1000
+        retry: 5
         docker:
           image: "redis"
         bash: |

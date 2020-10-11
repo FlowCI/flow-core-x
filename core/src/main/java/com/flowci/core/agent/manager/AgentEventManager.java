@@ -54,20 +54,19 @@ public class AgentEventManager extends BinaryWebSocketHandler {
 
         try {
             byte[] bytes = objectMapper.writeValueAsBytes(msg);
-            session.sendMessage(new BinaryMessage(bytes));
+            writeMessage(session, bytes);
         } catch (IOException e) {
             log.warn("Unable to write response message for agent {}: {}", token, e.getMessage());
         }
     }
 
-    public void writeMessage(String token, byte[] bytes) throws IOException {
+    public void writeMessage(String token, byte[] bytes) {
         WebSocketSession session = agentSessionStore.get(token);
         if (session == null) {
             log.warn("Agent {} not connected", token);
             return;
         }
-
-        session.sendMessage(new BinaryMessage(bytes));
+        writeMessage(session, bytes);
     }
 
     @Override
@@ -123,9 +122,19 @@ public class AgentEventManager extends BinaryWebSocketHandler {
     private <T> void writeMessage(WebSocketSession session, ResponseMessage<T> msg) {
         try {
             byte[] bytes = objectMapper.writeValueAsBytes(msg);
-            session.sendMessage(new BinaryMessage(bytes));
+            writeMessage(session, bytes);
         } catch (IOException e) {
             log.warn(e);
+        }
+    }
+
+    private void writeMessage(WebSocketSession session, byte[] body) {
+        synchronized (session) {
+            try {
+                session.sendMessage(new BinaryMessage(body));
+            } catch (IOException e) {
+                log.warn(e);
+            }
         }
     }
 

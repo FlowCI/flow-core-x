@@ -44,7 +44,9 @@ public final class ShellIn extends CmdIn {
 
     private List<String> pwsh;
 
-    private int timeout = 1800;
+    private int timeout = 1800; // from StepNode.timeout
+
+    private int retry; // from StepNode.retry
 
     private Vars<String> inputs;
 

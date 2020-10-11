@@ -80,6 +80,7 @@ public class YmlParserTest {
         Assert.assertEquals("step-1", step1.getName()); // step-1 is default name
         Assert.assertEquals("echo step", step1.getEnv("FLOW_WORKSPACE"));
         Assert.assertEquals("echo step version", step1.getEnv("FLOW_VERSION"));
+        Assert.assertEquals(3600, step1.getTimeout().intValue());
 
         Assert.assertTrue(step1.isAllowFailure());
         Assert.assertEquals("println(FLOW_WORKSPACE)\ntrue\n", step1.getCondition());
@@ -88,6 +89,7 @@ public class YmlParserTest {
         Assert.assertEquals("step2", step2.getName());
         Assert.assertEquals("echo 2", step2.getBash());
         Assert.assertEquals("echo powershell", step2.getPwsh());
+        Assert.assertNull(step2.getTimeout());
 
         DockerOption dockerOption = step2.getDockers().get(0);
         Assert.assertNotNull(dockerOption);

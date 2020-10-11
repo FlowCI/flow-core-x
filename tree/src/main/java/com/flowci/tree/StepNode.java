@@ -36,8 +36,24 @@ public class StepNode extends Node {
      */
     private String plugin;
 
+    /**
+     * Step timeout in seconds
+     */
+    private Integer timeout;
+
+    /**
+     * Num of retry times
+     */
+    private Integer retry; // num of retry
+
+    /**
+     * Env vars export to job context
+     */
     private Set<String> exports = new HashSet<>(0);
 
+    /**
+     * Order in the node tree
+     */
     private int order;
 
     /**
@@ -67,5 +83,15 @@ public class StepNode extends Node {
     @JsonIgnore
     public boolean isRootStep() {
         return parent instanceof FlowNode;
+    }
+
+    @JsonIgnore
+    public boolean hasTimeout() {
+        return timeout != null;
+    }
+
+    @JsonIgnore
+    public boolean hasRetry() {
+        return retry != null;
     }
 }
