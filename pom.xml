@@ -24,7 +24,7 @@
     <properties>
         <lombok.version>1.18.0</lombok.version>
         <guava.version>21.0</guava.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <spring.version>2.1.9.RELEASE</spring.version>
         <snakeyaml.version>1.21</snakeyaml.version>
         <jackson.version>2.10.1</jackson.version>
