@@ -35,18 +35,21 @@ public class SettingServiceImpl implements SettingService {
     public void setDefaultValue() {
         taskManager.run("init-default-settings", () -> {
             Optional<Settings> optional = settingsDao.findById(Settings.DefaultId);
-            if (!optional.isPresent()) {
 
-                String address = serverProperties.getAddress().toString().replace("/", "");
-                String serverUrl = environment.getProperty(
-                        Variables.App.ServerUrl,
-                        String.format("http://%s:%s", address, serverProperties.getPort())
-                );
+            String address = serverProperties.getAddress().toString().replace("/", "");
+            String serverUrl = environment.getProperty(
+                    Variables.App.ServerUrl,
+                    String.format("http://%s:%s", address, serverProperties.getPort())
+            );
 
-                Settings s = new Settings();
-                s.setServerUrl(serverUrl);
-                settingsDao.save(s);
+            Settings s = new Settings();
+
+            if (optional.isPresent()) {
+                s = optional.get();
             }
+
+            s.setServerUrl(serverUrl);
+            settingsDao.save(s);
         });
     }
 
