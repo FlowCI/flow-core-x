@@ -1,8 +1,8 @@
 package com.flowci.core.test.job;
 
-import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.test.SpringScenario;
+import com.flowci.domain.StringVars;
 import groovy.util.ScriptException;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,40 +15,39 @@ public class ConditionManagerTest extends SpringScenario {
 
     @Test
     public void should_run_groovy_condition() throws ScriptException {
-        ShellIn in = new ShellIn();
-        in.getInputs().put("foo", "helloword");
-        in.setCondition(
-                "println \"$foo\"; "
-                        + "return true;"
-        );
+        StringVars vars = new StringVars();
+        vars.put("foo", "helloword");
 
-        Assert.assertTrue(conditionManager.run(in));
+        String groovy = "println \"$foo\"; "
+                + "return true;";
+
+        Assert.assertTrue(conditionManager.run(groovy, vars));
     }
 
     @Test(expected = ScriptException.class)
     public void should_throw_exception_if_wrong_return_type() throws ScriptException {
-        ShellIn in = new ShellIn();
-        in.getInputs().put("foo", "helloword");
-        in.setCondition(
-                "println \"$foo\"; "
-                        + "hello = \"1234\";"
-                        + "return hello;"
-        );
+        StringVars vars = new StringVars();
+        vars.put("foo", "helloword");
 
-        conditionManager.run(in);
+        String groovy = "println \"$foo\"; "
+                + "hello = \"1234\";"
+                + "return hello;";
+
+        conditionManager.run(groovy, vars);
     }
 
     @Test(expected = ScriptException.class)
     public void should_throw_exception_if_timeout() throws ScriptException {
-        ShellIn in = new ShellIn();
-        in.getInputs().put("foo", "helloword");
-        in.setCondition(
+        StringVars vars = new StringVars();
+        vars.put("foo", "helloword");
+
+        String groovy = (
                 "sleep(6000); "
                         + "println \"$foo\"; "
                         + "hello = \"1234\";"
                         + "return true;"
         );
 
-        conditionManager.run(in);
+        conditionManager.run(groovy, vars);
     }
 }
