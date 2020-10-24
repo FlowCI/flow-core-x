@@ -1,7 +1,7 @@
 package com.flowci.core.test.job;
 
 import com.flowci.core.agent.domain.ShellIn;
-import com.flowci.core.job.manager.ConditionManager;
+import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.test.SpringScenario;
 import groovy.util.ScriptException;
 import org.junit.Test;

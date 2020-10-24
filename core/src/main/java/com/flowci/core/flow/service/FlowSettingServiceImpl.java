@@ -16,6 +16,7 @@
 
 package com.flowci.core.flow.service;
 
+import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.manager.VarManager;
 import com.flowci.core.flow.dao.FlowDao;
@@ -27,16 +28,16 @@ import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.trigger.domain.GitPingTrigger;
-import com.flowci.core.trigger.domain.GitPushTrigger;
 import com.flowci.core.trigger.domain.GitTrigger;
 import com.flowci.core.trigger.event.GitHookEvent;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.VarValue;
+import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.tree.FlowNode;
-import com.flowci.tree.TriggerFilter;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
+import groovy.util.ScriptException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -65,6 +66,9 @@ public class FlowSettingServiceImpl implements FlowSettingService {
 
     @Autowired
     private VarManager varManager;
+
+    @Autowired
+    private ConditionManager conditionManager;
 
     @Autowired
     private CronService cronService;
@@ -170,18 +174,13 @@ public class FlowSettingServiceImpl implements FlowSettingService {
     }
 
     private boolean canStartJob(FlowNode root, GitTrigger trigger) {
-        TriggerFilter condition = root.getTrigger();
-
-        if (trigger.getEvent() == GitTrigger.GitEvent.PUSH) {
-            GitPushTrigger pushTrigger = (GitPushTrigger) trigger;
-            return condition.isMatchBranch(pushTrigger.getRef());
+        try {
+            String groovy = root.getCondition();
+            Vars<String> envs = trigger.toVariableMap();
+            return conditionManager.run(groovy, envs);
+        } catch (ScriptException e) {
+            log.warn("Illegal groovy script at condition section", e);
+            return false;
         }
-
-        if (trigger.getEvent() == GitTrigger.GitEvent.TAG) {
-            GitPushTrigger tagTrigger = (GitPushTrigger) trigger;
-            return condition.isMatchTag(tagTrigger.getRef());
-        }
-
-        return true;
     }
 }
