@@ -40,6 +40,11 @@ public abstract class Node implements Serializable {
 
     protected String name;
 
+    /**
+     * Node before groovy script;
+     */
+    protected String condition;
+
     protected NodePath path;
 
     /**

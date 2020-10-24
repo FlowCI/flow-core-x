@@ -3,14 +3,6 @@ envs:
   FLOW_WORKSPACE: "echo hello"
   FLOW_VERSION: "echo version"
 
-trigger:
-  branch:
-  - "develop"
-  - "master"
-  - "feature/*"
-  tag:
-  - "*"
-
 selector:
   label:
   - ios
