@@ -14,6 +14,13 @@ public class ConditionManagerTest extends SpringScenario {
     private ConditionManager conditionManager;
 
     @Test
+    public void should_verify_condition() throws ScriptException {
+        String expression = "if(a==1 return 1;";
+        conditionManager.verify(expression);
+        conditionManager.verify("return true");
+    }
+
+    @Test
     public void should_run_groovy_condition() throws ScriptException {
         StringVars vars = new StringVars();
         vars.put("foo", "helloword");

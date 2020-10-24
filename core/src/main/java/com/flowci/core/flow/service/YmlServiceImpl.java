@@ -16,6 +16,7 @@
 
 package com.flowci.core.flow.service;
 
+import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.YmlDao;
@@ -27,6 +28,7 @@ import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.FlowNode;
+import com.flowci.tree.Node;
 import com.flowci.tree.StepNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
@@ -52,6 +54,9 @@ public class YmlServiceImpl implements YmlService {
 
     @Autowired
     private SpringEventManager eventManager;
+
+    @Autowired
+    private ConditionManager conditionManager;
 
     //====================================================================
     //        %% Public function
@@ -91,6 +96,11 @@ public class YmlServiceImpl implements YmlService {
             throw hasErr.get();
         }
 
+        hasErr = verifyCondition(root);
+        if (hasErr.isPresent()) {
+            throw hasErr.get();
+        }
+
         Yml ymlObj = new Yml(flow.getId(), yml);
         ymlDao.save(ymlObj);
 
@@ -110,6 +120,25 @@ public class YmlServiceImpl implements YmlService {
             ymlDao.delete(yml);
         } catch (NotFoundException ignore) {
 
+        }
+    }
+
+    private Optional<RuntimeException> verifyCondition(Node node) {
+        try {
+            if (node.hasCondition()) {
+                conditionManager.verify(node.getCondition());
+            }
+
+            for (Node child : node.getChildren()) {
+                Optional<RuntimeException> exception = verifyCondition(child);
+                if (exception.isPresent()) {
+                    return exception;
+                }
+            }
+
+            return Optional.empty();
+        } catch (Throwable e) {
+            return Optional.of(new RuntimeException(e.getMessage()));
         }
     }
 

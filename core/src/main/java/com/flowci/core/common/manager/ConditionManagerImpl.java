@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +25,15 @@ public class ConditionManagerImpl implements ConditionManager {
 
     @Autowired
     private ThreadPoolTaskExecutor jobConditionExecutor;
+
+    @Override
+    public void verify(@Nullable String condition) throws ScriptException {
+        try {
+            new GroovyShell().parse(condition);
+        } catch (Exception e) {
+            throw new ScriptException("Invalid groovy condition: " + e.getMessage());
+        }
+    }
 
     @Override
     public boolean run(String groovyScript, Vars<String> envs) throws ScriptException {

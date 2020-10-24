@@ -19,6 +19,7 @@ package com.flowci.tree;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
+import com.flowci.util.StringHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -81,6 +82,11 @@ public abstract class Node implements Serializable {
 
     public String getEnv(String name) {
         return environments.get(name);
+    }
+
+    @JsonIgnore
+    public boolean hasCondition() {
+        return StringHelper.hasValue(condition);
     }
 
     @JsonIgnore
