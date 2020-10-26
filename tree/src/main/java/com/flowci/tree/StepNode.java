@@ -17,11 +17,6 @@ public class StepNode extends Node {
     public static final boolean ALLOW_FAILURE_DEFAULT = false;
 
     /**
-     * Node before groovy script;
-     */
-    private String condition;
-
-    /**
      * bash script
      */
     private String bash;

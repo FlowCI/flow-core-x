@@ -19,11 +19,6 @@ public class FlowNode extends Node {
     private Selector selector;
 
     /**
-     * Node start trigger
-     */
-    private TriggerFilter trigger = new TriggerFilter();
-
-    /**
      * Notification list that run locally
      */
     private List<LocalTask> notifications = new LinkedList<>();

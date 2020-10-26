@@ -1,7 +1,7 @@
-package com.flowci.core.job.manager;
+package com.flowci.core.common.manager;
 
-import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.agent.domain.ShellIn;
+import com.flowci.domain.Vars;
+import com.google.common.base.Strings;
 import groovy.lang.Binding;
 import groovy.lang.GroovyRuntimeException;
 import groovy.lang.GroovyShell;
@@ -11,7 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.*;
+import javax.annotation.Nullable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Log4j2
 @Component
@@ -23,23 +27,29 @@ public class ConditionManagerImpl implements ConditionManager {
     private ThreadPoolTaskExecutor jobConditionExecutor;
 
     @Override
-    public boolean run(CmdIn in) throws ScriptException {
-        if (!(in instanceof ShellIn)) {
-            return true;
+    public void verify(@Nullable String condition) throws ScriptException {
+        try {
+            new GroovyShell().parse(condition);
+        } catch (Exception e) {
+            throw new ScriptException("Invalid groovy condition: " + e.getMessage());
         }
+    }
 
-        ShellIn shell = (ShellIn) in;
-        if (!shell.hasCondition()) {
+    @Override
+    public boolean run(String groovyScript, Vars<String> envs) throws ScriptException {
+        if (Strings.isNullOrEmpty(groovyScript)) {
             return true;
         }
 
         Future<Boolean> submit = jobConditionExecutor.submit(() -> {
             Binding binding = new Binding();
-            shell.getInputs().forEach(binding::setVariable);
+            if (envs != null) {
+                envs.forEach(binding::setVariable);
+            }
 
             try {
                 GroovyShell groovy = new GroovyShell(binding);
-                Object value = groovy.evaluate(shell.getCondition());
+                Object value = groovy.evaluate(groovyScript);
                 if (value instanceof Boolean) {
                     return (Boolean) value;
                 }

@@ -40,11 +40,6 @@ public class StepYml extends YmlBase<StepNode> {
 
     private static final String DefaultStepPrefix = "step-";
 
-    /**
-     * Groovy script
-     */
-    private String condition;
-
     private String bash; // bash script
 
     private String pwsh; // powershell script

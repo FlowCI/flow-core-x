@@ -60,8 +60,7 @@ public class YmlParserTest {
         Assert.assertTrue(root.getSelector().getLabel().contains("ios"));
         Assert.assertTrue(root.getSelector().getLabel().contains("local"));
 
-        Assert.assertEquals(3, root.getTrigger().getBranch().size());
-        Assert.assertEquals(1, root.getTrigger().getTag().size());
+        Assert.assertNotNull(root.getCondition());
 
         // verify docker
         Assert.assertTrue(root.getDockers().size() > 0);

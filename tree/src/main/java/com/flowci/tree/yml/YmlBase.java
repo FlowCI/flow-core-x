@@ -40,6 +40,11 @@ public abstract class YmlBase<T extends Node> implements Serializable {
 
     public Map<String, String> envs = new LinkedHashMap<>();
 
+    /**
+     * Groovy script
+     */
+    public String condition;
+
     // either docker
     public DockerYml docker;
 

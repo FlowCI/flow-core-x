@@ -1,9 +1,12 @@
 package com.flowci.core.job.manager;
 
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.CmdIn;
+import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.git.GitClient;
+import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.dao.JobDao;
@@ -17,7 +20,6 @@ import com.flowci.core.job.service.StepService;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.core.agent.domain.Agent;
 import com.flowci.domain.SimpleSecret;
 import com.flowci.domain.Vars;
 import com.flowci.exception.CIException;
@@ -672,8 +674,8 @@ public class JobActionManagerImpl implements JobActionManager {
         setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
         Step step = stepService.get(job.getId(), node.getPathAsString());
-        CmdIn cmd = cmdManager.createShellCmd(job, step, tree);
-        boolean canExecute = conditionManager.run(cmd);
+        ShellIn cmd = cmdManager.createShellCmd(job, step, tree);
+        boolean canExecute = conditionManager.run(node.getCondition(), cmd.getInputs());
 
         if (!canExecute) {
             setStepToSkipped(node, step);

@@ -16,7 +16,6 @@
 
 package com.flowci.core.job.manager;
 
-import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.domain.ShellKill;
 import com.flowci.core.common.domain.Variables;
@@ -50,14 +49,13 @@ public class CmdManagerImpl implements CmdManager {
     private SpringEventManager eventManager;
 
     @Override
-    public CmdIn createShellCmd(Job job, Step step, NodeTree tree) {
+    public ShellIn createShellCmd(Job job, Step step, NodeTree tree) {
         StepNode node = tree.get(NodePath.create(step.getNodePath()));
 
         ShellIn in = new ShellIn()
                 .setId(step.getId())
                 .setFlowId(job.getFlowId())
                 .setJobId(job.getId())
-                .setCondition(node.getCondition())
                 .setAllowFailure(node.isAllowFailure())
                 .setDockers(findDockerOptions(node))
                 .setBash(linkScript(node, ShellIn.ShellType.Bash))
@@ -91,7 +89,7 @@ public class CmdManagerImpl implements CmdManager {
     }
 
     @Override
-    public CmdIn createKillCmd() {
+    public ShellKill createKillCmd() {
         return new ShellKill();
     }
 

@@ -18,6 +18,7 @@ package com.flowci.core.test.flow;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.flow.domain.ConfirmOption;
@@ -26,9 +27,14 @@ import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.event.GitTestEvent;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.GitService;
+import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.test.SpringScenario;
+import com.flowci.core.trigger.domain.GitPushTrigger;
+import com.flowci.core.trigger.domain.GitTrigger;
+import com.flowci.core.trigger.domain.GitUser;
+import com.flowci.core.trigger.event.GitHookEvent;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
 import com.flowci.domain.VarValue;
@@ -154,6 +160,31 @@ public class FlowServiceTest extends SpringScenario {
     public void should_throw_exception_if_flow_name_is_invalid_when_create() {
         String name = "hello.world";
         flowService.create(name);
+    }
+
+    @Test
+    public void should_start_job_with_condition() throws IOException, InterruptedException {
+        Flow flow = flowService.create("githook");
+
+        String yaml = StringHelper.toString(load("flow-with-condition.yml"));
+        flowService.confirm(flow.getName(), new ConfirmOption().setYaml(yaml));
+
+        GitPushTrigger trigger = new GitPushTrigger();
+        trigger.setEvent(GitTrigger.GitEvent.PUSH);
+        trigger.setSource(GitSource.GITEE);
+        trigger.setAuthor(new GitUser().setEmail("xx").setId("xx").setName("xx").setUsername("xx"));
+        trigger.setRef("master");
+
+        CountDownLatch c = new CountDownLatch(1);
+        addEventListener((ApplicationListener<CreateNewJobEvent>) e -> {
+            Assert.assertEquals(flow, e.getFlow());
+            c.countDown();
+        });
+
+        GitHookEvent e = new GitHookEvent(this, flow.getName(), trigger);
+        multicastEvent(e);
+
+        Assert.assertTrue(c.await(5, TimeUnit.SECONDS));
     }
 
     @Ignore

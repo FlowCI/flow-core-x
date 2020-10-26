@@ -35,8 +35,6 @@ public class FlowYml extends YmlBase<FlowNode> {
 
     private Selector selector = new Selector();
 
-    private TriggerFilter trigger = new TriggerFilter();
-
     private List<NotifyYml> notifications = new LinkedList<>();
 
     public FlowYml(FlowNode node) {
@@ -55,7 +53,7 @@ public class FlowYml extends YmlBase<FlowNode> {
 
         FlowNode node = new FlowNode(name);
         node.setSelector(selector);
-        node.setTrigger(trigger);
+        node.setCondition(condition);
         node.setEnvironments(getVariableMap());
 
         setDocker(node);
