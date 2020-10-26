@@ -2,9 +2,8 @@ envs:
   FLOW_WORKSPACE: "echo hello"
   FLOW_VERSION: "echo version"
 
-trigger:
-  branch:
-  - develop
+condition: |
+  return FLOWCI_GIT_BRANCH == "master" && FLOWCI_GIT_SOURCE == "GITEE"
 
 steps:
 - envs:

@@ -17,20 +17,29 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.common.domain.Variables;
+import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowUserDao;
+import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.ConfirmOption;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
+import com.flowci.core.flow.domain.WebhookStatus;
+import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
+import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.CreateAuthEvent;
 import com.flowci.core.secret.event.CreateRsaEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
+import com.flowci.core.trigger.domain.GitPingTrigger;
+import com.flowci.core.trigger.domain.GitTrigger;
+import com.flowci.core.trigger.event.GitHookEvent;
 import com.flowci.core.user.event.UserDeletedEvent;
 import com.flowci.domain.*;
 import com.flowci.exception.ArgumentException;
@@ -38,8 +47,11 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
+import com.flowci.tree.FlowNode;
+import com.flowci.tree.YmlParser;
 import com.flowci.util.ObjectsHelper;
 import com.google.common.collect.Sets;
+import groovy.util.ScriptException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -61,6 +73,9 @@ public class FlowServiceImpl implements FlowService {
     private FlowDao flowDao;
 
     @Autowired
+    private YmlDao ymlDao;
+
+    @Autowired
     private FlowUserDao flowUserDao;
 
     @Autowired
@@ -71,6 +86,9 @@ public class FlowServiceImpl implements FlowService {
 
     @Autowired
     private FileManager fileManager;
+
+    @Autowired
+    private ConditionManager conditionManager;
 
     @Autowired
     private YmlService ymlService;
@@ -293,9 +311,63 @@ public class FlowServiceImpl implements FlowService {
         // TODO:
     }
 
+    @EventListener
+    public void onGitHookEvent(GitHookEvent event) {
+        GitTrigger trigger = event.getTrigger();
+        Flow flow = flowDao.findByName(event.getFlow());
+
+        if (event.isPingEvent()) {
+            GitPingTrigger ping = (GitPingTrigger) trigger;
+
+            WebhookStatus ws = new WebhookStatus();
+            ws.setAdded(true);
+            ws.setCreatedAt(ping.getCreatedAt());
+            ws.setEvents(ping.getEvents());
+
+            flow.setWebhookStatus(ws);
+            flowDao.save(flow);
+            return;
+        }
+
+        if (trigger.isSkip()) {
+            log.info("Ignore git trigger {} since skip message", trigger);
+            return;
+        }
+
+        Optional<Yml> optional = ymlDao.findById(flow.getId());
+        if (!optional.isPresent()) {
+            log.warn("No available yml for flow {}", flow.getName());
+            return;
+        }
+
+        Yml yml = optional.get();
+        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+        if (!canStartJob(root, trigger)) {
+            log.debug("Cannot start job, condition not match: {}", root.getCondition());
+            return;
+        }
+
+        StringVars gitInput = trigger.toVariableMap();
+        Job.Trigger jobTrigger = trigger.toJobTrigger();
+
+        eventManager.publish(new CreateNewJobEvent(this, flow, yml.getRaw(), jobTrigger, gitInput));
+    }
+
+
     // ====================================================================
     // %% Utils
     // ====================================================================
+
+    private boolean canStartJob(FlowNode root, GitTrigger trigger) {
+        try {
+            String groovy = root.getCondition();
+            Vars<String> envs = trigger.toVariableMap();
+            return conditionManager.run(groovy, envs);
+        } catch (ScriptException e) {
+            log.warn("Illegal groovy script at condition section", e);
+            return false;
+        }
+    }
 
     private void setupDefaultVars(Flow flow) {
         Vars<VarValue> localVars = flow.getLocally();

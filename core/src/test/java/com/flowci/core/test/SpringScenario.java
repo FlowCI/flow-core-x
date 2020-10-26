@@ -17,8 +17,10 @@
 package com.flowci.core.test;
 
 import com.flowci.core.common.domain.Mongoable;
+import com.flowci.core.common.domain.Settings;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
+import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.test.SpringScenario.Config;
@@ -30,11 +32,14 @@ import com.flowci.exception.NotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -91,6 +96,9 @@ public abstract class SpringScenario {
         }
     }
 
+    @MockBean
+    protected SettingService settingService;
+
     @Autowired
     protected SessionManager sessionManager;
 
@@ -111,16 +119,24 @@ public abstract class SpringScenario {
 
     private final List<ApplicationListener<?>> listenersForTest = new LinkedList<>();
 
-    @After
-    public void cleanListeners() {
-        for (ApplicationListener<?> listener : listenersForTest) {
-            applicationEventMulticaster.removeApplicationListener(listener);
-        }
+    @Before
+    public void mockSettingsService() {
+        Settings s = new Settings();
+        s.setServerUrl("http://127.0.0.1:8080");
+
+        Mockito.when(settingService.get()).thenReturn(s);
     }
 
     @After
     public void dbCleanUp() {
         mongoTemplate.getDb().drop();
+    }
+
+    @After
+    public void cleanListeners() {
+        for (ApplicationListener<?> listener : listenersForTest) {
+            applicationEventMulticaster.removeApplicationListener(listener);
+        }
     }
 
     @After

@@ -3,13 +3,8 @@ envs:
   FLOW_WORKSPACE: "echo hello"
   FLOW_VERSION: "echo version"
 
-trigger:
-  branch:
-    - "develop"
-    - "master"
-    - "feature/*"
-  tag:
-    - "*"
+condition: |
+  return $FLOWCI_GIT_BRANCH == "develop" || $FLOWCI_GIT_BRANCH == "master";
 
 docker:
   image: "helloworld:0.1"
@@ -31,6 +26,7 @@ steps:
    envs:
      FLOW_WORKSPACE: "echo step"
      FLOW_VERSION: "echo step version"
+   timeout: 3600
    allow_failure: true
 
  - name: step2

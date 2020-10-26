@@ -34,6 +34,7 @@ import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -80,8 +81,10 @@ public class AppConfig {
     }
 
     @Bean("appTaskExecutor")
-    public TaskExecutor getAppTaskExecutor() {
-        return ThreadHelper.createTaskExecutor(100, 100, 50, "app-task-");
+    public ThreadPoolTaskExecutor getAppTaskExecutor() {
+        int corePoolSize = appProperties.getCorePoolSize();
+        int maxPoolSize = appProperties.getMaxPoolSize();
+        return ThreadHelper.createTaskExecutor(maxPoolSize, corePoolSize, 10, "app-task-");
     }
 
     @Bean(name = "applicationEventMulticaster")
