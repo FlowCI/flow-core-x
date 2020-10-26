@@ -3,7 +3,7 @@ envs:
   FLOW_VERSION: "echo version"
 
 condition: |
-  return $FLOWCI_GIT_BRANCH == "develop"
+  return FLOWCI_GIT_BRANCH == "develop" && FLOWCI_GIT_SOURCE == "GITEE"
 
 steps:
 - envs:
