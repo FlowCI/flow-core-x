@@ -1,6 +1,6 @@
 <h3 align="center">
   <a href="https://flowci.github.io">
-    <img src="https://github.com/FlowCI/docs/raw/master/src/icon.png" alt="fastlane Logo" width="100">
+    <img src="https://github.com/FlowCI/docs/raw/master/src/logo.png" alt="Logo" width="100">
   </a>
 </h3>
 
@@ -11,11 +11,13 @@
     <a href="https://github.com/FlowCI/flow-core-x/releases/"><img src="https://img.shields.io/github/v/release/flowci/flow-core-x"></a>
 </p>
 
-## Key Features
+# Key Features
 
 - Zero configuration, can be getting started within a minute
 
 - Simple YAML configuration and templates
+
+- Scaleable on server-side to improve availability
 
 - Elastic agents to speed up build
 
@@ -25,15 +27,7 @@
 
 - Run steps either on any docker images or native os
 
-## Document
-
-[English](https://github.com/FlowCI/docs/tree/master/en/index.md) | [中文文档](https://github.com/FlowCI/docs/tree/master/cn/index.md)
-
-## Templates
-
-[maven, npm, golang, ruby, android and more](https://github.com/FlowCI/templates)
-
-## Installation
+# Quick start
 
 > [Docker](https://docs.docker.com/install/) & [Docker-Compose](https://docs.docker.com/compose/install/) are required
 
@@ -43,7 +37,23 @@ cd flow-docker
 ./server.sh start
 ```
 
-## Preview
+# Documentation
+
+- [English](https://github.com/FlowCI/docs/tree/master/en/index.md) 
+- [简体中文](https://github.com/FlowCI/docs/tree/master/cn/index.md)
+
+Need Help? submit issue from [here](https://github.com/FlowCI/docs/issues)
+
+
+# Templates
+
+[maven, npm, golang, ruby, android and more](https://github.com/FlowCI/templates)
+
+# Architecture
+
+
+
+# Preview
 
 ![demo](https://github.com/FlowCI/docs/raw/master/src/demo.gif)
 
