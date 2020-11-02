@@ -54,6 +54,8 @@ public abstract class Node implements Serializable {
     @JsonIgnore
     protected Node parent;
 
+    protected Cache cache;
+
     /**
      * Inner option has higher priority
      * Ex: Plugin > Step > Flow

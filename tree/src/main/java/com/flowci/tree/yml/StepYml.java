@@ -78,6 +78,8 @@ public class StepYml extends YmlBase<StepNode> {
         node.setExports(Sets.newHashSet(exports));
         node.setAllowFailure(allow_failure);
         node.setEnvironments(getVariableMap());
+
+        setCache(node);
         setDocker(node);
 
         if (StringHelper.hasValue(node.getName()) && !NodePath.validate(node.getName())) {

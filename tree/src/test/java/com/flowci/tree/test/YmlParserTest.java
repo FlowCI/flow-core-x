@@ -62,6 +62,12 @@ public class YmlParserTest {
 
         Assert.assertNotNull(root.getCondition());
 
+        // verify cache
+        Assert.assertNotNull(root.getCache());
+        Assert.assertEquals(2, root.getCache().getPaths().size());
+        Assert.assertEquals("./", root.getCache().getPaths().get(0));
+        Assert.assertEquals("vendor", root.getCache().getPaths().get(1));
+
         // verify docker
         Assert.assertTrue(root.getDockers().size() > 0);
         Assert.assertEquals("helloworld:0.1", root.getDockers().get(0).getImage());

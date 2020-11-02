@@ -19,6 +19,7 @@ package com.flowci.tree.yml;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.exception.YmlException;
+import com.flowci.tree.Cache;
 import com.flowci.tree.Node;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
@@ -51,6 +52,8 @@ public abstract class YmlBase<T extends Node> implements Serializable {
     // or dockers
     public List<DockerYml> dockers;
 
+    public CacheYml cache;
+
     @NonNull
     public List<StepYml> steps = new LinkedList<>();
 
@@ -60,6 +63,22 @@ public abstract class YmlBase<T extends Node> implements Serializable {
             variables.put(entry.getKey(), entry.getValue());
         }
         return variables;
+    }
+
+    void setCache(T node) {
+        if (Objects.isNull(cache)) {
+            return;
+        }
+
+        if (!ObjectsHelper.hasCollection(cache.getPaths())) {
+            return;
+        }
+
+        Cache c = new Cache();
+        c.setKey(cache.getKey());
+        c.setPaths(cache.getPaths());
+
+        node.setCache(c);
     }
 
     void setEnvs(StringVars variables) {
