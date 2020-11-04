@@ -105,4 +105,9 @@ public abstract class Node implements Serializable {
     public boolean hasParent() {
         return parent != null;
     }
+
+    @JsonIgnore
+    public boolean hasCache() {
+        return cache != null;
+    }
 }
