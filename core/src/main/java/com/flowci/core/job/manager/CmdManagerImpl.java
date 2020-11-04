@@ -28,10 +28,7 @@ import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
-import com.flowci.tree.Node;
-import com.flowci.tree.NodePath;
-import com.flowci.tree.NodeTree;
-import com.flowci.tree.StepNode;
+import com.flowci.tree.*;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +60,8 @@ public class CmdManagerImpl implements CmdManager {
                 .setEnvFilters(linkFilters(node))
                 .setInputs(linkInputs(node).merge(job.getContext(), false))
                 .setTimeout(linkTimeout(node, job.getTimeout()))
-                .setRetry(linkRetry(node, 0));
+                .setRetry(linkRetry(node, 0))
+                .setCache(linkCache(node));
 
         if (node.hasPlugin()) {
             setPlugin(node.getPlugin(), in);
@@ -124,6 +122,19 @@ public class CmdManagerImpl implements CmdManager {
         }
 
         return defaultRetry;
+    }
+
+    private Cache linkCache(Node current) {
+        if (current.hasCache()) {
+            return current.getCache();
+        }
+
+        if (current.hasParent()) {
+            Node parent = current.getParent();
+            return linkCache(parent);
+        }
+
+        return null;
     }
 
     private Integer linkTimeout(StepNode current, Integer defaultTimeout) {
