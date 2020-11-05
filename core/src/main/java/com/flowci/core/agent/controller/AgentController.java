@@ -16,21 +16,19 @@
 
 package com.flowci.core.agent.controller;
 
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.AgentAction;
 import com.flowci.core.agent.domain.CreateOrUpdateAgent;
 import com.flowci.core.agent.domain.DeleteAgent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.auth.annotation.Action;
+import com.flowci.core.job.service.CacheService;
 import com.flowci.core.job.service.LoggingService;
-import com.flowci.core.agent.domain.Agent;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +45,9 @@ public class AgentController {
 
     @Autowired
     private LoggingService loggingService;
+
+    @Autowired
+    private CacheService cacheService;
 
     @GetMapping("/{name}")
     @Action(AgentAction.GET)
@@ -74,24 +75,5 @@ public class AgentController {
     @Action(AgentAction.DELETE)
     public Agent delete(@Validated @RequestBody DeleteAgent body) {
         return agentService.delete(body.getToken());
-    }
-
-    // --------------------------------------------------------
-    //      Functions require agent token header
-    // --------------------------------------------------------
-
-    @PostMapping("/api/profile")
-    public void profile(@RequestHeader(AgentAuth.HeaderAgentToken) String token,
-                               @RequestBody Agent.Resource resource) {
-        agentService.update(token, resource);
-    }
-
-    @PostMapping("/api/logs/upload")
-    public void upload(@RequestPart("file") MultipartFile file) {
-        try(InputStream stream = file.getInputStream()) {
-            loggingService.save(file.getOriginalFilename(), stream);
-        } catch (IOException e) {
-            log.warn("Unable to save log, cause {}", e.getMessage());
-        }
     }
 }

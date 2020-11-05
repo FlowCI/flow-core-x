@@ -25,6 +25,10 @@ public abstract class BaseController {
     @Autowired
     protected StepService stepService;
 
+    protected Job getJob(String id) {
+        return jobService.get(id);
+    }
+
     protected Job getJob(String name, String buildNumberOrLatest) {
         Flow flow = flowService.get(name);
 
