@@ -10,7 +10,7 @@ import java.io.InputStream;
  */
 public interface CacheService {
 
-    JobCache put(String jobId, String key, MultipartFile[] files);
+    JobCache put(String jobId, String key, String os, MultipartFile[] files);
 
     JobCache get(String jobId, String key);
 

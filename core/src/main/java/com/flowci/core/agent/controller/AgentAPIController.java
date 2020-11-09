@@ -51,15 +51,16 @@ public class AgentAPIController {
         }
     }
 
-    @PostMapping("/cache/{jobId}/{key}")
+    @PostMapping("/cache/{jobId}/{key}/{os}")
     public void putCache(@PathVariable String jobId,
                          @PathVariable String key,
+                         @PathVariable String os,
                          @RequestParam("files") MultipartFile[] files) {
         if (files.length == 0) {
             throw new ArgumentException("the cached files are empty");
         }
 
-        cacheService.put(jobId, key, files);
+        cacheService.put(jobId, key, os, files);
     }
 
     @GetMapping("/cache/{jobId}/{key}")
