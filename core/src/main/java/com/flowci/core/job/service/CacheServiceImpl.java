@@ -34,7 +34,7 @@ public class CacheServiceImpl implements CacheService {
     private JobService jobService;
 
     @Override
-    public JobCache put(String jobId, String key, MultipartFile[] files) {
+    public JobCache put(String jobId, String key, String os, MultipartFile[] files) {
         Job job = jobService.get(jobId);
 
         JobCache entity = new JobCache();
@@ -46,6 +46,7 @@ public class CacheServiceImpl implements CacheService {
         entity.setJobId(job.getId());
         entity.setFlowId(job.getFlowId());
         entity.setKey(key);
+        entity.setOs(os);
         entity.setFiles(new ArrayList<>(files.length));
 
         for (MultipartFile file : files) {

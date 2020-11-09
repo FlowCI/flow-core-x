@@ -23,6 +23,8 @@ public class JobCache extends Mongoable {
 
     private String key;
 
+    private String os;
+
     /**
      * Full path with b64 encoded based on workspace
      * ex: a/b/c.zip --> b64xxx.zip
