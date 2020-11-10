@@ -21,6 +21,9 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -32,6 +35,41 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class FileHelper {
 
     private static final int BufferSize = 4096;
+
+    private static final String UnixSeparator = "/";
+
+    public static boolean isStartWithRoot(String path) {
+        if (path.startsWith(UnixSeparator)) {
+            return true;
+        }
+
+        return path.matches("^[a-zA-Z]:\\\\.*");
+    }
+
+    public static boolean hasOverlapOrDuplicatePath(List<String> paths) {
+        Set<Path> set = new HashSet<>();
+
+        for (String path : paths) {
+            Path p = Paths.get(path).normalize();
+
+            // duplication found
+            if (!set.add(p)) {
+                return true;
+            }
+
+            for (Path exist : set) {
+                if (exist.equals(p)) {
+                    continue;
+                }
+
+                if (p.startsWith(exist) || exist.startsWith(p)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
     public static Path createDirectory(Path dir) throws IOException {
         try {
