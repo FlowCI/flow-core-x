@@ -18,6 +18,7 @@
 package com.flowci.util.test;
 
 import com.flowci.util.FileHelper;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,5 +49,33 @@ public class FileHelperTest {
         FileHelper.unzip(src, destDir);
 
         Assert.assertTrue(Files.exists(destDir));
+    }
+
+    @Test
+    public void should_verify_path_is_start_from_root() {
+        Assert.assertTrue(FileHelper.isStartWithRoot("/ws/abc"));
+        Assert.assertTrue(FileHelper.isStartWithRoot("C:\\ws\\abc"));
+
+        Assert.assertFalse(FileHelper.isStartWithRoot("./ws/abc"));
+        Assert.assertFalse(FileHelper.isStartWithRoot(".\\ws\\abc"));
+    }
+
+    @Test
+    public void should_verify_path_has_overlap_or_duplication() {
+        Assert.assertTrue(FileHelper.hasOverlapOrDuplicatePath(Lists.newArrayList(
+                "./ws/abc",
+                "./ws"
+        )));
+
+        Assert.assertTrue(FileHelper.hasOverlapOrDuplicatePath(Lists.newArrayList(
+                "./ws/abc",
+                "./ws/abc/"
+        )));
+
+        Assert.assertFalse(FileHelper.hasOverlapOrDuplicatePath(Lists.newArrayList(
+                "test",
+                "ws/abc",
+                "abc/efg"
+        )));
     }
 }

@@ -22,6 +22,7 @@ import com.flowci.exception.YmlException;
 import com.flowci.tree.Cache;
 import com.flowci.tree.Node;
 import com.flowci.tree.StepNode;
+import com.flowci.util.FileHelper;
 import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
 import lombok.NonNull;
@@ -72,6 +73,16 @@ public abstract class YmlBase<T extends Node> implements Serializable {
 
         if (!ObjectsHelper.hasCollection(cache.getPaths())) {
             return;
+        }
+
+        for (String path : cache.getPaths()) {
+            if (FileHelper.isStartWithRoot(path)) {
+                throw new YmlException("Cache path cannot be defined as absolute path");
+            }
+        }
+
+        if (FileHelper.hasOverlapOrDuplicatePath(cache.getPaths())) {
+            throw new YmlException("Cache paths are overlap or duplicate");
         }
 
         Cache c = new Cache();
