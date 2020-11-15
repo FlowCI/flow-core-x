@@ -66,13 +66,17 @@ public abstract class YmlBase<T extends Node> implements Serializable {
         return variables;
     }
 
+    /**
+     * set cache from yaml
+     * read only cache if path not specified
+     */
     void setCache(T node) {
         if (Objects.isNull(cache)) {
             return;
         }
 
         if (!ObjectsHelper.hasCollection(cache.getPaths())) {
-            return;
+            cache.setPaths(Collections.emptyList());
         }
 
         for (String path : cache.getPaths()) {
