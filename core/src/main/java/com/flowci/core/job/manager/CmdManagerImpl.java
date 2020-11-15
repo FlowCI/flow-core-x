@@ -54,7 +54,7 @@ public class CmdManagerImpl implements CmdManager {
                 .setFlowId(job.getFlowId())
                 .setJobId(job.getId())
                 .setAllowFailure(node.isAllowFailure())
-                .setDockers(findDockerOptions(node))
+                .setDockers(ObjectsHelper.copy(findDockerOptions(node)))
                 .setBash(linkScript(node, ShellIn.ShellType.Bash))
                 .setPwsh(linkScript(node, ShellIn.ShellType.PowerShell))
                 .setEnvFilters(linkFilters(node))

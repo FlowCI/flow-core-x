@@ -14,7 +14,7 @@
       <env name="FLOWCI_SERVER_PORT" value="8080" />
       <env name="FLOWCI_TEMPLATES" value="https://raw.githubusercontent.com/FlowCI/templates/master/templates.json" />
       <env name="FLOWCI_AGENT_IMAGE" value="flowci/agent:dev" />
-      <env name="FLOWCI_SERVER_URL" value="http://192.168.0.4:8080" />
+      <env name="FLOWCI_SERVER_URL" value="http://192.168.0.102:8080" />
     </envs>
     <method v="2">
       <option name="Make" enabled="true" />
