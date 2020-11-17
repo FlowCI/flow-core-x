@@ -17,16 +17,25 @@
 
 package com.flowci.core.api;
 
+import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.service.AgentService;
+import com.flowci.core.api.adviser.ApiAuth;
 import com.flowci.core.api.domain.AddStatsItem;
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.api.service.OpenRestService;
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.flow.domain.StatsCounter;
+import com.flowci.core.job.domain.JobCache;
+import com.flowci.core.job.service.CacheService;
+import com.flowci.core.job.service.LoggingService;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.user.domain.User;
+import com.flowci.exception.ArgumentException;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -35,18 +44,30 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Provides API which calling from agent plugin
  */
+@Log4j2
 @RestController
 @RequestMapping("/api")
 public class OpenRestController {
 
     @Autowired
     private OpenRestService openRestService;
+
+    @Autowired
+    private AgentService agentService;
+
+    @Autowired
+    private LoggingService loggingService;
+
+    @Autowired
+    private CacheService cacheService;
 
     @GetMapping("/secret/{name}")
     public Secret getSecret(@PathVariable String name) {
@@ -110,5 +131,46 @@ public class OpenRestController {
                                   @Validated @RequestPart("body") CreateJobArtifact meta,
                                   @RequestPart("file") MultipartFile file) {
         openRestService.saveJobArtifact(name, number, meta, file);
+    }
+
+    @PostMapping("/profile")
+    public void profile(@RequestHeader(ApiAuth.HeaderAgentToken) String token,
+                        @RequestBody Agent.Resource resource) {
+        agentService.update(token, resource);
+    }
+
+    @PostMapping("/logs/upload")
+    public void upload(@RequestPart("file") MultipartFile file) {
+        try (InputStream stream = file.getInputStream()) {
+            loggingService.save(file.getOriginalFilename(), stream);
+        } catch (IOException e) {
+            log.warn("Unable to save log, cause {}", e.getMessage());
+        }
+    }
+
+    @PostMapping("/cache/{jobId}/{key}/{os}")
+    public void putCache(@PathVariable String jobId,
+                         @PathVariable String key,
+                         @PathVariable String os,
+                         @RequestParam("files") MultipartFile[] files) {
+        if (files.length == 0) {
+            throw new ArgumentException("the cached files are empty");
+        }
+
+        cacheService.put(jobId, key, os, files);
+    }
+
+    @GetMapping("/cache/{jobId}/{key}")
+    public JobCache getCache(@PathVariable String jobId, @PathVariable String key) {
+        return cacheService.get(jobId, key);
+    }
+
+    @GetMapping("/cache/{cacheId}")
+    public ResponseEntity<Resource> downloadCache(@PathVariable String cacheId, @RequestParam String file) {
+        InputStream stream = cacheService.fetch(cacheId, file);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file + "\"")
+                .body(new InputStreamResource(stream));
     }
 }

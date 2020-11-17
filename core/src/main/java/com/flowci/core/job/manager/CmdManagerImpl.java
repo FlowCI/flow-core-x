@@ -28,10 +28,7 @@ import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
-import com.flowci.tree.Node;
-import com.flowci.tree.NodePath;
-import com.flowci.tree.NodeTree;
-import com.flowci.tree.StepNode;
+import com.flowci.tree.*;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,13 +54,14 @@ public class CmdManagerImpl implements CmdManager {
                 .setFlowId(job.getFlowId())
                 .setJobId(job.getId())
                 .setAllowFailure(node.isAllowFailure())
-                .setDockers(findDockerOptions(node))
+                .setDockers(ObjectsHelper.copy(findDockerOptions(node)))
                 .setBash(linkScript(node, ShellIn.ShellType.Bash))
                 .setPwsh(linkScript(node, ShellIn.ShellType.PowerShell))
                 .setEnvFilters(linkFilters(node))
                 .setInputs(linkInputs(node).merge(job.getContext(), false))
                 .setTimeout(linkTimeout(node, job.getTimeout()))
-                .setRetry(linkRetry(node, 0));
+                .setRetry(linkRetry(node, 0))
+                .setCache(node.getCache());
 
         if (node.hasPlugin()) {
             setPlugin(node.getPlugin(), in);

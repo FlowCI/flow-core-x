@@ -68,7 +68,7 @@ public abstract class YmlBase<T extends Node> implements Serializable {
         }
     }
 
-    void setSteps(T parent) {
+    void setStepsToNode(T parent) {
         int index = 1;
         Set<String> uniqueName = new HashSet<>(steps.size());
 
@@ -83,7 +83,7 @@ public abstract class YmlBase<T extends Node> implements Serializable {
         }
     }
 
-    void setDocker(T node) {
+    void setDockerToNode(T node) {
         if (hasDocker() && hasDockers()) {
             throw new YmlException("Only accept either 'docker' or 'dockers' section");
         }

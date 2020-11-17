@@ -17,7 +17,9 @@
 package com.flowci.util;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -28,6 +30,16 @@ public abstract class ObjectsHelper {
 
     public static boolean hasCollection(Collection<?> collection) {
         return collection != null && collection.size() > 0;
+    }
+
+    public static <T extends Serializable> List<T> copy(List<T> source) {
+        List<T> dest = new ArrayList<>(source.size());
+
+        for (T item : source) {
+            dest.add(copy(item));
+        }
+
+        return dest;
     }
 
     public static <T extends Serializable> T copy(T source) {
