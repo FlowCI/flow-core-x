@@ -50,9 +50,6 @@ public class WebConfig {
     private HandlerInterceptor apiAuth;
 
     @Autowired
-    private HandlerInterceptor agentAuth;
-
-    @Autowired
     private HandlerInterceptor webAuth;
 
     @Autowired
@@ -88,14 +85,10 @@ public class WebConfig {
                         .addPathPatterns("/secrets/**")
                         .addPathPatterns("/configs/**")
                         .addPathPatterns("/system/**")
-                        .addPathPatterns("/auth/logout")
-                        .excludePathPatterns("/agents/api/**");
+                        .addPathPatterns("/auth/logout");
 
                 registry.addInterceptor(apiAuth)
                         .addPathPatterns("/api/**");
-
-                registry.addInterceptor(agentAuth)
-                        .addPathPatterns("/agents/api/**");
             }
 
             @Override
