@@ -34,7 +34,7 @@ public class ApiAuth implements HandlerInterceptor {
 
     public static final String LocalTaskToken = "local-task";
 
-    private static final String HeaderAgentToken = "AGENT-TOKEN";
+    public static final String HeaderAgentToken = "AGENT-TOKEN";
 
     @Autowired
     private AgentService agentService;
