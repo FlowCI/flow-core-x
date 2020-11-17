@@ -62,12 +62,6 @@ public class YmlParserTest {
 
         Assert.assertNotNull(root.getCondition());
 
-        // verify cache
-        Assert.assertNotNull(root.getCache());
-        Assert.assertEquals(2, root.getCache().getPaths().size());
-        Assert.assertEquals("./", root.getCache().getPaths().get(0));
-        Assert.assertEquals("vendor", root.getCache().getPaths().get(1));
-
         // verify docker
         Assert.assertTrue(root.getDockers().size() > 0);
         Assert.assertEquals("helloworld:0.1", root.getDockers().get(0).getImage());
@@ -89,6 +83,13 @@ public class YmlParserTest {
 
         Assert.assertTrue(step1.isAllowFailure());
         Assert.assertEquals("println(FLOW_WORKSPACE)\ntrue\n", step1.getCondition());
+
+        // verify cache
+        Assert.assertNotNull(step1.getCache());
+        Assert.assertEquals(2, step1.getCache().getPaths().size());
+        Assert.assertEquals("mycache", step1.getCache().getKey());
+        Assert.assertEquals("./", step1.getCache().getPaths().get(0));
+        Assert.assertEquals("vendor", step1.getCache().getPaths().get(1));
 
         StepNode step2 = steps.get(1);
         Assert.assertEquals("step2", step2.getName());

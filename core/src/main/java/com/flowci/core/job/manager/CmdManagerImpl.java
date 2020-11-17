@@ -61,7 +61,7 @@ public class CmdManagerImpl implements CmdManager {
                 .setInputs(linkInputs(node).merge(job.getContext(), false))
                 .setTimeout(linkTimeout(node, job.getTimeout()))
                 .setRetry(linkRetry(node, 0))
-                .setCache(linkCache(node));
+                .setCache(node.getCache());
 
         if (node.hasPlugin()) {
             setPlugin(node.getPlugin(), in);
@@ -122,19 +122,6 @@ public class CmdManagerImpl implements CmdManager {
         }
 
         return defaultRetry;
-    }
-
-    private Cache linkCache(Node current) {
-        if (current.hasCache()) {
-            return current.getCache();
-        }
-
-        if (current.hasParent()) {
-            Node parent = current.getParent();
-            return linkCache(parent);
-        }
-
-        return null;
     }
 
     private Integer linkTimeout(StepNode current, Integer defaultTimeout) {

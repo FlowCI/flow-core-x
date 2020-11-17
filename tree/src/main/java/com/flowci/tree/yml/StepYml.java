@@ -17,9 +17,11 @@
 package com.flowci.tree.yml;
 
 import com.flowci.exception.YmlException;
+import com.flowci.tree.Cache;
 import com.flowci.tree.Node;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.StepNode;
+import com.flowci.util.FileHelper;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
@@ -27,8 +29,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author yang
@@ -56,6 +60,8 @@ public class StepYml extends YmlBase<StepNode> {
 
     private boolean allow_failure = false;
 
+    private Cache cache;
+
     StepYml(StepNode node) {
         setName(node.getName());
         setEnvs(node.getEnvironments());
@@ -65,6 +71,7 @@ public class StepYml extends YmlBase<StepNode> {
         setTimeout(node.getTimeout());
         setPlugin(node.getPlugin());
         setAllow_failure(node.isAllowFailure());
+        setCache(node.getCache());
     }
 
     public StepNode toNode(Node parent, int index) {
@@ -79,8 +86,8 @@ public class StepYml extends YmlBase<StepNode> {
         node.setAllowFailure(allow_failure);
         node.setEnvironments(getVariableMap());
 
-        setCache(node);
-        setDocker(node);
+        setCacheToNode(node);
+        setDockerToNode(node);
 
         if (StringHelper.hasValue(node.getName()) && !NodePath.validate(node.getName())) {
             throw new YmlException("Invalid name '{0}'", node.getName());
@@ -91,7 +98,7 @@ public class StepYml extends YmlBase<StepNode> {
                 throw new YmlException("The plugin section is not allowed on the step with sub steps");
             }
 
-            setSteps(node);
+            setStepsToNode(node);
         }
 
         // backward compatible, set script to bash
@@ -108,5 +115,43 @@ public class StepYml extends YmlBase<StepNode> {
         }
 
         return DefaultStepPrefix + index;
+    }
+
+    /**
+     * set cache from yaml
+     * read only cache if path not specified
+     */
+    private void setCacheToNode(StepNode node) {
+        if (Objects.isNull(cache)) {
+            return;
+        }
+
+        if (!StringHelper.hasValue(cache.getKey())) {
+            throw new YmlException("Cache key must be defined");
+        }
+
+        if (!NodePath.validate(cache.getKey())) {
+            throw new YmlException("Invalid cache key {0}", cache.getKey());
+        }
+
+        if (!ObjectsHelper.hasCollection(cache.getPaths())) {
+            cache.setPaths(Collections.emptyList());
+        }
+
+        for (String path : cache.getPaths()) {
+            if (FileHelper.isStartWithRoot(path)) {
+                throw new YmlException("Cache path cannot be defined as absolute path");
+            }
+        }
+
+        if (FileHelper.hasOverlapOrDuplicatePath(cache.getPaths())) {
+            throw new YmlException("Cache paths are overlap or duplicate");
+        }
+
+        Cache c = new Cache();
+        c.setKey(cache.getKey());
+        c.setPaths(cache.getPaths());
+
+        node.setCache(c);
     }
 }

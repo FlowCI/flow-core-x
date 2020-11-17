@@ -54,8 +54,6 @@ public abstract class Node implements Serializable {
     @JsonIgnore
     protected Node parent;
 
-    protected Cache cache;
-
     /**
      * Inner option has higher priority
      * Ex: Plugin > Step > Flow
@@ -104,10 +102,5 @@ public abstract class Node implements Serializable {
     @JsonIgnore
     public boolean hasParent() {
         return parent != null;
-    }
-
-    @JsonIgnore
-    public boolean hasCache() {
-        return cache != null;
     }
 }

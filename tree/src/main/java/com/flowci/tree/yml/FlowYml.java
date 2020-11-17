@@ -56,15 +56,14 @@ public class FlowYml extends YmlBase<FlowNode> {
         node.setCondition(condition);
         node.setEnvironments(getVariableMap());;
 
-        setCache(node);
-        setDocker(node);
+        setDockerToNode(node);
         setupNotifications(node);
 
         if (!ObjectsHelper.hasCollection(steps)) {
             throw new YmlException("The 'steps' section must be defined");
         }
 
-        setSteps(node);
+        setStepsToNode(node);
         return node;
     }
 

@@ -56,6 +56,11 @@ public class StepNode extends Node {
      */
     private boolean allowFailure = ALLOW_FAILURE_DEFAULT;
 
+    /**
+     * Cache setting
+     */
+    private Cache cache;
+
     public StepNode(String name, Node parent) {
         super(name, parent);
     }
@@ -88,5 +93,10 @@ public class StepNode extends Node {
     @JsonIgnore
     public boolean hasRetry() {
         return retry != null;
+    }
+
+    @JsonIgnore
+    public boolean hasCache() {
+        return cache != null;
     }
 }

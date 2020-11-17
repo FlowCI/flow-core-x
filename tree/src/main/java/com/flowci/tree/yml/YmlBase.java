@@ -19,10 +19,8 @@ package com.flowci.tree.yml;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.exception.YmlException;
-import com.flowci.tree.Cache;
 import com.flowci.tree.Node;
 import com.flowci.tree.StepNode;
-import com.flowci.util.FileHelper;
 import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
 import lombok.NonNull;
@@ -53,8 +51,6 @@ public abstract class YmlBase<T extends Node> implements Serializable {
     // or dockers
     public List<DockerYml> dockers;
 
-    public CacheYml cache;
-
     @NonNull
     public List<StepYml> steps = new LinkedList<>();
 
@@ -66,43 +62,13 @@ public abstract class YmlBase<T extends Node> implements Serializable {
         return variables;
     }
 
-    /**
-     * set cache from yaml
-     * read only cache if path not specified
-     */
-    void setCache(T node) {
-        if (Objects.isNull(cache)) {
-            return;
-        }
-
-        if (!ObjectsHelper.hasCollection(cache.getPaths())) {
-            cache.setPaths(Collections.emptyList());
-        }
-
-        for (String path : cache.getPaths()) {
-            if (FileHelper.isStartWithRoot(path)) {
-                throw new YmlException("Cache path cannot be defined as absolute path");
-            }
-        }
-
-        if (FileHelper.hasOverlapOrDuplicatePath(cache.getPaths())) {
-            throw new YmlException("Cache paths are overlap or duplicate");
-        }
-
-        Cache c = new Cache();
-        c.setKey(cache.getKey());
-        c.setPaths(cache.getPaths());
-
-        node.setCache(c);
-    }
-
     void setEnvs(StringVars variables) {
         for (Map.Entry<String, String> entry : variables.entrySet()) {
             this.envs.put(entry.getKey(), entry.getValue());
         }
     }
 
-    void setSteps(T parent) {
+    void setStepsToNode(T parent) {
         int index = 1;
         Set<String> uniqueName = new HashSet<>(steps.size());
 
@@ -117,7 +83,7 @@ public abstract class YmlBase<T extends Node> implements Serializable {
         }
     }
 
-    void setDocker(T node) {
+    void setDockerToNode(T node) {
         if (hasDocker() && hasDockers()) {
             throw new YmlException("Only accept either 'docker' or 'dockers' section");
         }
