@@ -29,8 +29,9 @@ public interface AgentHostService {
 
     /**
      * Disable agent host
+     * @param value true for disable, false for enable
      */
-    AgentHost disable(String name);
+    AgentHost disableOrEnable(String name, boolean value);
 
     /**
      * Delete agent host, and clean up all related agent containers
