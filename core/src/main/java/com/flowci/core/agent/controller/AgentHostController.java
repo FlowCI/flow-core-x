@@ -68,9 +68,9 @@ public class AgentHostController {
         agentHostService.testConn(host);
     }
 
-    @PostMapping("/{name}/disable")
+    @PostMapping("/{name}/switch/{value}")
     @Action(AgentHostAction.CREATE_UPDATE)
-    public AgentHost disableByName(@PathVariable String name) {
-        return agentHostService.disable(name);
+    public AgentHost disableOrEnableByName(@PathVariable String name, @PathVariable boolean value) {
+        return agentHostService.disableOrEnable(name, value);
     }
 }

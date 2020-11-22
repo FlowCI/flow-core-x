@@ -131,9 +131,9 @@ public class AgentHostServiceImpl implements AgentHostService {
     }
 
     @Override
-    public AgentHost disable(String name) {
+    public AgentHost disableOrEnable(String name, boolean value) {
         AgentHost host = get(name);
-        host.setDisabled(true);
+        host.setDisabled(value);
         return agentHostDao.save(host);
     }
 
