@@ -119,22 +119,32 @@ public class AgentHostServiceImpl implements AgentHostService {
     //====================================================================
 
     @Override
-    public void createOrUpdate(AgentHost host) {
+    public AgentHost createOrUpdate(AgentHost host) {
         if (StringHelper.hasValue(host.getId())) {
             agentHostDao.save(host);
             poolManagerCache.invalidate(host);
-            return;
+            return host;
         }
 
         mapping.get(host.getClass()).create(host);
+        return host;
     }
 
     @Override
-    public void delete(AgentHost host) {
+    public AgentHost disable(String name) {
+        AgentHost host = get(name);
+        host.setDisabled(true);
+        return agentHostDao.save(host);
+    }
+
+    @Override
+    public AgentHost delete(String name) {
+        AgentHost host = get(name);
         agentHostDao.deleteById(host.getId());
         appTaskExecutor.execute(() -> {
             removeAll(host);
         });
+        return host;
     }
 
     @Override
