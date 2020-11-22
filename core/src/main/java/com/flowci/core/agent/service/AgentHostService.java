@@ -16,21 +16,26 @@
 
 package com.flowci.core.agent.service;
 
-import java.util.List;
-
 import com.flowci.core.agent.domain.AgentHost;
+
+import java.util.List;
 
 public interface AgentHostService {
 
     /**
      * Create an agent host
      */
-    void createOrUpdate(AgentHost host);
+    AgentHost createOrUpdate(AgentHost host);
+
+    /**
+     * Disable agent host
+     */
+    AgentHost disable(String name);
 
     /**
      * Delete agent host, and clean up all related agent containers
      */
-    void delete(AgentHost host);
+    AgentHost delete(String name);
 
     /**
      * Start agent on the host
