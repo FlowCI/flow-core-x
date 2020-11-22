@@ -206,6 +206,11 @@ public class AgentHostServiceImpl implements AgentHostService {
             return false;
         }
 
+        if (host.isDisabled()) {
+            log.info("Agent host {} is disabled", host.getName());
+            return false;
+        }
+
         log.info("try to start agent from host {}", host.getName());
 
         List<Agent> agents = agentDao.findAllByHostId(host.getId());
