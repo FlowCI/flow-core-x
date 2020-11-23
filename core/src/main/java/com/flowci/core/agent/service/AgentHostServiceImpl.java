@@ -119,22 +119,32 @@ public class AgentHostServiceImpl implements AgentHostService {
     //====================================================================
 
     @Override
-    public void createOrUpdate(AgentHost host) {
+    public AgentHost createOrUpdate(AgentHost host) {
         if (StringHelper.hasValue(host.getId())) {
             agentHostDao.save(host);
             poolManagerCache.invalidate(host);
-            return;
+            return host;
         }
 
         mapping.get(host.getClass()).create(host);
+        return host;
     }
 
     @Override
-    public void delete(AgentHost host) {
+    public AgentHost disableOrEnable(String name, boolean value) {
+        AgentHost host = get(name);
+        host.setDisabled(value);
+        return agentHostDao.save(host);
+    }
+
+    @Override
+    public AgentHost delete(String name) {
+        AgentHost host = get(name);
         agentHostDao.deleteById(host.getId());
         appTaskExecutor.execute(() -> {
             removeAll(host);
         });
+        return host;
     }
 
     @Override
@@ -193,6 +203,11 @@ public class AgentHostServiceImpl implements AgentHostService {
         Optional<DockerManager> manager = getDockerManager(host);
         if (!manager.isPresent()) {
             log.warn("Fail to get pool manager of host: {}", host.getName());
+            return false;
+        }
+
+        if (host.isDisabled()) {
+            log.info("Agent host {} is disabled", host.getName());
             return false;
         }
 
@@ -385,11 +400,11 @@ public class AgentHostServiceImpl implements AgentHostService {
     //        %% Private functions
     //====================================================================
 
-    public String getContainerName(Agent agent) {
+    private String getContainerName(Agent agent) {
         return String.format("%s-%s", ContainerNamePrefix, StringHelper.escapeNumber(agent.getName()));
     }
 
-    public void autoCreateLocalAgentHost() {
+    private void autoCreateLocalAgentHost() {
         if (!appProperties.isAutoLocalAgentHost()) {
             return;
         }
@@ -404,7 +419,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
     }
 
-    public void syncAgents() {
+    private void syncAgents() {
         for (AgentHost host : list()) {
             try {
                 sync(host);
