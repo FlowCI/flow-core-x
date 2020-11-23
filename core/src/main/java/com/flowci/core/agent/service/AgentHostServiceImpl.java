@@ -400,11 +400,11 @@ public class AgentHostServiceImpl implements AgentHostService {
     //        %% Private functions
     //====================================================================
 
-    public String getContainerName(Agent agent) {
+    private String getContainerName(Agent agent) {
         return String.format("%s-%s", ContainerNamePrefix, StringHelper.escapeNumber(agent.getName()));
     }
 
-    public void autoCreateLocalAgentHost() {
+    private void autoCreateLocalAgentHost() {
         if (!appProperties.isAutoLocalAgentHost()) {
             return;
         }
@@ -419,7 +419,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
     }
 
-    public void syncAgents() {
+    private void syncAgents() {
         for (AgentHost host : list()) {
             try {
                 sync(host);
