@@ -208,12 +208,13 @@ public class FlowServiceImpl implements FlowService {
 
         flow.setStatus(Status.CONFIRMED);
 
-        // flow will be saved in saveYml
+        // flow instance will be saved in saveYml
         if (option.hasYml()) {
             ymlService.saveYml(flow, option.getYaml());
+            return flow;
         }
 
-        return flow;
+        return flowDao.save(flow);
     }
 
     @Override
