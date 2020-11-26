@@ -21,41 +21,49 @@ import com.flowci.core.flow.domain.Yml;
 import com.flowci.tree.FlowNode;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * @author yang
  */
 public interface YmlService {
 
+    List<Yml> list(String flowId);
+
     /**
      * Get FlowNode that represent yaml in obj
      *
      * @throws com.flowci.exception.NotFoundException if YML not found
      */
-    FlowNode getRaw(Flow flow);
+    FlowNode getRaw(String flowId, String name);
 
     /**
-     * Get yml by flow
+     * Get yml by flow id and yaml name
      *
      * @throws com.flowci.exception.NotFoundException if YML not found
      */
-    Yml getYml(Flow flow);
+    Yml getYml(String flowId, String name);
 
     /**
-     * Get yml by flow
+     * Get yml string only by flow id and yaml name
      */
     @Nullable
-    String getYmlString(Flow flow);
+    String getYmlString(String flowId, String name);
 
     /**
      * Create or update yml for flow
      *
      * @throws com.flowci.exception.ArgumentException if yml string is empty or null
      */
-    Yml saveYml(Flow flow, String yml);
+    Yml saveYml(Flow flow, String name, String yml);
 
     /**
-     * Delete flow yml
+     * Delete all yaml of flow
      */
-    void delete(Flow flow);
+    void delete(String flowId);
+
+    /**
+     * Delete a yaml in flow
+     */
+    void delete(String flowId, String name);
 }

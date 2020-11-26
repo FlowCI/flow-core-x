@@ -35,8 +35,8 @@ import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -62,30 +62,35 @@ public class YmlServiceImpl implements YmlService {
     //        %% Public function
     //====================================================================
 
+
     @Override
-    public FlowNode getRaw(Flow flow) {
-        Yml yml = getYml(flow);
-        return YmlParser.load(flow.getName(), yml.getRaw());
+    public List<Yml> list(String flowId) {
+        return ymlDao.findAllByFlowId(flowId);
     }
 
     @Override
-    public Yml getYml(Flow flow) {
-        Optional<Yml> optional = ymlDao.findById(flow.getId());
+    public FlowNode getRaw(String flowId, String name) {
+        Yml yml = getYml(flowId, name);
+        return YmlParser.load(name, yml.getRaw());
+    }
+
+    @Override
+    public Yml getYml(String flowId, String name) {
+        Optional<Yml> optional = ymlDao.findByFlowIdAndName(flowId, name);
         if (optional.isPresent()) {
             return optional.get();
         }
-        throw new NotFoundException("No yml defined for flow {0}", flow.getName());
-    }
-
-    @Nullable
-    @Override
-    public String getYmlString(Flow flow) {
-        Optional<Yml> optional = ymlDao.findById(flow.getId());
-        return optional.map(Yml::getRaw).orElse(null);
+        throw new NotFoundException("yml not found");
     }
 
     @Override
-    public Yml saveYml(Flow flow, String yml) {
+    public String getYmlString(String flowId, String name) {
+        Yml yml = getYml(flowId, name);
+        return yml.getRaw();
+    }
+
+    @Override
+    public Yml saveYml(Flow flow, String name, String yml) {
         if (!StringHelper.hasValue(yml)) {
             throw new ArgumentException("Yml content cannot be null or empty");
         }
@@ -101,7 +106,7 @@ public class YmlServiceImpl implements YmlService {
             throw hasErr.get();
         }
 
-        Yml ymlObj = new Yml(flow.getId(), yml);
+        Yml ymlObj = new Yml(flow.getId(), name, yml);
         ymlDao.save(ymlObj);
 
         // sync flow envs from yml root envs
@@ -114,13 +119,13 @@ public class YmlServiceImpl implements YmlService {
     }
 
     @Override
-    public void delete(Flow flow) {
-        try {
-            Yml yml = getYml(flow);
-            ymlDao.delete(yml);
-        } catch (NotFoundException ignore) {
+    public void delete(String flowId) {
+        ymlDao.deleteAllByFlowId(flowId);
+    }
 
-        }
+    @Override
+    public void delete(String flowId, String name) {
+        ymlDao.deleteByFlowIdAndName(flowId, name);
     }
 
     private Optional<RuntimeException> verifyCondition(Node node) {

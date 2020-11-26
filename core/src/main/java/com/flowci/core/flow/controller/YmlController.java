@@ -42,25 +42,27 @@ public class YmlController {
     @Autowired
     private YmlService ymlService;
 
-    @GetMapping("/{name}/yml/obj")
-    public FlowNode listSteps(@PathVariable String name) {
-        Flow flow = flowService.get(name);
-        return ymlService.getRaw(flow);
+    @GetMapping("/{flowName}/yml/{ymlName}/obj")
+    public FlowNode listSteps(@PathVariable String flowName, @PathVariable String ymlName) {
+        Flow flow = flowService.get(flowName);
+        return ymlService.getRaw(flow.getId(), ymlName);
     }
 
-    @PostMapping("/{name}/yml")
+    @PostMapping("/{flowName}/yml/{ymlName}")
     @Action(FlowAction.SET_YML)
-    public void setupYml(@PathVariable String name, @RequestBody RequestMessage<String> body) {
-        Flow flow = flowService.get(name);
+    public void saveYml(@PathVariable String flowName,
+                        @PathVariable String ymlName,
+                        @RequestBody RequestMessage<String> body) {
+        Flow flow = flowService.get(flowName);
         byte[] yml = Base64.getDecoder().decode(body.getData());
-        ymlService.saveYml(flow, new String(yml));
+        ymlService.saveYml(flow, ymlName, new String(yml));
     }
 
-    @GetMapping(value = "/{name}/yml", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{flowName}/yml/{ymlName}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Action(FlowAction.GET_YML)
-    public String getYml(@PathVariable String name) {
-        Flow flow = flowService.get(name);
-        String yml = ymlService.getYml(flow).getRaw();
+    public String getYml(@PathVariable String flowName, @PathVariable String ymlName) {
+        Flow flow = flowService.get(flowName);
+        String yml = ymlService.getYmlString(flow.getId(), ymlName);
         return Base64.getEncoder().encodeToString(yml.getBytes());
     }
 }
