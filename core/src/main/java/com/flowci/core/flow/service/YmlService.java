@@ -45,7 +45,7 @@ public interface YmlService {
     Yml getYml(String flowId, String name);
 
     /**
-     * Get yml string only by flow id and yaml name
+     * Get b64 yml string only by flow id and yaml name
      */
     @Nullable
     String getYmlString(String flowId, String name);
@@ -55,7 +55,7 @@ public interface YmlService {
      *
      * @throws com.flowci.exception.ArgumentException if yml string is empty or null
      */
-    Yml saveYml(Flow flow, String name, String yml);
+    Yml saveYml(Flow flow, String name, String ymlInB64);
 
     /**
      * Delete all yaml of flow

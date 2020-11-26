@@ -73,7 +73,7 @@ public class CmdManagerTest extends SpringScenario {
     public void should_apply_flow_level_docker_option() throws IOException {
         // given: flow and job
         Flow flow = flowService.create("hello");
-        Yml yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-root-docker.yml")));
+        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toString(load("flow-with-root-docker.yml")));
         Job job = jobService.create(flow, yml.getRaw(), Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
@@ -111,7 +111,7 @@ public class CmdManagerTest extends SpringScenario {
 
         // given: flow and job
         Flow flow = flowService.create("hello");
-        Yml yml = ymlService.saveYml(flow, StringHelper.toString(load("flow-with-plugin.yml")));
+        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toString(load("flow-with-plugin.yml")));
 
         Job job = jobService.create(flow, yml.getRaw(), Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
@@ -148,7 +148,7 @@ public class CmdManagerTest extends SpringScenario {
     public void should_handle_step_in_step() throws IOException {
         // given: flow and job
         Flow flow = flowService.create("hello");
-        Yml yml = ymlService.saveYml(flow, StringHelper.toString(load("step-in-step.yml")));
+        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toString(load("step-in-step.yml")));
 
         Job job = jobService.create(flow, yml.getRaw(), Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);

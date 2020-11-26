@@ -33,6 +33,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class RequestMessage<T> implements Serializable {
 
-    @NotEmpty
+    @NotEmpty(message = "body is missing")
     private T data;
 }
