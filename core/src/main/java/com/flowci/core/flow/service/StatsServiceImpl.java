@@ -116,7 +116,7 @@ public class StatsServiceImpl implements StatsService {
     public List<StatsType> getStatsType(Flow flow) {
         List<StatsType> list = new LinkedList<>(defaultTypes.values());
 
-        List<Yml> yamlList = ymlService.list(flow.getId());
+        List<Yml> yamlList = ymlService.listWithRaw(flow.getId());
         if (yamlList.isEmpty()) {
             return list;
         }

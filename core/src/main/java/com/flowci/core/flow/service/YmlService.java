@@ -28,7 +28,15 @@ import java.util.List;
  */
 public interface YmlService {
 
+    /**
+     * List Yml instance without raw field
+     */
     List<Yml> list(String flowId);
+
+    /**
+     * List Yml instance with raw field
+     */
+    List<Yml> listWithRaw(String flowId);
 
     /**
      * Get FlowNode that represent yaml in obj

@@ -9,6 +9,6 @@ public interface YmlCustomDao {
     /**
      * List all Yml instance without raw yaml string
      */
-    List<Yml> findAllByFlowId(String flowId);
+    List<Yml> findAllWithoutRawByFlowId(String flowId);
 
 }
