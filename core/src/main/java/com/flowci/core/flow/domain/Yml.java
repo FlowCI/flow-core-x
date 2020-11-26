@@ -19,24 +19,37 @@ package com.flowci.core.flow.domain;
 import com.flowci.core.common.domain.Mongoable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author yang
  */
+@Getter
+@Setter
 @Document(collection = "flow_yml")
 @NoArgsConstructor
+@CompoundIndex(
+        name = "index_flow_id_and_yaml_name",
+        def = "{'flowId': 1, 'name': 1}",
+        unique = true
+)
 public class Yml extends Mongoable {
 
-    @Getter
-    @Setter
-    @NonNull
+    public final static String DEFAULT_NAME = "default";
+
+    @Indexed(name = "index_flow_id")
+    private String flowId;
+
+    private String name;
+
     private String raw;
 
-    public Yml(String flowId, String raw) {
-        this.id = flowId;
+    public Yml(String flowId, String name, String raw) {
+        this.flowId = flowId;
+        this.name = name;
         this.raw = raw;
     }
 }

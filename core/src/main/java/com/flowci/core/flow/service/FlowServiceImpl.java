@@ -210,7 +210,7 @@ public class FlowServiceImpl implements FlowService {
 
         // flow instance will be saved in saveYml
         if (option.hasYml()) {
-            ymlService.saveYml(flow, option.getYaml());
+            ymlService.saveYml(flow, Yml.DEFAULT_NAME, option.getYaml());
             return flow;
         }
 
@@ -243,7 +243,7 @@ public class FlowServiceImpl implements FlowService {
         flowDao.delete(flow);
         flowUserDao.delete(flow.getId());
 
-        ymlService.delete(flow);
+        ymlService.delete(flow.getId());
         cronService.cancel(flow);
 
         eventManager.publish(new FlowDeletedEvent(this, flow));
