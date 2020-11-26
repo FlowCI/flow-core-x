@@ -31,6 +31,9 @@ public class ConfirmOption {
 
     private String secret;
 
+    /**
+     * Yaml in base64
+     */
     private String yaml = StringHelper.EMPTY;
 
     public boolean hasGitUrl() {

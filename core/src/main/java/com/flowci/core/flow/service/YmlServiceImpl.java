@@ -64,9 +64,13 @@ public class YmlServiceImpl implements YmlService {
     //        %% Public function
     //====================================================================
 
-
     @Override
     public List<Yml> list(String flowId) {
+        return ymlDao.findAllWithoutRawByFlowId(flowId);
+    }
+
+    @Override
+    public List<Yml> listWithRaw(String flowId) {
         return ymlDao.findAllByFlowId(flowId);
     }
 

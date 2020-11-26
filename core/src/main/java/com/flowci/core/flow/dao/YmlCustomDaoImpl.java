@@ -16,7 +16,7 @@ public class YmlCustomDaoImpl implements YmlCustomDao {
     private MongoOperations operations;
 
     @Override
-    public List<Yml> findAllByFlowId(String flowId) {
+    public List<Yml> findAllWithoutRawByFlowId(String flowId) {
         Query query = Query.query(new Criteria()).with(SortByCreatedAtASC);
         query.fields()
                 .include("id")
