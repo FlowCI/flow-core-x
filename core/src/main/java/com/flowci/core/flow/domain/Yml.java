@@ -16,11 +16,14 @@
 
 package com.flowci.core.flow.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.common.domain.Mongoable;
+import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -31,10 +34,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @Document(collection = "flow_yml")
 @NoArgsConstructor
-@CompoundIndex(
-        name = "index_flow_id_and_yaml_name",
-        def = "{'flowId': 1, 'name': 1}",
-        unique = true
+@CompoundIndexes(
+        @CompoundIndex(
+                name = "index_flow_id_and_yaml_name",
+                def = "{'flowId': 1, 'name': 1}",
+                unique = true
+        )
 )
 public class Yml extends Mongoable {
 
@@ -45,11 +50,16 @@ public class Yml extends Mongoable {
 
     private String name;
 
-    private String raw;
+    private String rawInB64;
 
-    public Yml(String flowId, String name, String raw) {
+    public Yml(String flowId, String name, String rawInB64) {
         this.flowId = flowId;
         this.name = name;
-        this.raw = raw;
+        this.rawInB64 = rawInB64;
+    }
+
+    @JsonIgnore
+    public String getRaw() {
+        return StringHelper.fromBase64(rawInB64);
     }
 }

@@ -20,6 +20,7 @@ import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.common.domain.http.RequestMessage;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.FlowAction;
+import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.tree.FlowNode;
@@ -27,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Base64;
+import java.util.List;
 
 /**
  * @author yang
@@ -42,6 +43,12 @@ public class YmlController {
     @Autowired
     private YmlService ymlService;
 
+    @GetMapping("/{flowName}/yml")
+    public List<Yml> list(@PathVariable String flowName) {
+        Flow flow = flowService.get(flowName);
+        return ymlService.list(flow.getId());
+    }
+
     @GetMapping("/{flowName}/yml/{ymlName}/obj")
     public FlowNode listSteps(@PathVariable String flowName, @PathVariable String ymlName) {
         Flow flow = flowService.get(flowName);
@@ -54,15 +61,15 @@ public class YmlController {
                         @PathVariable String ymlName,
                         @RequestBody RequestMessage<String> body) {
         Flow flow = flowService.get(flowName);
-        byte[] yml = Base64.getDecoder().decode(body.getData());
-        ymlService.saveYml(flow, ymlName, new String(yml));
+        String yamlInB64 = body.getData();
+        ymlService.saveYml(flow, ymlName, yamlInB64);
     }
 
     @GetMapping(value = "/{flowName}/yml/{ymlName}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Action(FlowAction.GET_YML)
     public String getYml(@PathVariable String flowName, @PathVariable String ymlName) {
         Flow flow = flowService.get(flowName);
-        String yml = ymlService.getYmlString(flow.getId(), ymlName);
-        return Base64.getEncoder().encodeToString(yml.getBytes());
+        String yamlInB64 = ymlService.getYmlString(flow.getId(), ymlName);
+        return yamlInB64;
     }
 }

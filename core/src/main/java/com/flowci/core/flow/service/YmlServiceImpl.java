@@ -26,6 +26,7 @@ import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.LocalTask;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
+import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
@@ -33,6 +34,7 @@ import com.flowci.tree.StepNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -86,16 +88,17 @@ public class YmlServiceImpl implements YmlService {
     @Override
     public String getYmlString(String flowId, String name) {
         Yml yml = getYml(flowId, name);
-        return yml.getRaw();
+        return yml.getRawInB64();
     }
 
     @Override
-    public Yml saveYml(Flow flow, String name, String yml) {
-        if (!StringHelper.hasValue(yml)) {
+    public Yml saveYml(Flow flow, String name, String ymlInB64) {
+        if (!StringHelper.hasValue(ymlInB64)) {
             throw new ArgumentException("Yml content cannot be null or empty");
         }
 
-        FlowNode root = YmlParser.load(flow.getName(), yml);
+        String yaml = StringHelper.fromBase64(ymlInB64);
+        FlowNode root = YmlParser.load(flow.getName(), yaml);
         Optional<RuntimeException> hasErr = verifyPlugins(root);
         if (hasErr.isPresent()) {
             throw hasErr.get();
@@ -106,8 +109,13 @@ public class YmlServiceImpl implements YmlService {
             throw hasErr.get();
         }
 
-        Yml ymlObj = new Yml(flow.getId(), name, yml);
-        ymlDao.save(ymlObj);
+        Yml ymlObj = new Yml(flow.getId(), name, ymlInB64);
+
+        try {
+            ymlDao.save(ymlObj);
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateException("Yaml name or condition already existed");
+        }
 
         // sync flow envs from yml root envs
         Vars<String> vars = flow.getVariables();

@@ -19,6 +19,7 @@ package com.flowci.core.job.controller;
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
@@ -109,7 +110,7 @@ public class JobController extends BaseController {
     @Action(JobAction.CREATE)
     public Job create(@Validated @RequestBody CreateJob data) {
         Flow flow = flowService.get(data.getFlow());
-        String ymlStr = ymlService.getYmlString(flow);
+        String ymlStr = ymlService.getYmlString(flow.getId(), Yml.DEFAULT_NAME);
         return jobService.create(flow, ymlStr, Trigger.API, data.getInputs());
     }
 
@@ -118,7 +119,7 @@ public class JobController extends BaseController {
     public void createAndStart(@Validated @RequestBody CreateJob body) {
         final User current = sessionManager.get();
         final Flow flow = flowService.get(body.getFlow());
-        final String ymlStr = ymlService.getYmlString(flow);
+        final String ymlStr = ymlService.getYmlString(flow.getId(), Yml.DEFAULT_NAME);
 
         if (!flow.isYamlFromRepo() && Objects.isNull(ymlStr)) {
             throw new ArgumentException("YAML config is required to start a job");
