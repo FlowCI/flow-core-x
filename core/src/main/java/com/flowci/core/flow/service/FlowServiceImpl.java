@@ -22,7 +22,6 @@ import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowUserDao;
-import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.ConfirmOption;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
@@ -48,7 +47,6 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
-import com.flowci.tree.YmlParser;
 import com.flowci.util.ObjectsHelper;
 import com.google.common.collect.Sets;
 import groovy.util.ScriptException;
@@ -71,9 +69,6 @@ public class FlowServiceImpl implements FlowService {
 
     @Autowired
     private FlowDao flowDao;
-
-    @Autowired
-    private YmlDao ymlDao;
 
     @Autowired
     private FlowUserDao flowUserDao;
@@ -210,7 +205,7 @@ public class FlowServiceImpl implements FlowService {
 
         // flow instance will be saved in saveYml
         if (option.hasYml()) {
-            ymlService.saveYml(flow, option.getYaml());
+            ymlService.saveYml(flow, Yml.DEFAULT_NAME, option.getYaml());
             return flow;
         }
 
@@ -243,7 +238,7 @@ public class FlowServiceImpl implements FlowService {
         flowDao.delete(flow);
         flowUserDao.delete(flow.getId());
 
-        ymlService.delete(flow);
+        ymlService.delete(flow.getId());
         cronService.cancel(flow);
 
         eventManager.publish(new FlowDeletedEvent(this, flow));
@@ -335,22 +330,21 @@ public class FlowServiceImpl implements FlowService {
             return;
         }
 
-        Optional<Yml> optional = ymlDao.findById(flow.getId());
-        if (!optional.isPresent()) {
-            log.warn("No available yml for flow {}", flow.getName());
-            return;
-        }
-
-        Yml yml = optional.get();
-        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
-        if (!canStartJob(root, trigger)) {
-            log.debug("Cannot start job, condition not match: {}", root.getCondition());
+        try {
+            FlowNode root = ymlService.getRaw(flow.getId(), Yml.DEFAULT_NAME);
+            if (!canStartJob(root, trigger)) {
+                log.debug("Cannot start job, condition not match: {}", root.getCondition());
+                return;
+            }
+        } catch (NotFoundException e) {
+            log.warn(e.getMessage());
             return;
         }
 
         StringVars gitInput = trigger.toVariableMap();
         Job.Trigger jobTrigger = trigger.toJobTrigger();
 
+        Yml yml = ymlService.getYml(flow.getId(), Yml.DEFAULT_NAME);
         eventManager.publish(new CreateNewJobEvent(this, flow, yml.getRaw(), jobTrigger, gitInput));
     }
 

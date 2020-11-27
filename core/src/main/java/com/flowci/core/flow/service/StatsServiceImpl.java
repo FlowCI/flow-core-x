@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.helper.DateHelper;
 import com.flowci.core.flow.dao.StatsItemDao;
-import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.*;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.job.domain.Job;
@@ -58,13 +57,13 @@ public class StatsServiceImpl implements StatsService {
     private Resource defaultTypeJsonFile;
 
     @Autowired
-    private YmlDao ymlDao;
-
-    @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
     private StatsItemDao statsItemDao;
+
+    @Autowired
+    private YmlService ymlService;
 
     @Autowired
     private PluginService pluginService;
@@ -115,23 +114,27 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public List<StatsType> getStatsType(Flow flow) {
-        Optional<Yml> optional = ymlDao.findById(flow.getId());
         List<StatsType> list = new LinkedList<>(defaultTypes.values());
-        if (!optional.isPresent()) {
+
+        List<Yml> yamlList = ymlService.listWithRaw(flow.getId());
+        if (yamlList.isEmpty()) {
             return list;
         }
 
-        FlowNode root = YmlParser.load(flow.getName(), optional.get().getRaw());
-        for (StepNode child : root.getChildren()) {
-            if (!child.hasPlugin()) {
-                continue;
-            }
+        for (Yml item : yamlList) {
+            FlowNode root = YmlParser.load(flow.getName(), item.getRaw());
 
-            try {
-                Plugin plugin = pluginService.get(child.getPlugin());
-                list.addAll(plugin.getStatsTypes());
-            } catch (NotFoundException ignore) {
+            for (StepNode child : root.getChildren()) {
+                if (!child.hasPlugin()) {
+                    continue;
+                }
 
+                try {
+                    Plugin plugin = pluginService.get(child.getPlugin());
+                    list.addAll(plugin.getStatsTypes());
+                } catch (NotFoundException ignore) {
+
+                }
             }
         }
 

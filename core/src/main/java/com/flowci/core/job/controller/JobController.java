@@ -19,13 +19,15 @@ package com.flowci.core.job.controller;
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.service.LocalTaskService;
 import com.flowci.core.job.service.ReportService;
 import com.flowci.core.user.domain.User;
-import com.flowci.exception.ArgumentException;
+import com.flowci.exception.NotFoundException;
+import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
@@ -35,7 +37,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author yang
@@ -109,20 +110,21 @@ public class JobController extends BaseController {
     @Action(JobAction.CREATE)
     public Job create(@Validated @RequestBody CreateJob data) {
         Flow flow = flowService.get(data.getFlow());
-        String ymlStr = ymlService.getYmlString(flow);
-        return jobService.create(flow, ymlStr, Trigger.API, data.getInputs());
+        String b64Yaml = ymlService.getYmlString(flow.getId(), Yml.DEFAULT_NAME);
+        return jobService.create(flow, StringHelper.fromBase64(b64Yaml), Trigger.API, data.getInputs());
     }
 
     @PostMapping("/run")
     @Action(JobAction.RUN)
     public void createAndStart(@Validated @RequestBody CreateJob body) {
-        final User current = sessionManager.get();
-        final Flow flow = flowService.get(body.getFlow());
-        final String ymlStr = ymlService.getYmlString(flow);
-
-        if (!flow.isYamlFromRepo() && Objects.isNull(ymlStr)) {
-            throw new ArgumentException("YAML config is required to start a job");
+        User current = sessionManager.get();
+        Flow flow = flowService.get(body.getFlow());
+        String b64Yml = ymlService.getYmlString(flow.getId(), Yml.DEFAULT_NAME);
+        if (!StringHelper.hasValue(b64Yml)) {
+            throw new NotFoundException("yml not found");
         }
+
+        String ymlStr = StringHelper.fromBase64(b64Yml);
 
         // start from thread since could be loading yaml from git repo
         appTaskExecutor.execute(() -> {

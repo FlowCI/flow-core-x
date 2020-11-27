@@ -24,11 +24,12 @@ import com.flowci.core.test.SpringScenario;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.YmlException;
 import com.flowci.util.StringHelper;
-import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.IOException;
 
 /**
  * @author yang
@@ -55,14 +56,17 @@ public class YmlServiceTest extends SpringScenario {
         String ymlRaw = StringHelper.toString(load("flow.yml"));
 
         // then: yml object should be created
-        Yml yml = ymlService.saveYml(flow, ymlRaw);
+        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, ymlRaw);
         Assert.assertNotNull(yml);
+
+        Assert.assertNotNull(yml.getId());
         Assert.assertEquals(flow.getId(), yml.getId());
+        Assert.assertEquals(Yml.DEFAULT_NAME, yml.getName());
     }
 
     @Test(expected = YmlException.class)
     public void should_throw_exception_if_yml_illegal_yml_format() {
-        ymlService.saveYml(flow, "hello-...");
+        ymlService.saveYml(flow, "yaml_name", "hello-...");
     }
 
     @Test(expected = NotFoundException.class)
@@ -71,6 +75,6 @@ public class YmlServiceTest extends SpringScenario {
         String ymlRaw = StringHelper.toString(load("flow-with-plugin-not-found.yml"));
 
         // then:
-        ymlService.saveYml(flow, ymlRaw);
+        ymlService.saveYml(flow, "hello", ymlRaw);
     }
 }
