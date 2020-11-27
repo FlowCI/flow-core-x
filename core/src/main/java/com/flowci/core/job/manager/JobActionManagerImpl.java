@@ -68,6 +68,7 @@ public class JobActionManagerImpl implements JobActionManager {
     // pending
     private static final Transition PendingToLoading = new Transition(Pending, Loading);
     private static final Transition PendingToCreated = new Transition(Pending, Created);
+    private static final Transition PendingToCancelled = new Transition(Pending, Cancelled);
 
     // loading
     private static final Transition LoadingToFailure = new Transition(Loading, Failure);
@@ -229,6 +230,14 @@ public class JobActionManagerImpl implements JobActionManager {
             public void onException(Throwable e, JobSmContext context) {
                 context.setError(e);
                 Sm.execute(Loading, Failure, context);
+            }
+        });
+
+        Sm.add(PendingToCancelled, new Action<JobSmContext>() {
+            @Override
+            public void accept(JobSmContext context) {
+                Job job = context.job;
+                setJobStatusAndSave(job, Job.Status.CANCELLED, "cancelled while pending");
             }
         });
     }
