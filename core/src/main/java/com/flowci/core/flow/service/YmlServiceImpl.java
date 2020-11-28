@@ -113,7 +113,7 @@ public class YmlServiceImpl implements YmlService {
             throw hasErr.get();
         }
 
-        Yml ymlObj = new Yml(flow.getId(), name, ymlInB64);
+        Yml ymlObj = getOrCreate(flow.getId(), name, ymlInB64);
 
         try {
             ymlDao.save(ymlObj);
@@ -138,6 +138,16 @@ public class YmlServiceImpl implements YmlService {
     @Override
     public void delete(String flowId, String name) {
         ymlDao.deleteByFlowIdAndName(flowId, name);
+    }
+
+    private Yml getOrCreate(String flowId, String name, String ymlInB64) {
+        Optional<Yml> optional = ymlDao.findByFlowIdAndName(flowId, name);
+        if (optional.isPresent()) {
+            Yml yml = optional.get();
+            yml.setRawInB64(ymlInB64);
+            return yml;
+        }
+        return new Yml(flowId, name, ymlInB64);
     }
 
     private Optional<RuntimeException> verifyCondition(Node node) {
