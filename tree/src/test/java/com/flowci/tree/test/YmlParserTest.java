@@ -125,13 +125,6 @@ public class YmlParserTest {
     }
 
     @Test
-    public void should_parse_to_yml_from_node() {
-        FlowNode root = YmlParser.load("default", content);
-        String parsed = YmlParser.parse(root);
-        Assert.assertNotNull(parsed);
-    }
-
-    @Test
     public void should_parse_yml_with_exports_filter() throws IOException {
         content = loadContent("flow-with-exports.yml");
         FlowNode root = YmlParser.load("default", content);
@@ -209,6 +202,13 @@ public class YmlParserTest {
     public void should_throw_ex_when_plugin_defined_in_parent_step() throws IOException {
         content = loadContent("parent-step-with-plugin.yml");
         YmlParser.load("root", content);
+    }
+
+    @Test
+    public void should_load_parallel_step_yaml() throws IOException {
+        content = loadContent("flow-parallel.yml");
+        FlowNode root = YmlParser.load("root", content);
+        Assert.assertNotNull(root);
     }
 
     private String loadContent(String resource) throws IOException {

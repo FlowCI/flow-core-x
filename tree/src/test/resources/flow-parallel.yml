@@ -1,0 +1,72 @@
+name: root
+envs:
+  FLOW_WORKSPACE: "echo hello"
+  FLOW_VERSION: "echo version"
+
+condition: |
+  return $FLOWCI_GIT_BRANCH == "develop" || $FLOWCI_GIT_BRANCH == "master";
+
+docker:
+  image: "helloworld:0.1"
+
+selector:
+  label:
+    - ios
+    - local
+
+notifications:
+  - plugin: 'email-notify'
+    envs:
+      FLOWCI_SMTP_CONFIG: 'test-config'
+
+steps:
+  - parallel:
+      subflow-A:
+        selector:
+          label:
+            - linux
+        steps:
+          - name: A
+            script: |
+              echo "A"
+          - name: B
+            script: |
+              echo "B"
+
+      subflow-B:
+        selector:
+          label:
+            - linux
+        steps:
+          - name: A
+            script: |
+              echo "A"
+          - name: B
+            script: |
+              echo "B"
+
+  - condition: |
+      println(FLOW_WORKSPACE)
+      true
+    envs:
+      FLOW_WORKSPACE: "echo step"
+      FLOW_VERSION: "echo step version"
+    cache:
+      key: mycache
+      paths:
+        - "./"
+        - "vendor"
+    timeout: 3600
+    allow_failure: true
+
+  - name: step2
+    allow_failure: false
+    docker:
+      image: "ubuntu:18.04"
+      ports:
+        - "6400:6400"
+        - "2700:2700"
+      entrypoint: [ "/bin/sh" ]
+      network: host
+    bash: "echo 2"
+    pwsh: "echo powershell"

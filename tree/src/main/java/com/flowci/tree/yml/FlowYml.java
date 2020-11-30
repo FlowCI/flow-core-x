@@ -37,15 +37,6 @@ public class FlowYml extends YmlBase<FlowNode> {
 
     private List<NotifyYml> notifications = new LinkedList<>();
 
-    public FlowYml(FlowNode node) {
-        setEnvs(node.getEnvironments());
-
-        // set children
-        for (StepNode child : node.getChildren()) {
-            this.steps.add(new StepYml(child));
-        }
-    }
-
     public FlowNode toNode() {
         if (!NodePath.validate(name)) {
             throw new YmlException("Invalid name {0}", name);

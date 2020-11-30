@@ -29,10 +29,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author yang
@@ -58,23 +55,20 @@ public class StepYml extends YmlBase<StepNode> {
 
     private List<String> exports = new LinkedList<>();
 
-    private boolean allow_failure = false;
+    private Boolean allow_failure;
 
     private Cache cache;
 
-    StepYml(StepNode node) {
-        setName(node.getName());
-        setEnvs(node.getEnvironments());
-        setBash(node.getBash());
-        setPwsh(node.getPwsh());
-        setRetry(node.getRetry());
-        setTimeout(node.getTimeout());
-        setPlugin(node.getPlugin());
-        setAllow_failure(node.isAllowFailure());
-        setCache(node.getCache());
-    }
+    /**
+     * Only for parallel step, other fields will not valid
+     */
+    private Map<String, FlowYml> parallel;
 
     public StepNode toNode(Node parent, int index) {
+        if (parallel != null) {
+            // TODO: handle parallel when field defined
+        }
+
         StepNode node = new StepNode(buildName(index), parent);
         node.setCondition(condition);
         node.setBash(bash);
@@ -83,7 +77,7 @@ public class StepYml extends YmlBase<StepNode> {
         node.setTimeout(timeout);
         node.setPlugin(plugin);
         node.setExports(Sets.newHashSet(exports));
-        node.setAllowFailure(allow_failure);
+        node.setAllowFailure(allow_failure != null && allow_failure);
         node.setEnvironments(getVariableMap());
 
         setCacheToNode(node);
