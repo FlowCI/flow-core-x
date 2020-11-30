@@ -20,28 +20,13 @@ import com.flowci.exception.YmlException;
 import com.flowci.tree.yml.FlowYml;
 import com.flowci.util.YamlHelper;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import org.yaml.snakeyaml.DumperOptions.LineBreak;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
-
-import java.util.Map;
 
 /**
  * @author yang
  */
 public class YmlParser {
-
-    private static final LineBreak LINE_BREAK = LineBreak.getPlatformLineBreak();
-
-    private static final Map<String, Integer> FieldsOrder = ImmutableMap.<String, Integer>builder()
-        .put("envs", 1)
-        .put("trigger", 2)
-        .put("selector", 3)
-        .put("cron", 4)
-        .put("notifications", 5)
-        .put("steps", 6)
-        .build();
 
     /**
      * Create Node instance from yml
@@ -61,13 +46,5 @@ public class YmlParser {
         } catch (YAMLException e) {
             throw new YmlException(e.getMessage());
         }
-    }
-
-    public static synchronized String parse(FlowNode root) {
-        FlowYml flow = new FlowYml(root);
-        Yaml yaml = YamlHelper.create(FieldsOrder, FlowYml.class);
-        String dump = yaml.dump(flow);
-        dump = dump.substring(dump.indexOf(LINE_BREAK.getString()) + 1);
-        return dump;
     }
 }

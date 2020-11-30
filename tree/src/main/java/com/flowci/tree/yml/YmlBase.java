@@ -23,7 +23,6 @@ import com.flowci.tree.Node;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 
 import java.io.Serializable;
@@ -51,10 +50,9 @@ public abstract class YmlBase<T extends Node> implements Serializable {
     // or dockers
     public List<DockerYml> dockers;
 
-    @NonNull
     public List<StepYml> steps = new LinkedList<>();
 
-    StringVars getVariableMap() {
+    protected StringVars getVariableMap() {
         StringVars variables = new StringVars(envs.size());
         for (Map.Entry<String, String> entry : envs.entrySet()) {
             variables.put(entry.getKey(), entry.getValue());
@@ -62,13 +60,7 @@ public abstract class YmlBase<T extends Node> implements Serializable {
         return variables;
     }
 
-    void setEnvs(StringVars variables) {
-        for (Map.Entry<String, String> entry : variables.entrySet()) {
-            this.envs.put(entry.getKey(), entry.getValue());
-        }
-    }
-
-    void setStepsToNode(T parent) {
+    protected void setStepsToNode(T parent) {
         int index = 1;
         Set<String> uniqueName = new HashSet<>(steps.size());
 
