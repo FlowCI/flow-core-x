@@ -27,9 +27,12 @@ steps:
             - linux
         steps:
           - name: A
+            plugin: 'A-plugin'
             script: |
               echo "A"
           - name: B
+            condition: |
+              return true
             script: |
               echo "B"
 
@@ -42,6 +45,7 @@ steps:
             script: |
               echo "A"
           - name: B
+            plugin: 'B-plugin'
             script: |
               echo "B"
 

@@ -27,9 +27,7 @@ import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.exception.NotFoundException;
-import com.flowci.tree.FlowNode;
-import com.flowci.tree.RegularStepNode;
-import com.flowci.tree.YmlParser;
+import com.flowci.tree.NodeTree;
 import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,21 +114,16 @@ public class StatsServiceImpl implements StatsService {
     public List<StatsType> getStatsType(Flow flow) {
         List<StatsType> list = new LinkedList<>(defaultTypes.values());
 
-        List<Yml> yamlList = ymlService.listWithRaw(flow.getId());
+        List<Yml> yamlList = ymlService.list(flow.getId());
         if (yamlList.isEmpty()) {
             return list;
         }
 
         for (Yml item : yamlList) {
-            FlowNode root = YmlParser.load(flow.getName(), item.getRaw());
-
-            for (RegularStepNode child : root.getChildren()) {
-                if (!child.hasPlugin()) {
-                    continue;
-                }
-
+            NodeTree tree = ymlService.getTree(flow.getId(), item.getName());
+            for (String pluginName : tree.getPlugins()) {
                 try {
-                    Plugin plugin = pluginService.get(child.getPlugin());
+                    Plugin plugin = pluginService.get(pluginName);
                     list.addAll(plugin.getStatsTypes());
                 } catch (NotFoundException ignore) {
 

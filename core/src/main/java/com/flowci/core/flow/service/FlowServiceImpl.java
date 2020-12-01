@@ -331,7 +331,7 @@ public class FlowServiceImpl implements FlowService {
         }
 
         try {
-            FlowNode root = ymlService.getRaw(flow.getId(), Yml.DEFAULT_NAME);
+            FlowNode root = ymlService.getTree(flow.getId(), Yml.DEFAULT_NAME).getRoot();
             if (!canStartJob(root, trigger)) {
                 log.debug("Cannot start job, condition not match: {}", root.getCondition());
                 return;
