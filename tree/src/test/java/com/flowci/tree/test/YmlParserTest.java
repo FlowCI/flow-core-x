@@ -209,6 +209,15 @@ public class YmlParserTest {
         content = loadContent("flow-parallel.yml");
         FlowNode root = YmlParser.load("root", content);
         Assert.assertNotNull(root);
+
+        NodeTree tree = NodeTree.create(root);
+        Assert.assertNotNull(tree);
+        Assert.assertEquals(root, tree.getRoot());
+
+        ParallelStepNode parallelStep = (ParallelStepNode) tree.get(NodePath.create("root", "parallel-1"));
+        Assert.assertEquals(0, parallelStep.getOrder());
+        Assert.assertNotNull(parallelStep.getParallel().get("subflow-A"));
+        Assert.assertNotNull(parallelStep.getParallel().get("subflow-B"));
     }
 
     private String loadContent(String resource) throws IOException {
