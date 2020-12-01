@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author yang
@@ -47,7 +46,7 @@ public class JobConfig {
 
     @Bean("jobTreeCache")
     public Cache<String, NodeTree> jobTreeCache() {
-        return CacheHelper.createLocalCache(50, 60);
+        return CacheHelper.createLocalCache(50, 120);
     }
 
     @Bean("jobStepCache")

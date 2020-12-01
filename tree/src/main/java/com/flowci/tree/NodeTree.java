@@ -16,6 +16,7 @@
 
 package com.flowci.tree;
 
+import com.flowci.domain.LocalTask;
 import lombok.Getter;
 
 import java.util.*;
@@ -42,9 +43,19 @@ public class NodeTree {
     @Getter
     private final FlowNode root;
 
+    /**
+     * All condition list
+     */
+    @Getter
+    private final Set<String> conditions = new HashSet<>(DEFAULT_SIZE);
+
+    @Getter
+    private final Set<String> plugins = new HashSet<>(DEFAULT_SIZE);
+
     public NodeTree(FlowNode root) {
         this.root = root;
         buildTree(root);
+        buildMetaData(root, steps);
         buildCacheWithIndex();
     }
 
@@ -115,6 +126,41 @@ public class NodeTree {
         }
 
         return steps.get(next);
+    }
+
+    private void buildMetaData(FlowNode root, List<StepNode> steps) {
+        if (root != null) {
+            if (root.hasCondition()) {
+                conditions.add(root.getCondition());
+            }
+
+            for (LocalTask t : root.getNotifications()) {
+                if (t.hasPlugin()) {
+                    plugins.add(t.getPlugin());
+                }
+            }
+        }
+
+        for (StepNode step : steps) {
+            if (step instanceof RegularStepNode) {
+                RegularStepNode rStep = (RegularStepNode) step;
+                if (rStep.hasCondition()) {
+                    conditions.add(rStep.getCondition());
+                }
+
+                if (rStep.hasPlugin()) {
+                    plugins.add(rStep.getPlugin());
+                }
+
+                buildMetaData(null, rStep.getChildren());
+                continue;
+            }
+
+            if (step instanceof ParallelStepNode) {
+                ParallelStepNode pStep = (ParallelStepNode) step;
+                pStep.getParallel().forEach((k, v) -> buildMetaData(v, v.getChildren()));
+            }
+        }
     }
 
     private void buildCacheWithIndex() {

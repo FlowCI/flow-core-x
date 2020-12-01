@@ -20,7 +20,6 @@ import com.flowci.core.flow.domain.Yml;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -30,8 +29,6 @@ import java.util.Optional;
 public interface YmlDao extends YmlCustomDao, MongoRepository<Yml, String> {
 
     Optional<Yml> findByFlowIdAndName(String flowId, String name);
-
-    List<Yml> findAllByFlowId(String flowId);
 
     void deleteAllByFlowId(String flowId);
 

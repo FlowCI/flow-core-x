@@ -28,7 +28,7 @@ public class CacheHelper {
 
     public static <K, V> Cache<K, V> createLocalCache(int maxSize, int expireInSeconds) {
         return Caffeine.newBuilder()
-                .initialCapacity(maxSize)
+                .initialCapacity(maxSize / 2)
                 .maximumSize(maxSize)
                 .expireAfterWrite(expireInSeconds, TimeUnit.SECONDS)
                 .build();
@@ -36,7 +36,7 @@ public class CacheHelper {
 
     public static <K, V> Cache<K, V> createLocalCache(int maxSize, int expireInSeconds, RemovalListener<K, V> listener) {
         return Caffeine.newBuilder()
-                .initialCapacity(maxSize)
+                .initialCapacity(maxSize / 2)
                 .maximumSize(maxSize)
                 .removalListener(listener)
                 .expireAfterWrite(expireInSeconds, TimeUnit.SECONDS)
@@ -45,7 +45,7 @@ public class CacheHelper {
 
     public static CacheManager createCacheManager(int expireInSeconds, int maxSize) {
         Caffeine<Object, Object> caffeine = Caffeine.newBuilder()
-                .initialCapacity(maxSize)
+                .initialCapacity(maxSize / 2)
                 .maximumSize(maxSize)
                 .expireAfterWrite(expireInSeconds, TimeUnit.SECONDS);
 

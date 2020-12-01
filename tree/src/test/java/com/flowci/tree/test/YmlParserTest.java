@@ -218,6 +218,9 @@ public class YmlParserTest {
         Assert.assertEquals(0, parallelStep.getOrder());
         Assert.assertNotNull(parallelStep.getParallel().get("subflow-A"));
         Assert.assertNotNull(parallelStep.getParallel().get("subflow-B"));
+
+        Assert.assertEquals(3, tree.getPlugins().size());
+        Assert.assertEquals(3, tree.getConditions().size());
     }
 
     private String loadContent(String resource) throws IOException {
