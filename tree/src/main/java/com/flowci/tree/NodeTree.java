@@ -49,7 +49,7 @@ public class NodeTree {
     }
 
     public boolean isFirst(NodePath path) {
-        Node node = steps.get(0);
+        StepNode node = steps.get(0);
         return node.getPath().equals(path);
     }
 
@@ -88,7 +88,7 @@ public class NodeTree {
     /**
      * Get parent Node instance from path
      */
-    public Node parent(NodePath path) {
+    public Nodeable parent(NodePath path) {
         return get(path).getParent();
     }
 
@@ -125,10 +125,13 @@ public class NodeTree {
         }
     }
 
-    private void buildTree(Node root) {
+    private void buildTree(ConfigurableNode root) {
         for (StepNode step : root.getChildren()) {
             steps.add(step);
-            buildTree(step);
+
+            if (step instanceof RegularStepNode) {
+                buildTree((RegularStepNode) step);
+            }
         }
     }
 }

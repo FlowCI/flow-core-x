@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-public class FlowNode extends Node {
+public final class FlowNode extends ConfigurableNode {
 
     /**
      * Agent tags to set node running on which agent
