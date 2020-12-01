@@ -19,7 +19,8 @@ package com.flowci.tree.yml;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.exception.YmlException;
-import com.flowci.tree.Node;
+import com.flowci.tree.ConfigurableNode;
+import com.flowci.tree.RegularStepNode;
 import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
@@ -33,7 +34,7 @@ import java.util.*;
  */
 @Setter
 @Getter
-public abstract class YmlBase<T extends Node> implements Serializable {
+public abstract class YmlBase<T extends ConfigurableNode> implements Serializable {
 
     public String name;
 
@@ -67,8 +68,11 @@ public abstract class YmlBase<T extends Node> implements Serializable {
         for (StepYml child : steps) {
             StepNode step = child.toNode(parent, index++);
 
-            if (!uniqueName.add(step.getName())) {
-                throw new YmlException("Duplicate name {0} in step", step.getName());
+            if (step instanceof RegularStepNode) {
+                String stepName = step.getName();
+                if (!uniqueName.add(stepName)) {
+                    throw new YmlException("Duplicate name {0} in step", stepName);
+                }
             }
 
             parent.getChildren().add(step);

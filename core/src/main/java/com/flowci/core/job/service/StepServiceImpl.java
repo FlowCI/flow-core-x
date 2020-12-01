@@ -25,10 +25,9 @@ import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.StepUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.exception.NotFoundException;
-import com.flowci.tree.Node;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.NodeTree;
-import com.flowci.tree.StepNode;
+import com.flowci.tree.RegularStepNode;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +63,7 @@ public class StepServiceImpl implements StepService {
         NodeTree tree = ymlManager.getTree(job);
         List<Step> steps = new LinkedList<>();
 
-        for (StepNode node : tree.getSteps()) {
+        for (RegularStepNode node : tree.getSteps()) {
             Step cmd = newInstance(job, node);
             steps.add(cmd);
         }
@@ -101,7 +100,7 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public String toVarString(Job job, StepNode current) {
+    public String toVarString(Job job, RegularStepNode current) {
         StringBuilder builder = new StringBuilder();
         for (Step step : list(job)) {
             NodePath path = NodePath.create(step.getNodePath());
@@ -183,7 +182,7 @@ public class StepServiceImpl implements StepService {
                 s -> executedCmdDao.findByFlowIdAndBuildNumber(flowId, buildNumber));
     }
 
-    private static Step newInstance(Job job, StepNode node) {
+    private static Step newInstance(Job job, RegularStepNode node) {
         String cmdId = job.getId() + node.getPathAsString();
 
         return new Step()
@@ -200,13 +199,13 @@ public class StepServiceImpl implements StepService {
                 .setChildren(childrenPaths(node));
     }
 
-    private static List<String> childrenPaths(StepNode node) {
+    private static List<String> childrenPaths(RegularStepNode node) {
         if (!node.hasChildren()) {
             return null;
         }
 
         List<String> paths = new ArrayList<>(node.getChildren().size());
-        for (StepNode child : node.getChildren()) {
+        for (RegularStepNode child : node.getChildren()) {
             paths.add(child.getPathAsString());
         }
         return paths;

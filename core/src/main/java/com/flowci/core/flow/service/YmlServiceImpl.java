@@ -30,7 +30,7 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
-import com.flowci.tree.StepNode;
+import com.flowci.tree.RegularStepNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,7 +177,7 @@ public class YmlServiceImpl implements YmlService {
     private Optional<RuntimeException> verifyPlugins(FlowNode flowNode) {
         Set<String> plugins = new HashSet<>();
 
-        for (StepNode step : flowNode.getChildren()) {
+        for (RegularStepNode step : flowNode.getChildren()) {
             if (step.hasPlugin()) {
                 plugins.add(step.getPlugin());
             }

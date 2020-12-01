@@ -47,7 +47,7 @@ public class CmdManagerImpl implements CmdManager {
 
     @Override
     public ShellIn createShellCmd(Job job, Step step, NodeTree tree) {
-        StepNode node = tree.get(NodePath.create(step.getNodePath()));
+        RegularStepNode node = tree.get(NodePath.create(step.getNodePath()));
 
         ShellIn in = new ShellIn()
                 .setId(step.getId())
@@ -91,7 +91,7 @@ public class CmdManagerImpl implements CmdManager {
         return new ShellKill();
     }
 
-    private String getDefaultContainerName(StepNode node) {
+    private String getDefaultContainerName(RegularStepNode node) {
         NodePath path = node.getPath();
         String stepStr = path.getNodePathWithoutSpace().replace(NodePath.PathSeparator, "-");
         return StringHelper.escapeNumber(String.format("%s-%s", stepStr, StringHelper.randomString(5)));
@@ -109,43 +109,43 @@ public class CmdManagerImpl implements CmdManager {
         return output;
     }
 
-    private Integer linkRetry(StepNode current, Integer defaultRetry) {
+    private Integer linkRetry(RegularStepNode current, Integer defaultRetry) {
         if (current.hasRetry()) {
             return current.getRetry();
         }
 
         if (current.hasParent()) {
             Node parent = current.getParent();
-            if (parent instanceof StepNode) {
-                return linkRetry((StepNode) parent, defaultRetry);
+            if (parent instanceof RegularStepNode) {
+                return linkRetry((RegularStepNode) parent, defaultRetry);
             }
         }
 
         return defaultRetry;
     }
 
-    private Integer linkTimeout(StepNode current, Integer defaultTimeout) {
+    private Integer linkTimeout(RegularStepNode current, Integer defaultTimeout) {
         if (current.hasTimeout()) {
             return current.getTimeout();
         }
 
         if (current.hasParent()) {
             Node parent = current.getParent();
-            if (parent instanceof StepNode) {
-                return linkTimeout((StepNode) parent, defaultTimeout);
+            if (parent instanceof RegularStepNode) {
+                return linkTimeout((RegularStepNode) parent, defaultTimeout);
             }
         }
 
         return defaultTimeout;
     }
 
-    private Set<String> linkFilters(StepNode current) {
+    private Set<String> linkFilters(RegularStepNode current) {
         Set<String> output = new LinkedHashSet<>();
 
         if (current.hasParent()) {
             Node parent = current.getParent();
-            if (parent instanceof StepNode) {
-                output.addAll(linkFilters((StepNode) parent));
+            if (parent instanceof RegularStepNode) {
+                output.addAll(linkFilters((RegularStepNode) parent));
             }
         }
 
@@ -153,13 +153,13 @@ public class CmdManagerImpl implements CmdManager {
         return output;
     }
 
-    private List<String> linkScript(StepNode current, ShellIn.ShellType shellType) {
+    private List<String> linkScript(RegularStepNode current, ShellIn.ShellType shellType) {
         List<String> output = new LinkedList<>();
 
         if (current.hasParent()) {
             Node parent = current.getParent();
-            if (parent instanceof StepNode) {
-                output.addAll(linkScript((StepNode) parent, shellType));
+            if (parent instanceof RegularStepNode) {
+                output.addAll(linkScript((RegularStepNode) parent, shellType));
             }
         }
 

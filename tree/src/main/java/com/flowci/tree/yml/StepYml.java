@@ -17,10 +17,7 @@
 package com.flowci.tree.yml;
 
 import com.flowci.exception.YmlException;
-import com.flowci.tree.Cache;
-import com.flowci.tree.Node;
-import com.flowci.tree.NodePath;
-import com.flowci.tree.StepNode;
+import com.flowci.tree.*;
 import com.flowci.util.FileHelper;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
@@ -37,9 +34,17 @@ import java.util.*;
 @Setter
 @Getter
 @NoArgsConstructor
-public class StepYml extends YmlBase<StepNode> {
+public class StepYml extends YmlBase<RegularStepNode> {
 
     private static final String DefaultStepPrefix = "step-";
+
+    private static final String DefaultParallelPrefix = "parallel-";
+
+    private static final Set<String> FieldsForStep = ObjectsHelper.fields(StepYml.class);
+
+    static {
+        FieldsForStep.remove("parallel");
+    }
 
     private String bash; // bash script
 
@@ -66,10 +71,25 @@ public class StepYml extends YmlBase<StepNode> {
 
     public StepNode toNode(Node parent, int index) {
         if (parallel != null) {
-            // TODO: handle parallel when field defined
+            try {
+                if (ObjectsHelper.hasValue(this, FieldsForStep)) {
+                    throw new YmlException("Parallel section only");
+                }
+            } catch (ReflectiveOperationException e) {
+                throw new YmlException(e.getMessage());
+            }
+
+            if (parallel.isEmpty()) {
+                throw new YmlException("Parallel flow must be defined");
+            }
+
+            String name = DefaultParallelPrefix + index;
+            ParallelStepNode parallelStep = new ParallelStepNode(name, parent);
+            parallelStep.setParallel(parallel);
+            return parallelStep;
         }
 
-        StepNode node = new StepNode(buildName(index), parent);
+        RegularStepNode node = new RegularStepNode(buildName(index), parent);
         node.setCondition(condition);
         node.setBash(bash);
         node.setPwsh(pwsh);
@@ -115,7 +135,7 @@ public class StepYml extends YmlBase<StepNode> {
      * set cache from yaml
      * read only cache if path not specified
      */
-    private void setCacheToNode(StepNode node) {
+    private void setCacheToNode(RegularStepNode node) {
         if (Objects.isNull(cache)) {
             return;
         }

@@ -30,10 +30,20 @@ public abstract class ObjectsHelper {
         return collection != null && collection.size() > 0;
     }
 
+    public static Set<String> fields(Class<?> klass) {
+        Set<String> fields = new HashSet<>();
+        for (Class<?> c = klass; c != null; c = c.getSuperclass()) {
+            for (Field f : c.getDeclaredFields()) {
+                fields.add(f.getName());
+            }
+        }
+        return fields;
+    }
+
     /**
      * Check input fields are all have value or not
      */
-    public static <T extends Object> boolean hasValue(T instance, List<String> fields) throws ReflectiveOperationException {
+    public static <T> boolean hasValue(T instance, Set<String> fields) throws ReflectiveOperationException {
         Map<String, Field> all = new HashMap<>();
 
         for (Class<?> c = instance.getClass(); c != null; c = c.getSuperclass()) {

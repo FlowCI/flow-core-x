@@ -75,7 +75,7 @@ public class YmlParserTest {
         List<StepNode> steps = root.getChildren();
         Assert.assertEquals(2, steps.size());
 
-        StepNode step1 = steps.get(0);
+        RegularStepNode step1 = (RegularStepNode) steps.get(0);
         Assert.assertEquals("step-1", step1.getName()); // step-1 is default name
         Assert.assertEquals("echo step", step1.getEnv("FLOW_WORKSPACE"));
         Assert.assertEquals("echo step version", step1.getEnv("FLOW_VERSION"));
@@ -91,7 +91,7 @@ public class YmlParserTest {
         Assert.assertEquals("./", step1.getCache().getPaths().get(0));
         Assert.assertEquals("vendor", step1.getCache().getPaths().get(1));
 
-        StepNode step2 = steps.get(1);
+        RegularStepNode step2 = (RegularStepNode) steps.get(1);
         Assert.assertEquals("step2", step2.getName());
         Assert.assertEquals("echo 2", step2.getBash());
         Assert.assertEquals("echo powershell", step2.getPwsh());
@@ -113,11 +113,11 @@ public class YmlParserTest {
         Assert.assertEquals(root, tree.getRoot());
 
         // verify parent / child relationship
-        Node step1 = tree.get(NodePath.create("root/step-1")); // step-1 is default name
+        RegularStepNode step1 = (RegularStepNode) tree.get(NodePath.create("root/step-1")); // step-1 is default name
         Assert.assertNotNull(step1);
         Assert.assertEquals(root, step1.getParent());
 
-        Node step2 = tree.get(NodePath.create("root/step2"));
+        RegularStepNode step2 = (RegularStepNode) tree.get(NodePath.create("root/step2"));
         Assert.assertNotNull(step2);
         Assert.assertTrue(step2.getChildren().isEmpty());
         Assert.assertEquals(root, step2.getParent());
@@ -130,7 +130,7 @@ public class YmlParserTest {
         FlowNode root = YmlParser.load("default", content);
         NodeTree tree = NodeTree.create(root);
 
-        StepNode first = tree.next(tree.getRoot().getPath());
+        RegularStepNode first = (RegularStepNode) tree.next(tree.getRoot().getPath());
         Assert.assertEquals("step-1", first.getPath().name());
 
         Assert.assertEquals(2, first.getExports().size());
@@ -142,12 +142,12 @@ public class YmlParserTest {
         FlowNode root = YmlParser.load("default", content);
         NodeTree tree = NodeTree.create(root);
 
-        StepNode first = tree.getSteps().get(0);
+        RegularStepNode first = (RegularStepNode) tree.getSteps().get(0);
         Assert.assertEquals(1, first.getDockers().size());
         Assert.assertEquals("ubuntu:18.04", first.getDockers().get(0).getImage());
         Assert.assertTrue(first.getDockers().get(0).isRuntime());
 
-        StepNode second = tree.getSteps().get(1);
+        RegularStepNode second = (RegularStepNode) tree.getSteps().get(1);
         Assert.assertEquals(2, second.getDockers().size());
 
         Assert.assertEquals("ubuntu:18.04", second.getDockers().get(0).getImage());
@@ -176,14 +176,14 @@ public class YmlParserTest {
         FlowNode root = YmlParser.load("root", content);
         Assert.assertEquals(3, root.getChildren().size());
 
-        StepNode step2 = root.getChildren().get(1);
+        RegularStepNode step2 = (RegularStepNode) root.getChildren().get(1);
         Assert.assertEquals(root, step2.getParent());
 
         Assert.assertEquals(2, step2.getChildren().size());
-        StepNode step2_1 = step2.getChildren().get(0);
+        RegularStepNode step2_1 = (RegularStepNode) step2.getChildren().get(0);
         Assert.assertEquals(step2, step2_1.getParent());
 
-        StepNode step2_2 = step2.getChildren().get(1);
+        RegularStepNode step2_2 = (RegularStepNode) step2.getChildren().get(1);
         Assert.assertEquals(step2, step2_2.getParent());
 
         NodeTree tree = NodeTree.create(root);
@@ -191,7 +191,7 @@ public class YmlParserTest {
         Assert.assertEquals("step2", tree.nextRootStep(NodePath.create("root", "step-1")).getName());
         Assert.assertEquals("create test", tree.nextRootStep(NodePath.create("root", "step2")).getName());
 
-        StepNode step3 = tree.nextRootStep(NodePath.create("root", "step2", "step-2-1"));
+        RegularStepNode step3 = (RegularStepNode) tree.nextRootStep(NodePath.create("root", "step2", "step-2-1"));
         Assert.assertNotNull(step3);
         Assert.assertEquals("create test", step3.getName());
 
