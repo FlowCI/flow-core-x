@@ -28,6 +28,7 @@ import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
+import com.flowci.exception.StatusException;
 import com.flowci.tree.*;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
@@ -47,35 +48,40 @@ public class CmdManagerImpl implements CmdManager {
 
     @Override
     public ShellIn createShellCmd(Job job, Step step, NodeTree tree) {
-        RegularStepNode node = tree.get(NodePath.create(step.getNodePath()));
+        StepNode node = tree.get(NodePath.create(step.getNodePath()));
 
+        if (node instanceof ParallelStepNode) {
+            throw new StatusException("Illegal step node type, must be regular step");
+        }
+
+        RegularStepNode rNode = (RegularStepNode) node;
         ShellIn in = new ShellIn()
                 .setId(step.getId())
                 .setFlowId(job.getFlowId())
                 .setJobId(job.getId())
-                .setAllowFailure(node.isAllowFailure())
-                .setDockers(ObjectsHelper.copy(findDockerOptions(node)))
-                .setBash(linkScript(node, ShellIn.ShellType.Bash))
-                .setPwsh(linkScript(node, ShellIn.ShellType.PowerShell))
-                .setEnvFilters(linkFilters(node))
-                .setInputs(linkInputs(node).merge(job.getContext(), false))
-                .setTimeout(linkTimeout(node, job.getTimeout()))
-                .setRetry(linkRetry(node, 0))
-                .setCache(node.getCache());
+                .setAllowFailure(rNode.isAllowFailure())
+                .setDockers(ObjectsHelper.copy(findDockerOptions(rNode)))
+                .setBash(linkScript(rNode, ShellIn.ShellType.Bash))
+                .setPwsh(linkScript(rNode, ShellIn.ShellType.PowerShell))
+                .setEnvFilters(linkFilters(rNode))
+                .setInputs(linkInputs(rNode).merge(job.getContext(), false))
+                .setTimeout(linkTimeout(rNode, job.getTimeout()))
+                .setRetry(linkRetry(rNode, 0))
+                .setCache(rNode.getCache());
 
-        if (node.hasPlugin()) {
-            setPlugin(node.getPlugin(), in);
+        if (rNode.hasPlugin()) {
+            setPlugin(rNode.getPlugin(), in);
         }
 
         // set node allow failure as top priority
-        if (node.isAllowFailure() != in.isAllowFailure()) {
-            in.setAllowFailure(node.isAllowFailure());
+        if (rNode.isAllowFailure() != in.isAllowFailure()) {
+            in.setAllowFailure(rNode.isAllowFailure());
         }
 
         // auto create default container name
         for (DockerOption option : in.getDockers()) {
             if (!option.hasName()) {
-                option.setName(getDefaultContainerName(node));
+                option.setName(getDefaultContainerName(rNode));
             }
         }
 
@@ -97,12 +103,12 @@ public class CmdManagerImpl implements CmdManager {
         return StringHelper.escapeNumber(String.format("%s-%s", stepStr, StringHelper.randomString(5)));
     }
 
-    private StringVars linkInputs(Node current) {
+    private StringVars linkInputs(ConfigNode current) {
         StringVars output = new StringVars();
 
-        if (current.hasParent()) {
+        if (current.isConfigurableParent()) {
             Node parent = current.getParent();
-            output.merge(linkInputs(parent));
+            output.merge(linkInputs((ConfigNode) parent));
         }
 
         output.merge(current.getEnvironments());
@@ -174,13 +180,14 @@ public class CmdManagerImpl implements CmdManager {
         return output;
     }
 
-    private List<DockerOption> findDockerOptions(Node current) {
+    private List<DockerOption> findDockerOptions(ConfigNode current) {
         if (current.hasDocker()) {
             return current.getDockers();
         }
 
-        if (current.hasParent()) {
-            return findDockerOptions(current.getParent());
+        if (current.isConfigurableParent()) {
+            Node parent = current.getParent();
+            return findDockerOptions((ConfigNode) parent);
         }
 
         return new LinkedList<>();

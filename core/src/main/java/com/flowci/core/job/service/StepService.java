@@ -17,9 +17,9 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
-import com.flowci.tree.RegularStepNode;
+import com.flowci.core.job.domain.Step;
+import com.flowci.tree.StepNode;
 
 import java.util.List;
 
@@ -49,7 +49,7 @@ public interface StepService {
      * Get step list in string, {name}={stats};{name}={stats}
      * No steps after current node
      */
-    String toVarString(Job job, RegularStepNode current);
+    String toVarString(Job job, StepNode current);
 
     /**
      * Change step status, and put steps string to job context

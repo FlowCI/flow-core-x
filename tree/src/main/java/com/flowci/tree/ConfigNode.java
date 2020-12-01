@@ -15,7 +15,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-public abstract class ConfigurableNode extends Node {
+public abstract class ConfigNode extends Node {
 
     /**
      * Node before groovy script;
@@ -33,12 +33,7 @@ public abstract class ConfigurableNode extends Node {
      */
     protected StringVars environments = new StringVars();
 
-    /**
-     * Children steps
-     */
-    protected List<StepNode> children = new LinkedList<>();
-
-    public ConfigurableNode(String name, Node parent) {
+    public ConfigNode(String name, Node parent) {
         super(name, parent);
     }
 
@@ -57,7 +52,7 @@ public abstract class ConfigurableNode extends Node {
     }
 
     @JsonIgnore
-    public boolean hasChildren() {
-        return !children.isEmpty();
+    public boolean isConfigurableParent() {
+        return super.hasParent() && parent instanceof ConfigNode;
     }
 }

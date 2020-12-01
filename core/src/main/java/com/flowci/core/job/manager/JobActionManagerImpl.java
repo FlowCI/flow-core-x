@@ -636,7 +636,7 @@ public class JobActionManagerImpl implements JobActionManager {
         job.setAgentSnapshot(agent);
 
         NodeTree tree = ymlManager.getTree(job);
-        RegularStepNode next = tree.next(tree.getRoot().getPath());
+        StepNode next = tree.next(tree.getRoot().getPath());
         execute(job, next);
     }
 
@@ -650,7 +650,7 @@ public class JobActionManagerImpl implements JobActionManager {
         Step step = context.step; // current step
 
         NodeTree tree = ymlManager.getTree(job);
-        RegularStepNode node = tree.get(NodePath.create(step.getNodePath())); // current node
+        StepNode node = tree.get(NodePath.create(step.getNodePath())); // current node
 
         stepService.resultUpdate(step);
         log.debug("Step {} been recorded", step);
@@ -664,7 +664,7 @@ public class JobActionManagerImpl implements JobActionManager {
         updateJobTime(job, step, tree, node);
         updateJobContextAndLatestStatus(job, node, step);
 
-        Optional<RegularStepNode> next = findNext(tree, node, step.isSuccess());
+        Optional<StepNode> next = findNext(tree, node, step.isSuccess());
         if (next.isPresent()) {
             return execute(job, next.get());
         }
@@ -672,12 +672,25 @@ public class JobActionManagerImpl implements JobActionManager {
         return false;
     }
 
-    private boolean execute(Job job, RegularStepNode node) throws ScriptException {
+    private boolean execute(Job job, StepNode node) throws ScriptException {
         // check null that indicate no node can be executed
         if (Objects.isNull(node)) {
             return false;
         }
 
+        if (node instanceof ParallelStepNode) {
+            return execute(job, (ParallelStepNode) node);
+        }
+
+        return execute(job, (RegularStepNode) node);
+    }
+
+    private boolean execute(Job job, ParallelStepNode node) {
+        //TODO: handle parallel step node
+        return false;
+    }
+
+    private boolean execute(Job job, RegularStepNode node) throws ScriptException {
         NodeTree tree = ymlManager.getTree(job);
         job.setCurrentPath(node.getPathAsString());
         setJobStatusAndSave(job, Job.Status.RUNNING, null);
@@ -693,17 +706,17 @@ public class JobActionManagerImpl implements JobActionManager {
 
             // set next node again due to skip
             if (node.hasChildren()) {
-                RegularStepNode next = tree.nextRootStep(node.getPath());
+                StepNode next = tree.nextRootStep(node.getPath());
                 return execute(job, next);
             }
 
-            RegularStepNode next = tree.next(node.getPath());
+            StepNode next = tree.next(node.getPath());
             return execute(job, next);
         }
 
         // skip group node
         if (node.hasChildren()) {
-            RegularStepNode next = tree.next(node.getPath());
+            StepNode next = tree.next(node.getPath());
             return execute(job, next);
         }
 
@@ -721,8 +734,8 @@ public class JobActionManagerImpl implements JobActionManager {
         step.setFinishAt(new Date());
         stepService.toStatus(step, Step.Status.SKIPPED, Step.MessageSkippedOnCondition);
 
-        for (RegularStepNode subNode : node.getChildren()) {
-            Step subStep = stepService.get(step.getJobId(), subNode.getPathAsString());
+        for (StepNode subNode : node.getChildren()) {
+            Step subStep = stepService.get(step.getJobId(), subNode.getPath().toString());
             subStep.setStartAt(new Date());
             subStep.setFinishAt(new Date());
             stepService.toStatus(subStep, Executed.Status.SKIPPED, Step.MessageSkippedOnCondition);
@@ -757,14 +770,14 @@ public class JobActionManagerImpl implements JobActionManager {
         logInfo(job, "status = {}", job.getStatus());
     }
 
-    private void updateJobTime(Job job, Step step, NodeTree tree, RegularStepNode node) {
+    private void updateJobTime(Job job, Step step, NodeTree tree, StepNode node) {
         if (tree.isFirst(node.getPath())) {
             job.setStartAt(step.getStartAt());
         }
         job.setFinishAt(step.getFinishAt());
     }
 
-    private void updateJobContextAndLatestStatus(Job job, RegularStepNode node, Step step) {
+    private void updateJobContextAndLatestStatus(Job job, StepNode node, Step step) {
         // merge output to job context
         Vars<String> context = job.getContext();
         context.merge(step.getOutput());
@@ -777,8 +790,8 @@ public class JobActionManagerImpl implements JobActionManager {
         job.setErrorToContext(step.getError());
     }
 
-    private Optional<RegularStepNode> findNext(NodeTree tree, Node current, boolean isSuccess) {
-        RegularStepNode next = tree.next(current.getPath());
+    private Optional<StepNode> findNext(NodeTree tree, StepNode current, boolean isSuccess) {
+        StepNode next = tree.next(current.getPath());
 
         if (Objects.isNull(next) || !isSuccess) {
             return Optional.empty();

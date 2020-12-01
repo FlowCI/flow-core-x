@@ -171,7 +171,7 @@ public class NodeTree {
         }
     }
 
-    private void buildTree(ConfigurableNode root) {
+    private void buildTree(ParentNode root) {
         for (StepNode step : root.getChildren()) {
             steps.add(step);
 

@@ -28,6 +28,7 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.RegularStepNode;
+import com.flowci.tree.StepNode;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,9 +64,12 @@ public class StepServiceImpl implements StepService {
         NodeTree tree = ymlManager.getTree(job);
         List<Step> steps = new LinkedList<>();
 
-        for (RegularStepNode node : tree.getSteps()) {
-            Step cmd = newInstance(job, node);
-            steps.add(cmd);
+        for (StepNode step : tree.getSteps()) {
+            if (step instanceof RegularStepNode) {
+                RegularStepNode rStep = (RegularStepNode) step;
+                Step cmd = newInstance(job, rStep);
+                steps.add(cmd);
+            }
         }
 
         executedCmdDao.insert(steps);
@@ -100,7 +104,7 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public String toVarString(Job job, RegularStepNode current) {
+    public String toVarString(Job job, StepNode current) {
         StringBuilder builder = new StringBuilder();
         for (Step step : list(job)) {
             NodePath path = NodePath.create(step.getNodePath());
@@ -110,7 +114,7 @@ public class StepServiceImpl implements StepService {
             builder.append(";");
 
             if (current != null) {
-                if (step.getNodePath().equals(current.getPathAsString())) {
+                if (step.getNodePath().equals(current.getPath().toString())) {
                     break;
                 }
             }
@@ -205,8 +209,8 @@ public class StepServiceImpl implements StepService {
         }
 
         List<String> paths = new ArrayList<>(node.getChildren().size());
-        for (RegularStepNode child : node.getChildren()) {
-            paths.add(child.getPathAsString());
+        for (StepNode child : node.getChildren()) {
+            paths.add(child.getPath().getPathInStr());
         }
         return paths;
     }
