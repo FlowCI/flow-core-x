@@ -547,7 +547,7 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     private void setupJobYamlAndSteps(Job job, String yml) {
-        FlowNode root = YmlParser.load(job.getFlowName(), yml);
+        FlowNode root = YmlParser.load(yml);
 
         job.setCurrentPath(root.getPathAsString());
         job.setAgentSelector(root.getSelector());
@@ -735,7 +735,7 @@ public class JobActionManagerImpl implements JobActionManager {
         stepService.toStatus(step, Step.Status.SKIPPED, Step.MessageSkippedOnCondition);
 
         for (StepNode subNode : node.getChildren()) {
-            Step subStep = stepService.get(step.getJobId(), subNode.getPath().toString());
+            Step subStep = stepService.get(step.getJobId(), subNode.getPath().getPathInStr());
             subStep.setStartAt(new Date());
             subStep.setFinishAt(new Date());
             stepService.toStatus(subStep, Executed.Status.SKIPPED, Step.MessageSkippedOnCondition);

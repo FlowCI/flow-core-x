@@ -207,7 +207,7 @@ public class JobServiceImpl implements JobService {
 
         // load yaml
         JobYml yml = ymlManager.get(job);
-        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+        FlowNode root = YmlParser.load(yml.getRaw());
 
         // reset
         job.setTimeout(flow.getStepTimeout());

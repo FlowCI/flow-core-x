@@ -27,6 +27,9 @@ public interface YmlManager {
 
     JobYml get(Job job);
 
+    /**
+     * Create job yaml from flow yaml
+     */
     JobYml create(Job job, String yml);
 
     /**

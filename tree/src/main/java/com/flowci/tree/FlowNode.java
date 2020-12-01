@@ -13,6 +13,8 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public final class FlowNode extends ParentNode {
 
+    public final static String DEFAULT_ROOT_NAME = "flow";
+
     /**
      * Agent tags to set node running on which agent
      */

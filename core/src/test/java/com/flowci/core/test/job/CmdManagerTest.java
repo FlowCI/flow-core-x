@@ -44,6 +44,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.io.IOException;
 import java.util.List;
 
+import static com.flowci.tree.FlowNode.DEFAULT_ROOT_NAME;
+
 public class CmdManagerTest extends SpringScenario {
 
     @Autowired
@@ -73,16 +75,17 @@ public class CmdManagerTest extends SpringScenario {
     public void should_apply_flow_level_docker_option() throws IOException {
         // given: flow and job
         Flow flow = flowService.create("hello");
-        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toString(load("flow-with-root-docker.yml")));
-        Job job = jobService.create(flow, yml.getRaw(), Job.Trigger.MANUAL, new StringVars());
+        String yaml = StringHelper.toString(load("flow-with-root-docker.yml"));
+        Yml ymlObj = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toBase64(yaml));
+        Job job = jobService.create(flow, ymlObj.getRaw(), Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
-        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+        FlowNode root = YmlParser.load(ymlObj.getRaw());
         NodeTree tree = NodeTree.create(root);
 
         // when: create first shell cmd
-        RegularStepNode node = tree.get(NodePath.create(flow.getName(), "step-docker"));
-        Step step = stepService.get(job.getId(), node.getPathAsString());
+        StepNode node = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step-docker"));
+        Step step = stepService.get(job.getId(), node.getPath().getPathInStr());
 
         // then: first step docker should be applied from step level
         ShellIn in = cmdManager.createShellCmd(job, step, tree);
@@ -91,8 +94,8 @@ public class CmdManagerTest extends SpringScenario {
         Assert.assertEquals("step:0.1", in.getDockers().get(0).getImage());
 
         // when: create second shell cmd
-        node = tree.get(NodePath.create(flow.getName(), "flow-docker"));
-        step = stepService.get(job.getId(), node.getPathAsString());
+        node = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "flow-docker"));
+        step = stepService.get(job.getId(), node.getPath().getPathInStr());
 
         // then: first step docker should be applied from step level
         in = cmdManager.createShellCmd(job, step, tree);
@@ -111,16 +114,17 @@ public class CmdManagerTest extends SpringScenario {
 
         // given: flow and job
         Flow flow = flowService.create("hello");
-        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toString(load("flow-with-plugin.yml")));
+        String yaml = StringHelper.toString(load("flow-with-plugin.yml"));
+        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toBase64(yaml));
 
         Job job = jobService.create(flow, yml.getRaw(), Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
         // when: create shell cmd
-        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+        FlowNode root = YmlParser.load(yml.getRaw());
         NodeTree tree = NodeTree.create(root);
-        RegularStepNode node = tree.get(NodePath.create(flow.getName(), "plugin-test"));
-        Step step = stepService.get(job.getId(), node.getPathAsString());
+        StepNode node = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "plugin-test"));
+        Step step = stepService.get(job.getId(), node.getPath().getPathInStr());
 
         ShellIn cmdIn = cmdManager.createShellCmd(job, step, tree);
         Assert.assertNotNull(cmdIn);
@@ -140,7 +144,7 @@ public class CmdManagerTest extends SpringScenario {
         Assert.assertNotNull(docker);
         Assert.assertEquals("ubuntu:19.04", docker.getImage());
 
-        String containerNamePrefix = String.format("%s-%s", flow.getName(), "plugin-test");
+        String containerNamePrefix = String.format("%s-%s", DEFAULT_ROOT_NAME, "plugin-test");
         Assert.assertTrue(docker.getName().startsWith(containerNamePrefix));
     }
 
@@ -148,20 +152,21 @@ public class CmdManagerTest extends SpringScenario {
     public void should_handle_step_in_step() throws IOException {
         // given: flow and job
         Flow flow = flowService.create("hello");
-        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toString(load("step-in-step.yml")));
+        String yaml = StringHelper.toString(load("step-in-step.yml"));
+        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toBase64(yaml));
 
         Job job = jobService.create(flow, yml.getRaw(), Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
         // when: create shell cmd
-        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+        FlowNode root = YmlParser.load(yml.getRaw());
         NodeTree tree = NodeTree.create(root);
 
-        RegularStepNode step2_1 = tree.get(NodePath.create(flow.getName(), "step2", "step-2-1"));
-        RegularStepNode step2_2 = tree.get(NodePath.create(flow.getName(), "step2", "step-2-2"));
+        StepNode step2_1 = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step2", "step-2-1"));
+        StepNode step2_2 = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step2", "step-2-2"));
 
         // then: verify step 2 - 1 cmd
-        ShellIn cmdStep2_1 = cmdManager.createShellCmd(job, stepService.get(job.getId(), step2_1.getPathAsString()), tree);
+        ShellIn cmdStep2_1 = cmdManager.createShellCmd(job, stepService.get(job.getId(), step2_1.getPath().getPathInStr()), tree);
         Assert.assertEquals(500, cmdStep2_1.getTimeout());
         Assert.assertEquals(2, cmdStep2_1.getRetry());
 
@@ -178,7 +183,7 @@ public class CmdManagerTest extends SpringScenario {
         Assert.assertEquals("mysql", cmdStep2_1.getDockers().get(1).getImage());
 
         // then: verify step 2 - 2 cmd
-        ShellIn cmdStep2_2 = cmdManager.createShellCmd(job, stepService.get(job.getId(), step2_2.getPathAsString()), tree);
+        ShellIn cmdStep2_2 = cmdManager.createShellCmd(job, stepService.get(job.getId(), step2_2.getPath().getPathInStr()), tree);
         Assert.assertEquals("parent", cmdStep2_2.getInputs().get("STEP_2"));
         Assert.assertEquals(1000, cmdStep2_2.getTimeout());
         Assert.assertEquals(5, cmdStep2_2.getRetry());
