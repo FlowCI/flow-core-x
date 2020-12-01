@@ -73,7 +73,7 @@ public class YmlServiceImpl implements YmlService {
     @Override
     public NodeTree getTree(String flowId, String name) {
         Yml yml = getYml(flowId, name);
-        FlowNode root = YmlParser.load(name, yml.getRaw());
+        FlowNode root = YmlParser.load(yml.getRaw());
         return flowTreeCache.get(yamlCacheKey(flowId, name), key -> NodeTree.create(root));
     }
 
@@ -99,7 +99,7 @@ public class YmlServiceImpl implements YmlService {
         }
 
         String yaml = StringHelper.fromBase64(ymlInB64);
-        FlowNode root = YmlParser.load(flow.getName(), yaml);
+        FlowNode root = YmlParser.load(yaml);
         NodeTree tree = NodeTree.create(root);
 
         Optional<RuntimeException> hasErr = verifyPlugins(tree.getPlugins());

@@ -17,13 +17,18 @@
 package com.flowci.tree.yml;
 
 import com.flowci.exception.YmlException;
-import com.flowci.tree.*;
+import com.flowci.tree.FlowNode;
+import com.flowci.tree.NodePath;
+import com.flowci.tree.Selector;
 import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author yang

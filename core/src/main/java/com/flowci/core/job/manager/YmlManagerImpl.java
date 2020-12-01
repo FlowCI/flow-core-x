@@ -65,7 +65,7 @@ public class YmlManagerImpl implements YmlManager {
         return jobTreeCache.get(job.getId(), s -> {
             log.debug("Cache tree for job: {}", job.getId());
             JobYml yml = jobYmlDao.findById(job.getId()).get();
-            FlowNode root = YmlParser.load(yml.getName(), yml.getRaw());
+            FlowNode root = YmlParser.load(yml.getRaw());
             return NodeTree.create(root);
         });
     }

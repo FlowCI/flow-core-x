@@ -49,6 +49,7 @@ public final class NodePath implements Serializable {
     private final String pathInStr;
 
     public static NodePath create(String... nameOrPaths) {
+
         return new NodePath(Arrays.asList(nameOrPaths));
     }
 

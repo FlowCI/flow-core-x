@@ -114,7 +114,7 @@ public class StepServiceImpl implements StepService {
             builder.append(";");
 
             if (current != null) {
-                if (step.getNodePath().equals(current.getPath().toString())) {
+                if (step.getNodePath().equals(current.getPath().getPathInStr())) {
                     break;
                 }
             }

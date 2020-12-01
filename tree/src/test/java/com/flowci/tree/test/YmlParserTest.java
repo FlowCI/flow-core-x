@@ -30,6 +30,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static com.flowci.tree.FlowNode.DEFAULT_ROOT_NAME;
+
 /**
  * @author yang
  */
@@ -45,15 +47,15 @@ public class YmlParserTest {
     @Test(expected = YmlException.class)
     public void should_yml_exception_if_name_is_invalid() throws IOException {
         content = loadContent("flow-with-invalid-name.yml");
-        YmlParser.load("root", content);
+        YmlParser.load(content);
     }
 
     @Test
     public void should_get_node_from_yml() {
-        FlowNode root = YmlParser.load("root", content);
+        FlowNode root = YmlParser.load(content);
 
         // verify flow
-        Assert.assertEquals("root", root.getName());
+        Assert.assertEquals(DEFAULT_ROOT_NAME, root.getName());
         Assert.assertEquals("echo hello", root.getEnv("FLOW_WORKSPACE"));
         Assert.assertEquals("echo version", root.getEnv("FLOW_VERSION"));
 
@@ -108,16 +110,16 @@ public class YmlParserTest {
 
     @Test
     public void should_get_correct_relationship_on_node_tree() {
-        FlowNode root = YmlParser.load("hello", content);
+        FlowNode root = YmlParser.load(content);
         NodeTree tree = NodeTree.create(root);
         Assert.assertEquals(root, tree.getRoot());
 
         // verify parent / child relationship
-        RegularStepNode step1 = (RegularStepNode) tree.get(NodePath.create("root/step-1")); // step-1 is default name
+        RegularStepNode step1 = (RegularStepNode) tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step-1")); // step-1 is default name
         Assert.assertNotNull(step1);
         Assert.assertEquals(root, step1.getParent());
 
-        RegularStepNode step2 = (RegularStepNode) tree.get(NodePath.create("root/step2"));
+        RegularStepNode step2 = (RegularStepNode) tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step2"));
         Assert.assertNotNull(step2);
         Assert.assertTrue(step2.getChildren().isEmpty());
         Assert.assertEquals(root, step2.getParent());
@@ -127,7 +129,7 @@ public class YmlParserTest {
     @Test
     public void should_parse_yml_with_exports_filter() throws IOException {
         content = loadContent("flow-with-exports.yml");
-        FlowNode root = YmlParser.load("default", content);
+        FlowNode root = YmlParser.load(content);
         NodeTree tree = NodeTree.create(root);
 
         RegularStepNode first = (RegularStepNode) tree.next(tree.getRoot().getPath());
@@ -139,7 +141,7 @@ public class YmlParserTest {
     @Test
     public void should_parse_docker_and_dockers() throws IOException {
         content = loadContent("step-with-dockers.yml");
-        FlowNode root = YmlParser.load("default", content);
+        FlowNode root = YmlParser.load(content);
         NodeTree tree = NodeTree.create(root);
 
         RegularStepNode first = (RegularStepNode) tree.getSteps().get(0);
@@ -166,14 +168,14 @@ public class YmlParserTest {
     @Test(expected = YmlException.class)
     public void should_throw_ex_when_runtime_has_command() throws IOException {
         content = loadContent("runtime-with-command.yml");
-        YmlParser.load("default", content);
+        YmlParser.load(content);
     }
 
     @Test
     public void should_parse_step_in_step() throws IOException {
         content = loadContent("step-in-step.yml");
 
-        FlowNode root = YmlParser.load("root", content);
+        FlowNode root = YmlParser.load(content);
         Assert.assertEquals(3, root.getChildren().size());
 
         RegularStepNode step2 = (RegularStepNode) root.getChildren().get(1);
@@ -188,10 +190,10 @@ public class YmlParserTest {
 
         NodeTree tree = NodeTree.create(root);
         Assert.assertEquals(5, tree.getSteps().size());
-        Assert.assertEquals("step2", tree.nextRootStep(NodePath.create("root", "step-1")).getName());
-        Assert.assertEquals("create test", tree.nextRootStep(NodePath.create("root", "step2")).getName());
+        Assert.assertEquals("step2", tree.nextRootStep(NodePath.create(DEFAULT_ROOT_NAME, "step-1")).getName());
+        Assert.assertEquals("create test", tree.nextRootStep(NodePath.create(DEFAULT_ROOT_NAME, "step2")).getName());
 
-        RegularStepNode step3 = (RegularStepNode) tree.nextRootStep(NodePath.create("root", "step2", "step-2-1"));
+        RegularStepNode step3 = (RegularStepNode) tree.nextRootStep(NodePath.create(DEFAULT_ROOT_NAME, "step2", "step-2-1"));
         Assert.assertNotNull(step3);
         Assert.assertEquals("create test", step3.getName());
 
@@ -201,20 +203,20 @@ public class YmlParserTest {
     @Test(expected = YmlException.class)
     public void should_throw_ex_when_plugin_defined_in_parent_step() throws IOException {
         content = loadContent("parent-step-with-plugin.yml");
-        YmlParser.load("root", content);
+        YmlParser.load(content);
     }
 
     @Test
     public void should_load_parallel_step_yaml() throws IOException {
         content = loadContent("flow-parallel.yml");
-        FlowNode root = YmlParser.load("root", content);
+        FlowNode root = YmlParser.load(content);
         Assert.assertNotNull(root);
 
         NodeTree tree = NodeTree.create(root);
         Assert.assertNotNull(tree);
         Assert.assertEquals(root, tree.getRoot());
 
-        ParallelStepNode parallelStep = (ParallelStepNode) tree.get(NodePath.create("root", "parallel-1"));
+        ParallelStepNode parallelStep = (ParallelStepNode) tree.get(NodePath.create(DEFAULT_ROOT_NAME, "parallel-1"));
         Assert.assertEquals(0, parallelStep.getOrder());
         Assert.assertNotNull(parallelStep.getParallel().get("subflow-A"));
         Assert.assertNotNull(parallelStep.getParallel().get("subflow-B"));

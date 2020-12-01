@@ -235,14 +235,14 @@ public class JobServiceTest extends ZookeeperScenario {
 
         addEventListener((ApplicationListener<StartAsyncLocalTaskEvent>) event -> localTaskCountDown.countDown());
 
-        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+        FlowNode root = YmlParser.load(yml.getRaw());
         NodeTree tree = NodeTree.create(root);
 
-        RegularStepNode firstNode = tree.next(tree.getRoot().getPath());
-        Step firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
+        StepNode firstNode = tree.next(tree.getRoot().getPath());
+        Step firstStep = stepService.get(job.getId(), firstNode.getPath().getPathInStr());
 
-        RegularStepNode secondNode = tree.next(firstNode.getPath());
-        Step secondStep = stepService.get(job.getId(), secondNode.getPathAsString());
+        StepNode secondNode = tree.next(firstNode.getPath());
+        Step secondStep = stepService.get(job.getId(), secondNode.getPath().getPathInStr());
 
         // when:
         ObjectWrapper<Agent> agentForStep1 = new ObjectWrapper<>();
@@ -339,8 +339,8 @@ public class JobServiceTest extends ZookeeperScenario {
         Job job = prepareJobForRunningStatus(agent);
 
         NodeTree tree = ymlManager.getTree(job);
-        RegularStepNode firstNode = tree.next(tree.getRoot().getPath());
-        Step firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
+        StepNode firstNode = tree.next(tree.getRoot().getPath());
+        Step firstStep = stepService.get(job.getId(), firstNode.getPath().getPathInStr());
 
         // when: cmd of first node been executed
         StringVars output = new StringVars();
@@ -356,9 +356,9 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals("hello.world", job.getContext().get("HELLO_WORLD"));
 
         // then: job current context should be updated
-        RegularStepNode secondNode = tree.next(firstNode.getPath());
+        StepNode secondNode = tree.next(firstNode.getPath());
         Assert.assertEquals(secondNode.getPath(), NodePath.create(job.getCurrentPath()));
-        Step secondStep = stepService.get(job.getId(), secondNode.getPathAsString());
+        Step secondStep = stepService.get(job.getId(), secondNode.getPath().getPathInStr());
 
         // when: cmd of second node been executed
         output = new StringVars();
@@ -384,8 +384,8 @@ public class JobServiceTest extends ZookeeperScenario {
         Job job = prepareJobForRunningStatus(agent);
 
         NodeTree tree = ymlManager.getTree(job);
-        RegularStepNode firstNode = tree.next(tree.getRoot().getPath());
-        Step firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
+        StepNode firstNode = tree.next(tree.getRoot().getPath());
+        Step firstStep = stepService.get(job.getId(), firstNode.getPath().getPathInStr());
 
         // when: cmd of first node with failure
         firstStep.setStatus(Step.Status.EXCEPTION);
@@ -407,8 +407,8 @@ public class JobServiceTest extends ZookeeperScenario {
         Job job = prepareJobForRunningStatus(agent);
 
         NodeTree tree = ymlManager.getTree(job);
-        RegularStepNode firstNode = tree.next(tree.getRoot().getPath());
-        Step firstStep = stepService.get(job.getId(), firstNode.getPathAsString());
+        StepNode firstNode = tree.next(tree.getRoot().getPath());
+        Step firstStep = stepService.get(job.getId(), firstNode.getPath().getPathInStr());
 
         // when: cmd of first node with failure
         StringVars output = new StringVars();
@@ -421,11 +421,11 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // then: job status should be running and current path should be change to second node
         job = jobDao.findById(job.getId()).get();
-        RegularStepNode secondNode = tree.next(firstNode.getPath());
-        Step secondCmd = stepService.get(job.getId(), secondNode.getPathAsString());
+        StepNode secondNode = tree.next(firstNode.getPath());
+        Step secondCmd = stepService.get(job.getId(), secondNode.getPath().getPathInStr());
 
         Assert.assertEquals(Status.RUNNING, job.getStatus());
-        Assert.assertEquals(secondNode.getPathAsString(), job.getCurrentPath());
+        Assert.assertEquals(secondNode.getPath().getPathInStr(), job.getCurrentPath());
         Assert.assertEquals("hello.world", job.getContext().get("HELLO_WORLD"));
 
         // when: second cmd of node been timeout
@@ -533,10 +533,10 @@ public class JobServiceTest extends ZookeeperScenario {
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
 
         NodeTree tree = ymlManager.getTree(job);
-        Node firstNode = tree.next(tree.getRoot().getPath());
+        StepNode firstNode = tree.next(tree.getRoot().getPath());
 
         job.setAgentId(agent.getId());
-        job.setCurrentPath(firstNode.getPathAsString());
+        job.setCurrentPath(firstNode.getPath().getPathInStr());
         job.setStatus(Status.RUNNING);
         job.setStatusToContext(Status.RUNNING);
 
