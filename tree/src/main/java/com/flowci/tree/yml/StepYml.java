@@ -84,43 +84,50 @@ public class StepYml extends YmlBase<RegularStepNode> {
             }
 
             String name = DefaultParallelPrefix + index;
-            ParallelStepNode parallelStep = new ParallelStepNode(name, parent);
-            parallelStep.setParallel(parallel);
-            return parallelStep;
+            ParallelStepNode step = new ParallelStepNode(name, parent);
+            for (Map.Entry<String, FlowYml> entry : parallel.entrySet()) {
+                String subflowName = entry.getKey();
+
+                FlowYml yaml = entry.getValue();
+                yaml.setName(subflowName);
+
+                step.getParallel().put(subflowName, yaml.toNode());
+            }
+            return step;
         }
 
-        RegularStepNode node = new RegularStepNode(buildName(index), parent);
-        node.setCondition(condition);
-        node.setBash(bash);
-        node.setPwsh(pwsh);
-        node.setRetry(retry);
-        node.setTimeout(timeout);
-        node.setPlugin(plugin);
-        node.setExports(Sets.newHashSet(exports));
-        node.setAllowFailure(allow_failure != null && allow_failure);
-        node.setEnvironments(getVariableMap());
+        RegularStepNode step = new RegularStepNode(buildName(index), parent);
+        step.setCondition(condition);
+        step.setBash(bash);
+        step.setPwsh(pwsh);
+        step.setRetry(retry);
+        step.setTimeout(timeout);
+        step.setPlugin(plugin);
+        step.setExports(Sets.newHashSet(exports));
+        step.setAllowFailure(allow_failure != null && allow_failure);
+        step.setEnvironments(getVariableMap());
 
-        setCacheToNode(node);
-        setDockerToNode(node);
+        setCacheToNode(step);
+        setDockerToNode(step);
 
-        if (StringHelper.hasValue(node.getName()) && !NodePath.validate(node.getName())) {
-            throw new YmlException("Invalid name '{0}'", node.getName());
+        if (StringHelper.hasValue(step.getName()) && !NodePath.validate(step.getName())) {
+            throw new YmlException("Invalid name '{0}'", step.getName());
         }
 
         if (ObjectsHelper.hasCollection(steps)) {
-            if (node.hasPlugin()) {
+            if (step.hasPlugin()) {
                 throw new YmlException("The plugin section is not allowed on the step with sub steps");
             }
 
-            setStepsToNode(node);
+            setStepsToNode(step);
         }
 
         // backward compatible, set script to bash
         if (StringHelper.hasValue(script) && !StringHelper.hasValue(bash)) {
-            node.setBash(script);
+            step.setBash(script);
         }
 
-        return node;
+        return step;
     }
 
     private String buildName(int index) {
