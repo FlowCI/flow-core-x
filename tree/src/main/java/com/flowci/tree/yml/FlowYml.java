@@ -18,6 +18,7 @@ package com.flowci.tree.yml;
 
 import com.flowci.exception.YmlException;
 import com.flowci.tree.FlowNode;
+import com.flowci.tree.Node;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.Selector;
 import com.flowci.util.ObjectsHelper;
@@ -42,15 +43,15 @@ public class FlowYml extends YmlBase<FlowNode> {
 
     private List<NotifyYml> notifications = new LinkedList<>();
 
-    public FlowNode toNode() {
+    public FlowNode toNode(Node parent) {
         if (!NodePath.validate(name)) {
             throw new YmlException("Invalid name {0}", name);
         }
 
-        FlowNode node = new FlowNode(name);
+        FlowNode node = new FlowNode(name, parent);
         node.setSelector(selector);
         node.setCondition(condition);
-        node.setEnvironments(getVariableMap());;
+        node.setEnvironments(getVariableMap());
 
         setDockerToNode(node);
         setupNotifications(node);

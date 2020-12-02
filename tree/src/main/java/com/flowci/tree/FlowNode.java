@@ -25,7 +25,7 @@ public final class FlowNode extends ParentNode {
      */
     private List<LocalTask> notifications = new LinkedList<>();
 
-    public FlowNode(String name) {
-        super(name, null);
+    public FlowNode(String name, Node parent) {
+        super(name, parent);
     }
 }

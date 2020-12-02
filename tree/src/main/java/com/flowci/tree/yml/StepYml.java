@@ -91,8 +91,13 @@ public class StepYml extends YmlBase<RegularStepNode> {
                 FlowYml yaml = entry.getValue();
                 yaml.setName(subflowName);
 
-                step.getParallel().put(subflowName, yaml.toNode());
+                // set parallel flow node parent to parallel step
+                FlowNode pFlowNode = yaml.toNode(step);
+                pFlowNode.setParent(step);
+
+                step.getParallel().put(subflowName, pFlowNode);
             }
+            
             return step;
         }
 

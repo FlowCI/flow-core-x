@@ -223,6 +223,15 @@ public class YmlParserTest {
 
         Assert.assertEquals(3, tree.getPlugins().size());
         Assert.assertEquals(3, tree.getConditions().size());
+
+        // check next parallel node
+        StepNode next = tree.next(NodePath.create(DEFAULT_ROOT_NAME));
+        Assert.assertTrue(next instanceof ParallelStepNode);
+        Assert.assertEquals("flow/parallel-1", next.getPath().getPathInStr());
+
+        ParallelStepNode pStep = (ParallelStepNode) next;
+        tree.next(pStep.getPath());
+
     }
 
     private String loadContent(String resource) throws IOException {

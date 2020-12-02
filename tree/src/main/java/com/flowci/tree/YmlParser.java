@@ -38,7 +38,7 @@ public class YmlParser {
         try {
             FlowYml root = yaml.load(yml);
             root.setName(DEFAULT_ROOT_NAME);
-            return root.toNode();
+            return root.toNode(null);
         } catch (YAMLException e) {
             throw new YmlException(e.getMessage());
         }
