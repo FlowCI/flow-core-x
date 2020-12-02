@@ -395,7 +395,7 @@ public class JobServiceTest extends ZookeeperScenario {
         // then: job should be failure
         job = jobDao.findById(job.getId()).get();
         Assert.assertEquals(Status.FAILURE, job.getStatus());
-        Assert.assertEquals("hello/step-1", job.getCurrentPath());
+        Assert.assertEquals("flow/step-1", job.getCurrentPath());
     }
 
     @Test
@@ -516,7 +516,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertNotNull(context.get(Variables.Job.TriggerBy));
 
         // then: verify job properties
-        Assert.assertEquals(flow.getName(), job.getCurrentPath());
+        Assert.assertEquals(FlowNode.DEFAULT_ROOT_NAME, job.getCurrentPath());
         Assert.assertFalse(job.isExpired());
         Assert.assertNotNull(job.getCreatedAt());
         Assert.assertNotNull(job.getCreatedBy());
