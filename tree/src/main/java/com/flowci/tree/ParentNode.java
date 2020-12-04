@@ -23,4 +23,9 @@ public abstract class ParentNode extends Node {
     public boolean hasChildren() {
         return !children.isEmpty();
     }
+
+    @JsonIgnore
+    public Node getLastNode() {
+        return children.get(children.size() - 1);
+    }
 }

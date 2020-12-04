@@ -90,15 +90,34 @@ public final class NodeTree {
                     list.add(next);
                 }
             }
+            return list;
         }
 
-        // next nodes should have same parent with current
+
         if (node instanceof RegularStepNode) {
+            // handle current node is the last node of parent
+            if (isLastNodeOfParent(node)) {
+                list.addAll(nextNodes);
+                return list;
+            }
+
+            // handle steps in step
+            if (((RegularStepNode) node).hasChildren()) {
+                for (Node next : nextNodes) {
+                    if ((next.parent.equals(node))) {
+                        list.add(next);
+                    }
+                }
+                return list;
+            }
+
+            // next nodes should have same parent with current
             for (Node next : nextNodes) {
                 if (next.parent.equals(node.getParent())) {
                     list.add(next);
                 }
             }
+            return list;
         }
 
         if (node instanceof ParallelStepNode) {
@@ -106,6 +125,15 @@ public final class NodeTree {
         }
 
         return list;
+    }
+
+    private boolean isLastNodeOfParent(Node node) {
+        if (!node.hasParent()) {
+            return false;
+        }
+
+        ParentNode parent = (ParentNode) node.getParent();
+        return parent.getLastNode().equals(node);
     }
 
     /**
