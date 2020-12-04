@@ -47,11 +47,6 @@ public final class RegularStepNode extends ParentNode implements StepNode {
     private Set<String> exports = new HashSet<>(0);
 
     /**
-     * Order in the node tree
-     */
-    private int order;
-
-    /**
      * Is allow failure
      */
     private boolean allowFailure = ALLOW_FAILURE_DEFAULT;

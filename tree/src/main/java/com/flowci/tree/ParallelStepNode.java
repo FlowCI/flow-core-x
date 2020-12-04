@@ -12,8 +12,6 @@ public final class ParallelStepNode extends ConfigNode implements StepNode {
 
     private Map<String, FlowNode> parallel = new LinkedHashMap<>();
 
-    private int order;
-
     public ParallelStepNode(String name, Node parent) {
         super(name, parent);
     }

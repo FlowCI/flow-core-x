@@ -34,15 +34,18 @@ import java.util.Objects;
 @ToString(of = {"path"})
 public abstract class Node implements Nodeable, Serializable {
 
+    public static final int DEFAULT_ORDER = -1;
+
     protected String name;
 
     protected NodePath path;
 
-    /**
-     * Parent could be FlowNode or StepNode
-     */
     @JsonIgnore
     protected Node parent;
+
+    protected int order = DEFAULT_ORDER;
+
+    protected int nextOrder = DEFAULT_ORDER;
 
     public Node(String name, Node parent) {
         this.name = name;

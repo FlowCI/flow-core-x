@@ -42,16 +42,15 @@ steps:
             - linux
         steps:
           - name: A
-            script: |
-              echo "A"
-          - name: B
             plugin: 'B-plugin'
             script: |
-              echo "B"
+              echo "A"
+
 
   - condition: |
       println(FLOW_WORKSPACE)
       true
+    name: step2
     envs:
       FLOW_WORKSPACE: "echo step"
       FLOW_VERSION: "echo step version"
@@ -63,7 +62,18 @@ steps:
     timeout: 3600
     allow_failure: true
 
-  - name: step2
+
+  - name: step3
+    steps:
+      - name: step-3-1
+        bash: |
+          echo "step-3-1"
+
+      - name: step-3-2
+        bash: |
+          echo "step-3-2"
+
+  - name: step4
     allow_failure: false
     docker:
       image: "ubuntu:18.04"
