@@ -81,13 +81,31 @@ public final class NodeTree {
 
         Node node = get(current);
         List<Node> nextNodes = ordered.get(node.getNextOrder());
+        List<Node> list = new LinkedList<>();
 
-        boolean isParallelNode = nextNodes.size() == 1 && nextNodes.get(0) instanceof ParallelStepNode;
-        if (isParallelNode) {
-            return next(nextNodes.get(0).getPath());
+        // next nodes parent should be current node
+        if (node instanceof FlowNode) {
+            for (Node next : nextNodes) {
+                if ((next.parent.equals(node))) {
+                    list.add(next);
+                }
+            }
         }
 
-        return nextNodes;
+        // next nodes should have same parent with current
+        if (node instanceof RegularStepNode) {
+            for (Node next : nextNodes) {
+                if (next.parent.equals(node.getParent())) {
+                    list.add(next);
+                }
+            }
+        }
+
+        if (node instanceof ParallelStepNode) {
+            list.addAll(nextNodes);
+        }
+
+        return list;
     }
 
     /**
@@ -188,10 +206,23 @@ public final class NodeTree {
 
             if (node instanceof ParallelStepNode) {
                 ParallelStepNode pStep = (ParallelStepNode) node;
-                int maxNextOrder = order;
+
+                order++;
+                ordered.computeIfAbsent(order, integer -> new LinkedList<>());
 
                 for (Map.Entry<String, FlowNode> entry : pStep.getParallel().entrySet()) {
-                    FlowNode flow = entry.getValue(); // skip flow node
+                    FlowNode flow = entry.getValue();
+                    flow.setOrder(order);
+                    flow.setNextOrder(order + 1);
+
+                    flatted.put(flow.getPath(), flow);
+                    ordered.get(order).add(flow);
+                }
+
+
+                int maxNextOrder = order;
+                for (Map.Entry<String, FlowNode> entry : pStep.getParallel().entrySet()) {
+                    FlowNode flow = entry.getValue();
                     int newOrder = buildGraph(flow.getChildren(), order + 1);
                     if (newOrder > maxNextOrder) {
                         maxNextOrder = newOrder;
