@@ -69,7 +69,7 @@ public class StepYml extends YmlBase<RegularStepNode> {
      */
     private Map<String, FlowYml> parallel;
 
-    public StepNode toNode(Node parent, int index) {
+    public Node toNode(Node parent, int index) {
         if (parallel != null) {
             try {
                 if (ObjectsHelper.hasValue(this, FieldsForStep)) {

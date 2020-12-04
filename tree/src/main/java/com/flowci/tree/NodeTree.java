@@ -39,12 +39,12 @@ public final class NodeTree {
     /**
      * Flatted step nodes
      */
-    private final Map<NodePath, StepNode> flatted = new HashMap<>(DefaultSize);
+    private final Map<NodePath, Node> flatted = new HashMap<>(DefaultSize);
 
     /**
      * Ordered graph
      */
-    private final Map<Integer, List<StepNode>> ordered = new HashMap<>(DefaultSize);
+    private final Map<Integer, List<Node>> ordered = new HashMap<>(DefaultSize);
 
     @Getter
     private final FlowNode root;
@@ -74,13 +74,13 @@ public final class NodeTree {
     /**
      * Find next Node instance from path
      */
-    public List<StepNode> next(NodePath current) {
+    public List<Node> next(NodePath current) {
         if (isRoot(current)) {
             return ordered.get(FirstOrder);
         }
 
-        StepNode node = get(current);
-        List<StepNode> nextNodes = ordered.get(node.getNextOrder());
+        Node node = get(current);
+        List<Node> nextNodes = ordered.get(node.getNextOrder());
 
         boolean isParallelNode = nextNodes.size() == 1 && nextNodes.get(0) instanceof ParallelStepNode;
         if (isParallelNode) {
@@ -93,35 +93,35 @@ public final class NodeTree {
     /**
      * Skip current node and return next nodes with the same root of current
      */
-    public StepNode skip(NodePath current) {
+    public Node skip(NodePath current) {
         if (isRoot(current)) {
             return ordered.get(FirstOrder).get(0);
         }
 
-        StepNode node = get(current);
+        Node node = get(current);
         if (node == null) {
             return null;
         }
 
-        Nodeable parent = node.getParent();
+        Node parent = node.getParent();
         return findNextWithSameParent(node, parent);
     }
 
     /**
      * Return other parallel nodes that current node should waiting for
      */
-    public List<StepNode> parallel(NodePath current) {
+    public List<Node> parallel(NodePath current) {
         return null;
     }
 
     /**
      * Get parent Node instance from path
      */
-    public Nodeable parent(NodePath path) {
+    public Node parent(NodePath path) {
         return get(path).getParent();
     }
 
-    public StepNode get(NodePath path) {
+    public Node get(NodePath path) {
         return flatted.get(path);
     }
 
@@ -129,14 +129,14 @@ public final class NodeTree {
         return path.equals(root.getPath());
     }
 
-    private StepNode findNextWithSameParent(StepNode node, Nodeable parent) {
+    private Node findNextWithSameParent(Node node, Node parent) {
         if (parent == null) {
             return next(node.getPath()).get(0);
         }
 
         int nextOrder = node.getOrder() + 1;
-        for (StepNode next : ordered.get(nextOrder)) {
-            Nodeable nextParent = next.getParent();
+        for (Node next : ordered.get(nextOrder)) {
+            Node nextParent = next.getParent();
             if (nextParent != null && nextParent.equals(parent)) {
                 return next;
             }
@@ -149,12 +149,8 @@ public final class NodeTree {
 
     private void buildMetaData() {
         flatted.forEach((path, node) -> {
-            if (node instanceof ConfigNode) {
-                ConfigNode n = (ConfigNode) node;
-
-                if (n.hasCondition()) {
-                    conditions.add(n.getCondition());
-                }
+            if (node.hasCondition()) {
+                conditions.add(node.getCondition());
             }
 
             if (node instanceof RegularStepNode) {
@@ -175,17 +171,17 @@ public final class NodeTree {
      * Root flow index is 0
      * Step index start from 1
      */
-    private int buildGraph(List<StepNode> nodes, int order) {
+    private int buildGraph(List<Node> nodes, int order) {
         ordered.computeIfAbsent(order, integer -> new LinkedList<>());
 
-        for (StepNode node : nodes) {
+        for (Node node : nodes) {
             node.setOrder(order);
             node.setNextOrder(order + 1);
 
             flatted.put(node.getPath(), node);
             ordered.get(order).add(node);
 
-            if (node instanceof RegularStepNode) {
+            if (node instanceof ParentNode) {
                 RegularStepNode rStep = (RegularStepNode) node;
                 order = buildGraph(rStep.getChildren(), order + 1);
             }
@@ -207,7 +203,7 @@ public final class NodeTree {
                     FlowNode flow = entry.getValue();
                     int size = flow.getChildren().size();
 
-                    StepNode lastNode = flow.getChildren().get(size - 1);
+                    Node lastNode = flow.getChildren().get(size - 1);
                     lastNode.setNextOrder(maxNextOrder);
                 }
 

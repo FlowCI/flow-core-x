@@ -19,9 +19,9 @@ package com.flowci.tree.yml;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.exception.YmlException;
+import com.flowci.tree.Node;
 import com.flowci.tree.ParentNode;
 import com.flowci.tree.RegularStepNode;
-import com.flowci.tree.StepNode;
 import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
 import lombok.Setter;
@@ -66,7 +66,7 @@ public abstract class YmlBase<T extends ParentNode> implements Serializable {
         Set<String> uniqueName = new HashSet<>(steps.size());
 
         for (StepYml child : steps) {
-            StepNode step = child.toNode(parent, index++);
+            Node step = child.toNode(parent, index++);
 
             if (step instanceof RegularStepNode) {
                 String stepName = step.getName();

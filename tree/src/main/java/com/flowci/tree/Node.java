@@ -17,12 +17,17 @@
 package com.flowci.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.domain.DockerOption;
+import com.flowci.domain.StringVars;
+import com.flowci.util.StringHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -32,7 +37,7 @@ import java.util.Objects;
 @Setter
 @EqualsAndHashCode(of = {"path"})
 @ToString(of = {"path"})
-public abstract class Node implements Nodeable, Serializable {
+public abstract class Node implements Serializable {
 
     public static final int DEFAULT_ORDER = -1;
 
@@ -42,6 +47,22 @@ public abstract class Node implements Nodeable, Serializable {
 
     @JsonIgnore
     protected Node parent;
+
+    /**
+     * Node before groovy script;
+     */
+    protected String condition;
+
+    /**
+     * Inner option has higher priority
+     * Ex: Plugin > Step > Flow
+     */
+    protected List<DockerOption> dockers = new LinkedList<>();
+
+    /**
+     * Input environment variables
+     */
+    protected StringVars environments = new StringVars();
 
     protected int order = DEFAULT_ORDER;
 
@@ -66,5 +87,19 @@ public abstract class Node implements Nodeable, Serializable {
     @JsonIgnore
     public boolean hasParent() {
         return parent != null;
+    }
+
+    public String getEnv(String name) {
+        return environments.get(name);
+    }
+
+    @JsonIgnore
+    public boolean hasCondition() {
+        return StringHelper.hasValue(condition);
+    }
+
+    @JsonIgnore
+    public boolean hasDocker() {
+        return !dockers.isEmpty();
     }
 }

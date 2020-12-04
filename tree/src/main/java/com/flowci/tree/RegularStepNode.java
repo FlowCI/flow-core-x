@@ -12,7 +12,7 @@ import java.util.Set;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-public final class RegularStepNode extends ParentNode implements StepNode {
+public final class RegularStepNode extends ParentNode {
 
     public static final boolean ALLOW_FAILURE_DEFAULT = false;
 

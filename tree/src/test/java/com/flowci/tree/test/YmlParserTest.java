@@ -74,7 +74,7 @@ public class YmlParserTest {
         Assert.assertEquals("test-config", root.getNotifications().get(0).getEnvs().get("FLOWCI_SMTP_CONFIG"));
 
         // verify steps
-        List<StepNode> steps = root.getChildren();
+        List<Node> steps = root.getChildren();
         Assert.assertEquals(2, steps.size());
 
         RegularStepNode step1 = (RegularStepNode) steps.get(0);
@@ -220,28 +220,28 @@ public class YmlParserTest {
         Assert.assertEquals(8, tree.getMaxOrder());
 
         // validate get next of root
-        List<StepNode> parallelStep = tree.next(root.getPath());
+        List<Node> parallelStep = tree.next(root.getPath());
         Assert.assertEquals(1, parallelStep.size());
         NodePath expected = NodePath.create(DEFAULT_ROOT_NAME, "parallel-1");
         Assert.assertEquals(expected, parallelStep.get(0).getPath());
 
         // next should be first two nodes in parallel flow
-        List<StepNode> firstNodesOfSubflow = tree.next(expected);
+        List<Node> firstNodesOfSubflow = tree.next(expected);
         Assert.assertEquals(2, firstNodesOfSubflow.size());
 
-        StepNode subflowA_A = firstNodesOfSubflow.get(0);
+        Node subflowA_A = firstNodesOfSubflow.get(0);
         Assert.assertEquals(NodePath.create(DEFAULT_ROOT_NAME, "parallel-1", "subflow-A", "A"), subflowA_A.getPath());
 
-        StepNode subflowB_A = firstNodesOfSubflow.get(1);
+        Node subflowB_A = firstNodesOfSubflow.get(1);
         Assert.assertEquals(NodePath.create(DEFAULT_ROOT_NAME, "parallel-1", "subflow-B", "A"), subflowB_A.getPath());
 
         // subflow-A/A next should be the second node of subflow-A/B
-        List<StepNode> subflowA_B = tree.next(subflowA_A.getPath());
+        List<Node> subflowA_B = tree.next(subflowA_A.getPath());
         Assert.assertEquals(1, subflowA_B.size());
         Assert.assertEquals(NodePath.create(DEFAULT_ROOT_NAME, "parallel-1", "subflow-A", "B"), subflowA_B.get(0).getPath());
 
         // subflow-A/B next should be step 2
-        List<StepNode> step2 = tree.next(subflowA_B.get(0).getPath());
+        List<Node> step2 = tree.next(subflowA_B.get(0).getPath());
         Assert.assertEquals(1, step2.size());
         Assert.assertEquals(NodePath.create(DEFAULT_ROOT_NAME, "step2"), step2.get(0).getPath());
 
@@ -251,22 +251,22 @@ public class YmlParserTest {
         Assert.assertEquals(NodePath.create(DEFAULT_ROOT_NAME, "step2"), step2.get(0).getPath());
 
         // step2 next should be step3
-        List<StepNode> step3 = tree.next(step2.get(0).getPath());
+        List<Node> step3 = tree.next(step2.get(0).getPath());
         Assert.assertEquals(1, step3.size());
         Assert.assertEquals(NodePath.create(DEFAULT_ROOT_NAME, "step3"), step3.get(0).getPath());
 
         // step3 next should be step-3-1
-        List<StepNode> step3_1 = tree.next(step3.get(0).getPath());
+        List<Node> step3_1 = tree.next(step3.get(0).getPath());
         Assert.assertEquals(1, step3_1.size());
         Assert.assertEquals(NodePath.create(DEFAULT_ROOT_NAME, "step3", "step-3-1"), step3_1.get(0).getPath());
 
         // step-3-1 next should be step-3-2
-        List<StepNode> step3_2 = tree.next(step3_1.get(0).getPath());
+        List<Node> step3_2 = tree.next(step3_1.get(0).getPath());
         Assert.assertEquals(1, step3_2.size());
         Assert.assertEquals(NodePath.create(DEFAULT_ROOT_NAME, "step3", "step-3-2"), step3_2.get(0).getPath());
 
         // step-3-2 next should be step4
-        List<StepNode> step4 = tree.next(step3_2.get(0).getPath());
+        List<Node> step4 = tree.next(step3_2.get(0).getPath());
         Assert.assertEquals(1, step4.size());
         Assert.assertEquals(NodePath.create(DEFAULT_ROOT_NAME, "step4"), step4.get(0).getPath());
     }
