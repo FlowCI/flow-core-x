@@ -28,7 +28,6 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.RegularStepNode;
-import com.flowci.tree.StepNode;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;

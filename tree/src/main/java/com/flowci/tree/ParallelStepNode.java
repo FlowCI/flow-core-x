@@ -8,7 +8,7 @@ import java.util.Map;
 
 @Getter
 @Setter
-public final class ParallelStepNode extends ConfigNode implements StepNode {
+public final class ParallelStepNode extends Node {
 
     private Map<String, FlowNode> parallel = new LinkedHashMap<>();
 
