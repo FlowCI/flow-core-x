@@ -7,4 +7,12 @@ public interface Nodeable {
     NodePath getPath();
 
     Nodeable getParent();
+
+    int getOrder();
+
+    void setOrder(int order);
+
+    int getNextOrder();
+
+    void setNextOrder(int order);
 }

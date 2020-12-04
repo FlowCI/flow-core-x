@@ -661,7 +661,7 @@ public class JobActionManagerImpl implements JobActionManager {
             return false;
         }
 
-        updateJobTime(job, step, tree, node);
+        updateJobTime(job, step, node);
         updateJobContextAndLatestStatus(job, node, step);
 
         Optional<StepNode> next = findNext(tree, node, step.isSuccess());
@@ -701,7 +701,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
         if (!canExecute) {
             setStepToSkipped(node, step);
-            updateJobTime(job, step, tree, node);
+            updateJobTime(job, step, node);
             setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
             // set next node again due to skip
@@ -770,8 +770,8 @@ public class JobActionManagerImpl implements JobActionManager {
         logInfo(job, "status = {}", job.getStatus());
     }
 
-    private void updateJobTime(Job job, Step step, NodeTree tree, StepNode node) {
-        if (tree.isFirst(node.getPath())) {
+    private void updateJobTime(Job job, Step step, StepNode node) {
+        if (node.getPath().isRoot()) {
             job.setStartAt(step.getStartAt());
         }
         job.setFinishAt(step.getFinishAt());
