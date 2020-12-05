@@ -31,6 +31,8 @@ public class DockerYml {
 
     private String image;
 
+    private String auth; // auth secret for private docker registry
+
     private String name;
 
     private String network;
@@ -55,6 +57,7 @@ public class DockerYml {
         DockerOption option = new DockerOption();
         option.setImage(image);
 
+        ObjectsHelper.ifNotNull(auth, option::setName);
         ObjectsHelper.ifNotNull(name, option::setName);
         ObjectsHelper.ifNotNull(network, option::setNetwork);
         ObjectsHelper.ifNotNull(ports, option::setPorts);

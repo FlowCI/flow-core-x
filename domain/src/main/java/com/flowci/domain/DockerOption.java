@@ -35,6 +35,8 @@ public class DockerOption {
 
     private String image;
 
+    private String auth;
+
     private String name;
 
     private List<String> entrypoint;
