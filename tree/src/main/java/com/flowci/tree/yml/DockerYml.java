@@ -57,7 +57,7 @@ public class DockerYml {
         DockerOption option = new DockerOption();
         option.setImage(image);
 
-        ObjectsHelper.ifNotNull(auth, option::setName);
+        ObjectsHelper.ifNotNull(auth, option::setAuth);
         ObjectsHelper.ifNotNull(name, option::setName);
         ObjectsHelper.ifNotNull(network, option::setNetwork);
         ObjectsHelper.ifNotNull(ports, option::setPorts);
