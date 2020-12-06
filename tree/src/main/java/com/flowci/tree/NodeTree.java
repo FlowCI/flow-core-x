@@ -67,14 +67,22 @@ public final class NodeTree {
      * Get next node list from path
      */
     public List<Node> next(NodePath current) {
-        return get(current).next;
+        Node node = get(current);
+        if (node == null) {
+            return Collections.emptyList();
+        }
+        return node.next;
     }
 
     /**
      * Get previous node list from path
      */
     public List<Node> prev(NodePath current) {
-        return null;
+        Node node = get(current);
+        if (node == null) {
+            return Collections.emptyList();
+        }
+        return node.prev;
     }
 
     /**
@@ -105,13 +113,6 @@ public final class NodeTree {
         }
 
         return Lists.newArrayList(nextWithSameParent);
-    }
-
-    /**
-     * Get parent Node instance from path
-     */
-    public Node parent(NodePath path) {
-        return get(path).getParent();
     }
 
     public Node get(NodePath path) {
@@ -166,6 +167,8 @@ public final class NodeTree {
 
             for (int i = 0; i < n.children.size(); i++) {
                 Node current = n.children.get(i);
+                current.prev.addAll(prevs);
+
                 for (Node prev : prevs) {
                     prev.next.add(current);
                 }
@@ -181,7 +184,9 @@ public final class NodeTree {
             List<Node> prevs = new ArrayList<>(n.getParallel().size());
 
             n.getParallel().forEach((k, subflow) -> {
+                subflow.prev.add(n);
                 n.next.add(subflow);
+
                 prevs.addAll(buildGraph(subflow));
             });
 

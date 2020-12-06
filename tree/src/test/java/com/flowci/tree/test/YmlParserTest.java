@@ -126,44 +126,45 @@ public class YmlParserTest {
         Assert.assertEquals(step2, tree.next(step1.getPath()));
     }
 
-//    @Test
-//    public void should_parse_yml_with_exports_filter() throws IOException {
-//        content = loadContent("flow-with-exports.yml");
-//        FlowNode root = YmlParser.load(content);
-//        NodeTree tree = NodeTree.create(root);
-//
-//        RegularStepNode first = (RegularStepNode) tree.next(tree.getRoot().getPath());
-//        Assert.assertEquals("step-1", first.getPath().name());
-//
-//        Assert.assertEquals(2, first.getExports().size());
-//    }
+    @Test
+    public void should_parse_yml_with_exports_filter() throws IOException {
+        content = loadContent("flow-with-exports.yml");
+        FlowNode root = YmlParser.load(content);
+        NodeTree tree = NodeTree.create(root);
 
-//    @Test
-//    public void should_parse_docker_and_dockers() throws IOException {
-//        content = loadContent("step-with-dockers.yml");
-//        FlowNode root = YmlParser.load(content);
-//        NodeTree tree = NodeTree.create(root);
-//
-//        RegularStepNode first = (RegularStepNode) tree.getSteps().get(0);
-//        Assert.assertEquals(1, first.getDockers().size());
-//        Assert.assertEquals("ubuntu:18.04", first.getDockers().get(0).getImage());
-//        Assert.assertTrue(first.getDockers().get(0).isRuntime());
-//
-//        RegularStepNode second = (RegularStepNode) tree.getSteps().get(1);
-//        Assert.assertEquals(2, second.getDockers().size());
-//
-//        Assert.assertEquals("ubuntu:18.04", second.getDockers().get(0).getImage());
-//        Assert.assertTrue(second.getDockers().get(0).isRuntime());
-//
-//        Assert.assertEquals("mysql", second.getDockers().get(1).getImage());
-//        Assert.assertEquals("12345", second.getDockers().get(1).getEnvironment().get("MY_PW"));
-//
-//        Assert.assertEquals(2, second.getDockers().get(1).getCommand().size());
-//        Assert.assertEquals("mysql", second.getDockers().get(1).getCommand().get(0));
-//        Assert.assertEquals("-hlocalhost", second.getDockers().get(1).getCommand().get(1));
-//
-//        Assert.assertFalse(second.getDockers().get(1).isRuntime());
-//    }
+        List<Node> first = tree.next(tree.getRoot().getPath());
+        RegularStepNode node = (RegularStepNode) first.get(0);
+
+        Assert.assertEquals("step-1", node.getPath().name());
+        Assert.assertEquals(2, node.getExports().size());
+    }
+
+    @Test
+    public void should_parse_docker_and_dockers() throws IOException {
+        content = loadContent("step-with-dockers.yml");
+        FlowNode root = YmlParser.load(content);
+        NodeTree tree = NodeTree.create(root);
+
+        RegularStepNode first = (RegularStepNode) tree.next(root.getPath()).get(0);
+        Assert.assertEquals(1, first.getDockers().size());
+        Assert.assertEquals("ubuntu:18.04", first.getDockers().get(0).getImage());
+        Assert.assertTrue(first.getDockers().get(0).isRuntime());
+
+        RegularStepNode second = (RegularStepNode) tree.next(first.getPath()).get(0);
+        Assert.assertEquals(2, second.getDockers().size());
+
+        Assert.assertEquals("ubuntu:18.04", second.getDockers().get(0).getImage());
+        Assert.assertTrue(second.getDockers().get(0).isRuntime());
+
+        Assert.assertEquals("mysql", second.getDockers().get(1).getImage());
+        Assert.assertEquals("12345", second.getDockers().get(1).getEnvironment().get("MY_PW"));
+
+        Assert.assertEquals(2, second.getDockers().get(1).getCommand().size());
+        Assert.assertEquals("mysql", second.getDockers().get(1).getCommand().get(0));
+        Assert.assertEquals("-hlocalhost", second.getDockers().get(1).getCommand().get(1));
+
+        Assert.assertFalse(second.getDockers().get(1).isRuntime());
+    }
 
     @Test(expected = YmlException.class)
     public void should_throw_ex_when_runtime_has_command() throws IOException {
@@ -171,34 +172,39 @@ public class YmlParserTest {
         YmlParser.load(content);
     }
 
-//    @Test
-//    public void should_parse_step_in_step() throws IOException {
-//        content = loadContent("step-in-step.yml");
-//
-//        FlowNode root = YmlParser.load(content);
-//        Assert.assertEquals(3, root.getChildren().size());
-//
-//        RegularStepNode step2 = (RegularStepNode) root.getChildren().get(1);
-//        Assert.assertEquals(root, step2.getParent());
-//
-//        Assert.assertEquals(2, step2.getChildren().size());
-//        RegularStepNode step2_1 = (RegularStepNode) step2.getChildren().get(0);
-//        Assert.assertEquals(step2, step2_1.getParent());
-//
-//        RegularStepNode step2_2 = (RegularStepNode) step2.getChildren().get(1);
-//        Assert.assertEquals(step2, step2_2.getParent());
-//
-//        NodeTree tree = NodeTree.create(root);
-//        Assert.assertEquals(5, tree.getSteps().size());
-//        Assert.assertEquals("step2", tree.nextRootStep(NodePath.create(DEFAULT_ROOT_NAME, "step-1")).getName());
-//        Assert.assertEquals("create test", tree.nextRootStep(NodePath.create(DEFAULT_ROOT_NAME, "step2")).getName());
-//
-//        RegularStepNode step3 = (RegularStepNode) tree.nextRootStep(NodePath.create(DEFAULT_ROOT_NAME, "step2", "step-2-1"));
-//        Assert.assertNotNull(step3);
-//        Assert.assertEquals("create test", step3.getName());
-//
-//        Assert.assertNull(tree.nextRootStep(step3.getPath()));
-//    }
+    @Test
+    public void should_parse_step_in_step() throws IOException {
+        content = loadContent("step-in-step.yml");
+
+        FlowNode root = YmlParser.load(content);
+        Assert.assertEquals(3, root.getChildren().size());
+
+        RegularStepNode step2 = (RegularStepNode) root.getChildren().get(1);
+        Assert.assertEquals(root, step2.getParent());
+
+        Assert.assertEquals(2, step2.getChildren().size());
+        RegularStepNode step2_1 = (RegularStepNode) step2.getChildren().get(0);
+        Assert.assertEquals(step2, step2_1.getParent());
+
+        RegularStepNode step2_2 = (RegularStepNode) step2.getChildren().get(1);
+        Assert.assertEquals(step2, step2_2.getParent());
+
+        NodeTree tree = NodeTree.create(root);
+        Assert.assertEquals(6, tree.numOfNode());
+
+        NodePath step1Path = NodePath.create(DEFAULT_ROOT_NAME, "step-1");
+        Assert.assertEquals("step2", tree.next(step1Path).get(0).getName());
+
+        NodePath step2Path = NodePath.create(DEFAULT_ROOT_NAME, "step2");
+        Assert.assertEquals("create test", tree.skip(step2Path).get(0).getName());
+
+        NodePath step22Path = NodePath.create(DEFAULT_ROOT_NAME, "step2", "step-2-2");
+        Node step3 = tree.skip(step22Path).get(0);
+        Assert.assertNotNull(step3);
+        Assert.assertEquals("create test", step3.getName());
+
+        Assert.assertEquals(0, tree.skip(step3.getPath()).size());
+    }
 
     @Test(expected = YmlException.class)
     public void should_throw_ex_when_plugin_defined_in_parent_step() throws IOException {
