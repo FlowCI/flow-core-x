@@ -72,6 +72,11 @@ public abstract class Node implements Serializable {
     protected StringVars environments = new StringVars();
 
     /**
+     * Previous node list
+     */
+    protected List<Node> prev = new LinkedList<>();
+
+    /**
      * Next node list
      */
     protected List<Node> next = new LinkedList<>();

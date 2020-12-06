@@ -29,8 +29,6 @@ public final class NodeTree {
 
     private static final int DefaultSize = 20;
 
-    private static final int FirstOrder = 1;
-
     /**
      * Create node tree from FlowNode object
      */
@@ -39,20 +37,12 @@ public final class NodeTree {
     }
 
     /**
-     * Flatted step nodes
+     * Flatted nodes
      */
     private final Map<NodePath, Node> flatted = new HashMap<>(DefaultSize);
 
-    /**
-     * Ordered graph
-     */
-    private final Map<Integer, List<Node>> ordered = new HashMap<>(DefaultSize);
-
     @Getter
     private final FlowNode root;
-
-    @Getter
-    private int maxOrder;
 
     /**
      * All condition list
@@ -74,43 +64,47 @@ public final class NodeTree {
     }
 
     /**
-     * Find next Node instance from path
+     * Get next node list from path
      */
     public List<Node> next(NodePath current) {
-        return null;
+        return get(current).next;
     }
 
-    private boolean isLastNodeOfParent(Node node) {
-        if (!node.hasParent()) {
-            return false;
-        }
-
-        ParentNode parent = (ParentNode) node.getParent();
-        return parent.getLastNode().equals(node);
+    /**
+     * Get previous node list from path
+     */
+    public List<Node> prev(NodePath current) {
+        return null;
     }
 
     /**
      * Skip current node and return next nodes with the same root of current
      */
-    public Node skip(NodePath current) {
-        if (isRoot(current)) {
-            return ordered.get(FirstOrder).get(0);
-        }
-
+    public List<Node> skip(NodePath current) {
         Node node = get(current);
-        if (node == null) {
-            return null;
-        }
 
         Node parent = node.getParent();
-        return findNextWithSameParent(node, parent);
-    }
+        if (parent == null) {
+            return Collections.emptyList();
+        }
 
-    /**
-     * Return other parallel nodes that current node should waiting for
-     */
-    public List<Node> parallel(NodePath current) {
-        return null;
+        if (parent instanceof ParentNode) {
+            ParentNode p = (ParentNode) parent;
+            if (p.getLastNode().equals(node)) {
+                return node.next;
+            }
+        }
+
+        if (parent instanceof ParallelStepNode) {
+            parent = parent.parent;
+        }
+
+        Node nextWithSameParent = findNextWithSameParent(node, parent);
+        if (nextWithSameParent == null) {
+            return Collections.emptyList();
+        }
+
+        return Lists.newArrayList(nextWithSameParent);
     }
 
     /**
@@ -124,11 +118,18 @@ public final class NodeTree {
         return flatted.get(path);
     }
 
-    private boolean isRoot(NodePath path) {
-        return path.equals(root.getPath());
-    }
-
     private Node findNextWithSameParent(Node node, Node parent) {
+        for (Node next : node.next) {
+            if (parent.equals((next.parent))) {
+                return next;
+            }
+
+            Node n = findNextWithSameParent(next, parent);
+            if (n != null) {
+                return n;
+            }
+        }
+
         return null;
     }
 
@@ -148,7 +149,12 @@ public final class NodeTree {
         });
     }
 
+    /**
+     * Build graph from yaml tree
+     */
     private List<Node> buildGraph(Node root) {
+        flatted.put(root.getPath(), root);
+
         if (root instanceof ParentNode) {
             ParentNode n = (ParentNode) root;
 
