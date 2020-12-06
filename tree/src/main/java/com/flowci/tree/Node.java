@@ -39,12 +39,19 @@ import java.util.Objects;
 @ToString(of = {"path"})
 public abstract class Node implements Serializable {
 
-    public static final int DEFAULT_ORDER = -1;
-
+    /**
+     * Node name
+     */
     protected String name;
 
+    /**
+     * Node path
+     */
     protected NodePath path;
 
+    /**
+     * Parent node from tree
+     */
     @JsonIgnore
     protected Node parent;
 
@@ -64,9 +71,10 @@ public abstract class Node implements Serializable {
      */
     protected StringVars environments = new StringVars();
 
-    protected int order = DEFAULT_ORDER;
-
-    protected int nextOrder = DEFAULT_ORDER;
+    /**
+     * Next node list
+     */
+    protected List<Node> next = new LinkedList<>();
 
     public Node(String name, Node parent) {
         this.name = name;

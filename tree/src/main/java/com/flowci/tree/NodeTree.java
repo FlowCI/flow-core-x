@@ -16,6 +16,8 @@
 
 package com.flowci.tree;
 
+import com.flowci.exception.ArgumentException;
+import com.google.common.collect.Lists;
 import lombok.Getter;
 
 import java.util.*;
@@ -75,56 +77,7 @@ public final class NodeTree {
      * Find next Node instance from path
      */
     public List<Node> next(NodePath current) {
-        if (isRoot(current)) {
-            return ordered.get(FirstOrder);
-        }
-
-        Node node = get(current);
-        List<Node> nextNodes = ordered.get(node.getNextOrder());
-        List<Node> list = new LinkedList<>();
-
-        // next nodes parent should be current node
-        if (node instanceof FlowNode) {
-            for (Node next : nextNodes) {
-                if ((next.parent.equals(node))) {
-                    list.add(next);
-                }
-            }
-            return list;
-        }
-
-
-        if (node instanceof RegularStepNode) {
-            // handle current node is the last node of parent
-            if (isLastNodeOfParent(node)) {
-                list.addAll(nextNodes);
-                return list;
-            }
-
-            // handle steps in step
-            if (((RegularStepNode) node).hasChildren()) {
-                for (Node next : nextNodes) {
-                    if ((next.parent.equals(node))) {
-                        list.add(next);
-                    }
-                }
-                return list;
-            }
-
-            // next nodes should have same parent with current
-            for (Node next : nextNodes) {
-                if (next.parent.equals(node.getParent())) {
-                    list.add(next);
-                }
-            }
-            return list;
-        }
-
-        if (node instanceof ParallelStepNode) {
-            list.addAll(nextNodes);
-        }
-
-        return list;
+        return null;
     }
 
     private boolean isLastNodeOfParent(Node node) {
@@ -176,20 +129,6 @@ public final class NodeTree {
     }
 
     private Node findNextWithSameParent(Node node, Node parent) {
-        if (parent == null) {
-            return next(node.getPath()).get(0);
-        }
-
-        int nextOrder = node.getOrder() + 1;
-        for (Node next : ordered.get(nextOrder)) {
-            Node nextParent = next.getParent();
-            if (nextParent != null && nextParent.equals(parent)) {
-                return next;
-            }
-
-            return findNextWithSameParent(next, parent);
-        }
-
         return null;
     }
 
@@ -209,67 +148,40 @@ public final class NodeTree {
         });
     }
 
-    private void buildGraph(FlowNode root) {
-        maxOrder = buildGraph(root.getChildren(), 1) - 1;
-    }
+    private List<Node> buildGraph(Node root) {
+        if (root instanceof ParentNode) {
+            ParentNode n = (ParentNode) root;
 
-    /**
-     * Root flow index is 0
-     * Step index start from 1
-     */
-    private int buildGraph(List<Node> nodes, int order) {
-        ordered.computeIfAbsent(order, integer -> new LinkedList<>());
-
-        for (Node node : nodes) {
-            node.setOrder(order);
-            node.setNextOrder(order + 1);
-
-            flatted.put(node.getPath(), node);
-            ordered.get(order).add(node);
-
-            if (node instanceof ParentNode) {
-                RegularStepNode rStep = (RegularStepNode) node;
-                order = buildGraph(rStep.getChildren(), order + 1);
+            if (!n.hasChildren()) {
+                return Lists.newArrayList(n);
             }
 
-            if (node instanceof ParallelStepNode) {
-                ParallelStepNode pStep = (ParallelStepNode) node;
+            List<Node> prevs = Lists.newArrayList(n);
 
-                order++;
-                ordered.computeIfAbsent(order, integer -> new LinkedList<>());
-
-                for (Map.Entry<String, FlowNode> entry : pStep.getParallel().entrySet()) {
-                    FlowNode flow = entry.getValue();
-                    flow.setOrder(order);
-                    flow.setNextOrder(order + 1);
-
-                    flatted.put(flow.getPath(), flow);
-                    ordered.get(order).add(flow);
+            for (int i = 0; i < n.children.size(); i++) {
+                Node current = n.children.get(i);
+                for (Node prev : prevs) {
+                    prev.next.add(current);
                 }
 
-
-                int maxNextOrder = order;
-                for (Map.Entry<String, FlowNode> entry : pStep.getParallel().entrySet()) {
-                    FlowNode flow = entry.getValue();
-                    int newOrder = buildGraph(flow.getChildren(), order + 1);
-                    if (newOrder > maxNextOrder) {
-                        maxNextOrder = newOrder;
-                    }
-                }
-
-                // update next order of last node to maxNextOrder
-                for (Map.Entry<String, FlowNode> entry : pStep.getParallel().entrySet()) {
-                    FlowNode flow = entry.getValue();
-                    int size = flow.getChildren().size();
-
-                    Node lastNode = flow.getChildren().get(size - 1);
-                    lastNode.setNextOrder(maxNextOrder);
-                }
-
-                order = maxNextOrder;
+                prevs = buildGraph(current);
             }
+
+            return prevs;
         }
 
-        return order;
+        if (root instanceof ParallelStepNode) {
+            ParallelStepNode n = (ParallelStepNode) root;
+            List<Node> prevs = new ArrayList<>(n.getParallel().size());
+
+            n.getParallel().forEach((k, subflow) -> {
+                n.next.add(subflow);
+                prevs.addAll(buildGraph(subflow));
+            });
+
+            return prevs;
+        }
+
+        throw new ArgumentException("Un-support node type");
     }
 }
