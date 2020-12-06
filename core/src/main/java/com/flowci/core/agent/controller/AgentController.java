@@ -22,8 +22,6 @@ import com.flowci.core.agent.domain.CreateOrUpdateAgent;
 import com.flowci.core.agent.domain.DeleteAgent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.auth.annotation.Action;
-import com.flowci.core.job.service.CacheService;
-import com.flowci.core.job.service.LoggingService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -42,12 +40,6 @@ public class AgentController {
 
     @Autowired
     private AgentService agentService;
-
-    @Autowired
-    private LoggingService loggingService;
-
-    @Autowired
-    private CacheService cacheService;
 
     @GetMapping("/{name}")
     @Action(AgentAction.GET)
