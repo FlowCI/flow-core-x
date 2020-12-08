@@ -48,6 +48,14 @@ import java.util.List;
 )
 public class Step implements Executed {
 
+    public enum Type {
+        REGULAR,
+
+        SUBFLOW,
+
+        PARALLEL,
+    }
+
     public static final String MessageSkippedOnCondition = "Skipped due to condition";
 
     @Id
@@ -60,6 +68,8 @@ public class Step implements Executed {
     private String jobId;
 
     private String nodePath;
+
+    private Type type;
 
     private boolean allowFailure;
 

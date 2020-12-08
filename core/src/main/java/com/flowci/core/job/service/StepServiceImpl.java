@@ -25,9 +25,7 @@ import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.StepUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.exception.NotFoundException;
-import com.flowci.tree.NodePath;
-import com.flowci.tree.NodeTree;
-import com.flowci.tree.RegularStepNode;
+import com.flowci.tree.*;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,13 +61,14 @@ public class StepServiceImpl implements StepService {
         NodeTree tree = ymlManager.getTree(job);
         List<Step> steps = new LinkedList<>();
 
-        for (StepNode step : tree.getSteps()) {
-            if (step instanceof RegularStepNode) {
-                RegularStepNode rStep = (RegularStepNode) step;
-                Step cmd = newInstance(job, rStep);
-                steps.add(cmd);
+        tree.getFlatted().forEach((path, node) -> {
+            if (node.equals(tree.getRoot())) {
+                return;
             }
-        }
+
+            Step cmd = newInstance(job, node);
+            steps.add(cmd);
+        });
 
         executedCmdDao.insert(steps);
         eventManager.publish(new StepUpdateEvent(this, job.getId(), steps, true));
@@ -103,7 +102,7 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public String toVarString(Job job, StepNode current) {
+    public String toVarString(Job job, Node current) {
         StringBuilder builder = new StringBuilder();
         for (Step step : list(job)) {
             NodePath path = NodePath.create(step.getNodePath());
@@ -185,31 +184,60 @@ public class StepServiceImpl implements StepService {
                 s -> executedCmdDao.findByFlowIdAndBuildNumber(flowId, buildNumber));
     }
 
-    private static Step newInstance(Job job, RegularStepNode node) {
+    private static Step newInstance(Job job, Node node) {
         String cmdId = job.getId() + node.getPathAsString();
 
-        return new Step()
+        Step step = new Step()
                 .setId(Base64.getEncoder().encodeToString(cmdId.getBytes()))
                 .setFlowId(job.getFlowId())
                 .setBuildNumber(job.getBuildNumber())
                 .setJobId(job.getId())
                 .setNodePath(node.getPathAsString())
-                .setAllowFailure(node.isAllowFailure())
-                .setPlugin(node.getPlugin())
                 .setDockers(node.getDockers())
-                .setRootStep(node.isRootStep())
-                .setParent(node.getParent().getPathAsString())
-                .setChildren(childrenPaths(node));
+                .setParent(node.getParent().getPathAsString());
+
+        if (node instanceof ParentNode) {
+            ParentNode p = (ParentNode) node;
+            step.setChildren(childrenPaths(p));
+        }
+
+        if (node instanceof ParallelStepNode) {
+            ParallelStepNode p = (ParallelStepNode) node;
+            step.setChildren(childrenPaths(p));
+            step.setType(Step.Type.PARALLEL);
+        }
+
+        if (node instanceof RegularStepNode) {
+            RegularStepNode r = (RegularStepNode) node;
+            step.setRootStep(r.isRootStep());
+            step.setAllowFailure(r.isAllowFailure());
+            step.setPlugin(r.getPlugin());
+            step.setType(Step.Type.REGULAR);
+        }
+
+        if (node instanceof FlowNode) {
+            step.setType(Step.Type.SUBFLOW);
+        }
+
+        return step;
     }
 
-    private static List<String> childrenPaths(RegularStepNode node) {
+    private static List<String> childrenPaths(ParallelStepNode node) {
+        List<String> paths = new ArrayList<>(node.getNext().size());
+        for (Node child : node.getNext()) {
+            paths.add(child.getPathAsString());
+        }
+        return paths;
+    }
+
+    private static List<String> childrenPaths(ParentNode node) {
         if (!node.hasChildren()) {
-            return null;
+            return Collections.emptyList();
         }
 
         List<String> paths = new ArrayList<>(node.getChildren().size());
-        for (StepNode child : node.getChildren()) {
-            paths.add(child.getPath().getPathInStr());
+        for (Node child : node.getChildren()) {
+            paths.add(child.getPathAsString());
         }
         return paths;
     }

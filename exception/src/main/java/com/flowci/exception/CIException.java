@@ -33,6 +33,9 @@ public class CIException extends RuntimeException {
 
     private Object extra;
 
+    /**
+     * for example: "The disk \"{1}\" contains {0} file(s)."
+     */
     public CIException(final String message, final String... params) {
         super(format(message, params));
     }

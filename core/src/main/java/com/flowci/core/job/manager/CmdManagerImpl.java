@@ -48,7 +48,7 @@ public class CmdManagerImpl implements CmdManager {
 
     @Override
     public ShellIn createShellCmd(Job job, Step step, NodeTree tree) {
-        StepNode node = tree.get(NodePath.create(step.getNodePath()));
+        Node node = tree.get(NodePath.create(step.getNodePath()));
 
         if (node instanceof ParallelStepNode) {
             throw new StatusException("Illegal step node type, must be regular step");
@@ -103,15 +103,12 @@ public class CmdManagerImpl implements CmdManager {
         return StringHelper.escapeNumber(String.format("%s-%s", stepStr, StringHelper.randomString(5)));
     }
 
-    private StringVars linkInputs(ConfigNode current) {
+    private StringVars linkInputs(Node current) {
         StringVars output = new StringVars();
 
-        if (current.isConfigurableParent()) {
-            Node parent = current.getParent();
-            output.merge(linkInputs((ConfigNode) parent));
-        }
+        Node parent = current.getParent();
+        output.merge(linkInputs(parent));
 
-        output.merge(current.getEnvironments());
         return output;
     }
 
@@ -180,17 +177,13 @@ public class CmdManagerImpl implements CmdManager {
         return output;
     }
 
-    private List<DockerOption> findDockerOptions(ConfigNode current) {
+    private List<DockerOption> findDockerOptions(Node current) {
         if (current.hasDocker()) {
             return current.getDockers();
         }
 
-        if (current.isConfigurableParent()) {
-            Node parent = current.getParent();
-            return findDockerOptions((ConfigNode) parent);
-        }
-
-        return new LinkedList<>();
+        Node parent = current.getParent();
+        return findDockerOptions(parent);
     }
 
     private void setPlugin(String name, ShellIn cmd) {

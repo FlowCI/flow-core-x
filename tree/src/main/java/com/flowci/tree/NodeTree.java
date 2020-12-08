@@ -25,6 +25,7 @@ import java.util.*;
 /**
  * @author yang
  */
+@Getter
 public final class NodeTree {
 
     private static final int DefaultSize = 20;
@@ -41,16 +42,13 @@ public final class NodeTree {
      */
     private final Map<NodePath, Node> flatted = new HashMap<>(DefaultSize);
 
-    @Getter
     private final FlowNode root;
 
     /**
      * All condition list
      */
-    @Getter
     private final Set<String> conditions = new HashSet<>(DefaultSize);
 
-    @Getter
     private final Set<String> plugins = new HashSet<>(DefaultSize);
 
     public NodeTree(FlowNode root) {
@@ -67,22 +65,14 @@ public final class NodeTree {
      * Get next node list from path
      */
     public List<Node> next(NodePath current) {
-        Node node = get(current);
-        if (node == null) {
-            return Collections.emptyList();
-        }
-        return node.next;
+        return get(current).next;
     }
 
     /**
      * Get previous node list from path
      */
     public List<Node> prev(NodePath current) {
-        Node node = get(current);
-        if (node == null) {
-            return Collections.emptyList();
-        }
-        return node.prev;
+        return get(current).prev;
     }
 
     /**
@@ -116,7 +106,11 @@ public final class NodeTree {
     }
 
     public Node get(NodePath path) {
-        return flatted.get(path);
+        Node node = flatted.get(path);
+        if (node == null) {
+            throw new ArgumentException("invalid node path {0}", path.getPathInStr());
+        }
+        return node;
     }
 
     private Node findNextWithSameParent(Node node, Node parent) {
