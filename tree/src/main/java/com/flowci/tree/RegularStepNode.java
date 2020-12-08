@@ -7,12 +7,14 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-public final class RegularStepNode extends ParentNode {
+public final class RegularStepNode extends Node {
 
     public static final boolean ALLOW_FAILURE_DEFAULT = false;
 
@@ -55,6 +57,11 @@ public final class RegularStepNode extends ParentNode {
      * Cache setting
      */
     private Cache cache;
+
+    /**
+     * Sub steps
+     */
+    private List<Node> children = new LinkedList<>();
 
     public RegularStepNode(String name, Node parent) {
         super(name, parent);

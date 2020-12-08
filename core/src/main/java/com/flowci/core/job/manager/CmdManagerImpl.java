@@ -26,7 +26,6 @@ import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.DockerOption;
-import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.exception.StatusException;
 import com.flowci.tree.*;
@@ -64,7 +63,7 @@ public class CmdManagerImpl implements CmdManager {
                 .setBash(linkScript(rNode, ShellIn.ShellType.Bash))
                 .setPwsh(linkScript(rNode, ShellIn.ShellType.PowerShell))
                 .setEnvFilters(linkFilters(rNode))
-                .setInputs(linkInputs(rNode).merge(job.getContext(), false))
+                .setInputs(rNode.allEnvs().merge(job.getContext(), false))
                 .setTimeout(linkTimeout(rNode, job.getTimeout()))
                 .setRetry(linkRetry(rNode, 0))
                 .setCache(rNode.getCache());
@@ -101,15 +100,6 @@ public class CmdManagerImpl implements CmdManager {
         NodePath path = node.getPath();
         String stepStr = path.getNodePathWithoutSpace().replace(NodePath.PathSeparator, "-");
         return StringHelper.escapeNumber(String.format("%s-%s", stepStr, StringHelper.randomString(5)));
-    }
-
-    private StringVars linkInputs(Node current) {
-        StringVars output = new StringVars();
-
-        Node parent = current.getParent();
-        output.merge(linkInputs(parent));
-
-        return output;
     }
 
     private Integer linkRetry(RegularStepNode current, Integer defaultRetry) {

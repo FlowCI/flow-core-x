@@ -115,15 +115,15 @@ public class YmlParserTest {
         Assert.assertEquals(root, tree.getRoot());
 
         // verify parent / child relationship
-        RegularStepNode step1 = (RegularStepNode) tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step-1")); // step-1 is default name
+        Node step1 = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step-1")); // step-1 is default name
         Assert.assertNotNull(step1);
         Assert.assertEquals(root, step1.getParent());
 
-        RegularStepNode step2 = (RegularStepNode) tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step2"));
+        Node step2 = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step2"));
         Assert.assertNotNull(step2);
         Assert.assertTrue(step2.getChildren().isEmpty());
         Assert.assertEquals(root, step2.getParent());
-        Assert.assertEquals(step2, tree.next(step1.getPath()));
+        Assert.assertEquals(step2, tree.next(step1.getPath()).get(0));
     }
 
     @Test

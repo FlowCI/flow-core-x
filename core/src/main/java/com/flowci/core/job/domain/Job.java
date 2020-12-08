@@ -36,6 +36,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -214,7 +215,7 @@ public class Job extends Mongoable implements Pathable {
 
     private AgentInfo agentInfo = new AgentInfo();
 
-    private String currentPath;
+    private Set<String> currentPath = new HashSet<>();
 
     private Vars<String> context = new StringVars();
 

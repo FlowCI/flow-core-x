@@ -21,6 +21,7 @@ import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.domain.SimpleSecret;
+import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.exception.CIException;
 import com.flowci.exception.NotAvailableException;
@@ -672,17 +673,22 @@ public class JobActionManagerImpl implements JobActionManager {
         return false;
     }
 
-    private boolean execute(Job job, StepNode node) throws ScriptException {
-        // check null that indicate no node can be executed
-        if (Objects.isNull(node)) {
-            return false;
+    private boolean execute(Job job, Node node) throws ScriptException {
+        // check execute condition
+        Vars<String> inputs = node.allEnvs().merge(job.getContext());
+        boolean canExecute = conditionManager.run(node.getCondition(), inputs);
+
+        NodeTree tree = ymlManager.getTree(job);
+
+        // skip current node
+        if (!canExecute) {
+            List<Node> next = tree.skip(node.getPath());
         }
 
-        if (node instanceof ParallelStepNode) {
-            return execute(job, (ParallelStepNode) node);
-        }
+    }
 
-        return execute(job, (RegularStepNode) node);
+    private boolean execute(Job job, FlowNode node) throws ScriptException {
+        return true;
     }
 
     private boolean execute(Job job, ParallelStepNode node) {

@@ -20,7 +20,6 @@ import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.exception.YmlException;
 import com.flowci.tree.Node;
-import com.flowci.tree.ParentNode;
 import com.flowci.tree.RegularStepNode;
 import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
@@ -34,7 +33,7 @@ import java.util.*;
  */
 @Setter
 @Getter
-public abstract class YmlBase<T extends ParentNode> implements Serializable {
+public abstract class YmlBase<T extends Node> implements Serializable {
 
     public String name;
 

@@ -86,15 +86,13 @@ public final class NodeTree {
             return Collections.emptyList();
         }
 
-        if (parent instanceof ParentNode) {
-            ParentNode p = (ParentNode) parent;
-            if (p.getLastNode().equals(node)) {
-                return node.next;
-            }
-        }
-
         if (parent instanceof ParallelStepNode) {
             parent = parent.parent;
+        } else {
+            List<Node> children = parent.getChildren();
+            if (children.get(children.size() - 1).equals(node)) {
+                return node.next;
+            }
         }
 
         Node nextWithSameParent = findNextWithSameParent(node, parent);
@@ -150,27 +148,8 @@ public final class NodeTree {
     private List<Node> buildGraph(Node root) {
         flatted.put(root.getPath(), root);
 
-        if (root instanceof ParentNode) {
-            ParentNode n = (ParentNode) root;
-
-            if (!n.hasChildren()) {
-                return Lists.newArrayList(n);
-            }
-
-            List<Node> prevs = Lists.newArrayList(n);
-
-            for (int i = 0; i < n.children.size(); i++) {
-                Node current = n.children.get(i);
-                current.prev.addAll(prevs);
-
-                for (Node prev : prevs) {
-                    prev.next.add(current);
-                }
-
-                prevs = buildGraph(current);
-            }
-
-            return prevs;
+        if (!root.hasChildren()) {
+            return Lists.newArrayList(root);
         }
 
         if (root instanceof ParallelStepNode) {
@@ -187,6 +166,19 @@ public final class NodeTree {
             return prevs;
         }
 
-        throw new ArgumentException("Un-support node type");
+        List<Node> prevs = Lists.newArrayList(root);
+
+        for (int i = 0; i < root.getChildren().size(); i++) {
+            Node current = root.getChildren().get(i);
+            current.prev.addAll(prevs);
+
+            for (Node prev : prevs) {
+                prev.next.add(current);
+            }
+
+            prevs = buildGraph(current);
+        }
+
+        return prevs;
     }
 }

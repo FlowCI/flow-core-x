@@ -93,8 +93,15 @@ public abstract class Node implements Serializable {
         this.path = NodePath.create(parent.getPath(), name);
     }
 
+    public abstract List<Node> getChildren();
+
     public String getPathAsString() {
         return path.getPathInStr();
+    }
+
+    @JsonIgnore
+    public boolean hasChildren() {
+        return !getChildren().isEmpty();
     }
 
     @JsonIgnore
@@ -114,5 +121,21 @@ public abstract class Node implements Serializable {
     @JsonIgnore
     public boolean hasDocker() {
         return !dockers.isEmpty();
+    }
+
+    @JsonIgnore
+    public StringVars allEnvs() {
+        return collectionAllEnvs(this);
+    }
+
+    private StringVars collectionAllEnvs(Node node) {
+        StringVars output = new StringVars(environments);
+
+        Node parent = node.getParent();
+        if (parent != null) {
+            output.merge(collectionAllEnvs(parent));
+        }
+
+        return output;
     }
 }

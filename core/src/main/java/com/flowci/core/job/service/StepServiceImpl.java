@@ -120,6 +120,11 @@ public class StepServiceImpl implements StepService {
         return builder.deleteCharAt(builder.length() - 1).toString();
     }
 
+
+    public Node toStatus(Job job, Node node, Step.Status target) {
+
+    }
+
     @Override
     public Step toStatus(String jobId, String nodePath, Step.Status status, String err) {
         Step entity = get(jobId, nodePath);

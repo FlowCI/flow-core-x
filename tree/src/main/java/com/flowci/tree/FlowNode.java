@@ -1,5 +1,6 @@
 package com.flowci.tree;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.domain.LocalTask;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -11,7 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-public final class FlowNode extends ParentNode {
+public final class FlowNode extends Node {
 
     public final static String DEFAULT_ROOT_NAME = "flow";
 
@@ -24,6 +25,8 @@ public final class FlowNode extends ParentNode {
      * Notification list that run locally
      */
     private List<LocalTask> notifications = new LinkedList<>();
+
+    private List<Node> children = new LinkedList<>();
 
     public FlowNode(String name, Node parent) {
         super(name, parent);
