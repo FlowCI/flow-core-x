@@ -677,6 +677,7 @@ public class JobActionManagerImpl implements JobActionManager {
         job.setCurrentPathFromNodes(nodes);
         setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
+        // TODO: only support parallel yet
         for (Node next : nodes) {
             return execute(job, next);
         }
@@ -689,7 +690,7 @@ public class JobActionManagerImpl implements JobActionManager {
         Step step = stepService.get(job.getId(), node.getPathAsString());
 
         // check execute condition
-        Vars<String> inputs = node.allEnvs().merge(job.getContext());
+        Vars<String> inputs = node.fetchEnvs().merge(job.getContext());
         boolean canExecute = conditionManager.run(node.getCondition(), inputs);
 
         // skip current node if condition not match
@@ -702,13 +703,14 @@ public class JobActionManagerImpl implements JobActionManager {
             return saveJobAndExecute(job, next);
         }
 
-        // skip current node if the node has children
+        // set current node to running whatever has children or not
+        stepService.toStatus(step, Step.Status.RUNNING, null, false);
+
+        // skip current node cmd dispatch if the node has children
         if (node.hasChildren()) {
             List<Node> next = tree.skip(node.getPath());
             return saveJobAndExecute(job, next);
         }
-
-        stepService.toStatus(step, Step.Status.RUNNING, null, false);
 
         Agent agent = agentService.get(job.getAgentId());
         ShellIn cmd = cmdManager.createShellCmd(job, step, tree);

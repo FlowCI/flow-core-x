@@ -53,34 +53,34 @@ public class CmdManagerImpl implements CmdManager {
             throw new StatusException("Illegal step node type, must be regular step");
         }
 
-        RegularStepNode rNode = (RegularStepNode) node;
+        RegularStepNode r = (RegularStepNode) node;
         ShellIn in = new ShellIn()
                 .setId(step.getId())
                 .setFlowId(job.getFlowId())
                 .setJobId(job.getId())
-                .setAllowFailure(rNode.isAllowFailure())
-                .setDockers(ObjectsHelper.copy(findDockerOptions(rNode)))
-                .setBash(linkScript(rNode, ShellIn.ShellType.Bash))
-                .setPwsh(linkScript(rNode, ShellIn.ShellType.PowerShell))
-                .setEnvFilters(linkFilters(rNode))
-                .setInputs(rNode.allEnvs().merge(job.getContext(), false))
-                .setTimeout(linkTimeout(rNode, job.getTimeout()))
-                .setRetry(linkRetry(rNode, 0))
-                .setCache(rNode.getCache());
+                .setAllowFailure(r.isAllowFailure())
+                .setDockers(ObjectsHelper.copy(r.fetchDockerOptions()))
+                .setBash(r.fetchBash())
+                .setPwsh(r.fetchPwsh())
+                .setEnvFilters(r.fetchFilters())
+                .setInputs(r.fetchEnvs().merge(job.getContext(), false))
+                .setTimeout(r.fetchTimeout(job.getTimeout()))
+                .setRetry(r.fetchRetry(0))
+                .setCache(r.getCache());
 
-        if (rNode.hasPlugin()) {
-            setPlugin(rNode.getPlugin(), in);
+        if (r.hasPlugin()) {
+            setPlugin(r.getPlugin(), in);
         }
 
         // set node allow failure as top priority
-        if (rNode.isAllowFailure() != in.isAllowFailure()) {
-            in.setAllowFailure(rNode.isAllowFailure());
+        if (r.isAllowFailure() != in.isAllowFailure()) {
+            in.setAllowFailure(r.isAllowFailure());
         }
 
         // auto create default container name
         for (DockerOption option : in.getDockers()) {
             if (!option.hasName()) {
-                option.setName(getDefaultContainerName(rNode));
+                option.setName(getDefaultContainerName(r));
             }
         }
 
@@ -100,80 +100,6 @@ public class CmdManagerImpl implements CmdManager {
         NodePath path = node.getPath();
         String stepStr = path.getNodePathWithoutSpace().replace(NodePath.PathSeparator, "-");
         return StringHelper.escapeNumber(String.format("%s-%s", stepStr, StringHelper.randomString(5)));
-    }
-
-    private Integer linkRetry(RegularStepNode current, Integer defaultRetry) {
-        if (current.hasRetry()) {
-            return current.getRetry();
-        }
-
-        if (current.hasParent()) {
-            Node parent = current.getParent();
-            if (parent instanceof RegularStepNode) {
-                return linkRetry((RegularStepNode) parent, defaultRetry);
-            }
-        }
-
-        return defaultRetry;
-    }
-
-    private Integer linkTimeout(RegularStepNode current, Integer defaultTimeout) {
-        if (current.hasTimeout()) {
-            return current.getTimeout();
-        }
-
-        if (current.hasParent()) {
-            Node parent = current.getParent();
-            if (parent instanceof RegularStepNode) {
-                return linkTimeout((RegularStepNode) parent, defaultTimeout);
-            }
-        }
-
-        return defaultTimeout;
-    }
-
-    private Set<String> linkFilters(RegularStepNode current) {
-        Set<String> output = new LinkedHashSet<>();
-
-        if (current.hasParent()) {
-            Node parent = current.getParent();
-            if (parent instanceof RegularStepNode) {
-                output.addAll(linkFilters((RegularStepNode) parent));
-            }
-        }
-
-        output.addAll(current.getExports());
-        return output;
-    }
-
-    private List<String> linkScript(RegularStepNode current, ShellIn.ShellType shellType) {
-        List<String> output = new LinkedList<>();
-
-        if (current.hasParent()) {
-            Node parent = current.getParent();
-            if (parent instanceof RegularStepNode) {
-                output.addAll(linkScript((RegularStepNode) parent, shellType));
-            }
-        }
-
-        if (shellType == ShellIn.ShellType.Bash) {
-            output.add(current.getBash());
-        }
-
-        if (shellType == ShellIn.ShellType.PowerShell) {
-            output.add(current.getPwsh());
-        }
-
-        return output;
-    }
-
-    private List<DockerOption> findDockerOptions(Node current) {
-        if (current.hasDocker()) {
-            return current.getDockers();
-        }
-
-        Node parent = current.getParent();
-        return findDockerOptions(parent);
     }
 
     private void setPlugin(String name, ShellIn cmd) {

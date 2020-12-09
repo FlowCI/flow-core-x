@@ -18,6 +18,7 @@ package com.flowci.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.domain.DockerOption;
+import com.flowci.domain.ObjectWrapper;
 import com.flowci.domain.StringVars;
 import com.flowci.util.StringHelper;
 import lombok.EqualsAndHashCode;
@@ -26,10 +27,12 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author yang
@@ -107,11 +110,6 @@ public abstract class Node implements Serializable {
         return !getChildren().isEmpty();
     }
 
-    @JsonIgnore
-    public boolean hasParent() {
-        return parent != null;
-    }
-
     public String getEnv(String name) {
         return environments.get(name);
     }
@@ -127,8 +125,30 @@ public abstract class Node implements Serializable {
     }
 
     @JsonIgnore
-    public StringVars allEnvs() {
-        return collectionAllEnvs(this);
+    public StringVars fetchEnvs() {
+        StringVars output = new StringVars();
+
+        this.forEachBottomUp(this, (n) -> {
+            output.merge(n.getEnvironments());
+            return true;
+        });
+
+        return output;
+    }
+
+    @JsonIgnore
+    public List<DockerOption> fetchDockerOptions() {
+        ObjectWrapper<List<DockerOption>> wrapper = new ObjectWrapper<>(Collections.emptyList());
+
+        this.forEachBottomUp(this, (n) -> {
+            if (n.hasDocker()) {
+                wrapper.setValue(n.getDockers());
+                return false;
+            }
+            return true;
+        });
+
+        return wrapper.getValue();
     }
 
     public void forEachChildren(Consumer<Node> onChild) {
@@ -142,14 +162,15 @@ public abstract class Node implements Serializable {
         }
     }
 
-    private StringVars collectionAllEnvs(Node node) {
-        StringVars output = new StringVars(environments);
+    protected void forEachBottomUp(Node node, Function<Node, Boolean> onNode) {
+        Boolean canContinue = onNode.apply(node);
+        if (!canContinue) {
+            return;
+        }
 
         Node parent = node.getParent();
         if (parent != null) {
-            output.merge(collectionAllEnvs(parent));
+            forEachBottomUp(parent, onNode);
         }
-
-        return output;
     }
 }

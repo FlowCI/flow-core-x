@@ -1,15 +1,14 @@
 package com.flowci.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.domain.ObjectWrapper;
 import com.google.common.base.Strings;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 
 @Getter
 @Setter
@@ -78,11 +77,6 @@ public final class RegularStepNode extends Node {
     }
 
     @JsonIgnore
-    public boolean hasScript() {
-        return !Strings.isNullOrEmpty(bash) || !Strings.isNullOrEmpty(pwsh);
-    }
-
-    @JsonIgnore
     public boolean isRootStep() {
         return parent instanceof FlowNode;
     }
@@ -98,7 +92,70 @@ public final class RegularStepNode extends Node {
     }
 
     @JsonIgnore
-    public boolean hasCache() {
-        return cache != null;
+    public List<String> fetchBash() {
+        List<String> output = new LinkedList<>();
+        this.forEachBottomUp(this, node -> {
+            output.add(((RegularStepNode) node).getBash());
+            return true;
+        });
+        return output;
+    }
+
+    @JsonIgnore
+    public List<String> fetchPwsh() {
+        List<String> output = new LinkedList<>();
+        this.forEachBottomUp(this, node -> {
+            output.add(((RegularStepNode) node).getPwsh());
+            return true;
+        });
+        return output;
+    }
+
+    @JsonIgnore
+    public Set<String> fetchFilters() {
+        Set<String> output = new LinkedHashSet<>();
+        this.forEachBottomUp(this, (n) -> {
+            output.addAll(((RegularStepNode) n).getExports());
+            return true;
+        });
+        return output;
+    }
+
+    @JsonIgnore
+    public Integer fetchTimeout(Integer defaultVal) {
+        ObjectWrapper<Integer> wrapper = new ObjectWrapper<>(defaultVal);
+        this.forEachBottomUp(this, (n) -> {
+            RegularStepNode r = (RegularStepNode) n;
+            if (r.hasTimeout()) {
+                wrapper.setValue(r.getTimeout());
+                return false;
+            }
+            return true;
+        });
+        return wrapper.getValue();
+    }
+
+    @JsonIgnore
+    public Integer fetchRetry(Integer defaultVal) {
+        ObjectWrapper<Integer> wrapper = new ObjectWrapper<>(defaultVal);
+        this.forEachBottomUp(this, (n) -> {
+            RegularStepNode r = (RegularStepNode) n;
+            if (r.hasRetry()) {
+                wrapper.setValue(r.getRetry());
+                return false;
+            }
+            return true;
+        });
+        return wrapper.getValue();
+    }
+
+    @Override
+    protected void forEachBottomUp(Node node, Function<Node, Boolean> onNode) {
+        super.forEachBottomUp(node, (n) -> {
+            if (n instanceof RegularStepNode) {
+                return onNode.apply(n);
+            }
+            return true;
+        });
     }
 }
