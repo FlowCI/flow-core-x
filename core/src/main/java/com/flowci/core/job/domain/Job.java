@@ -294,7 +294,7 @@ public class Job extends Mongoable implements Pathable {
 
     @JsonIgnore
     public String finishAtInStr() {
-        if (Objects.isNull(this.startAt)) {
+        if (Objects.isNull(this.finishAt)) {
             return StringHelper.EMPTY;
         }
         return DateFormat.format(this.finishAt);

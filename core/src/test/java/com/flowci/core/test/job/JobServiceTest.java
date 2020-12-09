@@ -60,6 +60,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationListener;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -289,7 +290,7 @@ public class JobServiceTest extends ZookeeperScenario {
         // then: verify job status should be running
         job = jobService.get(job.getId());
         Assert.assertEquals(Status.RUNNING, job.getStatus());
-        Assert.assertEquals(firstStep.getNodePath(), job.getCurrentPath());
+        Assert.assertTrue(job.getCurrentPath().contains(firstStep.getNodePath()));
 
         // then: verify step 1 cmd has been sent
         ShellIn cmd = (ShellIn) cmdForStep1.getValue();
@@ -301,6 +302,8 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // when: make dummy response from agent for step 1
         firstStep.setStatus(Step.Status.SUCCESS);
+        firstStep.setFinishAt(new Date());
+
         executedCmdDao.save(firstStep);
         jobEventService.handleCallback(firstStep);
 
@@ -314,7 +317,7 @@ public class JobServiceTest extends ZookeeperScenario {
         // then: verify job status should be running
         job = jobService.get(job.getId());
         Assert.assertEquals(Status.RUNNING, job.getStatus());
-        Assert.assertEquals(secondStep.getNodePath(), job.getCurrentPath());
+        Assert.assertTrue(job.getCurrentPath().contains(secondStep.getNodePath()));
 
         // then: verify step 1 cmd has been sent
         cmd = (ShellIn) cmdForStep2.getValue();
@@ -324,6 +327,8 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // when: make dummy response from agent for step 2
         secondStep.setStatus(Step.Status.SUCCESS);
+        secondStep.setFinishAt(new Date());
+
         executedCmdDao.save(secondStep);
         jobEventService.handleCallback(secondStep);
 
@@ -395,7 +400,7 @@ public class JobServiceTest extends ZookeeperScenario {
         // then: job should be failure
         job = jobDao.findById(job.getId()).get();
         Assert.assertEquals(Status.FAILURE, job.getStatus());
-        Assert.assertEquals("flow/step-1", job.getCurrentPath());
+        Assert.assertTrue(job.getCurrentPath().contains("flow/step-1"));
     }
 
     @Test
@@ -425,7 +430,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Step secondCmd = stepService.get(job.getId(), secondNode.getPath().getPathInStr());
 
         Assert.assertEquals(Status.RUNNING, job.getStatus());
-        Assert.assertEquals(secondNode.getPath().getPathInStr(), job.getCurrentPath());
+        Assert.assertTrue(job.getCurrentPath().contains(secondNode.getPathAsString()));
         Assert.assertEquals("hello.world", job.getContext().get("HELLO_WORLD"));
 
         // when: second cmd of node been timeout
@@ -516,7 +521,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertNotNull(context.get(Variables.Job.TriggerBy));
 
         // then: verify job properties
-        Assert.assertEquals(FlowNode.DEFAULT_ROOT_NAME, job.getCurrentPath());
+        Assert.assertTrue(job.getCurrentPath().contains(FlowNode.DEFAULT_ROOT_NAME));
         Assert.assertFalse(job.isExpired());
         Assert.assertNotNull(job.getCreatedAt());
         Assert.assertNotNull(job.getCreatedBy());
