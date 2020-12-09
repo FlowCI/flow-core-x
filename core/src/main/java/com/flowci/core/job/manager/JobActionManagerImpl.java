@@ -45,10 +45,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -658,7 +655,8 @@ public class JobActionManagerImpl implements JobActionManager {
         updateJobContextAndLatestStatus(job, node, step);
 
         List<Node> next = node.getNext();
-        if (next.isEmpty()) {
+        if (next.isEmpty() || !step.isSuccess()) {
+            setJobStatusAndSave(job, job.getStatusFromContext(), null);
             return false;
         }
 
@@ -765,6 +763,7 @@ public class JobActionManagerImpl implements JobActionManager {
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
         context.put(Variables.Job.Steps, stepService.toVarString(job, node));
 
+        // DO NOT update job status from context
         job.setStatusToContext(StatusHelper.convert(step));
         job.setErrorToContext(step.getError());
     }
