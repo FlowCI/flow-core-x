@@ -5,7 +5,6 @@ import com.rabbitmq.client.Connection;
 import lombok.Getter;
 
 import java.io.IOException;
-import java.util.function.Function;
 
 public class QueueOperations extends RabbitOperations {
 

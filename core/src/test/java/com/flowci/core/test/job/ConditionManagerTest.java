@@ -13,11 +13,10 @@ public class ConditionManagerTest extends SpringScenario {
     @Autowired
     private ConditionManager conditionManager;
 
-    @Test
+    @Test(expected = ScriptException.class)
     public void should_verify_condition() throws ScriptException {
         String expression = "if(a==1 return 1;";
         conditionManager.verify(expression);
-        conditionManager.verify("return true");
     }
 
     @Test

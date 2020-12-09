@@ -453,26 +453,13 @@ public class JobServiceTest extends ZookeeperScenario {
         // init:
         String yaml = StringHelper.toString(load("flow-with-condition.yml"));
         yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toBase64(yaml));
-        Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
 
         // mock agent online
         Agent agent = agentService.create("hello.agent.2", null, Optional.empty());
         mockAgentOnline(agent.getToken());
 
         // given: start job and wait for running
-        jobActionManager.toStart(job);
-
-        CountDownLatch waitForRunning = new CountDownLatch(1);
-        addEventListener((ApplicationListener<JobStatusChangeEvent>) event -> {
-            if (event.getJob().getStatus() == Status.RUNNING) {
-                waitForRunning.countDown();
-            }
-        });
-
-        waitForRunning.await();
-        job = jobService.get(job.getId());
-        Assert.assertEquals(Status.RUNNING, job.getStatus());
-        Assert.assertEquals(agent.getId(), job.getAgentId());
+        Job job = prepareJobForRunningStatus(agent);
 
         // when: agent status change to offline
         CountDownLatch waitForCancelled = new CountDownLatch(1);
