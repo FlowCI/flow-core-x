@@ -38,6 +38,11 @@ public interface YmlManager {
     NodeTree getTree(Job job);
 
     /**
+     * Get node tree from job id
+     */
+    NodeTree getTree(String jobId);
+
+    /**
      * Delete yaml for job
      */
     void delete(Job job);

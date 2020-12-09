@@ -219,7 +219,7 @@ public class JobServiceImpl implements JobService {
         job.setAgentInfo(null);
         job.setStatus(Job.Status.PENDING);
         job.setTrigger(Trigger.MANUAL);
-        job.setCurrentPath(root.getPathAsString());
+        job.setCurrentPathFromNodes(root);
         job.setCreatedBy(sessionManager.getUserEmail());
 
         // re-init job context

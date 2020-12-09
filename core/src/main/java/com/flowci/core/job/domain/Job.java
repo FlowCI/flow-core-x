@@ -17,12 +17,13 @@
 package com.flowci.core.job.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.domain.Variables;
-import com.flowci.core.agent.domain.Agent;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.store.Pathable;
+import com.flowci.tree.Node;
 import com.flowci.tree.Selector;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableSet;
@@ -35,10 +36,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author yang
@@ -341,6 +339,18 @@ public class Job extends Mongoable implements Pathable {
         agentInfo.setFreeMemory(agent.getResource().getFreeMemory());
         agentInfo.setTotalDisk(agent.getResource().getTotalDisk());
         agentInfo.setFreeDisk(agent.getResource().getFreeDisk());
+    }
+
+    public void setCurrentPathFromNodes(List<Node> nodes) {
+        this.currentPath.clear();
+        for (Node n : nodes) {
+            this.currentPath.add(n.getPathAsString());
+        }
+    }
+
+    public void setCurrentPathFromNodes(Node node) {
+        this.currentPath.clear();
+        this.currentPath.add(node.getPathAsString());
     }
 
     @Override

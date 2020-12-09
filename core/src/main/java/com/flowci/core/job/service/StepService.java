@@ -56,10 +56,9 @@ public interface StepService {
 
     /**
      * Change step status, and put steps string to job context
+     * @param allChildren indicate to update status to all children step
      */
-    Step toStatus(String jobId, String nodePath, Step.Status status, String err);
-
-    Step toStatus(Step entity, Step.Status status, String err);
+    Step toStatus(Step entity, Step.Status status, String err, boolean allChildren);
 
     /**
      * To update properties are related with cmd executed result

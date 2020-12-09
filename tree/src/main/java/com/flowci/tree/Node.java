@@ -29,6 +29,7 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * @author yang
@@ -74,11 +75,13 @@ public abstract class Node implements Serializable {
     /**
      * Previous node list
      */
+    @JsonIgnore
     protected List<Node> prev = new LinkedList<>();
 
     /**
      * Next node list
      */
+    @JsonIgnore
     protected List<Node> next = new LinkedList<>();
 
     public Node(String name, Node parent) {
@@ -126,6 +129,17 @@ public abstract class Node implements Serializable {
     @JsonIgnore
     public StringVars allEnvs() {
         return collectionAllEnvs(this);
+    }
+
+    public void forEachChildren(Consumer<Node> onChild) {
+        forEachChildren(this, onChild);
+    }
+
+    private void forEachChildren(Node current, Consumer<Node> onChild) {
+        for (Node child : current.getChildren()) {
+            onChild.accept(child);
+            forEachChildren(child, onChild);
+        }
     }
 
     private StringVars collectionAllEnvs(Node node) {

@@ -62,9 +62,14 @@ public class YmlManagerImpl implements YmlManager {
 
     @Override
     public NodeTree getTree(Job job) {
-        return jobTreeCache.get(job.getId(), s -> {
-            log.debug("Cache tree for job: {}", job.getId());
-            JobYml yml = jobYmlDao.findById(job.getId()).get();
+        return getTree(job.getId());
+    }
+
+    @Override
+    public NodeTree getTree(String jobId) {
+        return jobTreeCache.get(jobId, s -> {
+            log.debug("Cache tree for job: {}", jobId);
+            JobYml yml = jobYmlDao.findById(jobId).get();
             FlowNode root = YmlParser.load(yml.getRaw());
             return NodeTree.create(root);
         });

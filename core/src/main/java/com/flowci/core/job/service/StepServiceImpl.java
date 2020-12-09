@@ -120,33 +120,27 @@ public class StepServiceImpl implements StepService {
         return builder.deleteCharAt(builder.length() - 1).toString();
     }
 
-
-    public Node toStatus(Job job, Node node, Step.Status target) {
-
-    }
-
     @Override
-    public Step toStatus(String jobId, String nodePath, Step.Status status, String err) {
-        Step entity = get(jobId, nodePath);
-        return toStatus(entity, status, err);
-    }
-
-    @Override
-    public Step toStatus(Step entity, Executed.Status status, String err) {
-        if (entity.getStatus() == status) {
-            return entity;
-        }
-
-        entity.setStatus(status);
-        entity.setError(err);
-        executedCmdDao.save(entity);
+    public Step toStatus(Step entity, Executed.Status status, String err, boolean allChildren) {
+        saveStatus(entity, status, err);
 
         // update parent status
         NodePath parentPath = NodePath.create(entity.getParent());
         if (!entity.isRootStep()) {
-            Step parentStep = get(entity.getJobId(), parentPath.getPathInStr());
-            parentStep.setStatus(entity.getStatus());
-            executedCmdDao.save(parentStep);
+            Step p = get(entity.getJobId(), parentPath.getPathInStr());
+            saveStatus(p, status, err);
+        }
+
+        if (allChildren) {
+            NodeTree tree = ymlManager.getTree(entity.getJobId());
+            NodePath path = NodePath.create(entity.getNodePath());
+            Node node = tree.get(path);
+            node.forEachChildren((childNode) -> {
+                Step childStep = get(entity.getJobId(), childNode.getPathAsString());
+                childStep.setStartAt(entity.getStartAt());
+                childStep.setFinishAt(entity.getFinishAt());
+                saveStatus(childStep, status, err);
+            });
         }
 
         String jobId = entity.getJobId();
@@ -171,7 +165,7 @@ public class StepServiceImpl implements StepService {
         entity.setOutput(cmd.getOutput());
 
         // change status and save
-        toStatus(entity, cmd.getStatus(), cmd.getError());
+        toStatus(entity, cmd.getStatus(), cmd.getError(), false);
     }
 
     @Override
@@ -182,6 +176,17 @@ public class StepServiceImpl implements StepService {
     @Override
     public Long delete(Job job) {
         return executedCmdDao.deleteByJobId(job.getId());
+    }
+
+    private Step saveStatus(Step step, Step.Status status, String error) {
+        if (status == step.getStatus()) {
+            return step;
+        }
+
+        step.setStatus(status);
+        step.setError(error);
+        executedCmdDao.save(step);
+        return step;
     }
 
     private List<Step> list(String jobId, String flowId, long buildNumber) {
@@ -199,16 +204,10 @@ public class StepServiceImpl implements StepService {
                 .setJobId(job.getId())
                 .setNodePath(node.getPathAsString())
                 .setDockers(node.getDockers())
+                .setChildren(childrenPaths(node))
                 .setParent(node.getParent().getPathAsString());
 
-        if (node instanceof ParentNode) {
-            ParentNode p = (ParentNode) node;
-            step.setChildren(childrenPaths(p));
-        }
-
         if (node instanceof ParallelStepNode) {
-            ParallelStepNode p = (ParallelStepNode) node;
-            step.setChildren(childrenPaths(p));
             step.setType(Step.Type.PARALLEL);
         }
 
@@ -227,15 +226,7 @@ public class StepServiceImpl implements StepService {
         return step;
     }
 
-    private static List<String> childrenPaths(ParallelStepNode node) {
-        List<String> paths = new ArrayList<>(node.getNext().size());
-        for (Node child : node.getNext()) {
-            paths.add(child.getPathAsString());
-        }
-        return paths;
-    }
-
-    private static List<String> childrenPaths(ParentNode node) {
+    private static List<String> childrenPaths(Node node) {
         if (!node.hasChildren()) {
             return Collections.emptyList();
         }

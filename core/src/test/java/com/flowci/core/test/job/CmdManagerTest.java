@@ -84,7 +84,7 @@ public class CmdManagerTest extends SpringScenario {
         NodeTree tree = NodeTree.create(root);
 
         // when: create first shell cmd
-        StepNode node = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step-docker"));
+        Node node = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step-docker"));
         Step step = stepService.get(job.getId(), node.getPath().getPathInStr());
 
         // then: first step docker should be applied from step level
@@ -123,7 +123,7 @@ public class CmdManagerTest extends SpringScenario {
         // when: create shell cmd
         FlowNode root = YmlParser.load(yml.getRaw());
         NodeTree tree = NodeTree.create(root);
-        StepNode node = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "plugin-test"));
+        Node node = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "plugin-test"));
         Step step = stepService.get(job.getId(), node.getPath().getPathInStr());
 
         ShellIn cmdIn = cmdManager.createShellCmd(job, step, tree);
@@ -162,8 +162,8 @@ public class CmdManagerTest extends SpringScenario {
         FlowNode root = YmlParser.load(yml.getRaw());
         NodeTree tree = NodeTree.create(root);
 
-        StepNode step2_1 = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step2", "step-2-1"));
-        StepNode step2_2 = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step2", "step-2-2"));
+        Node step2_1 = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step2", "step-2-1"));
+        Node step2_2 = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step2", "step-2-2"));
 
         // then: verify step 2 - 1 cmd
         ShellIn cmdStep2_1 = cmdManager.createShellCmd(job, stepService.get(job.getId(), step2_1.getPath().getPathInStr()), tree);
