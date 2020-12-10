@@ -23,8 +23,7 @@ steps:
   - parallel:
       subflow-A:
         selector:
-          label:
-            - linux
+          label: [ "linux" ]
         steps:
           - name: A
             plugin: 'A-plugin'
@@ -38,8 +37,7 @@ steps:
 
       subflow-B:
         selector:
-          label:
-            - linux
+          label: [ "linux" ]
         steps:
           - name: A
             plugin: 'B-plugin'

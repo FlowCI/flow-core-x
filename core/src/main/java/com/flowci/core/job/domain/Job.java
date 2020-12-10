@@ -23,8 +23,8 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.store.Pathable;
+import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
-import com.flowci.tree.Selector;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableSet;
 import lombok.Getter;
@@ -154,7 +154,7 @@ public class Job extends Mongoable implements Pathable {
      */
     @Getter
     @Setter
-    public static class AgentInfo {
+    public static class AgentSnapshot {
 
         private String name;
 
@@ -207,11 +207,11 @@ public class Job extends Mongoable implements Pathable {
 
     private Status status = Status.PENDING;
 
-    private Selector agentSelector;
+    // node path : agent id
+    private Map<String, String> agents = new HashMap<>();
 
-    private String agentId;
-
-    private AgentInfo agentInfo = new AgentInfo();
+    // agent id : info
+    private Map<String, AgentSnapshot> snapshots = new HashMap<>();
 
     private Set<String> currentPath = new HashSet<>();
 
@@ -327,18 +327,28 @@ public class Job extends Mongoable implements Pathable {
         return context.get(Variables.Job.Error);
     }
 
-    public void setErrorToContext(String err) {
-        context.put(Variables.Job.Error, err);
+    /**
+     * Save agent id for flow
+     */
+    public void addAgent(FlowNode node, String agentId) {
+        this.agents.put(node.getPathAsString(), agentId);
     }
 
-    public void setAgentSnapshot(Agent agent) {
-        agentInfo.setName(agent.getName());
-        agentInfo.setOs(agent.getOs().name());
-        agentInfo.setCpu(agent.getResource().getCpu());
-        agentInfo.setTotalMemory(agent.getResource().getTotalMemory());
-        agentInfo.setFreeMemory(agent.getResource().getFreeMemory());
-        agentInfo.setTotalDisk(agent.getResource().getTotalDisk());
-        agentInfo.setFreeDisk(agent.getResource().getFreeDisk());
+    public void addAgentSnapshot(Agent agent) {
+        AgentSnapshot s = new AgentSnapshot();
+        s.name = agent.getName();
+        s.os = agent.getOs().name();
+        s.cpu = agent.getResource().getCpu();
+        s.totalMemory = agent.getResource().getTotalMemory();
+        s.freeMemory = agent.getResource().getFreeMemory();
+        s.totalDisk = agent.getResource().getTotalDisk();
+        s.freeDisk = agent.getResource().getFreeDisk();
+
+        this.snapshots.put(agent.getId(), s);
+    }
+
+    public void setErrorToContext(String err) {
+        context.put(Variables.Job.Error, err);
     }
 
     public void setCurrentPathFromNodes(List<Node> nodes) {

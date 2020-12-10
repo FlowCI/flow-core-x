@@ -42,6 +42,7 @@ import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
+import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -215,8 +216,8 @@ public class JobServiceImpl implements JobService {
         job.setCreatedAt(Date.from(Instant.now()));
         job.setFinishAt(null);
         job.setStartAt(null);
-        job.setAgentId(null);
-        job.setAgentInfo(null);
+        job.setAgents(Maps.newHashMap());
+        job.setSnapshots(Maps.newHashMap());
         job.setStatus(Job.Status.PENDING);
         job.setTrigger(Trigger.MANUAL);
         job.setCurrentPathFromNodes(root);

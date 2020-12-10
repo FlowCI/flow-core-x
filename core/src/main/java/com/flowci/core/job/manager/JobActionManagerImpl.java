@@ -31,6 +31,7 @@ import com.flowci.util.StringHelper;
 import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import groovy.util.ScriptException;
 import lombok.Getter;
 import lombok.Setter;
@@ -305,23 +306,6 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     private void fromQueued() {
-        Function<String, Boolean> canAcquireAgent = (jobId) -> {
-            Job job = jobDao.findById(jobId).get();
-
-            if (job.isExpired()) {
-                JobSmContext context = new JobSmContext();
-                context.setJob(job);
-                Sm.execute(Queued, Timeout, context);
-                return false;
-            }
-
-            if (job.isCancelling()) {
-                return false;
-            }
-
-            return !job.isDone();
-        };
-
         Sm.add(QueuedToTimeout, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) {
@@ -344,21 +328,9 @@ public class JobActionManagerImpl implements JobActionManager {
                 Job job = context.job;
                 eventManager.publish(new JobReceivedEvent(this, job));
 
-                Optional<Agent> available = agentService.acquire(job, canAcquireAgent);
-
-                if (available.isPresent()) {
-                    Agent agent = available.get();
-                    context.agentId = agent.getId();
-
-                    job.setStartAt(new Date());
-                    job.setAgentId(agent.getId());
-                    job.setAgentSnapshot(agent);
-
-                    // start from root path
-                    NodeTree tree = ymlManager.getTree(job);
-                    NodePath rootPath = tree.getRoot().getPath();
-                    saveJobAndExecute(job, tree.next(rootPath));
-                }
+                // start from root path
+                NodeTree tree = ymlManager.getTree(job);
+                saveJobAndExecute(job, Lists.newArrayList(tree.getRoot()));
             }
 
             @Override
@@ -372,10 +344,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.getJob();
-                String agentId = context.getAgentId();
                 Throwable e = context.getError();
-
-                log.debug("Fail to dispatch job {} to agent {}", job.getId(), agentId, e);
 
                 // set current step to exception
                 for (String path : job.getCurrentPath()) {
@@ -384,7 +353,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 }
 
                 setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
-                agentService.tryRelease(agentId);
+                agentService.tryRelease(job.getAgents().values());
             }
         });
     }
@@ -426,7 +395,7 @@ public class JobActionManagerImpl implements JobActionManager {
             public void onException(Throwable e, JobSmContext context) {
                 Job job = context.job;
                 context.setError(e);
-                log.debug("Fail to dispatch job {} to agent {}", job.getId(), job.getAgentId(), e);
+                log.debug("Fail to dispatch job {} to agent {}", job.getId(), job.getAgents(), e);
                 Sm.execute(context.getCurrent(), Failure, context);
             }
 
@@ -442,7 +411,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                agentService.tryRelease(job.getAgentId());
+                agentService.tryRelease(job.getAgents().values());
                 logInfo(job, "finished with status {}", Success);
 
                 setJobStatusAndSave(job, Job.Status.SUCCESS, null);
@@ -453,16 +422,18 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                Agent agent = agentService.get(job.getAgentId());
 
                 setRestStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
 
-                if (agent.isOnline()) {
-                    CmdIn killCmd = cmdManager.createKillCmd();
-                    agentService.dispatch(killCmd, agent);
-                    agentService.tryRelease(agent.getId());
+                for (Agent agent : agentService.list(job.getAgents().values())) {
+                    if (agent.isOnline()) {
+                        CmdIn killCmd = cmdManager.createKillCmd();
+                        agentService.dispatch(killCmd, agent);
+                    }
                 }
+
+                agentService.tryRelease(job.getAgents().values());
             }
 
             @Override
@@ -482,8 +453,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
                 stepService.toStatus(step, Step.Status.EXCEPTION, null, false);
 
-                Agent agent = agentService.get(job.getAgentId());
-                agentService.tryRelease(agent.getId());
+                agentService.tryRelease(job.getAgents().values());
 
                 logInfo(job, "finished with status {}", Failure);
                 setJobStatusAndSave(job, Job.Status.FAILURE, err.getMessage());
@@ -500,12 +470,13 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                Agent agent = agentService.get(job.getAgentId());
 
-                CmdIn killCmd = cmdManager.createKillCmd();
+                for (Agent agent : agentService.list(job.getAgents().values())) {
+                    CmdIn killCmd = cmdManager.createKillCmd();
+                    agentService.dispatch(killCmd, agent);
+                }
+
                 setJobStatusAndSave(job, Job.Status.CANCELLING, null);
-
-                agentService.dispatch(killCmd, agent);
             }
 
             @Override
@@ -519,14 +490,15 @@ public class JobActionManagerImpl implements JobActionManager {
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 String reason = context.reasonForCancel;
-                Agent agent = agentService.get(job.getAgentId());
 
-                if (agent.isOnline()) {
-                    Sm.execute(context.getCurrent(), Cancelling, context);
-                    return;
+                for (Agent agent : agentService.list(job.getAgents().values())) {
+                    if (agent.isBusy()) {
+                        Sm.execute(context.getCurrent(), Cancelling, context);
+                        return;
+                    }
                 }
 
-                agentService.tryRelease(agent.getId());
+                agentService.tryRelease(job.getAgents().values());
                 setRestStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.CANCELLED, reason);
             }
@@ -545,13 +517,33 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                Agent agent = agentService.get(job.getAgentId());
-                agentService.tryRelease(agent.getId());
+                agentService.tryRelease(job.getAgents().values());
 
                 setRestStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.CANCELLED, null);
             }
         });
+    }
+
+    private Optional<Agent> fetchAgent(Job job, FlowNode flow) {
+        Function<String, Boolean> canAcquireAgent = (jobId) -> {
+            Job reloaded = jobDao.findById(jobId).get();
+
+            if (reloaded.isExpired()) {
+                JobSmContext context = new JobSmContext();
+                context.setJob(reloaded);
+                Sm.execute(Queued, Timeout, context);
+                return false;
+            }
+
+            if (reloaded.isCancelling()) {
+                return false;
+            }
+
+            return !reloaded.isDone();
+        };
+
+        return agentService.acquire(job, flow, canAcquireAgent);
     }
 
     private void setupJobYamlAndSteps(Job job, String yml) {
@@ -562,7 +554,6 @@ public class JobActionManagerImpl implements JobActionManager {
         FlowNode root = YmlParser.load(yml);
 
         job.setCurrentPathFromNodes(root);
-        job.setAgentSelector(root.getSelector());
         job.getContext().merge(root.getEnvironments(), false);
     }
 
@@ -676,8 +667,22 @@ public class JobActionManagerImpl implements JobActionManager {
         setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
         // TODO: only support parallel yet
-        for (Node next : nodes) {
-            return execute(job, next);
+        for (Node node : nodes) {
+            if (node instanceof FlowNode) {
+                FlowNode f = (FlowNode) node;
+                Optional<Agent> optional = fetchAgent(job, f);
+                if (!optional.isPresent()) {
+                    return false;
+                }
+
+                // save agent data to job
+                Agent agent = optional.get();
+                job.addAgent(f, agent.getId());
+                job.addAgentSnapshot(agent);
+                setJobStatusAndSave(job, Job.Status.RUNNING, null);
+            }
+
+            return execute(job, node);
         }
 
         return false;
@@ -688,17 +693,19 @@ public class JobActionManagerImpl implements JobActionManager {
         Step step = stepService.get(job.getId(), node.getPathAsString());
 
         // check execute condition
-        Vars<String> inputs = node.fetchEnvs().merge(job.getContext());
-        boolean canExecute = conditionManager.run(node.getCondition(), inputs);
+        if (canStartConditionCheck(job, node)) {
+            Vars<String> inputs = node.fetchEnvs().merge(job.getContext());
+            boolean canExecute = conditionManager.run(node.getCondition(), inputs);
 
-        // skip current node if condition not match
-        if (!canExecute) {
-            setSkipStatusToStep(step);
+            // skip current node if condition not match
+            if (!canExecute) {
+                setSkipStatusToStep(step);
 
-            job.setFinishAt(step.getFinishAt());
+                job.setFinishAt(step.getFinishAt());
 
-            List<Node> next = tree.skip(node.getPath());
-            return saveJobAndExecute(job, next);
+                List<Node> next = tree.skip(node.getPath());
+                return saveJobAndExecute(job, next);
+            }
         }
 
         // set current node to running whatever has children or not
@@ -710,10 +717,25 @@ public class JobActionManagerImpl implements JobActionManager {
             return saveJobAndExecute(job, next);
         }
 
-        Agent agent = agentService.get(job.getAgentId());
+        String parentFlowPath = node.getParentFlowNode().getPathAsString();
+        String agentId = job.getAgents().get(parentFlowPath);
+        if (agentId == null) {
+            throw new StatusException("cannot get agent id on executing");
+        }
+
+        Agent agent = agentService.get(agentId);
         ShellIn cmd = cmdManager.createShellCmd(job, step, tree);
         agentService.dispatch(cmd, agent);
         logInfo(job, "send to agent: step={}, agent={}", node.getName(), agent.getName());
+        return true;
+    }
+
+    private boolean canStartConditionCheck(Job job, Node node) {
+        if (job.getTrigger() == Job.Trigger.MANUAL || job.getTrigger() == Job.Trigger.API) {
+            if (node.getPath().isRoot()) {
+                return false;
+            }
+        }
         return true;
     }
 
@@ -808,8 +830,6 @@ public class JobActionManagerImpl implements JobActionManager {
         public String yml;
 
         private Step step;
-
-        private String agentId;
 
         private String reasonForCancel;
 

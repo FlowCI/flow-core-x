@@ -105,13 +105,26 @@ public abstract class Node implements Serializable {
         return path.getPathInStr();
     }
 
+    public String getEnv(String name) {
+        return environments.get(name);
+    }
+
+    @JsonIgnore
+    public FlowNode getParentFlowNode() {
+        ObjectWrapper<FlowNode> wrapper = new ObjectWrapper<>();
+        this.forEachBottomUp(this, (n) -> {
+            if (n instanceof FlowNode) {
+                wrapper.setValue((FlowNode) n);
+                return false;
+            }
+            return true;
+        });
+        return wrapper.getValue();
+    }
+
     @JsonIgnore
     public boolean hasChildren() {
         return !getChildren().isEmpty();
-    }
-
-    public String getEnv(String name) {
-        return environments.get(name);
     }
 
     @JsonIgnore

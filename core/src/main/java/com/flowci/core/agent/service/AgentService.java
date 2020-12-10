@@ -16,10 +16,12 @@
 
 package com.flowci.core.agent.service;
 
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.agent.domain.Agent;
+import com.flowci.tree.FlowNode;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -56,6 +58,11 @@ public interface AgentService {
     List<Agent> list();
 
     /**
+     * List agent by given ids
+     */
+    Iterable<Agent> list(Collection<String> ids);
+
+    /**
      * Find agent by status and tags from database
      *
      * @param tags Agent tags, optional
@@ -81,7 +88,7 @@ public interface AgentService {
     /**
      * Find available agent and lock
      */
-    Optional<Agent> acquire(Job job, Function<String, Boolean> canContinue);
+    Optional<Agent> acquire(Job job, FlowNode node, Function<String, Boolean> canContinue);
 
     /**
      * Try to lock agent resource, and set agent status to BUSY
@@ -93,7 +100,7 @@ public interface AgentService {
     /**
      * Release agent, send 'stop' cmd to agent
      */
-    void tryRelease(String agentId);
+    void tryRelease(Collection<String> ids);
 
     /**
      * Create agent by name and tags

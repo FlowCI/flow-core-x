@@ -18,6 +18,8 @@ package com.flowci.core.agent.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.dao.AgentDao;
+import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.domain.Agent.Status;
 import com.flowci.core.agent.domain.AgentInit;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.Util;
@@ -31,10 +33,9 @@ import com.flowci.core.common.manager.SpringTaskManager;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.core.job.event.StopJobConsumerEvent;
-import com.flowci.core.agent.domain.Agent;
-import com.flowci.core.agent.domain.Agent.Status;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
+import com.flowci.tree.FlowNode;
 import com.flowci.tree.Selector;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.zookeeper.ZookeeperClient;
@@ -149,6 +150,11 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
+    public Iterable<Agent> list(Collection<String> ids) {
+        return agentDao.findAllById(ids);
+    }
+
+    @Override
     public List<Agent> find(Set<String> tags) {
         if (ObjectsHelper.hasCollection(tags)) {
             return agentDao.findAllByTagsIn(tags);
@@ -179,9 +185,9 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Optional<Agent> acquire(Job job, Function<String, Boolean> canContinue) {
+    public Optional<Agent> acquire(Job job, FlowNode node, Function<String, Boolean> canContinue) {
         String jobId = job.getId();
-        Selector selector = job.getAgentSelector();
+        Selector selector = node.getSelector();
 
         for (; ; ) {
             if (!canContinue.apply(jobId)) {
@@ -232,16 +238,18 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public void tryRelease(String agentId) {
-        Agent agent = get(agentId);
-        agent.setJobId(null);
+    public void tryRelease(Collection<String> ids) {
+        for (String agentId : ids) {
+            Agent agent = get(agentId);
+            agent.setJobId(null);
 
-        switch (agent.getStatus()) {
-            case OFFLINE:
-                update(agent, OFFLINE);
-                return;
-            case BUSY:
-                update(agent, IDLE);
+            switch (agent.getStatus()) {
+                case OFFLINE:
+                    update(agent, OFFLINE);
+                    return;
+                case BUSY:
+                    update(agent, IDLE);
+            }
         }
     }
 
