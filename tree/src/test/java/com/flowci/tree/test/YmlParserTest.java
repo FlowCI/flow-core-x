@@ -222,6 +222,7 @@ public class YmlParserTest {
         Assert.assertNotNull(tree);
         Assert.assertEquals(root, tree.getRoot());
         Assert.assertEquals(12, tree.numOfNode());
+        Assert.assertEquals(3, tree.getSelectors().size());
 
         NodePath parallelPath = NodePath.create(DEFAULT_ROOT_NAME, "parallel-1");
         NodePath step2Path = NodePath.create(DEFAULT_ROOT_NAME, "step2");

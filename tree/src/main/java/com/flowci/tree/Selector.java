@@ -16,10 +16,11 @@
 
 package com.flowci.tree;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Set;
-import lombok.Data;
 
 /**
  * Agent selector

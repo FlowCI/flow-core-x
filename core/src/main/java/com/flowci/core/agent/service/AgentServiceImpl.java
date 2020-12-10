@@ -150,15 +150,11 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public List<Agent> find(Set<String> tags) {
-        List<Agent> agents;
-
         if (ObjectsHelper.hasCollection(tags)) {
-            agents = agentDao.findAllByTagsIn(tags);
-        } else {
-            agents = agentDao.findAll();
+            return agentDao.findAllByTagsIn(tags);
         }
 
-        return agents;
+        return agentDao.findAll();
     }
 
     @Override

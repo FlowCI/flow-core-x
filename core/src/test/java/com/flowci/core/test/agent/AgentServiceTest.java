@@ -27,12 +27,14 @@ import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.Agent.Status;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -55,6 +57,33 @@ public class AgentServiceTest extends ZookeeperScenario {
     @Test
     public void should_init_root_node() {
         Assert.assertTrue(zk.exist(zkProperties.getAgentRoot()));
+    }
+
+    @Test
+    public void should_find_agents_by_tag() {
+        agentService.create("agent-1", Sets.newHashSet("local", "k8s"), Optional.empty());
+        agentService.create("agent-2", Sets.newHashSet("linux", "k8s"), Optional.empty());
+        agentService.create("agent-3", Sets.newHashSet("win"), Optional.empty());
+
+        // find all agents
+        List<Agent> list = agentService.find(null);
+        Assert.assertEquals(3, list.size());
+
+        // find all k8s tag
+        list = agentService.find(Sets.newHashSet("k8s"));
+        Assert.assertEquals(2, list.size());
+
+        // tags with k8s OR win
+        list = agentService.find(Sets.newHashSet("k8s", "win"));
+        Assert.assertEquals(3, list.size());
+
+        // tag on win
+        list = agentService.find(Sets.newHashSet("win"));
+        Assert.assertEquals(1, list.size());
+
+        // tag on local OR linux
+        list = agentService.find(Sets.newHashSet("local", "linux"));
+        Assert.assertEquals(2, list.size());
     }
 
     @Test

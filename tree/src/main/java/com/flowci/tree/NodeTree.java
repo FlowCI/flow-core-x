@@ -44,9 +44,8 @@ public final class NodeTree {
 
     private final FlowNode root;
 
-    /**
-     * All condition list
-     */
+    private final List<Selector> selectors = new LinkedList<>();
+
     private final Set<String> conditions = new HashSet<>(DefaultSize);
 
     private final Set<String> plugins = new HashSet<>(DefaultSize);
@@ -134,9 +133,15 @@ public final class NodeTree {
 
             if (node instanceof RegularStepNode) {
                 RegularStepNode r = (RegularStepNode) node;
-
                 if (r.hasPlugin()) {
                     plugins.add(r.getPlugin());
+                }
+            }
+
+            if (node instanceof FlowNode) {
+                FlowNode f = (FlowNode) node;
+                if (f.hasSelector()) {
+                    selectors.add(f.getSelector());
                 }
             }
         });

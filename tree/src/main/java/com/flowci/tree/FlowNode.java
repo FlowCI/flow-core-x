@@ -2,6 +2,7 @@ package com.flowci.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.domain.LocalTask;
+import com.flowci.domain.ObjectWrapper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,5 +31,26 @@ public final class FlowNode extends Node {
 
     public FlowNode(String name, Node parent) {
         super(name, parent);
+    }
+
+    @JsonIgnore
+    public Selector fetchSelector() {
+        ObjectWrapper<Selector> wrapper = new ObjectWrapper<>(new Selector());
+        forEachBottomUp(this, n -> {
+            if (n instanceof FlowNode) {
+                FlowNode f = (FlowNode) n;
+                if (f.hasSelector()) {
+                    wrapper.setValue(f.selector);
+                    return false;
+                }
+            }
+            return true;
+        });
+        return wrapper.getValue();
+    }
+
+    @JsonIgnore
+    public boolean hasSelector() {
+        return !this.selector.getLabel().isEmpty();
     }
 }
