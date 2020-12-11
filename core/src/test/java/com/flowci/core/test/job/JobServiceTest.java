@@ -516,8 +516,8 @@ public class JobServiceTest extends ZookeeperScenario {
 
         Assert.assertNull(job.getFinishAt());
         Assert.assertNull(job.getStartAt());
-        Assert.assertNull(job.getAgentId());
-        Assert.assertNull(job.getAgentInfo());
+        Assert.assertTrue(job.getAgents().isEmpty());
+        Assert.assertTrue(job.getSnapshots().isEmpty());
     }
 
     private Job prepareJobForRunningStatus(Agent agent) {
@@ -527,7 +527,7 @@ public class JobServiceTest extends ZookeeperScenario {
         NodeTree tree = ymlManager.getTree(job);
         Node firstNode = tree.next(tree.getRoot().getPath()).get(0);
 
-        job.setAgentId(agent.getId());
+        job.addAgent(tree.getRoot(), agent.getId());
         job.setCurrentPathFromNodes(firstNode);
         job.setStatus(Status.RUNNING);
         job.setStatusToContext(Status.RUNNING);

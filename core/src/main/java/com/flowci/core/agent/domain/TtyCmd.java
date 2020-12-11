@@ -24,6 +24,8 @@ public abstract class TtyCmd {
 
         private String id;
 
+        private String nodePath;
+
         private Action action;
 
         private String input;

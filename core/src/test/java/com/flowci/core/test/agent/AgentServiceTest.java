@@ -27,6 +27,7 @@ import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.Agent.Status;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Test;
@@ -147,7 +148,7 @@ public class AgentServiceTest extends ZookeeperScenario {
         Assert.assertEquals(Status.BUSY, agentService.get(agent.getId()).getStatus());
 
         // when: release agent and mock event from agent
-        agentService.tryRelease(idle.getId());
+        agentService.tryRelease(Lists.newArrayList(idle.getId()));
 
         // then: the status should be idle
         Assert.assertEquals(Status.IDLE, agentService.get(agent.getId()).getStatus());
