@@ -17,7 +17,7 @@ public class YmlCustomDaoImpl implements YmlCustomDao {
 
     @Override
     public List<Yml> findAllWithoutRawByFlowId(String flowId) {
-        Query query = Query.query(new Criteria()).with(SortByCreatedAtASC);
+        Query query = Query.query(Criteria.where("flowId").is(flowId)).with(SortByCreatedAtASC);
         query.fields()
                 .include("id")
                 .include("name")
