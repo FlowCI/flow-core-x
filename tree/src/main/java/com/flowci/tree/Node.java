@@ -123,6 +123,11 @@ public abstract class Node implements Serializable {
     }
 
     @JsonIgnore
+    public boolean hasParent() {
+        return parent != null;
+    }
+
+    @JsonIgnore
     public boolean hasChildren() {
         return !getChildren().isEmpty();
     }
@@ -175,7 +180,7 @@ public abstract class Node implements Serializable {
         }
     }
 
-    protected void forEachBottomUp(Node node, Function<Node, Boolean> onNode) {
+    protected final void forEachBottomUp(Node node, Function<Node, Boolean> onNode) {
         Boolean canContinue = onNode.apply(node);
         if (!canContinue) {
             return;

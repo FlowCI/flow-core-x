@@ -330,7 +330,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
                 // start from root path
                 NodeTree tree = ymlManager.getTree(job);
-                saveJobAndExecute(job, Lists.newArrayList(tree.getRoot()));
+                saveJobAndExecute(job, Lists.newArrayList(tree.getRoot()), true);
             }
 
             @Override
@@ -651,7 +651,7 @@ public class JobActionManagerImpl implements JobActionManager {
             return false;
         }
 
-        return saveJobAndExecute(job, next);
+        return saveJobAndExecute(job, next, false);
     }
 
     /**
@@ -662,11 +662,18 @@ public class JobActionManagerImpl implements JobActionManager {
      * @return
      * @throws ScriptException
      */
-    private boolean saveJobAndExecute(Job job, List<Node> nodes) throws ScriptException {
+    private boolean saveJobAndExecute(Job job, List<Node> nodes, boolean fromRoot) throws ScriptException {
         job.setCurrentPathFromNodes(nodes);
-        setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
-        // TODO: only support parallel yet
+        // do not update job status when run from root
+        Job.Status newStatus = Job.Status.RUNNING;
+        if (fromRoot) {
+            newStatus = job.getStatus();
+        }
+
+        setJobStatusAndSave(job, newStatus, null);
+
+        // TODO: not support parallel yet
         for (Node node : nodes) {
             if (node instanceof FlowNode) {
                 FlowNode f = (FlowNode) node;
@@ -704,21 +711,27 @@ public class JobActionManagerImpl implements JobActionManager {
                 job.setFinishAt(step.getFinishAt());
 
                 List<Node> next = tree.skip(node.getPath());
-                return saveJobAndExecute(job, next);
+                return saveJobAndExecute(job, next, false);
             }
         }
-
-        // set current node to running whatever has children or not
-        stepService.toStatus(step, Step.Status.RUNNING, null, false);
 
         // skip current node cmd dispatch if the node has children
         if (node.hasChildren()) {
             List<Node> next = tree.skip(node.getPath());
-            return saveJobAndExecute(job, next);
+
+            // next node on top root
+            if (!node.hasParent()) {
+                next = tree.next(node.getPath());
+            }
+
+            return saveJobAndExecute(job, next, false);
         }
+
+        stepService.toStatus(step, Step.Status.RUNNING, null, false);
 
         String parentFlowPath = node.getParentFlowNode().getPathAsString();
         String agentId = job.getAgents().get(parentFlowPath);
+
         if (agentId == null) {
             throw new StatusException("cannot get agent id on executing");
         }

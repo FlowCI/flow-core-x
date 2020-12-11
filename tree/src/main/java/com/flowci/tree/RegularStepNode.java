@@ -77,11 +77,6 @@ public final class RegularStepNode extends Node {
     }
 
     @JsonIgnore
-    public boolean isRootStep() {
-        return parent instanceof FlowNode;
-    }
-
-    @JsonIgnore
     public boolean hasTimeout() {
         return timeout != null;
     }
@@ -94,8 +89,8 @@ public final class RegularStepNode extends Node {
     @JsonIgnore
     public List<String> fetchBash() {
         List<String> output = new LinkedList<>();
-        this.forEachBottomUp(this, node -> {
-            output.add(((RegularStepNode) node).getBash());
+        this.forEachBottomUpStep(this, n -> {
+            output.add(n.getBash());
             return true;
         });
         return output;
@@ -104,8 +99,8 @@ public final class RegularStepNode extends Node {
     @JsonIgnore
     public List<String> fetchPwsh() {
         List<String> output = new LinkedList<>();
-        this.forEachBottomUp(this, node -> {
-            output.add(((RegularStepNode) node).getPwsh());
+        this.forEachBottomUpStep(this, n -> {
+            output.add(n.getPwsh());
             return true;
         });
         return output;
@@ -114,8 +109,8 @@ public final class RegularStepNode extends Node {
     @JsonIgnore
     public Set<String> fetchFilters() {
         Set<String> output = new LinkedHashSet<>();
-        this.forEachBottomUp(this, (n) -> {
-            output.addAll(((RegularStepNode) n).getExports());
+        this.forEachBottomUpStep(this, (n) -> {
+            output.addAll((n).getExports());
             return true;
         });
         return output;
@@ -124,10 +119,9 @@ public final class RegularStepNode extends Node {
     @JsonIgnore
     public Integer fetchTimeout(Integer defaultVal) {
         ObjectWrapper<Integer> wrapper = new ObjectWrapper<>(defaultVal);
-        this.forEachBottomUp(this, (n) -> {
-            RegularStepNode r = (RegularStepNode) n;
-            if (r.hasTimeout()) {
-                wrapper.setValue(r.getTimeout());
+        this.forEachBottomUpStep(this, (n) -> {
+            if (n.hasTimeout()) {
+                wrapper.setValue(n.getTimeout());
                 return false;
             }
             return true;
@@ -138,10 +132,9 @@ public final class RegularStepNode extends Node {
     @JsonIgnore
     public Integer fetchRetry(Integer defaultVal) {
         ObjectWrapper<Integer> wrapper = new ObjectWrapper<>(defaultVal);
-        this.forEachBottomUp(this, (n) -> {
-            RegularStepNode r = (RegularStepNode) n;
-            if (r.hasRetry()) {
-                wrapper.setValue(r.getRetry());
+        this.forEachBottomUpStep(this, (n) -> {
+            if (n.hasRetry()) {
+                wrapper.setValue(n.getRetry());
                 return false;
             }
             return true;
@@ -149,11 +142,10 @@ public final class RegularStepNode extends Node {
         return wrapper.getValue();
     }
 
-    @Override
-    protected void forEachBottomUp(Node node, Function<Node, Boolean> onNode) {
+    protected void forEachBottomUpStep(Node node, Function<RegularStepNode, Boolean> onNode) {
         super.forEachBottomUp(node, (n) -> {
             if (n instanceof RegularStepNode) {
-                return onNode.apply(n);
+                return onNode.apply((RegularStepNode) n);
             }
             return true;
         });

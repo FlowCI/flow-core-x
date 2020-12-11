@@ -26,6 +26,7 @@ import com.flowci.core.job.event.StepUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.*;
+import com.flowci.util.StringHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,10 +63,6 @@ public class StepServiceImpl implements StepService {
         List<Step> steps = new LinkedList<>();
 
         tree.getFlatted().forEach((path, node) -> {
-            if (node.equals(tree.getRoot())) {
-                return;
-            }
-
             Step cmd = newInstance(job, node);
             steps.add(cmd);
         });
@@ -125,9 +122,8 @@ public class StepServiceImpl implements StepService {
         saveStatus(entity, status, err);
 
         // update parent status
-        NodePath parentPath = NodePath.create(entity.getParent());
-        if (!entity.isRootStep()) {
-            Step p = get(entity.getJobId(), parentPath.getPathInStr());
+        if (entity.hasParent()) {
+            Step p = get(entity.getJobId(), entity.getParent());
             saveStatus(p, status, err);
         }
 
@@ -196,16 +192,17 @@ public class StepServiceImpl implements StepService {
 
     private static Step newInstance(Job job, Node node) {
         String cmdId = job.getId() + node.getPathAsString();
+        Node parent = node.getParent();
 
         Step step = new Step()
-                .setId(Base64.getEncoder().encodeToString(cmdId.getBytes()))
+                .setId(StringHelper.toBase64(cmdId))
                 .setFlowId(job.getFlowId())
                 .setBuildNumber(job.getBuildNumber())
                 .setJobId(job.getId())
                 .setNodePath(node.getPathAsString())
                 .setDockers(node.getDockers())
                 .setChildren(childrenPaths(node))
-                .setParent(node.getParent().getPathAsString());
+                .setParent(parent == null ? StringHelper.EMPTY : parent.getPathAsString());
 
         if (node instanceof ParallelStepNode) {
             step.setType(Step.Type.PARALLEL);
@@ -213,14 +210,13 @@ public class StepServiceImpl implements StepService {
 
         if (node instanceof RegularStepNode) {
             RegularStepNode r = (RegularStepNode) node;
-            step.setRootStep(r.isRootStep());
             step.setAllowFailure(r.isAllowFailure());
             step.setPlugin(r.getPlugin());
             step.setType(Step.Type.REGULAR);
         }
 
         if (node instanceof FlowNode) {
-            step.setType(Step.Type.SUBFLOW);
+            step.setType(Step.Type.FLOW);
         }
 
         return step;

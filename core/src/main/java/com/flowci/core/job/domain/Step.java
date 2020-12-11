@@ -21,6 +21,7 @@ import com.flowci.core.agent.domain.ShellOut;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
+import com.flowci.util.StringHelper;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -51,7 +52,7 @@ public class Step implements Executed {
     public enum Type {
         REGULAR,
 
-        SUBFLOW,
+        FLOW,
 
         PARALLEL,
     }
@@ -76,8 +77,6 @@ public class Step implements Executed {
     private String plugin;
 
     private List<DockerOption> dockers;
-
-    private boolean isRootStep;
 
     // parent node path
     private String parent;
@@ -129,6 +128,11 @@ public class Step implements Executed {
      * Num of line of the log
      */
     private Long logSize = -1L;
+
+    @JsonIgnore
+    public boolean hasParent() {
+        return StringHelper.hasValue(parent);
+    }
 
     @JsonIgnore
     public boolean isSuccess() {
