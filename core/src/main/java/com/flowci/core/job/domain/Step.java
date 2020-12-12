@@ -50,7 +50,9 @@ import java.util.List;
 public class Step implements Executed {
 
     public enum Type {
-        REGULAR,
+        STEP,
+
+        STAGE, // step with children
 
         FLOW,
 
@@ -81,8 +83,8 @@ public class Step implements Executed {
     // parent node path
     private String parent;
 
-    // children step node path
-    private List<String> children;
+    // next step node path
+    private List<String> next;
 
     /**
      * Process id

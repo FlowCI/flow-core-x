@@ -201,7 +201,7 @@ public class StepServiceImpl implements StepService {
                 .setJobId(job.getId())
                 .setNodePath(node.getPathAsString())
                 .setDockers(node.getDockers())
-                .setChildren(childrenPaths(node))
+                .setNext(nextPaths(node))
                 .setParent(parent == null ? StringHelper.EMPTY : parent.getPathAsString());
 
         if (node instanceof ParallelStepNode) {
@@ -212,7 +212,11 @@ public class StepServiceImpl implements StepService {
             RegularStepNode r = (RegularStepNode) node;
             step.setAllowFailure(r.isAllowFailure());
             step.setPlugin(r.getPlugin());
-            step.setType(Step.Type.REGULAR);
+            step.setType(Step.Type.STEP);
+
+            if (r.hasChildren()) {
+                step.setType(Step.Type.STAGE);
+            }
         }
 
         if (node instanceof FlowNode) {
@@ -222,15 +226,14 @@ public class StepServiceImpl implements StepService {
         return step;
     }
 
-    private static List<String> childrenPaths(Node node) {
-        if (!node.hasChildren()) {
-            return Collections.emptyList();
+    private static List<String> nextPaths(Node node) {
+        List<Node> nextList = node.getNext();
+
+        List<String> paths = new ArrayList<>(nextList.size());
+        for (Node next : node.getNext()) {
+            paths.add(next.getPathAsString());
         }
 
-        List<String> paths = new ArrayList<>(node.getChildren().size());
-        for (Node child : node.getChildren()) {
-            paths.add(child.getPathAsString());
-        }
         return paths;
     }
 }

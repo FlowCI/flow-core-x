@@ -717,13 +717,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
         // skip current node cmd dispatch if the node has children
         if (node.hasChildren()) {
-            List<Node> next = tree.skip(node.getPath());
-
-            // next node on top root
-            if (!node.hasParent()) {
-                next = tree.next(node.getPath());
-            }
-
+            List<Node> next = tree.next(node.getPath());
             return saveJobAndExecute(job, next, false);
         }
 
