@@ -88,9 +88,9 @@ public final class RegularStepNode extends Node {
 
     @JsonIgnore
     public List<String> fetchBash() {
-        List<String> output = new LinkedList<>();
+        LinkedList<String> output = new LinkedList<>();
         this.forEachBottomUpStep(this, n -> {
-            output.add(n.getBash());
+            output.addFirst(n.getBash());
             return true;
         });
         return output;
@@ -98,9 +98,9 @@ public final class RegularStepNode extends Node {
 
     @JsonIgnore
     public List<String> fetchPwsh() {
-        List<String> output = new LinkedList<>();
+        LinkedList<String> output = new LinkedList<>();
         this.forEachBottomUpStep(this, n -> {
-            output.add(n.getPwsh());
+            output.addFirst(n.getPwsh());
             return true;
         });
         return output;

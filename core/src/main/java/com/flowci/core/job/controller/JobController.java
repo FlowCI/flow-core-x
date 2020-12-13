@@ -121,7 +121,7 @@ public class JobController extends BaseController {
         Flow flow = flowService.get(body.getFlow());
         String b64Yml = ymlService.getYmlString(flow.getId(), Yml.DEFAULT_NAME);
         if (!StringHelper.hasValue(b64Yml)) {
-            throw new NotFoundException("yml not found");
+            throw new NotFoundException("YAML not found");
         }
 
         String ymlStr = StringHelper.fromBase64(b64Yml);

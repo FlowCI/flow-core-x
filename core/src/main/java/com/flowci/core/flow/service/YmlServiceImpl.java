@@ -83,7 +83,7 @@ public class YmlServiceImpl implements YmlService {
         if (optional.isPresent()) {
             return optional.get();
         }
-        throw new NotFoundException("yml not found");
+        throw new NotFoundException("YAML not found");
     }
 
     @Override
@@ -95,7 +95,7 @@ public class YmlServiceImpl implements YmlService {
     @Override
     public Yml saveYml(Flow flow, String name, String ymlInB64) {
         if (!StringHelper.hasValue(ymlInB64)) {
-            throw new ArgumentException("Yml content cannot be null or empty");
+            throw new ArgumentException("YAML content cannot be null or empty");
         }
 
         String yaml = StringHelper.fromBase64(ymlInB64);
