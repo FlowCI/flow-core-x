@@ -6,6 +6,7 @@ import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.git.GitClient;
+import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
@@ -40,6 +41,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -47,6 +49,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -137,6 +140,8 @@ public class JobActionManagerImpl implements JobActionManager {
     @Autowired
     private SecretService secretService;
 
+    private final Map<String, ThreadPoolTaskExecutor> agentFetchExecutor = new ConcurrentHashMap<>();
+
     @EventListener
     public void init(ContextRefreshedEvent ignore) {
         try {
@@ -154,8 +159,19 @@ public class JobActionManagerImpl implements JobActionManager {
                 }
             }, Cancelled);
 
+            // Clean up agent fetch executor for job
+            Sm.addHookActionOnTargetStatus(context -> {
+                Job job = context.job;
+                ThreadPoolTaskExecutor executor = agentFetchExecutor.get(job.getId());
+                executor.shutdown();
+                agentFetchExecutor.remove(job.getId());
+            }, Success, Failure, Timeout, Cancelled);
+
             // run local notification task
-            Sm.addHookActionOnTargetStatus(notificationConsumer(), Success, Failure, Timeout, Cancelled);
+            Sm.addHookActionOnTargetStatus(context -> {
+                Job job = context.job;
+                localTaskService.executeAsync(job);
+            }, Success, Failure, Timeout, Cancelled);
         } catch (SmException.TransitionExisted ignored) {
         }
     }
@@ -327,9 +343,13 @@ public class JobActionManagerImpl implements JobActionManager {
             public void accept(JobSmContext context) throws Exception {
                 Job job = context.job;
                 eventManager.publish(new JobReceivedEvent(this, job));
+                NodeTree tree = ymlManager.getTree(job);
+
+                // init thread pool for agent fetching
+                int maxHeight = tree.getMaxHeight();
+                agentFetchExecutor.put(job.getId(), ThreadHelper.createTaskExecutor(maxHeight, 1, 0, "agent-fetch-"));
 
                 // start from root path
-                NodeTree tree = ymlManager.getTree(job);
                 saveJobAndExecute(job, Lists.newArrayList(tree.getRoot()), true);
             }
 
@@ -675,21 +695,33 @@ public class JobActionManagerImpl implements JobActionManager {
 
         // TODO: not support parallel yet
         for (Node node : nodes) {
-            if (node instanceof FlowNode) {
-                FlowNode f = (FlowNode) node;
-                Optional<Agent> optional = fetchAgent(job, f);
-                if (!optional.isPresent()) {
-                    return false;
-                }
-
-                // save agent data to job
-                Agent agent = optional.get();
-                job.addAgent(f, agent.getId());
-                job.addAgentSnapshot(agent);
-                setJobStatusAndSave(job, Job.Status.RUNNING, null);
+            if (!(node instanceof FlowNode)) {
+                return execute(job, node);
             }
 
-            return execute(job, node);
+            FlowNode f = (FlowNode) node;
+            ThreadPoolTaskExecutor executor = agentFetchExecutor.get(job.getId());
+
+            executor.execute(() -> {
+                Optional<Agent> optional = fetchAgent(job, f);
+
+                // save agent data to job
+                if (optional.isPresent()) {
+                    Agent agent = optional.get();
+                    job.addAgent(f, agent.getId());
+                    job.addAgentSnapshot(agent);
+                    setJobStatusAndSave(job, Job.Status.RUNNING, null);
+
+                    try {
+                        execute(job, node);
+                    } catch (ScriptException e) {
+                        // to failure status
+                        this.on(job, Job.Status.FAILURE, (c) -> c.setError(e));
+                    }
+                }
+            });
+
+            return true;
         }
 
         return false;
@@ -818,13 +850,6 @@ public class JobActionManagerImpl implements JobActionManager {
         } catch (Exception warn) {
             log.warn(warn);
         }
-    }
-
-    private Consumer<JobSmContext> notificationConsumer() {
-        return context -> {
-            Job job = context.job;
-            localTaskService.executeAsync(job);
-        };
     }
 
     @Getter

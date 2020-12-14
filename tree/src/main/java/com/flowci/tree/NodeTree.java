@@ -50,6 +50,8 @@ public final class NodeTree {
 
     private final Set<String> plugins = new HashSet<>(DefaultSize);
 
+    private int maxHeight = 1;
+
     public NodeTree(FlowNode root) {
         this.root = root;
         buildGraph(this.root);
@@ -159,7 +161,13 @@ public final class NodeTree {
 
         if (root instanceof ParallelStepNode) {
             ParallelStepNode n = (ParallelStepNode) root;
-            List<Node> prevs = new ArrayList<>(n.getParallel().size());
+
+            int height = n.getParallel().size();
+            List<Node> prevs = new ArrayList<>(height);
+
+            if (maxHeight < height) {
+                maxHeight = height;
+            }
 
             n.getParallel().forEach((k, subflow) -> {
                 subflow.prev.add(n);
