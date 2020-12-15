@@ -11,6 +11,7 @@ import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.dao.JobDao;
+import com.flowci.core.job.domain.Executed;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.JobReceivedEvent;
@@ -579,11 +580,8 @@ public class JobActionManagerImpl implements JobActionManager {
 
     private void setRestStepsToSkipped(Job job) {
         List<Step> steps = stepService.list(job);
-        for (Step step : steps) {
-            if (step.isRunning() || step.isPending()) {
-                stepService.toStatus(step, Step.Status.SKIPPED, null, false);
-            }
-        }
+        steps.removeIf(step -> !step.isRunning() && !step.isWaitingForAgent() && !step.isPending());
+        stepService.toStatus(steps, Step.Status.SKIPPED, null);
     }
 
     private void on(Job job, Job.Status target, Consumer<JobSmContext> configContext) {
@@ -703,6 +701,10 @@ public class JobActionManagerImpl implements JobActionManager {
             ThreadPoolTaskExecutor executor = agentFetchExecutor.get(job.getId());
 
             executor.execute(() -> {
+                // set flow step to waiting for agent
+                Step s = stepService.get(job.getId(), f.getPathAsString());
+                stepService.toStatus(s, Executed.Status.WAITING_AGENT, null, false);
+
                 Optional<Agent> optional = fetchAgent(job, f);
 
                 // save agent data to job

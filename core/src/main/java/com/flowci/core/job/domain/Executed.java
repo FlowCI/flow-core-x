@@ -31,6 +31,8 @@ public interface Executed {
 
         PENDING(-1),
 
+        WAITING_AGENT(0),
+
         RUNNING(1),
 
         SUCCESS(2),

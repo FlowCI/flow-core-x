@@ -118,6 +118,33 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
+    public Collection<Step> toStatus(Collection<Step> steps, Executed.Status status, String err) {
+        String jobId = "";
+        String flowId = "";
+        long buildNumber = 0L;
+
+        for (Step step : steps) {
+            jobId = step.getJobId();
+            flowId = step.getFlowId();
+            buildNumber = step.getBuildNumber();
+
+            step.setStatus(status);
+            step.setError(err);
+        }
+
+        if (steps.isEmpty()) {
+            return steps;
+        }
+
+        executedCmdDao.saveAll(steps);
+
+        jobStepCache.invalidate(jobId);
+        List<Step> list = list(jobId, flowId, buildNumber);
+        eventManager.publish(new StepUpdateEvent(this, jobId, list, false));
+        return steps;
+    }
+
+    @Override
     public Step toStatus(Step entity, Executed.Status status, String err, boolean allChildren) {
         saveStatus(entity, status, err);
 

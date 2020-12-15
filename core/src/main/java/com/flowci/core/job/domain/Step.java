@@ -151,6 +151,11 @@ public class Step implements Executed {
         return status == Status.PENDING;
     }
 
+    @JsonIgnore
+    public boolean isWaitingForAgent() {
+        return status == Status.WAITING_AGENT;
+    }
+
     public void setFrom(ShellOut out) {
         this.processId = out.getProcessId();
         this.containerId = out.getContainerId();

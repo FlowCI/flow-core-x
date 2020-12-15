@@ -17,10 +17,12 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.job.domain.Executed;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Step;
 import com.flowci.tree.Node;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -53,6 +55,11 @@ public interface StepService {
      * No steps after current node
      */
     String toVarString(Job job, Node current);
+
+    /**
+     * Batch set status for step and return step list
+     */
+    Collection<Step> toStatus(Collection<Step> steps, Executed.Status status, String err);
 
     /**
      * Change step status, and put steps string to job context
