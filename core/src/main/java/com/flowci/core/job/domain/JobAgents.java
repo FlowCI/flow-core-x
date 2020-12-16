@@ -12,19 +12,28 @@ public final class JobAgents {
      * agent1 -> flow
      *           flow/parallel/sub_1
      */
-    private final Map<String, Set<String>> agents = new HashMap<>();
+    private Map<String, Set<String>> agents = new HashMap<>();
 
-    /**
-     * Add or update agent, node
-     */
-    public void save(String agentId, Node node) {
-        Set<String> set = agents.computeIfAbsent(agentId, k -> new HashSet<>());
-        FlowNode flow = node.getParentFlowNode();
-        set.add(flow.getPathAsString());
+    public Collection<String> all() {
+        return agents.keySet();
     }
 
     /**
-     * Remove flow path only
+     * Add or update agent, node
+     * that means the agent will be used in flows
+     */
+    public void save(String agentId, FlowNode flow) {
+        Set<String> set = agents.computeIfAbsent(agentId, k -> new HashSet<>());
+        set.add(flow.getPathAsString());
+    }
+
+    public boolean isEmpty() {
+        return agents.isEmpty();
+    }
+
+    /**
+     * Remove when last node of flow was executed
+     * that means release the agent from flow
      */
     public void remove(String agentId, Node node) {
         agents.computeIfPresent(agentId, (key, map) -> {
@@ -34,6 +43,9 @@ public final class JobAgents {
         });
     }
 
+    /**
+     * Get agent if an agent was occupied within same flow
+     */
     public Optional<String> getAgent(Node node) {
         FlowNode flow = node.getParentFlowNode();
         for (Map.Entry<String, Set<String>> entry : agents.entrySet()) {
@@ -49,6 +61,7 @@ public final class JobAgents {
 
     /**
      * Call if getAgent returns empty
+     * find candidate agents within job, but still need to check Selector
      */
     public List<String> getCandidates(Node node) {
         FlowNode flow = node.getParentFlowNode();

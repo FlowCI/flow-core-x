@@ -207,7 +207,7 @@ public class Job extends Mongoable implements Pathable {
     private Status status = Status.PENDING;
 
     // agent id : agent status, status within job
-    private Map<String, Agent.Status> agents = new HashMap<>();
+    private JobAgents agents = new JobAgents();
 
     // agent id : info
     private Map<String, AgentSnapshot> snapshots = new HashMap<>();
@@ -315,11 +315,7 @@ public class Job extends Mongoable implements Pathable {
 
     @JsonIgnore
     public Collection<String> agentIds() {
-        return agents.keySet();
-    }
-
-    public void putAgentWithStatus(String agentId, Agent.Status status) {
-        agents.put(agentId, status);
+        return agents.all();
     }
 
     public String getCredentialName() {

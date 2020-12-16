@@ -12,6 +12,7 @@ import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.Executed;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.JobAgents;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
@@ -520,26 +521,30 @@ public class JobActionManagerImpl implements JobActionManager {
             return !reloaded.isDone();
         };
 
-        // find idle agent within job
+        JobAgents jobAgents = job.getAgents();
         FlowNode flow = node.getParentFlowNode();
-        for (Map.Entry<String, Agent.Status> entry : job.getAgents().entrySet()) {
-            String agentId = entry.getKey();
-            Agent.Status status = entry.getValue();
 
-            Agent agent = agentService.get(agentId);
-            if (agent.match(flow.getSelector()) && status == Agent.Status.IDLE) {
-                job.putAgentWithStatus(agent.getId(), Agent.Status.BUSY);
-                setJobStatusAndSave(job, Job.Status.RUNNING, null);
-                return Optional.of(agent);
+        // find agent that can be used directly
+        Optional<String> id = jobAgents.getAgent(flow);
+        if (id.isPresent()) {
+            Agent agent = agentService.get(id.get());
+            return Optional.of(agent);
+        }
+
+        // find candidate agents within job agent
+        List<String> candidates = jobAgents.getCandidates(node);
+        Iterable<Agent> list = agentService.list(candidates);
+        for (Agent candidate : list) {
+            if (candidate.match(flow.getSelector())) {
+                return Optional.of(candidate);
             }
         }
 
-        // find agent outside job
+        // find agent outside job, blocking thread
         Optional<Agent> optional = agentService.acquire(job, flow, canAcquireAgent);
-
         if (optional.isPresent()) {
             Agent agent = optional.get();
-            job.putAgentWithStatus(agent.getId(), Agent.Status.BUSY);
+            jobAgents.save(agent.getId(), flow);
             job.addAgentSnapshot(agent);
             setJobStatusAndSave(job, Job.Status.RUNNING, null);
         }

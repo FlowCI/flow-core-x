@@ -527,7 +527,7 @@ public class JobServiceTest extends ZookeeperScenario {
         NodeTree tree = ymlManager.getTree(job);
         Node firstNode = tree.next(tree.getRoot().getPath()).get(0);
 
-        job.putAgentWithStatus(agent.getId(), Agent.Status.IDLE);
+        job.getAgents().save(agent.getId(), tree.getRoot());
         job.setCurrentPathFromNodes(firstNode);
         job.setStatus(Status.RUNNING);
         job.setStatusToContext(Status.RUNNING);

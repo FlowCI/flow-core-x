@@ -216,7 +216,7 @@ public class JobServiceImpl implements JobService {
         job.setCreatedAt(Date.from(Instant.now()));
         job.setFinishAt(null);
         job.setStartAt(null);
-        job.setAgents(Maps.newHashMap());
+        job.setAgents(new JobAgents());
         job.setSnapshots(Maps.newHashMap());
         job.setStatus(Job.Status.PENDING);
         job.setTrigger(Trigger.MANUAL);

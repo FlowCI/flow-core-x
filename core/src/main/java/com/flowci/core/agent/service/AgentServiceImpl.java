@@ -151,6 +151,9 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public Iterable<Agent> list(Collection<String> ids) {
+        if (ids.isEmpty()) {
+            return Collections.emptyList();
+        }
         return agentDao.findAllById(ids);
     }
 
