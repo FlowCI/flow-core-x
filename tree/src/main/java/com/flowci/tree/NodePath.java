@@ -118,6 +118,10 @@ public final class NodePath implements Serializable {
         pathInStr = builder.deleteCharAt(builder.length() - 1).toString();
     }
 
+    public int depth() {
+        return paths.size();
+    }
+
     public String getNodePathWithoutSpace() {
         return pathInStr.replace(" ", "-");
     }

@@ -33,6 +33,10 @@ public final class FlowNode extends Node {
         super(name, parent);
     }
 
+    public FlowNode(String name) {
+        super(name, null);
+    }
+
     @JsonIgnore
     public Selector fetchSelector() {
         ObjectWrapper<Selector> wrapper = new ObjectWrapper<>(new Selector());
