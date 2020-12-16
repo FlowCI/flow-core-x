@@ -35,9 +35,8 @@ public final class JobAgents {
      * Remove when last node of flow was executed
      * that means release the agent from flow
      */
-    public void remove(String agentId, Node node) {
+    public void remove(String agentId, FlowNode flow) {
         agents.computeIfPresent(agentId, (key, map) -> {
-            FlowNode flow = node.getParentFlowNode();
             map.remove(flow.getPathAsString());
             return map;
         });

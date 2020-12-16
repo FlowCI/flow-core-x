@@ -101,6 +101,19 @@ public abstract class Node implements Serializable {
 
     public abstract List<Node> getChildren();
 
+    public boolean isLastChildOfParent() {
+        if (parent == null) {
+            return false;
+        }
+
+        List<Node> children = this.parent.getChildren();
+        if (children.isEmpty()) {
+            return false;
+        }
+
+        return children.get(children.size() - 1).equals(this);
+    }
+
     public String getPathAsString() {
         return path.getPathInStr();
     }

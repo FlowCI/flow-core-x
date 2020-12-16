@@ -536,6 +536,7 @@ public class JobActionManagerImpl implements JobActionManager {
         Iterable<Agent> list = agentService.list(candidates);
         for (Agent candidate : list) {
             if (candidate.match(flow.getSelector())) {
+                jobAgents.save(candidate.getId(), flow);
                 return Optional.of(candidate);
             }
         }
@@ -552,9 +553,15 @@ public class JobActionManagerImpl implements JobActionManager {
         return optional;
     }
 
-    //
-    private void releaseAgent() {
+    private void releaseAgent(Job job, Node node, Step step) {
+        if (!node.isLastChildOfParent()) {
+            return;
+        }
 
+        FlowNode flow = node.getParentFlowNode();
+        job.getAgents().remove(step.getAgentId(), flow);
+
+        // TODO: release agent outside job if cannot reused for other flows
     }
 
     private void setupJobYamlAndSteps(Job job, String yml) {
@@ -652,6 +659,8 @@ public class JobActionManagerImpl implements JobActionManager {
 
         updateJobContextAndLatestStatus(job, node, step);
 
+        releaseAgent(job, node, step);
+
         List<Node> next = node.getNext();
         if (next.isEmpty() || !step.isSuccess()) {
             setJobStatusAndSave(job, job.getStatusFromContext(), null);
@@ -744,7 +753,6 @@ public class JobActionManagerImpl implements JobActionManager {
         Job.Status statusFromContext = job.getStatusFromContext();
         String error = job.getErrorFromContext();
         ObjectsHelper.ifNotNull(error, s -> context.setError(new CIException(s)));
-
 
         Sm.execute(context.getCurrent(), new Status(statusFromContext.name()), context);
     }
