@@ -166,7 +166,7 @@ public class JobServiceTest extends ZookeeperScenario {
 
         List<Step> steps = stepService.list(job);
         Assert.assertNotNull(steps);
-        Assert.assertEquals(2, steps.size());
+        Assert.assertEquals(3, steps.size());
 
         for (Step step : steps) {
             Assert.assertNotNull(step.getFlowId());
@@ -527,7 +527,7 @@ public class JobServiceTest extends ZookeeperScenario {
         NodeTree tree = ymlManager.getTree(job);
         Node firstNode = tree.next(tree.getRoot().getPath()).get(0);
 
-        job.addAgent(tree.getRoot(), agent.getId());
+        job.putAgentWithStatus(agent.getId(), Agent.Status.IDLE);
         job.setCurrentPathFromNodes(firstNode);
         job.setStatus(Status.RUNNING);
         job.setStatusToContext(Status.RUNNING);

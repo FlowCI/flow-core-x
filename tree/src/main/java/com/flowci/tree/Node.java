@@ -147,7 +147,7 @@ public abstract class Node implements Serializable {
         StringVars output = new StringVars();
 
         this.forEachBottomUp(this, (n) -> {
-            output.merge(n.getEnvironments());
+            output.merge(n.getEnvironments(), false);
             return true;
         });
 

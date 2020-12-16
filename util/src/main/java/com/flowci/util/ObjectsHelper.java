@@ -30,6 +30,10 @@ public abstract class ObjectsHelper {
         return collection != null && collection.size() > 0;
     }
 
+    public static boolean hasCollection(Map<?, ?> map) {
+        return map != null && !map.isEmpty();
+    }
+
     public static Set<String> fields(Class<?> klass) {
         Set<String> fields = new HashSet<>();
         for (Class<?> c = klass; c != null; c = c.getSuperclass()) {

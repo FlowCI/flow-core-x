@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.domain.Common.OS;
 import com.flowci.domain.SimpleKeyPair;
+import com.flowci.tree.Selector;
 import com.google.common.base.Strings;
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -29,6 +30,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -168,5 +170,15 @@ public class Agent extends Mongoable {
     @JsonIgnore
     public boolean isStarting() {
         return status == Status.STARTING;
+    }
+
+    public boolean match(Selector selector) {
+        Set<String> labels = new HashSet<>(selector.getLabel());
+        if (labels.isEmpty() && tags.isEmpty()) {
+            return true;
+        }
+
+        labels.retainAll(tags);
+        return !labels.isEmpty();
     }
 }

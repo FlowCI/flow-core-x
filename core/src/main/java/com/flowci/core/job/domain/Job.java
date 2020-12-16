@@ -23,7 +23,6 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.store.Pathable;
-import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableSet;
@@ -207,8 +206,8 @@ public class Job extends Mongoable implements Pathable {
 
     private Status status = Status.PENDING;
 
-    // node path : agent id
-    private Map<String, String> agents = new HashMap<>();
+    // agent id : agent status, status within job
+    private Map<String, Agent.Status> agents = new HashMap<>();
 
     // agent id : info
     private Map<String, AgentSnapshot> snapshots = new HashMap<>();
@@ -300,19 +299,6 @@ public class Job extends Mongoable implements Pathable {
         return DateFormat.format(this.finishAt);
     }
 
-    public String getCredentialName() {
-        return context.get(Variables.Flow.GitCredential);
-    }
-
-    public String getGitUrl() {
-        return context.get(Variables.Flow.GitUrl);
-    }
-
-    public boolean isExpired() {
-        Instant expireAt = getExpireAt().toInstant();
-        return Instant.now().compareTo(expireAt) > 0;
-    }
-
     @JsonIgnore
     public Status getStatusFromContext() {
         return Job.Status.valueOf(context.get(Variables.Job.Status));
@@ -327,11 +313,26 @@ public class Job extends Mongoable implements Pathable {
         return context.get(Variables.Job.Error);
     }
 
-    /**
-     * Save agent id for flow
-     */
-    public void addAgent(FlowNode node, String agentId) {
-        this.agents.put(node.getPathAsString(), agentId);
+    @JsonIgnore
+    public Collection<String> agentIds() {
+        return agents.keySet();
+    }
+
+    public void putAgentWithStatus(String agentId, Agent.Status status) {
+        agents.put(agentId, status);
+    }
+
+    public String getCredentialName() {
+        return context.get(Variables.Flow.GitCredential);
+    }
+
+    public String getGitUrl() {
+        return context.get(Variables.Flow.GitUrl);
+    }
+
+    public boolean isExpired() {
+        Instant expireAt = getExpireAt().toInstant();
+        return Instant.now().compareTo(expireAt) > 0;
     }
 
     public void addAgentSnapshot(Agent agent) {

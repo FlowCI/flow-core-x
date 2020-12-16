@@ -70,6 +70,8 @@ public class Step implements Executed {
 
     private String jobId;
 
+    private String agentId;
+
     private String nodePath;
 
     private Type type;

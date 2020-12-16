@@ -194,10 +194,12 @@ public class JobEventServiceImpl implements JobEventService {
 
             jobsQueueManager.startConsumer(queue, false, (header, body, envelope) -> {
                 try {
-                    String jobId = new String(body);
-                    Job job = jobService.get(jobId);
+                    Job job = jobService.get(new String(body));
                     logInfo(job, "received from queue");
-                    jobActionManager.toRun(job);
+
+                    if (!job.isDone()) {
+                        jobActionManager.toRun(job);
+                    }
                 } catch (Exception e) {
                     log.warn(e);
                 }

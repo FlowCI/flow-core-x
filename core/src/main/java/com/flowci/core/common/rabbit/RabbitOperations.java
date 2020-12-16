@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 @Log4j2
 @Getter
@@ -133,6 +132,10 @@ public class RabbitOperations implements AutoCloseable {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    public void sendAck(long deliveryTag) throws IOException {
+        getChannel().basicAck(deliveryTag, false);
     }
 
     public void startConsumer(String queue, boolean autoAck, OnMessage onMessage) throws IOException {

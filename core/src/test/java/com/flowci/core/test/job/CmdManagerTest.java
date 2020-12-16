@@ -88,7 +88,7 @@ public class CmdManagerTest extends SpringScenario {
         Step step = stepService.get(job.getId(), node.getPath().getPathInStr());
 
         // then: first step docker should be applied from step level
-        ShellIn in = cmdManager.createShellCmd(job, step, tree);
+        ShellIn in = cmdManager.createShellCmd(job, step, node);
         Assert.assertNotNull(in.getDockers());
         Assert.assertEquals(1, in.getDockers().size());
         Assert.assertEquals("step:0.1", in.getDockers().get(0).getImage());
@@ -98,7 +98,7 @@ public class CmdManagerTest extends SpringScenario {
         step = stepService.get(job.getId(), node.getPath().getPathInStr());
 
         // then: first step docker should be applied from step level
-        in = cmdManager.createShellCmd(job, step, tree);
+        in = cmdManager.createShellCmd(job, step, node);
         Assert.assertNotNull(in.getDockers());
         Assert.assertEquals(1, in.getDockers().size());
         Assert.assertEquals("helloworld:0.1", in.getDockers().get(0).getImage());
@@ -126,7 +126,7 @@ public class CmdManagerTest extends SpringScenario {
         Node node = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "plugin-test"));
         Step step = stepService.get(job.getId(), node.getPath().getPathInStr());
 
-        ShellIn cmdIn = cmdManager.createShellCmd(job, step, tree);
+        ShellIn cmdIn = cmdManager.createShellCmd(job, step, node);
         Assert.assertNotNull(cmdIn);
 
         // then:
@@ -166,7 +166,7 @@ public class CmdManagerTest extends SpringScenario {
         Node step2_2 = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step2", "step-2-2"));
 
         // then: verify step 2 - 1 cmd
-        ShellIn cmdStep2_1 = cmdManager.createShellCmd(job, stepService.get(job.getId(), step2_1.getPath().getPathInStr()), tree);
+        ShellIn cmdStep2_1 = cmdManager.createShellCmd(job, stepService.get(job.getId(), step2_1.getPath().getPathInStr()), step2_1);
         Assert.assertEquals(500, cmdStep2_1.getTimeout());
         Assert.assertEquals(2, cmdStep2_1.getRetry());
 
@@ -183,7 +183,7 @@ public class CmdManagerTest extends SpringScenario {
         Assert.assertEquals("mysql", cmdStep2_1.getDockers().get(1).getImage());
 
         // then: verify step 2 - 2 cmd
-        ShellIn cmdStep2_2 = cmdManager.createShellCmd(job, stepService.get(job.getId(), step2_2.getPath().getPathInStr()), tree);
+        ShellIn cmdStep2_2 = cmdManager.createShellCmd(job, stepService.get(job.getId(), step2_2.getPath().getPathInStr()), step2_2);
         Assert.assertEquals("parent", cmdStep2_2.getInputs().get("STEP_2"));
         Assert.assertEquals(1000, cmdStep2_2.getTimeout());
         Assert.assertEquals(5, cmdStep2_2.getRetry());

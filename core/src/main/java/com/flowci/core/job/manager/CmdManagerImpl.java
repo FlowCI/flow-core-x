@@ -46,9 +46,7 @@ public class CmdManagerImpl implements CmdManager {
     private SpringEventManager eventManager;
 
     @Override
-    public ShellIn createShellCmd(Job job, Step step, NodeTree tree) {
-        Node node = tree.get(NodePath.create(step.getNodePath()));
-
+    public ShellIn createShellCmd(Job job, Step step, Node node) {
         if (node instanceof ParallelStepNode) {
             throw new StatusException("Illegal step node type, must be regular step");
         }
