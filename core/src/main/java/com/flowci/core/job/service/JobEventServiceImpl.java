@@ -32,7 +32,6 @@ import com.flowci.core.flow.event.FlowInitEvent;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.CreateNewJobEvent;
-import com.flowci.core.job.event.StopJobConsumerEvent;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.core.agent.domain.Agent;
@@ -92,7 +91,9 @@ public class JobEventServiceImpl implements JobEventService {
 
     @EventListener
     public void onFlowDeleted(FlowDeletedEvent event) {
-        stopJobConsumerAndDeleteQueue(event.getFlow());
+        Flow flow = event.getFlow();
+        String queue = flow.getQueueName();
+        jobsQueueManager.removeConsumer(queue);
         jobService.delete(event.getFlow());
     }
 
@@ -211,9 +212,4 @@ public class JobEventServiceImpl implements JobEventService {
         }
     }
 
-    private void stopJobConsumerAndDeleteQueue(Flow flow) {
-        String queue = flow.getQueueName();
-        jobsQueueManager.removeConsumer(queue);
-        eventManager.publish(new StopJobConsumerEvent(this, flow.getId()));
-    }
 }
