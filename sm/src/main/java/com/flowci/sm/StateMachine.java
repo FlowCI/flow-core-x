@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 @Log4j2
@@ -19,6 +20,8 @@ public class StateMachine<T extends Context> {
     private final Map<Status, List<Consumer<T>>> hooksOnTargetStatus = new HashMap<>();
 
     private final String name;
+
+    private final Executor executor;
 
     public void addHookActionOnTargetStatus(Consumer<T> action, Status... targets) {
         for (Status target : targets) {
@@ -35,6 +38,10 @@ public class StateMachine<T extends Context> {
         }
 
         map.put(t.getTo(), action);
+    }
+
+    public void executeInExecutor(Status current, Status target, T context) {
+        executor.execute(() -> execute(current, target, context));
     }
 
     public void execute(Status current, Status target, T context) {
