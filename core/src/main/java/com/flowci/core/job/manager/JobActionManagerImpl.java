@@ -360,9 +360,6 @@ public class JobActionManagerImpl implements JobActionManager {
                 eventManager.publish(new JobReceivedEvent(this, job));
                 NodeTree tree = ymlManager.getTree(job);
 
-                ThreadPoolTaskExecutor executor = ThreadHelper.createTaskExecutor(tree.getMaxHeight(), 1, 0, "job-exec-");
-                pool.putIfAbsent(job.getId(), executor);
-
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
                 // start from root path
@@ -720,10 +717,9 @@ public class JobActionManagerImpl implements JobActionManager {
         for (Node prev : list) {
             Step step = stepService.get(job.getId(), prev.getPathAsString());
 
-            // return if any one prev steps failed
-            if (!step.isOngoing() && !step.isSuccess()) {
-                status.add(Executed.Status.EXCEPTION);
-                return status;
+            if (step.isSuccess()) {
+                status.add(Executed.Status.SUCCESS);
+                continue;
             }
 
             status.add(step.getStatus());
@@ -759,15 +755,17 @@ public class JobActionManagerImpl implements JobActionManager {
             }
 
             stepService.toStatus(step, Executed.Status.WAITING_AGENT, null, false);
-            waitAgentAndDispatch(job, node, step);
+            waitAgentAndDispatch(tree, job, node, step);
         }
     }
 
-    private void waitAgentAndDispatch(Job instance, Node node, Step step) {
+    private void waitAgentAndDispatch(NodeTree tree, Job instance, Node node, Step step) {
+        ThreadPoolTaskExecutor executor = ThreadHelper.createTaskExecutor(tree.getMaxHeight(), 1, 0, "job-exec-");
+        pool.putIfAbsent(instance.getId(), executor);
+
         String jobId = instance.getId();
         String flowId = instance.getFlowId();
 
-        ThreadPoolTaskExecutor executor = pool.get(jobId);
         executor.execute(() -> {
             while (true) {
 
