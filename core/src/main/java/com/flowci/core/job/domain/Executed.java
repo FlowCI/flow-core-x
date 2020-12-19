@@ -14,6 +14,12 @@ public interface Executed {
             Status.TIMEOUT
     );
 
+    Set<Status> OngoingStatus = ImmutableSet.of(
+            Status.PENDING,
+            Status.WAITING_AGENT,
+            Status.RUNNING
+    );
+
     Set<Status> SuccessStatus = ImmutableSet.of(
             Status.SUCCESS,
             Status.SKIPPED

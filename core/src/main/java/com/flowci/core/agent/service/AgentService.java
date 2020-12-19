@@ -19,13 +19,12 @@ package com.flowci.core.agent.service;
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.job.domain.Job;
-import com.flowci.tree.FlowNode;
+import com.flowci.tree.Selector;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * @author yang
@@ -88,7 +87,7 @@ public interface AgentService {
     /**
      * Find available agent and lock
      */
-    Optional<Agent> acquire(Job job, FlowNode node, Function<String, Boolean> canContinue);
+    Optional<Agent> acquire(Job job, Selector selector);
 
     /**
      * Try to lock agent resource, and set agent status to BUSY

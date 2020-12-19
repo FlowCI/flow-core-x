@@ -27,15 +27,12 @@ import com.flowci.core.agent.event.*;
 import com.flowci.core.agent.manager.AgentEventManager;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CipherHelper;
-import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.manager.SpringTaskManager;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.NoIdleAgentEvent;
-import com.flowci.core.job.event.StopJobConsumerEvent;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
-import com.flowci.tree.FlowNode;
 import com.flowci.tree.Selector;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.zookeeper.ZookeeperClient;
@@ -51,8 +48,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 import static com.flowci.core.agent.domain.Agent.Status.IDLE;
 import static com.flowci.core.agent.domain.Agent.Status.OFFLINE;
@@ -67,8 +62,6 @@ import static com.flowci.core.agent.domain.Agent.Status.OFFLINE;
 @Log4j2
 @Service
 public class AgentServiceImpl implements AgentService {
-
-    private static final long RetryIntervalOnNotFound = 10 * 1000; // 10 seconds
 
     @Autowired
     private AppProperties.Zookeeper zkProperties;
@@ -90,9 +83,6 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private AgentEventManager agentEventManager;
-
-    // key is flow id,
-    private final Map<String, AcquireLock> acquireLocks = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void initAgentStatus() {
@@ -188,34 +178,16 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Optional<Agent> acquire(Job job, FlowNode node, Function<String, Boolean> canContinue) {
+    public Optional<Agent> acquire(Job job, Selector selector) {
         String jobId = job.getId();
-        Selector selector = node.getSelector();
 
-        for (; ; ) {
-            if (!canContinue.apply(jobId)) {
-                log.debug("Job {} cannot continue to wait agent", jobId);
-                acquireLocks.remove(job.getFlowId());
-                return Optional.empty();
-            }
-
-            Optional<Agent> optional = acquire(jobId, selector);
-            if (optional.isPresent()) {
-                acquireLocks.remove(job.getFlowId());
-                return optional;
-            }
-
-            eventManager.publish(new NoIdleAgentEvent(this, jobId, selector));
-
-            AcquireLock lock = acquireLocks.computeIfAbsent(job.getFlowId(), s -> new AcquireLock());
-            if (lock.stop) {
-                acquireLocks.remove(job.getFlowId());
-                return Optional.empty();
-            }
-
-            log.debug("Job {} is waiting for agent", jobId);
-            ThreadHelper.wait(lock, RetryIntervalOnNotFound);
+        Optional<Agent> optional = acquire(jobId, selector);
+        if (optional.isPresent()) {
+            return optional;
         }
+
+        eventManager.publish(new NoIdleAgentEvent(this, jobId, selector));
+        return Optional.empty();
     }
 
     @Override
@@ -385,26 +357,6 @@ public class AgentServiceImpl implements AgentService {
         eventManager.publish(new AgentIdleEvent(this, agent));
     }
 
-    @EventListener
-    public void doNotifyToFindAgent(AgentIdleEvent event) {
-        Agent agent = event.getAgent();
-        acquireLocks.computeIfPresent(agent.getJobId(), (s, lock) -> {
-            ThreadHelper.notifyAll(lock);
-            return lock;
-        });
-    }
-
-    @EventListener
-    public void stopJobsThatWaitingForAgent(StopJobConsumerEvent event) {
-        AcquireLock lock = acquireLocks.get(event.getFlowId());
-        if (Objects.isNull(lock)) {
-            return;
-        }
-
-        lock.stop = true;
-        ThreadHelper.notifyAll(lock);
-    }
-
     //====================================================================
     //        %% Private methods
     //====================================================================
@@ -453,14 +405,5 @@ public class AgentServiceImpl implements AgentService {
         }
 
         return Optional.empty();
-    }
-
-    //====================================================================
-    //        %% Inner classes
-    //====================================================================
-
-    private static class AcquireLock {
-
-        private boolean stop = false;
     }
 }

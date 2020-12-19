@@ -144,18 +144,8 @@ public class Step implements Executed {
     }
 
     @JsonIgnore
-    public boolean isRunning() {
-        return status == Status.RUNNING;
-    }
-
-    @JsonIgnore
-    public boolean isPending() {
-        return status == Status.PENDING;
-    }
-
-    @JsonIgnore
-    public boolean isWaitingForAgent() {
-        return status == Status.WAITING_AGENT;
+    public boolean isOngoing() {
+        return OngoingStatus.contains(status);
     }
 
     public void setFrom(ShellOut out) {
