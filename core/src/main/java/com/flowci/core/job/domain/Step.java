@@ -139,6 +139,11 @@ public class Step implements Executed {
     }
 
     @JsonIgnore
+    public boolean isRoot() {
+        return !hasParent();
+    }
+
+    @JsonIgnore
     public boolean isSuccess() {
         return SuccessStatus.contains(status) || isAllowFailure();
     }

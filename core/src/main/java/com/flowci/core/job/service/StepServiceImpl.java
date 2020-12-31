@@ -148,11 +148,8 @@ public class StepServiceImpl implements StepService {
     public Step toStatus(Step entity, Executed.Status status, String err, boolean allChildren) {
         saveStatus(entity, status, err);
 
-        // update parent status
-        if (entity.hasParent()) {
-            Step p = get(entity.getJobId(), entity.getParent());
-            saveStatus(p, status, err);
-        }
+        Step parent = getWithNullReturn(entity.getJobId(), entity.getParent());
+        updateAllParentsStatus(parent, status, err);
 
         if (allChildren) {
             NodeTree tree = ymlManager.getTree(entity.getJobId());
@@ -199,6 +196,26 @@ public class StepServiceImpl implements StepService {
     @Override
     public Long delete(Job job) {
         return executedCmdDao.deleteByJobId(job.getId());
+    }
+
+    private Step getWithNullReturn(String jobId, String nodePath) {
+        if (nodePath == null) {
+            return null;
+        }
+
+        Optional<Step> optional = executedCmdDao.findByJobIdAndNodePath(jobId, nodePath);
+        return optional.orElse(null);
+    }
+
+    private void updateAllParentsStatus(Step parent, Executed.Status status, String err) {
+        if (parent == null || parent.isRoot()) {
+            return;
+        }
+
+        saveStatus(parent, status, err);
+
+        Step p = getWithNullReturn(parent.getJobId(), parent.getParent());
+        updateAllParentsStatus(p, status, err);
     }
 
     private Step saveStatus(Step step, Step.Status status, String error) {
