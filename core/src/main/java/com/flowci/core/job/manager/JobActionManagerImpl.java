@@ -49,6 +49,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
 @Log4j2
@@ -362,8 +363,10 @@ public class JobActionManagerImpl implements JobActionManager {
                 job.setStartAt(new Date());
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
-                // start from root path
-                executeJob(job, Lists.newArrayList(tree.getRoot()));
+                // start from root path, and block current thread since don't send ack back to queue
+                CountDownLatch latch = new CountDownLatch(1);
+                executeJob(job, Lists.newArrayList(tree.getRoot()), latch);
+                latch.await();
             }
 
             @Override
@@ -670,7 +673,7 @@ public class JobActionManagerImpl implements JobActionManager {
      *
      * @return true if next step dispatched or have to wait for previous steps, false if no more steps or failure
      */
-    private boolean toNextStep(Job job, Step step) throws ScriptException {
+    private boolean toNextStep(Job job, Step step) throws ScriptException, InterruptedException {
         NodeTree tree = ymlManager.getTree(job);
         Node node = tree.get(NodePath.create(step.getNodePath())); // current node
 
@@ -701,7 +704,7 @@ public class JobActionManagerImpl implements JobActionManager {
             return true;
         }
 
-        executeJob(job, next);
+        executeJob(job, next, null);
         return true;
     }
 
@@ -727,7 +730,7 @@ public class JobActionManagerImpl implements JobActionManager {
         return status;
     }
 
-    private void executeJob(Job job, List<Node> nodes) throws ScriptException {
+    private void executeJob(Job job, List<Node> nodes, CountDownLatch latch) throws ScriptException {
         job.setCurrentPathFromNodes(nodes);
         setJobStatusAndSave(job, job.getStatus(), null);
 
@@ -742,25 +745,28 @@ public class JobActionManagerImpl implements JobActionManager {
                 updateJobContextAndLatestStatus(job, node, step);
 
                 List<Node> next = tree.skip(node.getPath());
-                executeJob(job, next);
+                executeJob(job, next, latch);
                 continue;
             }
 
             // skip current node cmd dispatch if the node has children
             if (node.hasChildren()) {
                 List<Node> next = tree.next(node.getPath());
-                executeJob(job, next);
+                executeJob(job, next, latch);
                 continue;
             }
 
             stepService.toStatus(step, Executed.Status.WAITING_AGENT, null, false);
-            waitAgentAndDispatch(tree, job, node, step);
+            waitAgentAndDispatch(tree, job, node, step, latch);
         }
     }
 
-    private void waitAgentAndDispatch(NodeTree tree, Job instance, Node node, Step step) {
-        ThreadPoolTaskExecutor executor = ThreadHelper.createTaskExecutor(tree.getMaxHeight(), 1, 0, "job-exec-");
-        pool.putIfAbsent(instance.getId(), executor);
+    private void waitAgentAndDispatch(NodeTree tree, Job instance, Node node, Step step, CountDownLatch latch) {
+        ThreadPoolTaskExecutor executor = pool.get(instance.getId());
+        if (executor == null) {
+            executor = ThreadHelper.createTaskExecutor(tree.getMaxHeight(), 1, 0, "job-exec-");
+            pool.put(instance.getId(), executor);
+        }
 
         String jobId = instance.getId();
         String flowId = instance.getFlowId();
@@ -799,16 +805,20 @@ public class JobActionManagerImpl implements JobActionManager {
                 });
 
                 if (isFetched.getValue()) {
-                    return;
+                    break;
                 }
 
                 AcquireLock lock = acquireLocks.computeIfAbsent(flowId, s -> new AcquireLock());
                 if (lock.stop) {
                     acquireLocks.remove(flowId);
-                    return;
+                    break;
                 }
 
                 ThreadHelper.wait(lock, RetryIntervalOnNotFound);
+            }
+
+            if (latch != null) {
+                latch.countDown();
             }
         });
     }
