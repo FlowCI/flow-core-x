@@ -149,7 +149,7 @@ public class StepServiceImpl implements StepService {
         saveStatus(entity, status, err);
 
         Step parent = getWithNullReturn(entity.getJobId(), entity.getParent());
-        updateAllParentsStatus(parent, status, err);
+        updateAllParents(parent, entity);
 
         if (allChildren) {
             NodeTree tree = ymlManager.getTree(entity.getJobId());
@@ -207,15 +207,23 @@ public class StepServiceImpl implements StepService {
         return optional.orElse(null);
     }
 
-    private void updateAllParentsStatus(Step parent, Executed.Status status, String err) {
+    private void updateAllParents(Step parent, Step current) {
         if (parent == null || parent.isRoot()) {
             return;
         }
 
-        saveStatus(parent, status, err);
+        parent.setStatus(current.getStatus());
+        parent.setError(current.getError());
+        parent.setFinishAt(current.getFinishAt());
+
+        if (parent.getStartAt() == null) {
+            parent.setStartAt(current.getStartAt());
+        }
+
+        executedCmdDao.save(parent);
 
         Step p = getWithNullReturn(parent.getJobId(), parent.getParent());
-        updateAllParentsStatus(p, status, err);
+        updateAllParents(p, current);
     }
 
     private Step saveStatus(Step step, Step.Status status, String error) {

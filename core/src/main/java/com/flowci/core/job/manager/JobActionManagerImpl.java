@@ -356,8 +356,10 @@ public class JobActionManagerImpl implements JobActionManager {
             public void accept(JobSmContext context) throws Exception {
                 Job job = context.job;
                 eventManager.publish(new JobReceivedEvent(this, job));
+
                 NodeTree tree = ymlManager.getTree(job);
 
+                job.setStartAt(new Date());
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
                 // start from root path
