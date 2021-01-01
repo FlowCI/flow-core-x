@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -65,10 +66,12 @@ public class AgentServiceTest extends ZookeeperScenario {
         agentService.create("agent-1", Sets.newHashSet("local", "k8s"), Optional.empty());
         agentService.create("agent-2", Sets.newHashSet("linux", "k8s"), Optional.empty());
         agentService.create("agent-3", Sets.newHashSet("win"), Optional.empty());
+        agentService.create("agent-4", Sets.newHashSet(), Optional.empty());
 
         // find all agents
-        List<Agent> list = agentService.find(null);
-        Assert.assertEquals(3, list.size());
+        List<Agent> list = agentService.find(Collections.emptySet());
+        Assert.assertEquals(1, list.size());
+        Assert.assertEquals("agent-4", list.get(0).getName());
 
         // find all k8s tag
         list = agentService.find(Sets.newHashSet("k8s"));

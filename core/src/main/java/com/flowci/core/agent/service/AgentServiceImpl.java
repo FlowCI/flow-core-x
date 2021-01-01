@@ -153,7 +153,7 @@ public class AgentServiceImpl implements AgentService {
             return agentDao.findAllByTagsIn(tags);
         }
 
-        return agentDao.findAll();
+        return agentDao.findAllWithoutTags();
     }
 
     @Override

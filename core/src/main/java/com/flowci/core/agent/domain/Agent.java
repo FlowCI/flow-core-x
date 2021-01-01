@@ -118,12 +118,16 @@ public class Agent extends Mongoable {
 
     public Agent(String name, Set<String> tags) {
         this.name = name;
-        this.tags = tags;
+        this.setTags(tags);
     }
 
     public void setStatus(Status status) {
         this.status = status;
         this.statusUpdatedAt = new Date();
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags == null ? Collections.emptySet() : tags;
     }
 
     @JsonIgnore
