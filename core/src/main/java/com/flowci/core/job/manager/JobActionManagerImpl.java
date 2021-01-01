@@ -393,6 +393,22 @@ public class JobActionManagerImpl implements JobActionManager {
     private void fromRunning() {
         sm.add(RunningToRunning, new Action<JobSmContext>() {
             @Override
+            public boolean canRun(JobSmContext context) {
+                Job job = context.job;
+                Optional<InterLock> lock = lockJob(job.getId());
+
+                if (!lock.isPresent()) {
+                    log.debug("Fail to lock job {}", job.getId());
+                    context.setError(new CIException("Unexpected status"));
+                    sm.execute(context.getCurrent(), Failure, context);
+                    return false;
+                }
+
+                context.lock = lock.get();
+                return true;
+            }
+
+            @Override
             public void accept(JobSmContext context) throws Exception {
                 Job job = context.job;
                 log.debug("Job {} is locked", job.getId());
@@ -413,6 +429,13 @@ public class JobActionManagerImpl implements JobActionManager {
                 context.setError(e);
                 log.debug("Fail to dispatch job {} to agent {}", job.getId(), job.agentIds(), e);
                 sm.execute(context.getCurrent(), Failure, context);
+            }
+
+            @Override
+            public void onFinally(JobSmContext context) {
+                Job job = context.job;
+                InterLock lock = context.lock;
+                unlockJob(lock, job.getId());
             }
         });
 
@@ -753,7 +776,8 @@ public class JobActionManagerImpl implements JobActionManager {
                 ObjectWrapper<Boolean> isFetched = new ObjectWrapper<>(false);
 
                 // keep sync on job with multiple subflow, ensure job read/save is thread safe
-                lockJobAndExecute(jobId, job -> {
+                String key = jobId + "-fetch-agent";
+                lockJobAndExecute(key, jobId, job -> {
                     if (job.isExpired()) {
                         on(job, Job.Status.TIMEOUT, (c) -> {
                             c.setError(new Exception("agent not found within timeout"));
@@ -885,8 +909,8 @@ public class JobActionManagerImpl implements JobActionManager {
         log.info("[Job] " + job.getKey() + " " + message, params);
     }
 
-    private void lockJobAndExecute(String jobId, Consumer<Job> consumer) {
-        Optional<InterLock> lock = lockJob(jobId);
+    private void lockJobAndExecute(String lockKey, String jobId, Consumer<Job> consumer) {
+        Optional<InterLock> lock = lockJob(lockKey);
         if (!lock.isPresent()) {
             Job job = jobDao.findById(jobId).get();
             String err = String.format("unable to acquire lock for job %s on finish status", jobId);
@@ -899,7 +923,7 @@ public class JobActionManagerImpl implements JobActionManager {
             Job job = jobDao.findById(jobId).get();
             consumer.accept(job);
         } finally {
-            unlockJob(lock.get(), jobId);
+            unlockJob(lock.get(), lockKey);
         }
     }
 
@@ -928,7 +952,7 @@ public class JobActionManagerImpl implements JobActionManager {
         public void accept(JobSmContext context) {
             String jobId = context.job.getId();
 
-            lockJobAndExecute(jobId, job -> {
+            lockJobAndExecute(jobId, jobId, job -> {
                 // save job with status
                 Throwable error = context.getError();
                 String message = error == null ? "" : error.getMessage();
