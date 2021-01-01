@@ -26,7 +26,6 @@ import com.flowci.domain.SimpleSecret;
 import com.flowci.domain.Vars;
 import com.flowci.exception.CIException;
 import com.flowci.exception.NotAvailableException;
-import com.flowci.exception.StatusException;
 import com.flowci.sm.*;
 import com.flowci.tree.*;
 import com.flowci.util.ObjectsHelper;
@@ -159,13 +158,6 @@ public class JobActionManagerImpl implements JobActionManager {
             fromQueued();
             fromRunning();
             fromCancelling();
-
-            sm.addHookActionOnTargetStatus(context -> {
-                Job job = context.job;
-                if (hasJobLock(job.getId())) {
-                    throw new StatusException("Unable to cancel right now, try later");
-                }
-            }, Cancelled);
 
             sm.addHookActionOnTargetStatus(new ActionOnFinishStatus(), Success, Failure, Timeout, Cancelled);
         } catch (SmException.TransitionExisted ignored) {
@@ -673,7 +665,7 @@ public class JobActionManagerImpl implements JobActionManager {
      *
      * @return true if next step dispatched or have to wait for previous steps, false if no more steps or failure
      */
-    private boolean toNextStep(Job job, Step step) throws ScriptException, InterruptedException {
+    private boolean toNextStep(Job job, Step step) throws ScriptException {
         NodeTree tree = ymlManager.getTree(job);
         Node node = tree.get(NodePath.create(step.getNodePath())); // current node
 
@@ -762,14 +754,14 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     private void waitAgentAndDispatch(NodeTree tree, Job instance, Node node, Step step, CountDownLatch latch) {
-        ThreadPoolTaskExecutor executor = pool.get(instance.getId());
-        if (executor == null) {
-            executor = ThreadHelper.createTaskExecutor(tree.getMaxHeight(), 1, 0, "job-exec-");
-            pool.put(instance.getId(), executor);
-        }
-
         String jobId = instance.getId();
         String flowId = instance.getFlowId();
+
+        ThreadPoolTaskExecutor executor = pool.get(jobId);
+        if (executor == null) {
+            executor = ThreadHelper.createTaskExecutor(tree.getMaxHeight(), 1, 0, "job-exec-");
+            pool.put(jobId, executor);
+        }
 
         executor.execute(() -> {
             while (true) {
