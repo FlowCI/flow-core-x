@@ -11,8 +11,6 @@ public class JobSmContext extends Context {
 
     public Step step;
 
-    public InterLock lock;
-
     public Job.Status getTargetToJobStatus() {
         String name = this.to.getName();
         return Job.Status.valueOf(name);
