@@ -924,11 +924,6 @@ public class JobActionManagerImpl implements JobActionManager {
         return zk.lock(path, DefaultJobLockTimeout);
     }
 
-    private boolean hasJobLock(String jobId) {
-        String path = zk.makePath("/job-locks", jobId);
-        return zk.exist(path);
-    }
-
     private void unlockJob(InterLock lock, String jobId) {
         try {
             zk.release(lock);

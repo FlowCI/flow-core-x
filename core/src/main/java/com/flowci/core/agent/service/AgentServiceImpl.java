@@ -18,11 +18,9 @@ package com.flowci.core.agent.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.dao.AgentDao;
-import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.dao.AgentPriorityDao;
+import com.flowci.core.agent.domain.*;
 import com.flowci.core.agent.domain.Agent.Status;
-import com.flowci.core.agent.domain.AgentInit;
-import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.agent.domain.Util;
 import com.flowci.core.agent.event.*;
 import com.flowci.core.agent.manager.AgentEventManager;
 import com.flowci.core.common.config.AppProperties;
@@ -71,6 +69,9 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private AgentDao agentDao;
+
+    @Autowired
+    private AgentPriorityDao agentPriorityDao;
 
     @Autowired
     private SpringEventManager eventManager;
@@ -166,6 +167,7 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public void delete(Agent agent) {
         agentDao.delete(agent);
+        agentPriorityDao.deleteById(agent.getId());
         log.debug("{} has been deleted", agent.getName());
     }
 
@@ -235,15 +237,21 @@ public class AgentServiceImpl implements AgentService {
             throw new DuplicateException("Agent name {0} is already defined", name);
         }
 
-        Agent agent = new Agent(name, tags);
-        agent.setToken(UUID.randomUUID().toString());
-        hostId.ifPresent(agent::setHostId);
-
-        String dummyEmailForAgent = "agent." + name + "@flow.ci";
-        agent.setRsa(CipherHelper.RSA.gen(dummyEmailForAgent));
-
         try {
+            // create agent
+            Agent agent = new Agent(name, tags);
+            agent.setToken(UUID.randomUUID().toString());
+            hostId.ifPresent(agent::setHostId);
+
+            String dummyEmailForAgent = "agent." + name + "@flow.ci";
+            agent.setRsa(CipherHelper.RSA.gen(dummyEmailForAgent));
             agentDao.insert(agent);
+
+            // create agent priority
+            AgentPriority priority = new AgentPriority();
+            priority.setId(agent.getId());
+            agentPriorityDao.insert(priority);
+
             eventManager.publish(new AgentCreatedEvent(this, agent));
             return agent;
         } catch (DuplicateKeyException e) {

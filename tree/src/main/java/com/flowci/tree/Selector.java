@@ -31,4 +31,8 @@ import java.util.Set;
 public class Selector implements Serializable {
 
     private Set<String> label = Collections.emptySet();
+
+    public String getId() {
+        return "" + label.hashCode();
+    }
 }
