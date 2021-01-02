@@ -1,4 +1,4 @@
-package com.flowci.core.agent.domain;
+package com.flowci.core.job.domain;
 
 import com.flowci.core.common.domain.Mongoable;
 import lombok.Getter;
@@ -13,17 +13,16 @@ import java.util.Set;
 
 /**
  * To list all jobs (flow, build number) for selector
- *
- * Selector id -> flow id > list of current job build number
  */
 @Getter
 @Setter
-@Document(collection = "agent_priority")
-public class AgentPriority extends Mongoable {
+@Document(collection = "job_priority")
+public class JobPriority extends Mongoable {
 
     @NonNull
     @Indexed(unique = true)
-    private String selectorId;
+    private String flowId;
 
+    // key as selector id, value as list of current job build number
     private Map<String, Set<Long>> queue = new HashMap<>();
 }

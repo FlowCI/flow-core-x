@@ -1,6 +1,6 @@
-package com.flowci.core.agent.dao;
+package com.flowci.core.job.dao;
 
-import com.flowci.core.agent.domain.AgentPriority;
+import com.flowci.core.job.domain.JobPriority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.aggregation.AccumulatorOperators;
@@ -10,43 +10,43 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
-public class CustomAgentPriorityDaoImpl implements CustomAgentPriorityDao {
+public class CustomJobPriorityDaoImpl implements CustomJobPriorityDao {
 
     @Autowired
     private MongoOperations operations;
 
     @Override
-    public void addJob(String selectorId, String flowId, Long buildNumber) {
+    public void addJob(String flowId, String selectorId, Long buildNumber) {
         Query q = new Query();
-        q.addCriteria(Criteria.where("selectorId").is(selectorId));
+        q.addCriteria(Criteria.where("flowId").is(flowId));
 
         Update u = new Update();
-        u.addToSet("queue." + flowId, buildNumber);
+        u.addToSet("queue." + selectorId, buildNumber);
 
-        operations.findAndModify(q, u, AgentPriority.class);
+        operations.findAndModify(q, u, JobPriority.class);
     }
 
     @Override
-    public void removeJob(String selectorId, String flowId, Long buildNumber) {
+    public void removeJob(String flowId, String selectorId, Long buildNumber) {
         Query q = new Query();
-        q.addCriteria(Criteria.where("selectorId").is(selectorId));
+        q.addCriteria(Criteria.where("flowId").is(flowId));
 
         Update u = new Update();
-        u.pull("queue." + flowId, buildNumber);
+        u.pull("queue." + selectorId, buildNumber);
 
-        operations.findAndModify(q, u, AgentPriority.class);
+        operations.findAndModify(q, u, JobPriority.class);
     }
 
     @Override
-    public long findMinBuildNumber(String selectorId, String flowId) {
-        String filed = "queue." + flowId;
+    public long findMinBuildNumber(String flowId, String selectorId) {
+        String filed = "queue." + selectorId;
 
         Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("selectorId").is(selectorId)),
+                Aggregation.match(Criteria.where("flowId").is(flowId)),
                 Aggregation.project().and(AccumulatorOperators.Min.minOf(filed)).as("number").andExclude("_id")
         );
 
-        AggregationResults<NumberResult> results = operations.aggregate(aggregation, "agent_priority", NumberResult.class);
+        AggregationResults<NumberResult> results = operations.aggregate(aggregation, "job_priority", NumberResult.class);
         NumberResult numberResult = results.getUniqueMappedResult();
         if (numberResult == null) {
             return 0;
