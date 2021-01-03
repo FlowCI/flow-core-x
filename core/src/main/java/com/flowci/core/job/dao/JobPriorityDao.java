@@ -11,4 +11,5 @@ public interface JobPriorityDao extends MongoRepository<JobPriority, String>, Cu
 
     Optional<JobPriority> findByFlowId(String flowId);
 
+    void deleteAllByFlowId(String flowId);
 }

@@ -16,6 +16,8 @@
 
 package com.flowci.core.test.agent;
 
+import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.domain.Agent.Status;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.event.CmdSentEvent;
@@ -23,8 +25,7 @@ import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.test.ZookeeperScenario;
-import com.flowci.core.agent.domain.Agent;
-import com.flowci.core.agent.domain.Agent.Status;
+import com.flowci.tree.Selector;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -35,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -69,24 +69,24 @@ public class AgentServiceTest extends ZookeeperScenario {
         agentService.create("agent-4", Sets.newHashSet(), Optional.empty());
 
         // find all agents
-        List<Agent> list = agentService.find(Collections.emptySet());
+        List<Agent> list = agentService.find(new Selector());
         Assert.assertEquals(1, list.size());
         Assert.assertEquals("agent-4", list.get(0).getName());
 
         // find all k8s tag
-        list = agentService.find(Sets.newHashSet("k8s"));
+        list = agentService.find(new Selector("k8s"));
         Assert.assertEquals(2, list.size());
 
         // tags with k8s OR win
-        list = agentService.find(Sets.newHashSet("k8s", "win"));
+        list = agentService.find(new Selector("k8s", "win"));
         Assert.assertEquals(3, list.size());
 
         // tag on win
-        list = agentService.find(Sets.newHashSet("win"));
+        list = agentService.find(new Selector("win"));
         Assert.assertEquals(1, list.size());
 
         // tag on local OR linux
-        list = agentService.find(Sets.newHashSet("local", "linux"));
+        list = agentService.find(new Selector("local", "linux"));
         Assert.assertEquals(2, list.size());
     }
 
@@ -119,7 +119,7 @@ public class AgentServiceTest extends ZookeeperScenario {
         ThreadPoolTaskExecutor executor = ThreadHelper.createTaskExecutor(5, 5, 0, "mock-tryLock-");
 
         // when:
-        Agent agent = agentService.find(ImmutableSet.of("android")).get(0);
+        Agent agent = agentService.find(new Selector("android")).get(0);
         Assert.assertNotNull(agent);
 
         // when: make agent online

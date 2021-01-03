@@ -12,6 +12,7 @@ import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.dao.JobDao;
+import com.flowci.core.job.dao.JobPriorityDao;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.event.JobDeletedEvent;
 import com.flowci.core.job.event.JobReceivedEvent;
@@ -112,6 +113,9 @@ public class JobActionManagerImpl implements JobActionManager {
 
     @Autowired
     private JobDao jobDao;
+
+    @Autowired
+    private JobPriorityDao jobPriorityDao;
 
     @Autowired
     private CmdManager cmdManager;
@@ -355,6 +359,11 @@ public class JobActionManagerImpl implements JobActionManager {
                 job.setStartAt(new Date());
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
+                // add current running job to priority entity
+                for (Selector selector : tree.getSelectors()) {
+                    jobPriorityDao.addJob(job.getFlowId(), selector.getId(), job.getBuildNumber());
+                }
+
                 // start from root path, and block current thread since don't send ack back to queue
                 CountDownLatch latch = new CountDownLatch(1);
                 executeJob(job, Lists.newArrayList(tree.getRoot()), latch);
@@ -540,6 +549,7 @@ public class JobActionManagerImpl implements JobActionManager {
     private Optional<Agent> fetchAgent(Job job, Node node) {
         JobAgents jobAgents = job.getAgents();
         FlowNode flow = node.getParentFlowNode();
+        Selector selector = flow.fetchSelector();
 
         // find agent that can be used directly
         Optional<String> id = jobAgents.getAgent(flow);
@@ -552,14 +562,24 @@ public class JobActionManagerImpl implements JobActionManager {
         List<String> candidates = jobAgents.getCandidates(node);
         Iterable<Agent> list = agentService.list(candidates);
         for (Agent candidate : list) {
-            if (candidate.match(flow.getSelector())) {
+            if (candidate.match(selector)) {
                 jobAgents.save(candidate.getId(), flow);
                 return Optional.of(candidate);
             }
         }
 
+        // check current job is with top priority or not, and how many free agents left for selector
+        long topPriorityBuildNumber = jobPriorityDao.findMinBuildNumber(job.getFlowId(), selector.getId());
+        if (job.getBuildNumber() > topPriorityBuildNumber) {
+            List<Agent> free = agentService.find(selector, Agent.Status.IDLE);
+            if (free.size() <= 1){
+                log.debug("Job {} not with top priority, and no more idle agent for it", job.getId());
+                return Optional.empty();
+            }
+        }
+
         // find agent outside job, blocking thread
-        Optional<Agent> optional = agentService.acquire(job, flow.getSelector());
+        Optional<Agent> optional = agentService.acquire(job, selector);
         if (optional.isPresent()) {
             Agent agent = optional.get();
             jobAgents.save(agent.getId(), flow);
@@ -579,6 +599,8 @@ public class JobActionManagerImpl implements JobActionManager {
         job.getAgents().remove(step.getAgentId(), flow);
 
         // TODO: release agent outside job if cannot reused for other flows
+
+        // TODO: release from job priority also
     }
 
     private void setupJobYamlAndSteps(Job job, String yml) {
@@ -944,6 +966,12 @@ public class JobActionManagerImpl implements JobActionManager {
                 Throwable error = context.getError();
                 String message = error == null ? "" : error.getMessage();
                 setJobStatusAndSave(job, context.getTargetToJobStatus(), message);
+
+                // remove current running job to priority entity
+                NodeTree tree = ymlManager.getTree(job);
+                for (Selector selector : tree.getSelectors()) {
+                    jobPriorityDao.removeJob(job.getFlowId(), selector.getId(), job.getBuildNumber());
+                }
 
                 pool.remove(job.getId());
 

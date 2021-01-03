@@ -44,7 +44,7 @@ public final class NodeTree {
 
     private final FlowNode root;
 
-    private final List<Selector> selectors = new LinkedList<>();
+    private final Set<Selector> selectors = new HashSet<>();
 
     private final Set<String> conditions = new HashSet<>(DefaultSize);
 
@@ -142,9 +142,7 @@ public final class NodeTree {
 
             if (node instanceof FlowNode) {
                 FlowNode f = (FlowNode) node;
-                if (f.hasSelector()) {
-                    selectors.add(f.getSelector());
-                }
+                selectors.add(f.getSelector());
             }
         });
     }

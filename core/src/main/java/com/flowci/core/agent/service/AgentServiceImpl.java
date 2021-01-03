@@ -34,9 +34,9 @@ import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.Selector;
-import com.flowci.util.ObjectsHelper;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.flowci.zookeeper.ZookeeperException;
+import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
 import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,12 +148,13 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public List<Agent> find(Set<String> tags) {
-        if (ObjectsHelper.hasCollection(tags)) {
-            return agentDao.findAllByTagsIn(tags);
-        }
+    public List<Agent> find(Selector selector) {
+        return agentDao.findAll(selector.getLabel(), null);
+    }
 
-        return agentDao.findAllWithoutTags();
+    @Override
+    public List<Agent> find(Selector selector, Status status) {
+        return agentDao.findAll(selector.getLabel(), Sets.newHashSet(status));
     }
 
     @Override
@@ -382,7 +383,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     private Optional<Agent> acquire(String jobId, Selector selector) {
-        List<Agent> agents = find(selector.getLabel());
+        List<Agent> agents = find(selector, IDLE);
 
         if (agents.isEmpty()) {
             return Optional.empty();
@@ -393,9 +394,6 @@ public class AgentServiceImpl implements AgentService {
         // try to lock it
         while (availableList.hasNext()) {
             Agent agent = availableList.next();
-            if (!agent.isIdle()) {
-                continue;
-            }
 
             Optional<Agent> locked = tryLock(jobId, agent.getId());
             if (locked.isPresent()) {

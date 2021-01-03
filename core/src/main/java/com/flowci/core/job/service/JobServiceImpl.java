@@ -21,10 +21,7 @@ import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.dao.JobDao;
-import com.flowci.core.job.dao.JobDescDao;
-import com.flowci.core.job.dao.JobItemDao;
-import com.flowci.core.job.dao.JobNumberDao;
+import com.flowci.core.job.dao.*;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.JobCreatedEvent;
@@ -77,6 +74,9 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private JobDao jobDao;
+
+    @Autowired
+    private JobPriorityDao jobPriorityDao;
 
     @Autowired
     private JobDescDao jobDescDao;
@@ -246,10 +246,13 @@ public class JobServiceImpl implements JobService {
     @Override
     public void delete(Flow flow) {
         appTaskExecutor.execute(() -> {
-            jobNumberDao.deleteByFlowId(flow.getId());
+            jobNumberDao.deleteAllByFlowId(flow.getId());
             log.info("Deleted: job number of flow {}", flow.getName());
 
-            Long numOfJobDeleted = jobDao.deleteByFlowId(flow.getId());
+            jobPriorityDao.deleteAllByFlowId(flow.getId());
+            log.info("Deleted: job priority of flow {}", flow.getName());
+
+            Long numOfJobDeleted = jobDao.deleteAllByFlowId(flow.getId());
             log.info("Deleted: {} jobs of flow {}", numOfJobDeleted, flow.getName());
 
             Long numOfStepDeleted = stepService.delete(flow);
@@ -292,6 +295,14 @@ public class JobServiceImpl implements JobService {
             fileManager.create(flow, job);
         } catch (IOException e) {
             throw new StatusException("Cannot create workspace for job");
+        }
+
+        // create job priority
+        Optional<JobPriority> jobPriorityOptional = jobPriorityDao.findByFlowId(flow.getId());
+        if (!jobPriorityOptional.isPresent()) {
+            JobPriority jobPriority = new JobPriority();
+            jobPriority.setFlowId(flow.getId());
+            jobPriorityDao.save(jobPriority);
         }
 
         // save

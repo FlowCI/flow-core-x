@@ -20,7 +20,7 @@ public final class FlowNode extends Node {
     /**
      * Agent tags to set node running on which agent
      */
-    private Selector selector;
+    private Selector selector = Selector.EMPTY;
 
     /**
      * Notification list that run locally
@@ -39,7 +39,7 @@ public final class FlowNode extends Node {
 
     @JsonIgnore
     public Selector fetchSelector() {
-        ObjectWrapper<Selector> wrapper = new ObjectWrapper<>(new Selector());
+        ObjectWrapper<Selector> wrapper = new ObjectWrapper<>(Selector.EMPTY);
         forEachBottomUp(this, n -> {
             if (n instanceof FlowNode) {
                 FlowNode f = (FlowNode) n;

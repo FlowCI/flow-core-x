@@ -12,7 +12,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * To list all jobs (flow, build number) for selector
+ * Record all RUNNING jobs (flow, build number) for selector
+ * To prioritize which job has higher priority for agent dispatching
  */
 @Getter
 @Setter

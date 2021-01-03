@@ -64,10 +64,12 @@ public interface AgentService {
     /**
      * Find agent by status and tags from database
      *
-     * @param tags Agent tags, optional
+     * @param selector Agent selector, optional
      * @throws com.flowci.exception.NotFoundException
      */
-    List<Agent> find(Set<String> tags);
+    List<Agent> find(Selector selector);
+
+    List<Agent> find(Selector selector, Agent.Status status);
 
     /**
      * Delete agent by token
