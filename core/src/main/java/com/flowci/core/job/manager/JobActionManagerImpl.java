@@ -35,6 +35,7 @@ import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import groovy.util.ScriptException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -396,7 +397,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public boolean canRun(JobSmContext context) {
                 Job job = context.job;
-                Optional<InterLock> lock = lockJob(job.getId());
+                Optional<InterLock> lock = lockJob(job.getId(), "lock job on RunningToRunning stage");
 
                 if (!lock.isPresent()) {
                     log.debug("Fail to lock job {}", job.getId());
@@ -572,7 +573,7 @@ public class JobActionManagerImpl implements JobActionManager {
         long topPriorityBuildNumber = jobPriorityDao.findMinBuildNumber(job.getFlowId(), selector.getId());
         if (job.getBuildNumber() > topPriorityBuildNumber) {
             List<Agent> free = agentService.find(selector, Agent.Status.IDLE);
-            if (free.size() <= 1){
+            if (free.size() <= 1) {
                 log.debug("Job {} not with top priority, and no more idle agent for it", job.getId());
                 return Optional.empty();
             }
@@ -595,12 +596,27 @@ public class JobActionManagerImpl implements JobActionManager {
             return;
         }
 
+        String agentId = step.getAgentId();
         FlowNode flow = node.getParentFlowNode();
-        job.getAgents().remove(step.getAgentId(), flow);
+        Selector currentSelector = flow.getSelector();
 
-        // TODO: release agent outside job if cannot reused for other flows
+        // remove agent within job
+        job.getAgents().remove(agentId, flow);
 
-        // TODO: release from job priority also
+        Set<Selector> selectors = new HashSet<>();
+        node.forEachNext(node, (next) -> {
+            Selector selector = next.getParentFlowNode().getSelector();
+            selectors.add(selector);
+        });
+
+        // keep agent for job
+        if (selectors.contains(currentSelector)) {
+            return;
+        }
+
+        // release agent, set to IDLE
+        agentService.tryRelease(Sets.newHashSet(agentId));
+        jobPriorityDao.removeJob(job.getFlowId(), currentSelector.getId(), job.getBuildNumber());
     }
 
     private void setupJobYamlAndSteps(Job job, String yml) {
@@ -817,7 +833,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
                     log.debug("Unable to fetch agent for job {} - {}", job.getId(), node.getPathAsString());
                     isFetched.setValue(false);
-                });
+                }, "lock job when fetching agents, to keep data consistency");
 
                 if (isFetched.getValue()) {
                     break;
@@ -923,8 +939,8 @@ public class JobActionManagerImpl implements JobActionManager {
         log.info("[Job] " + job.getKey() + " " + message, params);
     }
 
-    private void lockJobAndExecute(String lockKey, String jobId, Consumer<Job> consumer) {
-        Optional<InterLock> lock = lockJob(lockKey);
+    private void lockJobAndExecute(String lockKey, String jobId, Consumer<Job> consumer, String message) {
+        Optional<InterLock> lock = lockJob(lockKey, message);
         if (!lock.isPresent()) {
             Job job = jobDao.findById(jobId).get();
             String err = String.format("unable to acquire lock for job %s on finish status", jobId);
@@ -941,8 +957,9 @@ public class JobActionManagerImpl implements JobActionManager {
         }
     }
 
-    private Optional<InterLock> lockJob(String jobId) {
+    private Optional<InterLock> lockJob(String jobId, String message) {
         String path = zk.makePath("/job-locks", jobId);
+        log.debug("Try to lock job due to {}", message);
         return zk.lock(path, DefaultJobLockTimeout);
     }
 
@@ -980,7 +997,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
                 // run notification task
                 localTaskService.executeAsync(job);
-            });
+            }, "Lock job on finish status to keep consistent");
         }
     }
 
