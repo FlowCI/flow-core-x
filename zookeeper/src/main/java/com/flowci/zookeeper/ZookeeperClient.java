@@ -179,6 +179,7 @@ public class ZookeeperClient implements AutoCloseable {
                 return Optional.of(new InterLock(path, lock));
             }
         } catch (Exception ignore) {
+            ignore.printStackTrace();
         }
         return Optional.empty();
     }

@@ -22,7 +22,6 @@ import com.flowci.core.job.service.StepService;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.domain.ObjectWrapper;
 import com.flowci.domain.SimpleSecret;
 import com.flowci.domain.Vars;
 import com.flowci.exception.CIException;
@@ -397,7 +396,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public boolean canRun(JobSmContext context) {
                 Job job = context.job;
-                Optional<InterLock> lock = lockJob(job.getId(), "lock job on RunningToRunning stage");
+                Optional<InterLock> lock = lock(job.getId(), "RunningToRunning");
 
                 if (!lock.isPresent()) {
                     log.debug("Fail to lock job {}", job.getId());
@@ -413,10 +412,24 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) throws Exception {
                 Job job = context.job;
+                Step step = context.step;
+
                 log.debug("Job {} is locked", job.getId());
 
-                // refresh job after lock
-                context.job = jobDao.findById(job.getId()).get();
+                String key = lockKeyForAgentOperation(job.getFlowId());
+                Optional<InterLock> lock = lock(key, "Release agent");
+
+                if (lock.isPresent()) {
+                    try {
+                        NodeTree tree = ymlManager.getTree(job);
+                        Node node = tree.get(step.getNodePath());
+
+                        context.job = reload(job.getId());
+                        releaseAgent(context.job, node, step);
+                    } finally {
+                        unlock(lock.get(), key);
+                    }
+                }
 
                 if (toNextStep(context.job, context.step)) {
                     return;
@@ -437,7 +450,7 @@ public class JobActionManagerImpl implements JobActionManager {
             public void onFinally(JobSmContext context) {
                 Job job = context.job;
                 InterLock lock = context.lock;
-                unlockJob(lock, job.getId());
+                unlock(lock, job.getId());
             }
         });
 
@@ -712,7 +725,6 @@ public class JobActionManagerImpl implements JobActionManager {
 
         // update job attributes and context
         updateJobContextAndLatestStatus(job, node, step);
-        releaseAgent(job, node, step);
         setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
         // return if current step is failure
@@ -723,7 +735,10 @@ public class JobActionManagerImpl implements JobActionManager {
 
         List<Node> next = node.getNext();
         if (next.isEmpty()) {
-            Set<Executed.Status> status = getStepsStatus(job, tree.ends());
+            Collection<Node> ends = Sets.newHashSet(tree.ends());
+            ends.remove(node); // do not check current node
+
+            Set<Executed.Status> status = getStepsStatus(job, ends);
             return !Collections.disjoint(status, Executed.OngoingStatus);
         }
 
@@ -805,23 +820,28 @@ public class JobActionManagerImpl implements JobActionManager {
 
         executor.execute(() -> {
             while (true) {
-                ObjectWrapper<Boolean> isFetched = new ObjectWrapper<>(false);
-
                 // keep sync on job with multiple subflow, ensure job read/save is thread safe
-                String key = flowId + "-fetch-agent";
-                lockJobAndExecute(key, jobId, job -> {
-                    if (job.isExpired()) {
-                        on(job, Job.Status.TIMEOUT, (c) -> {
-                            c.setError(new Exception("agent not found within timeout"));
-                        });
+                String key = lockKeyForAgentOperation(flowId);
+                Optional<InterLock> fetchAgentLock = lock(key, "fetch agent");
 
-                        isFetched.setValue(true);
-                        return;
+                if (!fetchAgentLock.isPresent()) {
+                    on(instance, Job.Status.FAILURE, (c) -> {
+                        c.step = step;
+                        c.setError(new Exception("Unable to acquire lock"));
+                    });
+                    break;
+                }
+
+                try {
+                    Job job = reload(jobId);
+
+                    if (job.isExpired()) {
+                        on(job, Job.Status.TIMEOUT, (c) -> c.setError(new Exception("agent not found within timeout")));
+                        break;
                     }
 
                     if (job.isCancelling() || job.isDone()) {
-                        isFetched.setValue(true);
-                        return;
+                        break;
                     }
 
                     Optional<Agent> optional = fetchAgent(job, node);
@@ -829,16 +849,12 @@ public class JobActionManagerImpl implements JobActionManager {
                         setJobStatusAndSave(job, Job.Status.RUNNING, null);
                         Agent agent = optional.get();
                         dispatch(job, node, step, agent);
-                        isFetched.setValue(true);
-                        return;
+                        break;
                     }
 
-                    log.debug("Unable to fetch agent for job {} - {}", job.getId(), node.getPathAsString());
-                    isFetched.setValue(false);
-                }, "lock job when fetching agents, to keep data consistency");
-
-                if (isFetched.getValue()) {
-                    break;
+                    log.debug("Unable to get agent for job {} - {}", job.getId(), node.getPathAsString());
+                } finally {
+                    unlock(fetchAgentLock.get(), key);
                 }
 
                 AcquireLock lock = acquireLocks.computeIfAbsent(flowId, s -> new AcquireLock());
@@ -941,34 +957,24 @@ public class JobActionManagerImpl implements JobActionManager {
         log.info("[Job] " + job.getKey() + " " + message, params);
     }
 
-    private void lockJobAndExecute(String lockKey, String jobId, Consumer<Job> consumer, String message) {
-        Optional<InterLock> lock = lockJob(lockKey, message);
-        if (!lock.isPresent()) {
-            Job job = jobDao.findById(jobId).get();
-            String err = String.format("unable to acquire lock for job %s on finish status", jobId);
-            log.error(err);
-            setJobStatusAndSave(job, Job.Status.FAILURE, err);
-            return;
-        }
-
-        try {
-            Job job = jobDao.findById(jobId).get();
-            consumer.accept(job);
-        } finally {
-            unlockJob(lock.get(), lockKey);
-        }
+    private Job reload(String jobId) {
+        return jobDao.findById(jobId).get();
     }
 
-    private Optional<InterLock> lockJob(String jobId, String message) {
-        String path = zk.makePath("/job-locks", jobId);
-        log.debug("Try to lock job due to {}", message);
+    private String lockKeyForAgentOperation(String flowId) {
+        return flowId + "-agent-operation";
+    }
+
+    private Optional<InterLock> lock(String key, String message) {
+        String path = zk.makePath("/job-locks", key);
+        log.debug("Lock: {} - {}", key, message);
         return zk.lock(path, DefaultJobLockTimeout);
     }
 
-    private void unlockJob(InterLock lock, String jobId) {
+    private void unlock(InterLock lock, String key) {
         try {
             zk.release(lock);
-            log.debug("Job {} is released", jobId);
+            log.debug("Unlock: {}", key);
         } catch (Exception warn) {
             log.warn(warn);
         }
@@ -980,7 +986,15 @@ public class JobActionManagerImpl implements JobActionManager {
         public void accept(JobSmContext context) {
             String jobId = context.job.getId();
 
-            lockJobAndExecute(jobId, jobId, job -> {
+            Optional<InterLock> lock = lock(jobId, "onFinishStatus");
+            if (!lock.isPresent()) {
+                log.error("Unable to get lock for job {}", jobId);
+                return;
+            }
+
+            try {
+                Job job = reload(jobId);
+
                 // save job with status
                 Throwable error = context.getError();
                 String message = error == null ? "" : error.getMessage();
@@ -999,7 +1013,9 @@ public class JobActionManagerImpl implements JobActionManager {
 
                 // run notification task
                 localTaskService.executeAsync(job);
-            }, "Lock job on finish status to keep consistent");
+            } finally {
+                unlock(lock.get(), jobId);
+            }
         }
     }
 

@@ -120,6 +120,10 @@ public final class NodeTree {
         return node;
     }
 
+    public Node get(String nodePath) {
+        return get(NodePath.create(nodePath));
+    }
+
     private Node findNextWithSameParent(Node node, Node parent) {
         for (Node next : node.next) {
             if (parent.equals((next.parent))) {
