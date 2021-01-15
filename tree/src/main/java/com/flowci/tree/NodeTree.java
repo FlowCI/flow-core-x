@@ -44,6 +44,8 @@ public final class NodeTree {
 
     private final FlowNode root;
 
+    private final Set<Node> ends = new HashSet<>();
+
     private final Set<Selector> selectors = new HashSet<>();
 
     private final Set<String> conditions = new HashSet<>(DefaultSize);
@@ -56,6 +58,7 @@ public final class NodeTree {
         this.root = root;
         buildGraph(this.root);
         buildMetaData();
+        buildEndNodes();
     }
 
     public int numOfNode() {
@@ -63,17 +66,22 @@ public final class NodeTree {
     }
 
     /**
-     * Get next node list from path
+     * Get all last steps
+     * @return
      */
-    public List<Node> next(NodePath current) {
-        return get(current).next;
+    public Collection<Node> ends() {
+        return ends;
     }
 
     /**
-     * Get previous node list from path
+     * Get all previous node list from path
      */
-    public List<Node> prev(NodePath current) {
-        return get(current).prev;
+    public Collection<Node> prevs(List<Node> nodes) {
+        List<Node> list = new LinkedList<>();
+        for (Node n : nodes) {
+            list.addAll(n.getPrev());
+        }
+        return list;
     }
 
     /**
@@ -191,5 +199,13 @@ public final class NodeTree {
         }
 
         return prevs;
+    }
+
+    private void buildEndNodes() {
+        flatted.forEach((k, v) -> {
+            if (v.next.isEmpty()) {
+                ends.add(v);
+            }
+        });
     }
 }

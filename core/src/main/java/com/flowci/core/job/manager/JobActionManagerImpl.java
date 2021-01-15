@@ -715,14 +715,20 @@ public class JobActionManagerImpl implements JobActionManager {
         releaseAgent(job, node, step);
         setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
-        List<Node> next = node.getNext();
-        if (next.isEmpty() || !step.isSuccess()) {
+        // return if current step is failure
+        if (!step.isSuccess()) {
             log.debug("Job {} stop on {}", job.getId(), step.getNodePath());
             return false;
         }
 
+        List<Node> next = node.getNext();
+        if (next.isEmpty()) {
+            Set<Executed.Status> status = getStepsStatus(job, tree.ends());
+            return !Collections.disjoint(status, Executed.OngoingStatus);
+        }
+
         // check prev steps status
-        Set<Executed.Status> previous = getPreviousStepsStatus(job, next);
+        Set<Executed.Status> previous = getStepsStatus(job, tree.prevs(next));
         boolean hasFailure = !Collections.disjoint(previous, Executed.FailureStatus);
         boolean hasOngoing = !Collections.disjoint(previous, Executed.OngoingStatus);
         if (hasFailure) {
@@ -738,25 +744,22 @@ public class JobActionManagerImpl implements JobActionManager {
         return true;
     }
 
-    private Set<Executed.Status> getPreviousStepsStatus(Job job, List<Node> next) {
-        List<Node> list = new LinkedList<>();
-        for (Node n : next) {
-            list.addAll(n.getPrev());
-        }
-
-        Set<Executed.Status> status = new HashSet<>(list.size());
-
-        for (Node prev : list) {
-            Step step = stepService.get(job.getId(), prev.getPathAsString());
-
+    /**
+     * Get status set from nodes
+     * @param job
+     * @param nodes
+     * @return
+     */
+    private Set<Executed.Status> getStepsStatus(Job job, Collection<Node> nodes) {
+        Set<Executed.Status> status = new HashSet<>(nodes.size());
+        for (Node node : nodes) {
+            Step step = stepService.get(job.getId(), node.getPathAsString());
             if (step.isSuccess()) {
                 status.add(Executed.Status.SUCCESS);
                 continue;
             }
-
             status.add(step.getStatus());
         }
-
         return status;
     }
 
@@ -781,8 +784,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
             // skip current node cmd dispatch if the node has children
             if (node.hasChildren()) {
-                List<Node> next = tree.next(node.getPath());
-                executeJob(job, next, latch);
+                executeJob(job, node.getNext(), latch);
                 continue;
             }
 
@@ -806,7 +808,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 ObjectWrapper<Boolean> isFetched = new ObjectWrapper<>(false);
 
                 // keep sync on job with multiple subflow, ensure job read/save is thread safe
-                String key = jobId + "-fetch-agent";
+                String key = flowId + "-fetch-agent";
                 lockJobAndExecute(key, jobId, job -> {
                     if (job.isExpired()) {
                         on(job, Job.Status.TIMEOUT, (c) -> {

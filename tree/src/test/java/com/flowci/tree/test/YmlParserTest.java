@@ -123,7 +123,7 @@ public class YmlParserTest {
         Assert.assertNotNull(step2);
         Assert.assertTrue(step2.getChildren().isEmpty());
         Assert.assertEquals(root, step2.getParent());
-        Assert.assertEquals(step2, tree.next(step1.getPath()).get(0));
+        Assert.assertEquals(step2, step1.getNext().get(0));
     }
 
     @Test
@@ -132,7 +132,7 @@ public class YmlParserTest {
         FlowNode root = YmlParser.load(content);
         NodeTree tree = NodeTree.create(root);
 
-        List<Node> first = tree.next(tree.getRoot().getPath());
+        List<Node> first = tree.getRoot().getNext();
         RegularStepNode node = (RegularStepNode) first.get(0);
 
         Assert.assertEquals("step-1", node.getPath().name());
@@ -145,12 +145,12 @@ public class YmlParserTest {
         FlowNode root = YmlParser.load(content);
         NodeTree tree = NodeTree.create(root);
 
-        RegularStepNode first = (RegularStepNode) tree.next(root.getPath()).get(0);
+        RegularStepNode first = (RegularStepNode) root.getNext().get(0);
         Assert.assertEquals(1, first.getDockers().size());
         Assert.assertEquals("ubuntu:18.04", first.getDockers().get(0).getImage());
         Assert.assertTrue(first.getDockers().get(0).isRuntime());
 
-        RegularStepNode second = (RegularStepNode) tree.next(first.getPath()).get(0);
+        RegularStepNode second = (RegularStepNode) first.getNext().get(0);
         Assert.assertEquals(2, second.getDockers().size());
 
         Assert.assertEquals("ubuntu:18.04", second.getDockers().get(0).getImage());
@@ -193,7 +193,7 @@ public class YmlParserTest {
         Assert.assertEquals(6, tree.numOfNode());
 
         NodePath step1Path = NodePath.create(DEFAULT_ROOT_NAME, "step-1");
-        Assert.assertEquals("step2", tree.next(step1Path).get(0).getName());
+        Assert.assertEquals("step2", tree.get(step1Path).getNext().get(0).getName());
 
         NodePath step2Path = NodePath.create(DEFAULT_ROOT_NAME, "step2");
         Assert.assertEquals("create test", tree.skip(step2Path).get(0).getName());
@@ -222,7 +222,8 @@ public class YmlParserTest {
         Assert.assertNotNull(tree);
         Assert.assertEquals(root, tree.getRoot());
         Assert.assertEquals(12, tree.numOfNode());
-        Assert.assertEquals(3, tree.getSelectors().size());
+        Assert.assertEquals(2, tree.getSelectors().size());
+        Assert.assertEquals(1, tree.getEnds().size());
 
         NodePath parallelPath = NodePath.create(DEFAULT_ROOT_NAME, "parallel-1");
         NodePath step2Path = NodePath.create(DEFAULT_ROOT_NAME, "step2");
@@ -239,12 +240,12 @@ public class YmlParserTest {
         NodePath subflowB_APath = NodePath.create(DEFAULT_ROOT_NAME, "parallel-1", "subflow-B", "A");
 
         // -------- validate next function --------
-        List<Node> parallelStep = tree.next(root.getPath());
+        List<Node> parallelStep = root.getNext();
         Assert.assertEquals(1, parallelStep.size());
         Assert.assertEquals(parallelPath, parallelStep.get(0).getPath());
 
         // parallel-1 next should be two subflows
-        List<Node> subflows = tree.next(parallelStep.get(0).getPath());
+        List<Node> subflows = parallelStep.get(0).getNext();
         Assert.assertEquals(2, subflows.size());
 
         Node subflowA = subflows.get(0);
@@ -255,47 +256,47 @@ public class YmlParserTest {
 
         // test subflow-A
         // next should be the first node subflow-A-A
-        List<Node> subflowA_A = tree.next(subflowA.getPath());
+        List<Node> subflowA_A = subflowA.getNext();
         Assert.assertEquals(1, subflowA_A.size());
         Assert.assertEquals(subflowA_APath, subflowA_A.get(0).getPath());
 
         // next should be the second node of subflow-A/B
-        List<Node> subflowA_B = tree.next(subflowA_A.get(0).getPath());
+        List<Node> subflowA_B = subflowA_A.get(0).getNext();
         Assert.assertEquals(1, subflowA_B.size());
         Assert.assertEquals(subflowA_BPath, subflowA_B.get(0).getPath());
 
         // subflow-A/B next should be step 2
-        List<Node> step2 = tree.next(subflowA_B.get(0).getPath());
+        List<Node> step2 = subflowA_B.get(0).getNext();
         Assert.assertEquals(1, step2.size());
         Assert.assertEquals(step2Path, step2.get(0).getPath());
 
         // test subflow-B
-        List<Node> subflowB_A = tree.next(subflowB.getPath());
+        List<Node> subflowB_A = subflowB.getNext();
         Assert.assertEquals(1, subflowB_A.size());
         Assert.assertEquals(subflowB_APath, subflowB_A.get(0).getPath());
 
         // subflow-B/A next should be step2
-        step2 = tree.next(subflowB_APath);
+        step2 = tree.get(subflowB_APath).getNext();
         Assert.assertEquals(1, step2.size());
         Assert.assertEquals(step2Path, step2.get(0).getPath());
 
         // step2 next should be step3
-        List<Node> step3 = tree.next(step2.get(0).getPath());
+        List<Node> step3 = step2.get(0).getNext();
         Assert.assertEquals(1, step3.size());
         Assert.assertEquals(step3Path, step3.get(0).getPath());
 
         // step3 next should be step-3-1
-        List<Node> step3_1 = tree.next(step3.get(0).getPath());
+        List<Node> step3_1 = step3.get(0).getNext();
         Assert.assertEquals(1, step3_1.size());
         Assert.assertEquals(step3_1Path, step3_1.get(0).getPath());
 
         // step-3-1 next should be step-3-2
-        List<Node> step3_2 = tree.next(step3_1.get(0).getPath());
+        List<Node> step3_2 = step3_1.get(0).getNext();
         Assert.assertEquals(1, step3_2.size());
         Assert.assertEquals(step3_2Path, step3_2.get(0).getPath());
 
         // step-3-2 next should be step4
-        List<Node> step4 = tree.next(step3_2.get(0).getPath());
+        List<Node> step4 = step3_2.get(0).getNext();
         Assert.assertEquals(1, step4.size());
         Assert.assertEquals(step4Path, step4.get(0).getPath());
 
