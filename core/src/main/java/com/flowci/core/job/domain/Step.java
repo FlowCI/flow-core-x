@@ -145,7 +145,8 @@ public class Step implements Executed {
 
     @JsonIgnore
     public boolean isSuccess() {
-        return SuccessStatus.contains(status) || isAllowFailure();
+        return SuccessStatus.contains(status) ||
+                (FailureStatus.contains(status) && isAllowFailure());
     }
 
     @JsonIgnore
