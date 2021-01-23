@@ -35,7 +35,6 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.Selector;
 import com.flowci.zookeeper.ZookeeperClient;
-import com.flowci.zookeeper.ZookeeperException;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
 import org.apache.zookeeper.CreateMode;
@@ -49,8 +48,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
 
-import static com.flowci.core.agent.domain.Agent.Status.IDLE;
-import static com.flowci.core.agent.domain.Agent.Status.OFFLINE;
+import static com.flowci.core.agent.domain.Agent.Status.*;
 
 /**
  * Manage agent from zookeeper nodes
@@ -182,13 +180,16 @@ public class AgentServiceImpl implements AgentService {
     public Optional<Agent> acquire(Job job, Selector selector) {
         String jobId = job.getId();
 
-        Optional<Agent> optional = acquire(jobId, selector);
-        if (optional.isPresent()) {
-            return optional;
+        List<Agent> agents = find(selector, IDLE);
+        if (agents.isEmpty()) {
+            eventManager.publish(new NoIdleAgentEvent(this, jobId, selector));
+            return Optional.empty();
         }
 
-        eventManager.publish(new NoIdleAgentEvent(this, jobId, selector));
-        return Optional.empty();
+        Agent agent = agents.get(0);
+        agent.setJobId(job.getId());
+        update(agent, BUSY);
+        return Optional.of(agent);
     }
 
     @Override
@@ -200,17 +201,9 @@ public class AgentServiceImpl implements AgentService {
         }
 
         // lock and set status to busy
-        try {
-            String zkLockPath = Util.getZkLockPath(zkProperties.getAgentRoot(), agent);
-            zk.lock(zkLockPath, path -> {
-                agent.setJobId(jobId);
-                update(agent, Status.BUSY);
-            });
-            return Optional.of(agent);
-        } catch (ZookeeperException e) {
-            log.debug(e);
-            return Optional.empty();
-        }
+        agent.setJobId(jobId);
+        update(agent, Status.BUSY);
+        return Optional.of(agent);
     }
 
     @Override
@@ -380,29 +373,5 @@ public class AgentServiceImpl implements AgentService {
         } catch (Throwable ignore) {
 
         }
-    }
-
-    private Optional<Agent> acquire(String jobId, Selector selector) {
-        List<Agent> agents = find(selector, IDLE);
-
-        if (agents.isEmpty()) {
-            return Optional.empty();
-        }
-
-        Iterator<Agent> availableList = agents.iterator();
-
-        // try to lock it
-        while (availableList.hasNext()) {
-            Agent agent = availableList.next();
-
-            Optional<Agent> locked = tryLock(jobId, agent.getId());
-            if (locked.isPresent()) {
-                return locked;
-            }
-
-            availableList.remove();
-        }
-
-        return Optional.empty();
     }
 }

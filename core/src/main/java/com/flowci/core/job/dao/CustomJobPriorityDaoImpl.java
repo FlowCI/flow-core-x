@@ -12,47 +12,53 @@ import org.springframework.data.mongodb.core.query.Update;
 
 public class CustomJobPriorityDaoImpl implements CustomJobPriorityDao {
 
+    private final static String FieldFlowId = "flowId";
+
+    private final static String FieldQueue = "queue";
+
     @Autowired
     private MongoOperations operations;
 
     @Override
-    public void addJob(String flowId, String selectorId, Long buildNumber) {
+    public void addJob(String flowId, Long buildNumber) {
         Query q = new Query();
-        q.addCriteria(Criteria.where("flowId").is(flowId));
+        q.addCriteria(Criteria.where(FieldFlowId).is(flowId));
 
         Update u = new Update();
-        u.addToSet("queue." + selectorId, buildNumber);
+        u.addToSet(FieldQueue, buildNumber);
 
         operations.findAndModify(q, u, JobPriority.class);
     }
 
     @Override
-    public void removeJob(String flowId, String selectorId, Long buildNumber) {
+    public void removeJob(String flowId, Long buildNumber) {
         Query q = new Query();
-        q.addCriteria(Criteria.where("flowId").is(flowId));
+        q.addCriteria(Criteria.where(FieldFlowId).is(flowId));
 
         Update u = new Update();
-        u.pull("queue." + selectorId, buildNumber);
+        u.pull(FieldQueue, buildNumber);
 
         operations.findAndModify(q, u, JobPriority.class);
     }
 
+    /**
+     * Return min build number
+     * Return MAX value of long if no min number found
+     */
     @Override
-    public long findMinBuildNumber(String flowId, String selectorId) {
-        String filed = "queue." + selectorId;
-
+    public long findMinBuildNumber(String flowId) {
         Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("flowId").is(flowId)),
-                Aggregation.project().and(AccumulatorOperators.Min.minOf(filed)).as("number").andExclude("_id")
+                Aggregation.match(Criteria.where(FieldFlowId).is(flowId)),
+                Aggregation.project().and(AccumulatorOperators.Min.minOf(FieldQueue)).as("number").andExclude("_id")
         );
 
         AggregationResults<NumberResult> results = operations.aggregate(aggregation, "job_priority", NumberResult.class);
         NumberResult numberResult = results.getUniqueMappedResult();
         if (numberResult == null) {
-            return 0;
+            return Long.MAX_VALUE;
         }
 
-        return numberResult.number;
+        return numberResult.number == null ? Long.MAX_VALUE : numberResult.number;
     }
 
     private static class NumberResult {

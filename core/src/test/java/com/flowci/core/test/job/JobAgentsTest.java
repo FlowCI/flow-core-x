@@ -1,15 +1,22 @@
 package com.flowci.core.test.job;
 
+import com.flowci.core.job.dao.JobDao;
+import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobAgents;
+import com.flowci.core.test.SpringScenario;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.ParallelStepNode;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.Assert;
 
 import java.util.List;
 import java.util.Optional;
 
-public class JobAgentsTest {
+public class JobAgentsTest extends SpringScenario {
+
+    @Autowired
+    private JobDao jobDao;
 
     @Test
     public void should_list_reuse_candidates() {
@@ -47,5 +54,23 @@ public class JobAgentsTest {
 
         // should get candidate for subflow2
         Assert.assertEquals(1, ja.getCandidates(subflow2).size());
+    }
+
+    @Test
+    public void should_save_job_agents() {
+        FlowNode flowA = new FlowNode("flowA");
+        FlowNode flowB = new FlowNode("flowB");
+
+        Job job = new Job();
+        job.getAgents().save("111", flowA);
+        job.getAgents().save("111", flowB);
+
+        job = jobDao.save(job);
+        Assert.assertEquals(1, job.getAgents().all().size());
+
+        job.getAgents().remove("111", flowA);
+        job.getAgents().remove("111", flowB);
+        job = jobDao.save(job);
+        Assert.assertEquals(1, job.getAgents().all().size());
     }
 }

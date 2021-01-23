@@ -3,8 +3,6 @@ package com.flowci.core.test.job;
 import com.flowci.core.job.dao.JobPriorityDao;
 import com.flowci.core.job.domain.JobPriority;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.tree.Selector;
-import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +16,6 @@ public class JobPriorityDaoTest extends SpringScenario {
 
     @Test
     public void should_operate_agent_priority() {
-        Selector s1 = new Selector();
-        s1.setLabel(Sets.newHashSet("ios", "test"));
         String flowId = "flowA";
 
         // init:
@@ -29,26 +25,26 @@ public class JobPriorityDaoTest extends SpringScenario {
         agentPriorityDao.insert(p);
 
         // when: add job to priority
-        agentPriorityDao.addJob(flowId, s1.getId(), 1L);
-        agentPriorityDao.addJob(flowId, s1.getId(), 2L);
+        agentPriorityDao.addJob(flowId, 1L);
+        agentPriorityDao.addJob(flowId, 2L);
 
         // then: job list should be added
         Optional<JobPriority> optional = agentPriorityDao.findByFlowId(flowId);
         Assert.assertTrue(optional.isPresent());
 
         JobPriority priority = optional.get();
-        Assert.assertEquals(2, priority.getQueue().get(s1.getId()).size());
-        Assert.assertEquals(1L, agentPriorityDao.findMinBuildNumber(flowId, s1.getId()));
+        Assert.assertEquals(2, priority.getQueue().size());
+        Assert.assertEquals(1L, agentPriorityDao.findMinBuildNumber(flowId));
 
         // when: remove job from priority
-        agentPriorityDao.removeJob(flowId, s1.getId(), 1L);
+        agentPriorityDao.removeJob(flowId, 1L);
 
         // then: build number should be removed
         optional = agentPriorityDao.findByFlowId(flowId);
         Assert.assertTrue(optional.isPresent());
 
         priority = optional.get();
-        Assert.assertEquals(1, priority.getQueue().get(s1.getId()).size());
-        Assert.assertEquals(2L, agentPriorityDao.findMinBuildNumber(flowId, s1.getId()));
+        Assert.assertEquals(1, priority.getQueue().size());
+        Assert.assertEquals(2L, agentPriorityDao.findMinBuildNumber(flowId));
     }
 }

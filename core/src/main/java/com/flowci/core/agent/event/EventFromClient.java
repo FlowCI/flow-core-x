@@ -1,11 +1,12 @@
 package com.flowci.core.agent.event;
 
+import com.flowci.core.common.event.AsyncEvent;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.web.socket.WebSocketSession;
 
 @Getter
-public abstract class EventFromClient extends ApplicationEvent {
+public abstract class EventFromClient extends ApplicationEvent implements AsyncEvent {
 
     private final String token;
 

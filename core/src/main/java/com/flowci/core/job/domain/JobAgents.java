@@ -43,6 +43,13 @@ public final class JobAgents {
     }
 
     /**
+     * Remove agent from job
+     */
+    public void remove(String agentId) {
+        agents.remove(agentId);
+    }
+
+    /**
      * Get agent if an agent was occupied within same flow
      */
     public Optional<String> getAgent(Node node) {

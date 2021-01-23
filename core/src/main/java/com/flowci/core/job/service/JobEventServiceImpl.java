@@ -197,10 +197,7 @@ public class JobEventServiceImpl implements JobEventService {
                 try {
                     Job job = jobService.get(new String(body));
                     logInfo(job, "received from queue");
-
-                    if (!job.isDone()) {
-                        jobActionManager.toRun(job);
-                    }
+                    jobActionManager.toRun(job);
                 } catch (Exception e) {
                     log.warn(e);
                 }
