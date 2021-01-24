@@ -3,16 +3,37 @@ package com.flowci.core.job.domain;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
 import com.flowci.tree.NodePath;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.*;
 
-public final class JobAgents {
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString(of = "agents")
+@Document(collection = "job_agent")
+public final class JobAgent {
+
+    @Id
+    private String id; // job id
+
+    private String flowId;
 
     /**
      * agent1 -> flow
      *           flow/parallel/sub_1
      */
     private Map<String, Set<String>> agents = new HashMap<>();
+
+    public JobAgent(String jobId, String flowId) {
+        this.id = jobId;
+        this.flowId = flowId;
+    }
 
     public Collection<String> all() {
         return agents.keySet();
@@ -25,10 +46,6 @@ public final class JobAgents {
     public void save(String agentId, FlowNode flow) {
         Set<String> set = agents.computeIfAbsent(agentId, k -> new HashSet<>());
         set.add(flow.getPathAsString());
-    }
-
-    public boolean isEmpty() {
-        return agents.isEmpty();
     }
 
     /**

@@ -30,6 +30,7 @@ import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.dao.ExecutedCmdDao;
+import com.flowci.core.job.dao.JobAgentDao;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
@@ -81,6 +82,9 @@ public class JobServiceTest extends ZookeeperScenario {
 
     @Autowired
     private AgentDao agentDao;
+
+    @Autowired
+    private JobAgentDao jobAgentDao;
 
     @Autowired
     private ExecutedCmdDao executedCmdDao;
@@ -516,7 +520,6 @@ public class JobServiceTest extends ZookeeperScenario {
 
         Assert.assertNull(job.getFinishAt());
         Assert.assertNull(job.getStartAt());
-        Assert.assertTrue(job.getAgents().isEmpty());
         Assert.assertTrue(job.getSnapshots().isEmpty());
     }
 
@@ -527,7 +530,8 @@ public class JobServiceTest extends ZookeeperScenario {
         NodeTree tree = ymlManager.getTree(job);
         Node firstNode = tree.getRoot().getNext().get(0);
 
-        job.getAgents().save(agent.getId(), tree.getRoot());
+        jobAgentDao.addFlowToAgent(job.getId(), agent.getId(), tree.getRoot().getPathAsString());
+
         job.setCurrentPathFromNodes(firstNode);
         job.setStatus(Status.RUNNING);
         job.setStatusToContext(Status.RUNNING);

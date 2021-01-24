@@ -206,9 +206,6 @@ public class Job extends Mongoable implements Pathable {
 
     private Status status = Status.PENDING;
 
-    // agent id : agent status, status within job
-    private JobAgents agents = new JobAgents();
-
     // agent id : info
     private Map<String, AgentSnapshot> snapshots = new HashMap<>();
 
@@ -311,11 +308,6 @@ public class Job extends Mongoable implements Pathable {
     @JsonIgnore
     public String getErrorFromContext() {
         return context.get(Variables.Job.Error);
-    }
-
-    @JsonIgnore
-    public Collection<String> agentIds() {
-        return agents.all();
     }
 
     public String getCredentialName() {

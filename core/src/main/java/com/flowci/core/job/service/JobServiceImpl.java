@@ -79,6 +79,9 @@ public class JobServiceImpl implements JobService {
     private JobPriorityDao jobPriorityDao;
 
     @Autowired
+    private JobAgentDao jobAgentDao;
+
+    @Autowired
     private JobDescDao jobDescDao;
 
     @Autowired
@@ -216,7 +219,6 @@ public class JobServiceImpl implements JobService {
         job.setCreatedAt(Date.from(Instant.now()));
         job.setFinishAt(null);
         job.setStartAt(null);
-        job.setAgents(new JobAgents());
         job.setSnapshots(Maps.newHashMap());
         job.setStatus(Job.Status.PENDING);
         job.setTrigger(Trigger.MANUAL);
@@ -251,6 +253,9 @@ public class JobServiceImpl implements JobService {
 
             jobPriorityDao.deleteAllByFlowId(flow.getId());
             log.info("Deleted: job priority of flow {}", flow.getName());
+
+            jobAgentDao.deleteAllByFlowId(flow.getId());
+            log.info("Deleted: job agent of flow {}", flow.getName());
 
             Long numOfJobDeleted = jobDao.deleteAllByFlowId(flow.getId());
             log.info("Deleted: {} jobs of flow {}", numOfJobDeleted, flow.getName());
@@ -305,8 +310,9 @@ public class JobServiceImpl implements JobService {
             jobPriorityDao.save(jobPriority);
         }
 
-        // save
-        return jobDao.insert(job);
+        jobDao.insert(job);
+        jobAgentDao.save(new JobAgent(job.getId(), flow.getId()));
+        return job;
     }
 
     // setup created by form login user or git event author

@@ -1,8 +1,7 @@
 package com.flowci.core.test.job;
 
-import com.flowci.core.job.dao.JobDao;
-import com.flowci.core.job.domain.Job;
-import com.flowci.core.job.domain.JobAgents;
+import com.flowci.core.job.dao.JobAgentDao;
+import com.flowci.core.job.domain.JobAgent;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.ParallelStepNode;
@@ -16,7 +15,20 @@ import java.util.Optional;
 public class JobAgentsTest extends SpringScenario {
 
     @Autowired
-    private JobDao jobDao;
+    private JobAgentDao jobAgentDao;
+
+    @Test
+    public void should_add_remove_agents() {
+        String jobId = "1234556";
+        jobAgentDao.save(new JobAgent(jobId, "1"));
+
+        jobAgentDao.addFlowToAgent(jobId, "agent1", "/root");
+        JobAgent jobAgent = jobAgentDao.findById(jobId).get();
+        Assert.assertTrue(jobAgent.getAgents().containsKey("agent1"));
+
+        jobAgentDao.removeFlowFromAgent(jobId, "agent1", "/root");
+        Assert.assertTrue(jobAgentDao.findById(jobId).get().getAgents().containsKey("agent1"));
+    }
 
     @Test
     public void should_list_reuse_candidates() {
@@ -25,7 +37,7 @@ public class JobAgentsTest extends SpringScenario {
         FlowNode subflow1 = new FlowNode("sub_1", parallel);
         FlowNode subflow2 = new FlowNode("sub_2", parallel);
 
-        JobAgents ja = new JobAgents();
+        JobAgent ja = new JobAgent();
 
         // find a1 for root flow
         ja.save("a1", flow);
@@ -54,23 +66,5 @@ public class JobAgentsTest extends SpringScenario {
 
         // should get candidate for subflow2
         Assert.assertEquals(1, ja.getCandidates(subflow2).size());
-    }
-
-    @Test
-    public void should_save_job_agents() {
-        FlowNode flowA = new FlowNode("flowA");
-        FlowNode flowB = new FlowNode("flowB");
-
-        Job job = new Job();
-        job.getAgents().save("111", flowA);
-        job.getAgents().save("111", flowB);
-
-        job = jobDao.save(job);
-        Assert.assertEquals(1, job.getAgents().all().size());
-
-        job.getAgents().remove("111", flowA);
-        job.getAgents().remove("111", flowB);
-        job = jobDao.save(job);
-        Assert.assertEquals(1, job.getAgents().all().size());
     }
 }
