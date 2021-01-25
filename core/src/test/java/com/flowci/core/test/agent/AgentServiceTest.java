@@ -151,7 +151,7 @@ public class AgentServiceTest extends ZookeeperScenario {
         Assert.assertEquals(Status.BUSY, agentService.get(agent.getId()).getStatus());
 
         // when: release agent and mock event from agent
-        agentService.tryRelease(Lists.newArrayList(idle.getId()));
+        agentService.release(Lists.newArrayList(idle.getId()));
 
         // then: the status should be idle
         Assert.assertEquals(Status.IDLE, agentService.get(agent.getId()).getStatus());

@@ -20,6 +20,11 @@ public interface Executed {
             Status.RUNNING
     );
 
+    Set<Status> WaitingStatus = ImmutableSet.of(
+            Status.PENDING,
+            Status.WAITING_AGENT
+    );
+
     Set<Status> SuccessStatus = ImmutableSet.of(
             Status.SUCCESS,
             Status.SKIPPED

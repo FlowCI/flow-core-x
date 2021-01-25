@@ -26,7 +26,7 @@ public final class JobAgent {
 
     /**
      * agent1 -> flow
-     *           flow/parallel/sub_1
+     * flow/parallel/sub_1
      */
     private Map<String, Set<String>> agents = new HashMap<>();
 
@@ -37,6 +37,11 @@ public final class JobAgent {
 
     public Collection<String> all() {
         return agents.keySet();
+    }
+
+    public boolean isOccupiedByFlow(String agentId) {
+        Set<String> flows = agents.get(agentId);
+        return flows != null && !flows.isEmpty();
     }
 
     /**

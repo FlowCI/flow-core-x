@@ -51,6 +51,11 @@ public interface StepService {
     List<Step> list(Job job);
 
     /**
+     * List step by job and status
+     */
+    List<Step> list(Job job, Collection<Executed.Status> status);
+
+    /**
      * Get step list in string, {name}={stats};{name}={stats}
      * No steps after current node
      */

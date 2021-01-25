@@ -413,6 +413,7 @@ public class JobActionManagerImpl implements JobActionManager {
             }
 
             context.lock = lock.get();
+            context.job = reload(job.getId());
             log.debug("Job {} is locked", job.getId());
             return true;
         };
@@ -437,8 +438,10 @@ public class JobActionManagerImpl implements JobActionManager {
                 NodeTree tree = ymlManager.getTree(job);
                 Node node = tree.get(step.getNodePath());
 
-                context.job = reload(job.getId());
-                releaseAgentFromJob(context.job, node, step);
+                if (node.isLastChildOfParent()) {
+                    releaseAgentFromJob(context.job, node, step);
+                    releaseAgentToPool(context.job, node, step);
+                }
 
                 if (toNextStep(context.job, context.step)) {
                     return;
@@ -655,37 +658,43 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     private void releaseAgentFromJob(Job job, Node node, Step step) {
-        if (!node.isLastChildOfParent()) {
-            return;
-        }
-
         String agentId = step.getAgentId();
         FlowNode flow = node.getParentFlowNode();
         jobAgentDao.removeFlowFromAgent(job.getId(), agentId, flow.getPathAsString());
+    }
 
-//        Set<Selector> selectors = new HashSet<>(tree.getSelectors().size());
-//        node.forEachNext(node, (next) -> {
-//            Selector selector = next.getParentFlowNode().getSelector();
-//            selectors.add(selector);
-//        });
-//
-//        // keep agent for job
-//        if (selectors.contains(currentSelector)) {
-//            return;
-//        }
-//
-//        execAgentOperation(
-//                () -> toFailureStatus(job, step, new CIException("Unable to acquire lock")),
-//                () -> {
-//                    job.getAgents().remove(agentId);
-//                    jobDao.save(job);
-//
-//                    jobPriorityDao.removeJob(job.getFlowId(), currentSelector.getId(), job.getBuildNumber());
-//
-//                    agentService.tryRelease(Sets.newHashSet(agentId));
-//                    log.debug("------ [RELEASE] job {}/{} , agent {}",
-//                            job.getFlowName(), job.getBuildNumber(), agentId);
-//                });
+    private void releaseAgentToPool(Job job, Node node, Step step) {
+        JobAgent jobAgent = getJobAgent(job.getId());
+        String agentId = step.getAgentId();
+
+        if (jobAgent.isOccupiedByFlow(agentId)) {
+            return;
+        }
+
+        NodeTree tree = ymlManager.getTree(job);
+        Selector currentSelector = node.getParentFlowNode().fetchSelector();
+
+        // find selectors of pending steps
+        List<Step> notStartedSteps = stepService.list(job, Executed.WaitingStatus);
+        Set<Selector> selectors = new HashSet<>(tree.getSelectors().size());
+        for (Step s : notStartedSteps) {
+            Node n = tree.get(s.getNodePath());
+            Selector selector = n.getParentFlowNode().getSelector();
+            selectors.add(selector);
+        }
+
+        // keep agent for job
+        if (selectors.contains(currentSelector)) {
+            return;
+        }
+
+        // release agent and put it back to pool
+        execAgentOperation(
+                () -> toFailureStatus(job, step, new CIException("Unable to acquire lock")),
+                () -> {
+                    agentService.release(Sets.newHashSet(agentId));
+                    jobAgentDao.removeAgent(job.getId(), agentId);
+                });
     }
 
     private void toFailureStatus(Job job, Step step, CIException e) {
@@ -1103,7 +1112,7 @@ public class JobActionManagerImpl implements JobActionManager {
                     // release agent
                     () -> {
                         JobAgent agents = getJobAgent(job.getId());
-                        agentService.tryRelease(agents.all());
+                        agentService.release(agents.all());
                         for (String agentId : agents.all()) {
                             log.debug("------ [RELEASE] job {}/{} , agent {}",
                                     job.getFlowName(), job.getBuildNumber(), agentId);

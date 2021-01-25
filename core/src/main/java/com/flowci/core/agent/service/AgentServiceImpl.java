@@ -207,7 +207,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public void tryRelease(Collection<String> ids) {
+    public void release(Collection<String> ids) {
         for (String agentId : ids) {
             Agent agent = get(agentId);
             agent.setJobId(null);

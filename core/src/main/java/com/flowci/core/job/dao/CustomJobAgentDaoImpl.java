@@ -30,4 +30,13 @@ public class CustomJobAgentDaoImpl implements CustomJobAgentDao {
                 new Update().pull(key, flowPath),
                 JobAgent.class);
     }
+
+    @Override
+    public void removeAgent(String jobId, String agentId) {
+        String key = "agents." + agentId;
+        operations.findAndModify(
+                query(where("_id").is(jobId)),
+                new Update().unset(key),
+                JobAgent.class);
+    }
 }

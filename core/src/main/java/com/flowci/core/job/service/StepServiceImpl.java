@@ -99,6 +99,11 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
+    public List<Step> list(Job job, Collection<Executed.Status> status) {
+        return executedCmdDao.findByJobIdAndStatusIn(job.getId(), status);
+    }
+
+    @Override
     public String toVarString(Job job, Node current) {
         StringBuilder builder = new StringBuilder();
         for (Step step : list(job)) {

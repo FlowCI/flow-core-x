@@ -99,9 +99,9 @@ public interface AgentService {
     Optional<Agent> tryLock(String jobId, String agentId);
 
     /**
-     * Release agent, send 'stop' cmd to agent
+     * Release agent, set to IDLE
      */
-    void tryRelease(Collection<String> ids);
+    void release(Collection<String> ids);
 
     /**
      * Create agent by name and tags

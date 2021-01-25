@@ -19,6 +19,7 @@ package com.flowci.tree;
 import com.google.common.collect.Sets;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -30,16 +31,13 @@ import java.util.Set;
  * @author yang
  */
 @Data
+@NoArgsConstructor
 @EqualsAndHashCode(of = "label")
 public class Selector implements Serializable {
 
     public static final Selector EMPTY = new Selector();
 
     private Set<String> label = Collections.emptySet();
-
-    public Selector() {
-
-    }
 
     public Selector(String... labels) {
         this.label = Sets.newHashSet(labels);

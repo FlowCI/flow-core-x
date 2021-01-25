@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
@@ -68,6 +69,7 @@ public class Step implements Executed {
 
     private Long buildNumber;
 
+    @Indexed(name = "index_job_id")
     private String jobId;
 
     private String agentId;
