@@ -54,7 +54,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 @Log4j2
 @Service
@@ -403,31 +402,10 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     private void fromRunning() {
-        Function<JobSmContext, Boolean> lockBefore = (context) -> {
-            Job job = context.job;
-            Optional<InterLock> lock = lock(job.getId(), "RunningToRunning");
-
-            if (!lock.isPresent()) {
-                toFailureStatus(context.job, context.step, new CIException("Fail to lock job"));
-                return false;
-            }
-
-            context.lock = lock.get();
-            context.job = reload(job.getId());
-            log.debug("Job {} is locked", job.getId());
-            return true;
-        };
-
-        Consumer<JobSmContext> unlockFinally = (context) -> {
-            Job job = context.job;
-            InterLock lock = context.lock;
-            unlock(lock, job.getId());
-        };
-
         sm.add(RunningToRunning, new Action<JobSmContext>() {
             @Override
             public boolean canRun(JobSmContext context) {
-                return lockBefore.apply(context);
+                return lockJobBefore(context);
             }
 
             @Override
@@ -458,14 +436,14 @@ public class JobActionManagerImpl implements JobActionManager {
 
             @Override
             public void onFinally(JobSmContext context) {
-                unlockFinally.accept(context);
+                unlockJobAfter(context);
             }
         });
 
         sm.add(RunningToSuccess, new Action<JobSmContext>() {
             @Override
             public boolean canRun(JobSmContext context) {
-                return lockBefore.apply(context);
+                return lockJobBefore(context);
             }
 
             @Override
@@ -476,14 +454,14 @@ public class JobActionManagerImpl implements JobActionManager {
 
             @Override
             public void onFinally(JobSmContext context) {
-                unlockFinally.accept(context);
+                unlockJobAfter(context);
             }
         });
 
         sm.add(RunningToTimeout, new Action<JobSmContext>() {
             @Override
             public boolean canRun(JobSmContext context) {
-                return lockBefore.apply(context);
+                return lockJobBefore(context);
             }
 
             @Override
@@ -501,7 +479,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
             @Override
             public void onFinally(JobSmContext context) {
-                unlockFinally.accept(context);
+                unlockJobAfter(context);
             }
         });
 
@@ -509,7 +487,7 @@ public class JobActionManagerImpl implements JobActionManager {
         sm.add(RunningToFailure, new Action<JobSmContext>() {
             @Override
             public boolean canRun(JobSmContext context) {
-                return lockBefore.apply(context);
+                return lockJobBefore(context);
             }
 
             @Override
@@ -528,7 +506,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
             @Override
             public void onFinally(JobSmContext context) {
-                unlockFinally.accept(context);
+                unlockJobAfter(context);
             }
         });
 
@@ -536,8 +514,8 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                sendKillCmdToAllAgents(job);
                 setJobStatusAndSave(job, Job.Status.CANCELLING, null);
+                sendKillCmdToAllAgents(job);
             }
 
             @Override
@@ -549,7 +527,7 @@ public class JobActionManagerImpl implements JobActionManager {
         sm.add(RunningToCanceled, new Action<JobSmContext>() {
             @Override
             public boolean canRun(JobSmContext context) {
-                return lockBefore.apply(context);
+                return lockJobBefore(context);
             }
 
             @Override
@@ -576,7 +554,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
             @Override
             public void onFinally(JobSmContext context) {
-                unlockFinally.accept(context);
+                unlockJobAfter(context);
             }
         });
     }
@@ -584,12 +562,43 @@ public class JobActionManagerImpl implements JobActionManager {
     private void fromCancelling() {
         sm.add(CancellingToCancelled, new Action<JobSmContext>() {
             @Override
+            public boolean canRun(JobSmContext context) {
+                return lockJobBefore(context);
+            }
+
+            @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 setRestStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.CANCELLED, null);
             }
+
+            @Override
+            public void onFinally(JobSmContext context) {
+                unlockJobAfter(context);
+            }
         });
+    }
+
+    private boolean lockJobBefore(JobSmContext context) {
+        Job job = context.job;
+        Optional<InterLock> lock = lock(job.getId(), "RunningToRunning");
+
+        if (!lock.isPresent()) {
+            toFailureStatus(context.job, context.step, new CIException("Fail to lock job"));
+            return false;
+        }
+
+        context.lock = lock.get();
+        context.job = reload(job.getId());
+        log.debug("Job {} is locked", job.getId());
+        return true;
+    }
+
+    private void unlockJobAfter(JobSmContext context) {
+        Job job = context.job;
+        InterLock lock = context.lock;
+        unlock(lock, job.getId());
     }
 
     private boolean waitIfJobNotOnTopPriority(Job job) {
