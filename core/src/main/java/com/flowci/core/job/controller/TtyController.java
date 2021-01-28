@@ -69,7 +69,7 @@ public class TtyController {
         ttyService.execute(in);
     }
 
-    @MessageMapping("/tty/{jobId}/{b64Path}close")
+    @MessageMapping("/tty/{jobId}/{b64Path}/close")
     public void close(@DestinationVariable String jobId, @DestinationVariable String b64Path, MessageHeaders headers) {
         TtyCmd.In in = new TtyCmd.In()
                 .setId(jobId)
