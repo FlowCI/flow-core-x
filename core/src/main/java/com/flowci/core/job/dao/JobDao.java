@@ -30,5 +30,5 @@ public interface JobDao extends MongoRepository<Job, String>, CustomJobDao {
 
     Optional<Job> findByKey(String key);
 
-    Long deleteByFlowId(String flowId);
+    Long deleteAllByFlowId(String flowId);
 }

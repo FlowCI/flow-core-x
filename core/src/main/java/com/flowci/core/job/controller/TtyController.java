@@ -7,6 +7,7 @@ import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.core.job.service.TtyService;
 import com.flowci.core.user.domain.User;
 import com.flowci.exception.AuthenticationException;
+import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
@@ -42,20 +43,25 @@ public class TtyController {
         eventManager.publish(new TtyStatusUpdateEvent(this, out));
     }
 
-    @MessageMapping("/tty/{jobId}/open")
-    public void open(@DestinationVariable String jobId, MessageHeaders headers) {
+    @MessageMapping("/tty/{jobId}/{b64Path}/open")
+    public void open(@DestinationVariable String jobId, @DestinationVariable String b64Path, MessageHeaders headers) {
         TtyCmd.In in = new TtyCmd.In()
                 .setId(jobId)
+                .setNodePath(StringHelper.fromBase64(b64Path))
                 .setAction(TtyCmd.Action.OPEN);
 
         validate(in, headers);
         ttyService.execute(in);
     }
 
-    @MessageMapping("/tty/{jobId}/shell")
-    public void shell(@DestinationVariable String jobId, @Payload String script, MessageHeaders headers) {
+    @MessageMapping("/tty/{jobId}/{b64Path}/shell")
+    public void shell(@DestinationVariable String jobId,
+                      @DestinationVariable String b64Path,
+                      @Payload String script,
+                      MessageHeaders headers) {
         TtyCmd.In in = new TtyCmd.In()
                 .setId(jobId)
+                .setNodePath(StringHelper.fromBase64(b64Path))
                 .setAction(TtyCmd.Action.SHELL)
                 .setInput(script);
 
@@ -63,10 +69,11 @@ public class TtyController {
         ttyService.execute(in);
     }
 
-    @MessageMapping("/tty/{jobId}/close")
-    public void close(@DestinationVariable String jobId, MessageHeaders headers) {
+    @MessageMapping("/tty/{jobId}/{b64Path}/close")
+    public void close(@DestinationVariable String jobId, @DestinationVariable String b64Path, MessageHeaders headers) {
         TtyCmd.In in = new TtyCmd.In()
                 .setId(jobId)
+                .setNodePath(StringHelper.fromBase64(b64Path))
                 .setAction(TtyCmd.Action.CLOSE);
 
         validate(in, headers);

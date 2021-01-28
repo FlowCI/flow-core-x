@@ -21,11 +21,13 @@ import com.flowci.core.agent.domain.ShellOut;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
+import com.flowci.util.StringHelper;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
@@ -48,6 +50,16 @@ import java.util.List;
 )
 public class Step implements Executed {
 
+    public enum Type {
+        STEP,
+
+        STAGE, // step with children
+
+        FLOW,
+
+        PARALLEL,
+    }
+
     public static final String MessageSkippedOnCondition = "Skipped due to condition";
 
     @Id
@@ -57,9 +69,14 @@ public class Step implements Executed {
 
     private Long buildNumber;
 
+    @Indexed(name = "index_job_id")
     private String jobId;
 
+    private String agentId;
+
     private String nodePath;
+
+    private Type type;
 
     private boolean allowFailure;
 
@@ -67,13 +84,11 @@ public class Step implements Executed {
 
     private List<DockerOption> dockers;
 
-    private boolean isRootStep;
-
     // parent node path
     private String parent;
 
-    // children step node path
-    private List<String> children;
+    // next step node path
+    private List<String> next;
 
     /**
      * Process id
@@ -121,18 +136,24 @@ public class Step implements Executed {
     private Long logSize = -1L;
 
     @JsonIgnore
+    public boolean hasParent() {
+        return StringHelper.hasValue(parent);
+    }
+
+    @JsonIgnore
+    public boolean isRoot() {
+        return !hasParent();
+    }
+
+    @JsonIgnore
     public boolean isSuccess() {
-        return SuccessStatus.contains(status) || isAllowFailure();
+        return SuccessStatus.contains(status) ||
+                (FailureStatus.contains(status) && isAllowFailure());
     }
 
     @JsonIgnore
-    public boolean isRunning() {
-        return status == Status.RUNNING;
-    }
-
-    @JsonIgnore
-    public boolean isPending() {
-        return status == Status.PENDING;
+    public boolean isOngoing() {
+        return OngoingStatus.contains(status);
     }
 
     public void setFrom(ShellOut out) {

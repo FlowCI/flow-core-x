@@ -21,10 +21,7 @@ import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.dao.JobDao;
-import com.flowci.core.job.dao.JobDescDao;
-import com.flowci.core.job.dao.JobItemDao;
-import com.flowci.core.job.dao.JobNumberDao;
+import com.flowci.core.job.dao.*;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.JobCreatedEvent;
@@ -42,6 +39,7 @@ import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
+import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -76,6 +74,12 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private JobDao jobDao;
+
+    @Autowired
+    private JobPriorityDao jobPriorityDao;
+
+    @Autowired
+    private JobAgentDao jobAgentDao;
 
     @Autowired
     private JobDescDao jobDescDao;
@@ -207,7 +211,7 @@ public class JobServiceImpl implements JobService {
 
         // load yaml
         JobYml yml = ymlManager.get(job);
-        FlowNode root = YmlParser.load(flow.getName(), yml.getRaw());
+        FlowNode root = YmlParser.load(yml.getRaw());
 
         // reset
         job.setTimeout(flow.getStepTimeout());
@@ -215,11 +219,10 @@ public class JobServiceImpl implements JobService {
         job.setCreatedAt(Date.from(Instant.now()));
         job.setFinishAt(null);
         job.setStartAt(null);
-        job.setAgentId(null);
-        job.setAgentInfo(null);
+        job.setSnapshots(Maps.newHashMap());
         job.setStatus(Job.Status.PENDING);
         job.setTrigger(Trigger.MANUAL);
-        job.setCurrentPath(root.getPathAsString());
+        job.setCurrentPathFromNodes(root);
         job.setCreatedBy(sessionManager.getUserEmail());
 
         // re-init job context
@@ -245,10 +248,16 @@ public class JobServiceImpl implements JobService {
     @Override
     public void delete(Flow flow) {
         appTaskExecutor.execute(() -> {
-            jobNumberDao.deleteByFlowId(flow.getId());
+            jobNumberDao.deleteAllByFlowId(flow.getId());
             log.info("Deleted: job number of flow {}", flow.getName());
 
-            Long numOfJobDeleted = jobDao.deleteByFlowId(flow.getId());
+            jobPriorityDao.deleteAllByFlowId(flow.getId());
+            log.info("Deleted: job priority of flow {}", flow.getName());
+
+            jobAgentDao.deleteAllByFlowId(flow.getId());
+            log.info("Deleted: job agent of flow {}", flow.getName());
+
+            Long numOfJobDeleted = jobDao.deleteAllByFlowId(flow.getId());
             log.info("Deleted: {} jobs of flow {}", numOfJobDeleted, flow.getName());
 
             Long numOfStepDeleted = stepService.delete(flow);
@@ -293,8 +302,17 @@ public class JobServiceImpl implements JobService {
             throw new StatusException("Cannot create workspace for job");
         }
 
-        // save
-        return jobDao.insert(job);
+        // create job priority
+        Optional<JobPriority> jobPriorityOptional = jobPriorityDao.findByFlowId(flow.getId());
+        if (!jobPriorityOptional.isPresent()) {
+            JobPriority jobPriority = new JobPriority();
+            jobPriority.setFlowId(flow.getId());
+            jobPriorityDao.save(jobPriority);
+        }
+
+        jobDao.insert(job);
+        jobAgentDao.save(new JobAgent(job.getId(), flow.getId()));
+        return job;
     }
 
     // setup created by form login user or git event author

@@ -1,11 +1,12 @@
 package com.flowci.core.job.service;
 
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.TtyCmd;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
-import com.flowci.core.agent.domain.Agent;
 import com.flowci.exception.CIException;
 import com.flowci.exception.StatusException;
 import lombok.extern.log4j.Log4j2;
@@ -25,10 +26,13 @@ public class TtyServiceImpl implements TtyService {
     @Autowired
     private SpringEventManager eventManager;
 
+    @Autowired
+    private StepService stepService;
+
     @Override
     public void execute(TtyCmd.In in) {
         try {
-            Agent agent = getAgent(in.getId());
+            Agent agent = getAgent(in.getId(), in.getNodePath());
 
             // dispatch cmd to agent,
             // response will be handled in JobEventService
@@ -44,13 +48,14 @@ public class TtyServiceImpl implements TtyService {
         }
     }
 
-    private Agent getAgent(String jobId) {
+    private Agent getAgent(String jobId, String nodePath) {
         Job job = jobService.get(jobId);
         if (job.isDone()) {
             throw new StatusException("Cannot open tty since job is done");
         }
 
-        Agent agent = agentService.get(job.getAgentId());
+        Step step = stepService.get(jobId, nodePath);
+        Agent agent = agentService.get(step.getAgentId());
         if (!agent.isBusy()) {
             throw new StatusException("Cannot open tty since agent not available");
         }

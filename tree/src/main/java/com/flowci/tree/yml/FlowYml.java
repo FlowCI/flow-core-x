@@ -17,13 +17,19 @@
 package com.flowci.tree.yml;
 
 import com.flowci.exception.YmlException;
-import com.flowci.tree.*;
+import com.flowci.tree.FlowNode;
+import com.flowci.tree.Node;
+import com.flowci.tree.NodePath;
+import com.flowci.tree.Selector;
 import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author yang
@@ -37,24 +43,15 @@ public class FlowYml extends YmlBase<FlowNode> {
 
     private List<NotifyYml> notifications = new LinkedList<>();
 
-    public FlowYml(FlowNode node) {
-        setEnvs(node.getEnvironments());
-
-        // set children
-        for (StepNode child : node.getChildren()) {
-            this.steps.add(new StepYml(child));
-        }
-    }
-
-    public FlowNode toNode() {
+    public FlowNode toNode(Node parent) {
         if (!NodePath.validate(name)) {
             throw new YmlException("Invalid name {0}", name);
         }
 
-        FlowNode node = new FlowNode(name);
+        FlowNode node = new FlowNode(name, parent);
         node.setSelector(selector);
         node.setCondition(condition);
-        node.setEnvironments(getVariableMap());;
+        node.setEnvironments(getVariableMap());
 
         setDockerToNode(node);
         setupNotifications(node);

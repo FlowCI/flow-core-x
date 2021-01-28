@@ -17,7 +17,6 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.common.domain.Variables;
-import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.FlowDao;
@@ -46,10 +45,8 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
-import com.flowci.tree.FlowNode;
 import com.flowci.util.ObjectsHelper;
 import com.google.common.collect.Sets;
-import groovy.util.ScriptException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -81,9 +78,6 @@ public class FlowServiceImpl implements FlowService {
 
     @Autowired
     private FileManager fileManager;
-
-    @Autowired
-    private ConditionManager conditionManager;
 
     @Autowired
     private YmlService ymlService;
@@ -330,17 +324,6 @@ public class FlowServiceImpl implements FlowService {
             return;
         }
 
-        try {
-            FlowNode root = ymlService.getRaw(flow.getId(), Yml.DEFAULT_NAME);
-            if (!canStartJob(root, trigger)) {
-                log.debug("Cannot start job, condition not match: {}", root.getCondition());
-                return;
-            }
-        } catch (NotFoundException e) {
-            log.warn(e.getMessage());
-            return;
-        }
-
         StringVars gitInput = trigger.toVariableMap();
         Job.Trigger jobTrigger = trigger.toJobTrigger();
 
@@ -352,17 +335,6 @@ public class FlowServiceImpl implements FlowService {
     // ====================================================================
     // %% Utils
     // ====================================================================
-
-    private boolean canStartJob(FlowNode root, GitTrigger trigger) {
-        try {
-            String groovy = root.getCondition();
-            Vars<String> envs = trigger.toVariableMap();
-            return conditionManager.run(groovy, envs);
-        } catch (ScriptException e) {
-            log.warn("Illegal groovy script at condition section", e);
-            return false;
-        }
-    }
 
     private void setupDefaultVars(Flow flow) {
         Vars<VarValue> localVars = flow.getLocally();

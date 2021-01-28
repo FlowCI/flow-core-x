@@ -165,13 +165,9 @@ public class ZookeeperClient implements AutoCloseable {
         } catch (Exception e) {
             throw new ZookeeperException("Cannot acquire the lock on path {0}: {1}", path, e.getMessage());
         } finally {
-            if (lock.isAcquiredInThisProcess()) {
-                try {
-                    lock.release();
-                    delete(path, true);
-                } catch (Exception ignored) {
-
-                }
+            try {
+                lock.release();
+            } catch (Exception ignored) {
             }
         }
     }
@@ -183,7 +179,7 @@ public class ZookeeperClient implements AutoCloseable {
                 return Optional.of(new InterLock(path, lock));
             }
         } catch (Exception ignore) {
-
+            ignore.printStackTrace();
         }
         return Optional.empty();
     }
@@ -191,7 +187,6 @@ public class ZookeeperClient implements AutoCloseable {
     public void release(InterLock lock) {
         try {
             lock.getLock().release();
-            delete(lock.getPath(), true);
         } catch (Exception e) {
             throw new ZookeeperException("Unable to release lock: {0}", e.getMessage());
         }

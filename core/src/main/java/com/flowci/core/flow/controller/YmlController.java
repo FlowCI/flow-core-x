@@ -52,7 +52,7 @@ public class YmlController {
     @GetMapping("/{flowName}/yml/{ymlName}/obj")
     public FlowNode listSteps(@PathVariable String flowName, @PathVariable String ymlName) {
         Flow flow = flowService.get(flowName);
-        return ymlService.getRaw(flow.getId(), ymlName);
+        return ymlService.getTree(flow.getId(), ymlName).getRoot();
     }
 
     @PostMapping("/{flowName}/yml/{ymlName}")

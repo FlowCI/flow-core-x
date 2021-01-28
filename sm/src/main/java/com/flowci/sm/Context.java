@@ -7,10 +7,10 @@ import lombok.Setter;
 @Setter
 public abstract class Context {
 
-    private Status current;
+    protected Status current;
 
-    private Status to;
+    protected Status to;
 
-    private Throwable error;
+    protected Throwable error;
 
 }

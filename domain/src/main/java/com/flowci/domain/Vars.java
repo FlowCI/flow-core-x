@@ -18,9 +18,13 @@ package com.flowci.domain;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.flowci.util.ObjectsHelper;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -61,7 +65,7 @@ public abstract class Vars<V> extends LinkedHashMap<String, V> implements Serial
     }
 
     public Vars<V> merge(Vars<V> other, boolean overwrite) {
-        if (Objects.isNull(other)) {
+        if (!ObjectsHelper.hasCollection(other)) {
             return this;
         }
 

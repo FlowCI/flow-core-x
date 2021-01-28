@@ -17,10 +17,8 @@
 package com.flowci.util;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -30,6 +28,55 @@ public abstract class ObjectsHelper {
 
     public static boolean hasCollection(Collection<?> collection) {
         return collection != null && collection.size() > 0;
+    }
+
+    public static boolean hasCollection(Map<?, ?> map) {
+        return map != null && !map.isEmpty();
+    }
+
+    public static Set<String> fields(Class<?> klass) {
+        Set<String> fields = new HashSet<>();
+        for (Class<?> c = klass; c != null; c = c.getSuperclass()) {
+            for (Field f : c.getDeclaredFields()) {
+                fields.add(f.getName());
+            }
+        }
+        return fields;
+    }
+
+    /**
+     * Check input fields are all have value or not
+     */
+    public static <T> boolean hasValue(T instance, Set<String> fields) throws ReflectiveOperationException {
+        Map<String, Field> all = new HashMap<>();
+
+        for (Class<?> c = instance.getClass(); c != null; c = c.getSuperclass()) {
+            for (Field f : c.getDeclaredFields()) {
+                all.put(f.getName(), f);
+            }
+        }
+
+        for (String name : fields) {
+            Field field = all.get(name);
+            if (field == null) {
+                throw new NoSuchFieldException(name);
+            }
+
+            field.setAccessible(true);
+            Object o = field.get(instance);
+
+            if (o == null) {
+                return false;
+            }
+
+            if (o instanceof Collection) {
+                if (((Collection<?>) o).isEmpty()) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     public static <T extends Serializable> List<T> copy(List<T> source) {

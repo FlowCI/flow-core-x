@@ -1,6 +1,5 @@
 package com.flowci.sm;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data

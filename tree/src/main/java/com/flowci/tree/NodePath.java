@@ -49,6 +49,7 @@ public final class NodePath implements Serializable {
     private final String pathInStr;
 
     public static NodePath create(String... nameOrPaths) {
+
         return new NodePath(Arrays.asList(nameOrPaths));
     }
 
@@ -115,6 +116,10 @@ public final class NodePath implements Serializable {
             builder.append(name).append(PathSeparator);
         }
         pathInStr = builder.deleteCharAt(builder.length() - 1).toString();
+    }
+
+    public int depth() {
+        return paths.size();
     }
 
     public String getNodePathWithoutSpace() {

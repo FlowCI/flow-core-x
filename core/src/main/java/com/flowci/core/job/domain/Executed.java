@@ -14,6 +14,17 @@ public interface Executed {
             Status.TIMEOUT
     );
 
+    Set<Status> OngoingStatus = ImmutableSet.of(
+            Status.PENDING,
+            Status.WAITING_AGENT,
+            Status.RUNNING
+    );
+
+    Set<Status> WaitingStatus = ImmutableSet.of(
+            Status.PENDING,
+            Status.WAITING_AGENT
+    );
+
     Set<Status> SuccessStatus = ImmutableSet.of(
             Status.SUCCESS,
             Status.SKIPPED
@@ -30,6 +41,8 @@ public interface Executed {
     enum Status {
 
         PENDING(-1),
+
+        WAITING_AGENT(0),
 
         RUNNING(1),
 

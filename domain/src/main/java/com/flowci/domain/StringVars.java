@@ -36,12 +36,12 @@ public class StringVars extends Vars<String> {
     }
 
     public StringVars(Map<String, String> data) {
-        super(data.size() + 10);
+        super(data.size());
         merge(data);
     }
 
     public StringVars(Vars<String> data) {
-        super(data.size() + 10);
+        super(data.size());
         merge(data);
     }
 

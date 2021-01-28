@@ -22,6 +22,7 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.HttpRequestManager;
 import com.flowci.core.flow.domain.Template;
+import com.flowci.tree.NodeTree;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,11 @@ public class FlowConfig {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Bean("flowTreeCache")
+    public Cache<String, NodeTree> flowTreeCache() {
+        return CacheHelper.createLocalCache(50, 120);
+    }
 
     @Bean("gitBranchCache")
     public Cache<String, List<String>> gitBranchCache() {

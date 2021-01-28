@@ -18,6 +18,7 @@ package com.flowci.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.domain.DockerOption;
+import com.flowci.domain.ObjectWrapper;
 import com.flowci.domain.StringVars;
 import com.flowci.util.StringHelper;
 import lombok.EqualsAndHashCode;
@@ -26,9 +27,12 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author yang
@@ -39,20 +43,26 @@ import java.util.Objects;
 @ToString(of = {"path"})
 public abstract class Node implements Serializable {
 
+    /**
+     * Node name
+     */
     protected String name;
+
+    /**
+     * Node path
+     */
+    protected NodePath path;
+
+    /**
+     * Parent node from tree
+     */
+    @JsonIgnore
+    protected Node parent;
 
     /**
      * Node before groovy script;
      */
     protected String condition;
-
-    protected NodePath path;
-
-    /**
-     * Parent could be FlowNode or StepNode
-     */
-    @JsonIgnore
-    protected Node parent;
 
     /**
      * Inner option has higher priority
@@ -60,9 +70,22 @@ public abstract class Node implements Serializable {
      */
     protected List<DockerOption> dockers = new LinkedList<>();
 
+    /**
+     * Input environment variables
+     */
     protected StringVars environments = new StringVars();
 
-    protected List<StepNode> children = new LinkedList<>();
+    /**
+     * Previous node list
+     */
+    @JsonIgnore
+    protected List<Node> prev = new LinkedList<>();
+
+    /**
+     * Next node list
+     */
+    @JsonIgnore
+    protected List<Node> next = new LinkedList<>();
 
     public Node(String name, Node parent) {
         this.name = name;
@@ -76,12 +99,50 @@ public abstract class Node implements Serializable {
         this.path = NodePath.create(parent.getPath(), name);
     }
 
+    public abstract List<Node> getChildren();
+
+    public boolean isLastChildOfParent() {
+        if (parent == null) {
+            return false;
+        }
+
+        List<Node> children = this.parent.getChildren();
+        if (children.isEmpty()) {
+            return false;
+        }
+
+        return children.get(children.size() - 1).equals(this);
+    }
+
     public String getPathAsString() {
         return path.getPathInStr();
     }
 
     public String getEnv(String name) {
         return environments.get(name);
+    }
+
+    @JsonIgnore
+    public FlowNode getParentFlowNode() {
+        ObjectWrapper<FlowNode> wrapper = new ObjectWrapper<>();
+        this.forEachBottomUp(this, (n) -> {
+            if (n instanceof FlowNode) {
+                wrapper.setValue((FlowNode) n);
+                return false;
+            }
+            return true;
+        });
+        return wrapper.getValue();
+    }
+
+    @JsonIgnore
+    public boolean hasParent() {
+        return parent != null;
+    }
+
+    @JsonIgnore
+    public boolean hasChildren() {
+        return !getChildren().isEmpty();
     }
 
     @JsonIgnore
@@ -95,12 +156,59 @@ public abstract class Node implements Serializable {
     }
 
     @JsonIgnore
-    public boolean hasChildren() {
-        return !children.isEmpty();
+    public StringVars fetchEnvs() {
+        StringVars output = new StringVars();
+
+        this.forEachBottomUp(this, (n) -> {
+            output.merge(n.getEnvironments(), false);
+            return true;
+        });
+
+        return output;
     }
 
     @JsonIgnore
-    public boolean hasParent() {
-        return parent != null;
+    public List<DockerOption> fetchDockerOptions() {
+        ObjectWrapper<List<DockerOption>> wrapper = new ObjectWrapper<>(Collections.emptyList());
+
+        this.forEachBottomUp(this, (n) -> {
+            if (n.hasDocker()) {
+                wrapper.setValue(n.getDockers());
+                return false;
+            }
+            return true;
+        });
+
+        return wrapper.getValue();
+    }
+
+    public void forEachNext(Node node, Consumer<Node> onNext) {
+        for (Node next : node.next) {
+            onNext.accept(next);
+            forEachNext(next, onNext);
+        }
+    }
+
+    public void forEachChildren(Consumer<Node> onChild) {
+        forEachChildren(this, onChild);
+    }
+
+    private void forEachChildren(Node current, Consumer<Node> onChild) {
+        for (Node child : current.getChildren()) {
+            onChild.accept(child);
+            forEachChildren(child, onChild);
+        }
+    }
+
+    protected final void forEachBottomUp(Node node, Function<Node, Boolean> onNode) {
+        Boolean canContinue = onNode.apply(node);
+        if (!canContinue) {
+            return;
+        }
+
+        Node parent = node.getParent();
+        if (parent != null) {
+            forEachBottomUp(parent, onNode);
+        }
     }
 }

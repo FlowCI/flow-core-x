@@ -27,12 +27,20 @@ public interface YmlManager {
 
     JobYml get(Job job);
 
+    /**
+     * Create job yaml from flow yaml
+     */
     JobYml create(Job job, String yml);
 
     /**
      * Get node tree from job
      */
     NodeTree getTree(Job job);
+
+    /**
+     * Get node tree from job id
+     */
+    NodeTree getTree(String jobId);
 
     /**
      * Delete yaml for job

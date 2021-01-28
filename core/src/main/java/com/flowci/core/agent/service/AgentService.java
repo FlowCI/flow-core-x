@@ -16,14 +16,15 @@
 
 package com.flowci.core.agent.service;
 
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.agent.domain.Agent;
+import com.flowci.tree.Selector;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * @author yang
@@ -56,12 +57,19 @@ public interface AgentService {
     List<Agent> list();
 
     /**
+     * List agent by given ids
+     */
+    Iterable<Agent> list(Collection<String> ids);
+
+    /**
      * Find agent by status and tags from database
      *
-     * @param tags Agent tags, optional
+     * @param selector Agent selector, optional
      * @throws com.flowci.exception.NotFoundException
      */
-    List<Agent> find(Set<String> tags);
+    List<Agent> find(Selector selector);
+
+    List<Agent> find(Selector selector, Agent.Status status);
 
     /**
      * Delete agent by token
@@ -81,7 +89,7 @@ public interface AgentService {
     /**
      * Find available agent and lock
      */
-    Optional<Agent> acquire(Job job, Function<String, Boolean> canContinue);
+    Optional<Agent> acquire(Job job, Selector selector);
 
     /**
      * Try to lock agent resource, and set agent status to BUSY
@@ -91,9 +99,9 @@ public interface AgentService {
     Optional<Agent> tryLock(String jobId, String agentId);
 
     /**
-     * Release agent, send 'stop' cmd to agent
+     * Release agent, set to IDLE
      */
-    void tryRelease(String agentId);
+    void release(Collection<String> ids);
 
     /**
      * Create agent by name and tags

@@ -38,6 +38,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
         @CompoundIndex(
                 name = "index_flow_id_and_yaml_name",
                 def = "{'flowId': 1, 'name': 1}",
+                sparse = true,
                 unique = true
         )
 )

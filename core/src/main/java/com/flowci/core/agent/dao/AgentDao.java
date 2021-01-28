@@ -21,15 +21,12 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author yang
  */
 @Repository
 public interface AgentDao extends MongoRepository<Agent, String>, CustomAgentDao {
-
-    List<Agent> findAllByTagsIn(Set<String> tags);
 
     List<Agent> findAllByHostId(String hostId);
 

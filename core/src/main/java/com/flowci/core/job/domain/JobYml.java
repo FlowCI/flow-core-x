@@ -34,18 +34,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class JobYml extends Mongoable {
 
     /**
-     * Root name
-     */
-    private String name;
-
-    /**
      * Yml raw
      */
     private String raw;
 
     public JobYml(String jobId, String name, String raw) {
         this.id = jobId;
-        this.name = name;
         this.raw = raw;
     }
 }

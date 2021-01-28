@@ -16,10 +16,12 @@
 
 package com.flowci.core.job.dao;
 
+import com.flowci.core.job.domain.Executed;
 import com.flowci.core.job.domain.Step;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,4 +38,6 @@ public interface ExecutedCmdDao extends MongoRepository<Step, String> {
     Optional<Step> findByJobIdAndNodePath(String jobId, String nodePath);
 
     List<Step> findByFlowIdAndBuildNumber(String flowId, long buildNumber);
+
+    List<Step> findByJobIdAndStatusIn(String jobId, Collection<Executed.Status> statuses);
 }

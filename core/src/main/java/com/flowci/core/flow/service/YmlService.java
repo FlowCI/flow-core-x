@@ -18,7 +18,7 @@ package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
-import com.flowci.tree.FlowNode;
+import com.flowci.tree.NodeTree;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -34,16 +34,11 @@ public interface YmlService {
     List<Yml> list(String flowId);
 
     /**
-     * List Yml instance with raw field
-     */
-    List<Yml> listWithRaw(String flowId);
-
-    /**
-     * Get FlowNode that represent yaml in obj
+     * Get NodeTree from yaml
      *
      * @throws com.flowci.exception.NotFoundException if YML not found
      */
-    FlowNode getRaw(String flowId, String name);
+    NodeTree getTree(String flowId, String name);
 
     /**
      * Get yml by flow id and yaml name

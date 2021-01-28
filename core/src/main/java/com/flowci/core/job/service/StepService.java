@@ -17,10 +17,12 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.domain.Step;
+import com.flowci.core.job.domain.Executed;
 import com.flowci.core.job.domain.Job;
-import com.flowci.tree.StepNode;
+import com.flowci.core.job.domain.Step;
+import com.flowci.tree.Node;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -28,6 +30,9 @@ import java.util.List;
  */
 public interface StepService {
 
+    /**
+     * Create steps with init value
+     */
     void init(Job job);
 
     /**
@@ -46,17 +51,26 @@ public interface StepService {
     List<Step> list(Job job);
 
     /**
+     * List step by job and status
+     */
+    List<Step> list(Job job, Collection<Executed.Status> status);
+
+    /**
      * Get step list in string, {name}={stats};{name}={stats}
      * No steps after current node
      */
-    String toVarString(Job job, StepNode current);
+    String toVarString(Job job, Node current);
+
+    /**
+     * Batch set status for step and return step list
+     */
+    Collection<Step> toStatus(Collection<Step> steps, Executed.Status status, String err);
 
     /**
      * Change step status, and put steps string to job context
+     * @param allChildren indicate to update status to all children step
      */
-    Step toStatus(String jobId, String nodePath, Step.Status status, String err);
-
-    Step toStatus(Step entity, Step.Status status, String err);
+    Step toStatus(Step entity, Step.Status status, String err, boolean allChildren);
 
     /**
      * To update properties are related with cmd executed result

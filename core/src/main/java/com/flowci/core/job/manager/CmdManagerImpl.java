@@ -26,8 +26,8 @@ import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.DockerOption;
-import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
+import com.flowci.exception.StatusException;
 import com.flowci.tree.*;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
@@ -46,36 +46,39 @@ public class CmdManagerImpl implements CmdManager {
     private SpringEventManager eventManager;
 
     @Override
-    public ShellIn createShellCmd(Job job, Step step, NodeTree tree) {
-        StepNode node = tree.get(NodePath.create(step.getNodePath()));
+    public ShellIn createShellCmd(Job job, Step step, Node node) {
+        if (node instanceof ParallelStepNode) {
+            throw new StatusException("Illegal step node type, must be regular step");
+        }
 
+        RegularStepNode r = (RegularStepNode) node;
         ShellIn in = new ShellIn()
                 .setId(step.getId())
                 .setFlowId(job.getFlowId())
                 .setJobId(job.getId())
-                .setAllowFailure(node.isAllowFailure())
-                .setDockers(ObjectsHelper.copy(findDockerOptions(node)))
-                .setBash(linkScript(node, ShellIn.ShellType.Bash))
-                .setPwsh(linkScript(node, ShellIn.ShellType.PowerShell))
-                .setEnvFilters(linkFilters(node))
-                .setInputs(linkInputs(node).merge(job.getContext(), false))
-                .setTimeout(linkTimeout(node, job.getTimeout()))
-                .setRetry(linkRetry(node, 0))
-                .setCache(node.getCache());
+                .setAllowFailure(r.isAllowFailure())
+                .setDockers(ObjectsHelper.copy(r.fetchDockerOptions()))
+                .setBash(r.fetchBash())
+                .setPwsh(r.fetchPwsh())
+                .setEnvFilters(r.fetchFilters())
+                .setInputs(r.fetchEnvs().merge(job.getContext(), false))
+                .setTimeout(r.fetchTimeout(job.getTimeout()))
+                .setRetry(r.fetchRetry(0))
+                .setCache(r.getCache());
 
-        if (node.hasPlugin()) {
-            setPlugin(node.getPlugin(), in);
+        if (r.hasPlugin()) {
+            setPlugin(r.getPlugin(), in);
         }
 
         // set node allow failure as top priority
-        if (node.isAllowFailure() != in.isAllowFailure()) {
-            in.setAllowFailure(node.isAllowFailure());
+        if (r.isAllowFailure() != in.isAllowFailure()) {
+            in.setAllowFailure(r.isAllowFailure());
         }
 
         // auto create default container name
         for (DockerOption option : in.getDockers()) {
             if (!option.hasName()) {
-                option.setName(getDefaultContainerName(node));
+                option.setName(getDefaultContainerName(r));
             }
         }
 
@@ -91,99 +94,10 @@ public class CmdManagerImpl implements CmdManager {
         return new ShellKill();
     }
 
-    private String getDefaultContainerName(StepNode node) {
+    private String getDefaultContainerName(RegularStepNode node) {
         NodePath path = node.getPath();
         String stepStr = path.getNodePathWithoutSpace().replace(NodePath.PathSeparator, "-");
         return StringHelper.escapeNumber(String.format("%s-%s", stepStr, StringHelper.randomString(5)));
-    }
-
-    private StringVars linkInputs(Node current) {
-        StringVars output = new StringVars();
-
-        if (current.hasParent()) {
-            Node parent = current.getParent();
-            output.merge(linkInputs(parent));
-        }
-
-        output.merge(current.getEnvironments());
-        return output;
-    }
-
-    private Integer linkRetry(StepNode current, Integer defaultRetry) {
-        if (current.hasRetry()) {
-            return current.getRetry();
-        }
-
-        if (current.hasParent()) {
-            Node parent = current.getParent();
-            if (parent instanceof StepNode) {
-                return linkRetry((StepNode) parent, defaultRetry);
-            }
-        }
-
-        return defaultRetry;
-    }
-
-    private Integer linkTimeout(StepNode current, Integer defaultTimeout) {
-        if (current.hasTimeout()) {
-            return current.getTimeout();
-        }
-
-        if (current.hasParent()) {
-            Node parent = current.getParent();
-            if (parent instanceof StepNode) {
-                return linkTimeout((StepNode) parent, defaultTimeout);
-            }
-        }
-
-        return defaultTimeout;
-    }
-
-    private Set<String> linkFilters(StepNode current) {
-        Set<String> output = new LinkedHashSet<>();
-
-        if (current.hasParent()) {
-            Node parent = current.getParent();
-            if (parent instanceof StepNode) {
-                output.addAll(linkFilters((StepNode) parent));
-            }
-        }
-
-        output.addAll(current.getExports());
-        return output;
-    }
-
-    private List<String> linkScript(StepNode current, ShellIn.ShellType shellType) {
-        List<String> output = new LinkedList<>();
-
-        if (current.hasParent()) {
-            Node parent = current.getParent();
-            if (parent instanceof StepNode) {
-                output.addAll(linkScript((StepNode) parent, shellType));
-            }
-        }
-
-        if (shellType == ShellIn.ShellType.Bash) {
-            output.add(current.getBash());
-        }
-
-        if (shellType == ShellIn.ShellType.PowerShell) {
-            output.add(current.getPwsh());
-        }
-
-        return output;
-    }
-
-    private List<DockerOption> findDockerOptions(Node current) {
-        if (current.hasDocker()) {
-            return current.getDockers();
-        }
-
-        if (current.hasParent()) {
-            return findDockerOptions(current.getParent());
-        }
-
-        return new LinkedList<>();
     }
 
     private void setPlugin(String name, ShellIn cmd) {
