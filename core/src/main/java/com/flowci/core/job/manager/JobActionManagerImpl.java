@@ -440,21 +440,12 @@ public class JobActionManagerImpl implements JobActionManager {
             }
         });
 
+        // do not lock job since it will be called from RunningToRunning status
         sm.add(RunningToSuccess, new Action<JobSmContext>() {
-            @Override
-            public boolean canRun(JobSmContext context) {
-                return lockJobBefore(context);
-            }
-
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 logInfo(job, "finished with status {}", Success);
-            }
-
-            @Override
-            public void onFinally(JobSmContext context) {
-                unlockJobAfter(context);
             }
         });
 
@@ -484,12 +475,8 @@ public class JobActionManagerImpl implements JobActionManager {
         });
 
         // failure from job end or exception
+        // do not lock job since it will be called from RunningToRunning status
         sm.add(RunningToFailure, new Action<JobSmContext>() {
-            @Override
-            public boolean canRun(JobSmContext context) {
-                return lockJobBefore(context);
-            }
-
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
@@ -502,11 +489,6 @@ public class JobActionManagerImpl implements JobActionManager {
             public void onException(Throwable e, JobSmContext context) {
                 Job job = context.job;
                 setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
-            }
-
-            @Override
-            public void onFinally(JobSmContext context) {
-                unlockJobAfter(context);
             }
         });
 
@@ -582,7 +564,8 @@ public class JobActionManagerImpl implements JobActionManager {
 
     private boolean lockJobBefore(JobSmContext context) {
         Job job = context.job;
-        Optional<InterLock> lock = lock(job.getId(), "RunningToRunning");
+
+        Optional<InterLock> lock = lock(job.getId(), "LockJobBefore");
 
         if (!lock.isPresent()) {
             toFailureStatus(context.job, context.step, new CIException("Fail to lock job"));
@@ -1018,7 +1001,7 @@ public class JobActionManagerImpl implements JobActionManager {
         String error = job.getErrorFromContext();
         ObjectsHelper.ifNotNull(error, s -> context.setError(new CIException(s)));
 
-        sm.executeInExecutor(context.getCurrent(), new Status(statusFromContext.name()), context);
+        sm.execute(context.getCurrent(), new Status(statusFromContext.name()), context);
     }
 
     private void execAgentOperation(Runnable onLockNotFound, Runnable onAgentLock) {
