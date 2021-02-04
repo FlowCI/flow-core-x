@@ -46,7 +46,7 @@ public class QueueConfig {
 
     @Bean("rabbitTaskExecutor")
     public ThreadPoolTaskExecutor rabbitConsumerExecutor() {
-        return ThreadHelper.createTaskExecutor(10, 10, 50, "rabbit-task-");
+        return ThreadHelper.createTaskExecutor(20, 10, 100, "rabbit-task-");
     }
 
     @Bean
@@ -61,8 +61,8 @@ public class QueueConfig {
     }
 
     @Bean("jobsQueueManager")
-    public RabbitOperations jobsQueueManager(Connection rabbitConnection, ThreadPoolTaskExecutor appTaskExecutor) throws IOException {
-        RabbitOperations manager = new RabbitOperations(rabbitConnection, appTaskExecutor, 1);
+    public RabbitOperations jobsQueueManager(Connection rabbitConnection) throws IOException {
+        RabbitOperations manager = new RabbitOperations(rabbitConnection, 1);
 
         // setup dead letter queue
         String queue = rabbitProperties.getJobDlQueue();
@@ -87,10 +87,9 @@ public class QueueConfig {
 
     @Bean("broadcastQueueManager")
     public RabbitOperations broadcastQueueManager(Connection rabbitConnection,
-                                                  ThreadPoolTaskExecutor appTaskExecutor,
                                                   String wsBroadcastQueue,
                                                   String eventBroadcastQueue) throws IOException {
-        RabbitOperations manager = new RabbitOperations(rabbitConnection, appTaskExecutor, 10);
+        RabbitOperations manager = new RabbitOperations(rabbitConnection, 10);
         manager.declareTemp(wsBroadcastQueue);
         manager.declareExchangeAndBind(
                 rabbitProperties.getWsBroadcastEx(),

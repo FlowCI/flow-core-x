@@ -299,7 +299,7 @@ public class JobServiceImpl implements JobService {
         try {
             fileManager.create(flow, job);
         } catch (IOException e) {
-            throw new StatusException("Cannot create workspace for job");
+            throw new StatusException("Cannot create workspace for job: {0}", e.getMessage());
         }
 
         // create job priority

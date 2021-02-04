@@ -22,7 +22,6 @@ import com.flowci.util.StringHelper;
 import com.rabbitmq.client.*;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -40,13 +39,11 @@ public class RabbitOperations implements AutoCloseable {
     // key as queue name, value as consumer tag
     private final ConcurrentHashMap<String, String> consumers = new ConcurrentHashMap<>();
 
-    private final ThreadPoolTaskExecutor executor;
 
-    public RabbitOperations(Connection conn, ThreadPoolTaskExecutor executor, int prefetch) throws IOException {
+    public RabbitOperations(Connection conn, int prefetch) throws IOException {
         this.conn = conn;
         this.channel = conn.createChannel();
         this.channel.basicQos(prefetch, false);
-        this.executor = executor;
     }
 
     public void declareExchangeAndBind(String exchange, BuiltinExchangeType type, String queue, String routingKey) throws IOException {
@@ -145,16 +142,14 @@ public class RabbitOperations implements AutoCloseable {
                                        Envelope envelope,
                                        AMQP.BasicProperties properties,
                                        byte[] body) {
-                executor.execute(() -> {
-                    boolean isSendAck = onMessage.on(properties.getHeaders(), body, envelope);
-                    if (isSendAck) {
-                        try {
-                            sendAck(envelope.getDeliveryTag());
-                        } catch (Exception e) {
-                            log.warn(e);
-                        }
+                boolean isSendAck = onMessage.on(properties.getHeaders(), body, envelope);
+                if (isSendAck) {
+                    try {
+                        sendAck(envelope.getDeliveryTag());
+                    } catch (Exception e) {
+                        log.warn(e);
                     }
-                });
+                }
             }
         };
 
@@ -199,6 +194,7 @@ public class RabbitOperations implements AutoCloseable {
 
         /**
          * Action on message
+         *
          * @return it will send Ack if return true
          */
         boolean on(Map<String, Object> headers, byte[] body, Envelope envelope);
