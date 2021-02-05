@@ -451,11 +451,6 @@ public class JobActionManagerImpl implements JobActionManager {
 
         sm.add(RunningToTimeout, new Action<JobSmContext>() {
             @Override
-            public boolean canRun(JobSmContext context) {
-                return lockJobBefore(context);
-            }
-
-            @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 setRestStepsToSkipped(job);
@@ -466,11 +461,6 @@ public class JobActionManagerImpl implements JobActionManager {
             public void onException(Throwable e, JobSmContext context) {
                 Job job = context.job;
                 setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
-            }
-
-            @Override
-            public void onFinally(JobSmContext context) {
-                unlockJobAfter(context);
             }
         });
 

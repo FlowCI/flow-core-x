@@ -17,6 +17,7 @@
 package com.flowci.core.job.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.CmdOut;
 import com.flowci.core.agent.domain.ShellOut;
 import com.flowci.core.agent.domain.TtyCmd;
@@ -34,7 +35,6 @@ import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.core.job.manager.JobActionManager;
-import com.flowci.core.agent.domain.Agent;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -169,15 +169,15 @@ public class JobEventServiceImpl implements JobEventService {
     public void startJobDeadLetterConsumer() throws IOException {
         String deadLetterQueue = rabbitProperties.getJobDlQueue();
         jobsQueueManager.startConsumer(deadLetterQueue, true, (header, body, envelope) -> {
+            String jobId = new String(body);
             try {
-                String jobId = new String(body);
                 Job job = jobService.get(jobId);
                 jobActionManager.toTimeout(job);
             } catch (Exception e) {
                 log.warn(e);
             }
             return false;
-        });
+        }, null);
     }
 
     //====================================================================
@@ -194,19 +194,18 @@ public class JobEventServiceImpl implements JobEventService {
             jobsQueueManager.declare(queue, true, 255, rabbitProperties.getJobDlExchange());
 
             jobsQueueManager.startConsumer(queue, false, (header, body, envelope) -> {
+                String jobId = new String(body);
                 try {
-                    Job job = jobService.get(new String(body));
+                    Job job = jobService.get(jobId);
                     logInfo(job, "received from queue");
                     jobActionManager.toRun(job);
                 } catch (Exception e) {
                     log.warn(e);
                 }
-
                 return true;
-            });
+            }, appTaskExecutor);
         } catch (IOException e) {
             log.warn(e);
         }
     }
-
 }

@@ -66,7 +66,7 @@ public class SocketPushManager {
                 log.warn(e);
             }
             return false;
-        });
+        }, null);
     }
 
     public void push(String topic, PushEvent event, Object obj) {

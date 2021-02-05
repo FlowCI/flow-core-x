@@ -22,6 +22,7 @@ import com.flowci.util.StringHelper;
 import com.rabbitmq.client.*;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.core.task.TaskExecutor;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -135,21 +136,19 @@ public class RabbitOperations implements AutoCloseable {
         }
     }
 
-    public void startConsumer(String queue, boolean autoAck, OnMessage onMessage) throws IOException {
+    public void startConsumer(String queue, boolean autoAck, OnMessage onMessage, TaskExecutor executor) throws IOException {
         Consumer consumer = new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag,
                                        Envelope envelope,
                                        AMQP.BasicProperties properties,
                                        byte[] body) {
-                boolean isSendAck = onMessage.on(properties.getHeaders(), body, envelope);
-                if (isSendAck) {
-                    try {
-                        sendAck(envelope.getDeliveryTag());
-                    } catch (Exception e) {
-                        log.warn(e);
-                    }
+                if (executor == null) {
+                    doHandleDelivery(envelope, properties, body, onMessage);
+                    return;
                 }
+
+                executor.execute(() -> doHandleDelivery(envelope, properties, body, onMessage));
             }
         };
 
@@ -186,8 +185,15 @@ public class RabbitOperations implements AutoCloseable {
         channel.close();
     }
 
-    private void sendAck(long deliveryTag) throws IOException {
-        getChannel().basicAck(deliveryTag, false);
+    private void doHandleDelivery(Envelope envelope, AMQP.BasicProperties properties, byte[] body, OnMessage onMessage) {
+        boolean isSendAck = onMessage.on(properties.getHeaders(), body, envelope);
+        if (isSendAck) {
+            try {
+                getChannel().basicAck(envelope.getDeliveryTag(), false);
+            } catch (Exception e) {
+                log.warn(e);
+            }
+        }
     }
 
     public interface OnMessage {
