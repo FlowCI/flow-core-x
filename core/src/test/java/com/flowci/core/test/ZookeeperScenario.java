@@ -16,13 +16,12 @@
 
 package com.flowci.core.test;
 
+import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.domain.Agent.Status;
 import com.flowci.core.agent.domain.AgentInit;
-import com.flowci.core.agent.domain.Util;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.OnConnectedEvent;
 import com.flowci.core.common.config.AppProperties;
-import com.flowci.core.agent.domain.Agent;
-import com.flowci.core.agent.domain.Agent.Status;
 import com.flowci.domain.Common;
 import com.flowci.domain.ObjectWrapper;
 import com.flowci.zookeeper.ZookeeperClient;
@@ -87,7 +86,6 @@ public abstract class ZookeeperScenario extends SpringScenario {
         Assert.assertNotNull(wrapper.getValue());
         Assert.assertEquals(Status.IDLE, wrapper.getValue().getStatus());
 
-        Assert.assertTrue(zk.exist(Util.getZkLockPath(zkProperties.getAgentRoot(), wrapper.getValue())));
         return wrapper.getValue();
     }
 

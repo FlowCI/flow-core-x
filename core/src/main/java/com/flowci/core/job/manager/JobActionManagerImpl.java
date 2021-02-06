@@ -3,7 +3,6 @@ package com.flowci.core.job.manager;
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellIn;
-import com.flowci.core.agent.event.AgentIdleEvent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.git.GitClient;
@@ -15,7 +14,6 @@ import com.flowci.core.job.dao.JobAgentDao;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.dao.JobPriorityDao;
 import com.flowci.core.job.domain.*;
-import com.flowci.core.job.event.JobDeletedEvent;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.service.LocalTaskService;
@@ -155,9 +153,6 @@ public class JobActionManagerImpl implements JobActionManager {
     @Autowired
     private StateMachine<JobSmContext> sm;
 
-    // flow id, notify lock for agent
-    private final Map<String, AcquireLock> acquireLocks = new ConcurrentHashMap<>();
-
     // job node execute thread pool
     private final Map<String, ThreadPoolTaskExecutor> pool = new ConcurrentHashMap<>();
 
@@ -174,30 +169,6 @@ public class JobActionManagerImpl implements JobActionManager {
             sm.addHookActionOnTargetStatus(new ActionOnFinishStatus(), Success, Failure, Timeout, Cancelled);
         } catch (SmException.TransitionExisted ignored) {
         }
-    }
-
-    @EventListener
-    public void doNotifyToFindAgent(AgentIdleEvent event) {
-        Agent agent = event.getAgent();
-        Optional<Job> optional = jobDao.findById(agent.getId());
-        if (optional.isPresent()) {
-            String flowId = optional.get().getFlowId();
-            acquireLocks.computeIfPresent(flowId, (s, lock) -> {
-                ThreadHelper.notifyAll(lock);
-                return lock;
-            });
-        }
-    }
-
-    @EventListener
-    public void stopJobsThatWaitingForAgent(JobDeletedEvent event) {
-        AcquireLock lock = acquireLocks.get(event.getFlow().getId());
-        if (Objects.isNull(lock)) {
-            return;
-        }
-
-        lock.stop = true;
-        ThreadHelper.notifyAll(lock);
     }
 
     @Override
@@ -931,14 +902,6 @@ public class JobActionManagerImpl implements JobActionManager {
                 if (isBreak.getValue()) {
                     break;
                 }
-
-                AcquireLock lock = acquireLocks.computeIfAbsent(flowId, s -> new AcquireLock());
-                if (lock.stop) {
-                    acquireLocks.remove(flowId);
-                    break;
-                }
-
-                ThreadHelper.wait(lock, RetryInterval);
             }
 
             if (latch != null) {

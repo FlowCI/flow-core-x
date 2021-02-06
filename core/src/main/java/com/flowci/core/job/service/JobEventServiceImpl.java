@@ -162,7 +162,7 @@ public class JobEventServiceImpl implements JobEventService {
     }
 
     //====================================================================
-    //        %% Rabbit events
+    //        %% Init events
     //====================================================================
 
     @EventListener(value = ContextRefreshedEvent.class)

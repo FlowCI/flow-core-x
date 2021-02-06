@@ -29,6 +29,7 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.manager.SpringTaskManager;
+import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.exception.DuplicateException;
@@ -37,14 +38,12 @@ import com.flowci.tree.Selector;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
-import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
 
@@ -82,7 +81,13 @@ public class AgentServiceImpl implements AgentService {
     @Autowired
     private AgentEventManager agentEventManager;
 
-    @PostConstruct
+    @Autowired
+    private String idleAgentQueue;
+
+    @Autowired
+    private RabbitOperations idleAgentQueueManager;
+
+    @EventListener(ContextRefreshedEvent.class)
     public void initAgentStatus() {
         taskManager.run("init-agent-status", () -> {
             for (Agent agent : agentDao.findAll()) {
@@ -94,6 +99,15 @@ public class AgentServiceImpl implements AgentService {
                 agentDao.save(agent);
             }
         });
+    }
+
+    @EventListener(ContextRefreshedEvent.class)
+    public void subscribeIdleAgentQueue() throws IOException {
+        idleAgentQueueManager.startConsumer(idleAgentQueue, false, (header, body, envelope) -> {
+            String agentId = new String(body);
+            log.debug("Got an idle agent {}", agentId);
+            return true;
+        }, null);
     }
 
     //====================================================================
@@ -323,7 +337,6 @@ public class AgentServiceImpl implements AgentService {
         target.setResource(init.getResource());
 
         update(target, init.getStatus());
-        syncLockNode(target, true);
     }
 
     @EventListener
@@ -331,7 +344,6 @@ public class AgentServiceImpl implements AgentService {
         try {
             Agent target = getByToken(event.getToken());
             update(target, OFFLINE);
-            syncLockNode(target, false);
         } catch (NotFoundException ignore) {
 
         }
@@ -349,29 +361,11 @@ public class AgentServiceImpl implements AgentService {
             return;
         }
 
-        eventManager.publish(new AgentIdleEvent(this, agent));
+        idleAgentQueueManager.send(idleAgentQueue, agent.getId().getBytes());
     }
 
     //====================================================================
     //        %% Private methods
     //====================================================================
 
-    private void syncLockNode(Agent agent, boolean isCreate) {
-        String lockPath = Util.getZkLockPath(zkProperties.getAgentRoot(), agent);
-
-        if (isCreate) {
-            try {
-                zk.create(CreateMode.PERSISTENT, lockPath, null);
-            } catch (Throwable ignore) {
-
-            }
-            return;
-        }
-
-        try {
-            zk.delete(lockPath, true);
-        } catch (Throwable ignore) {
-
-        }
-    }
 }
