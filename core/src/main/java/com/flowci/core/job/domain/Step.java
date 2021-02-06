@@ -146,6 +146,11 @@ public class Step implements Executed {
     }
 
     @JsonIgnore
+    public boolean isStepType() {
+        return this.type == Type.STEP || this.type == Type.STAGE;
+    }
+
+    @JsonIgnore
     public boolean isSuccess() {
         return SuccessStatus.contains(status) ||
                 (FailureStatus.contains(status) && isAllowFailure());

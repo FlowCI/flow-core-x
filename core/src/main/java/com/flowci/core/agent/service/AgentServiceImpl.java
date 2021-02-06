@@ -256,7 +256,7 @@ public class AgentServiceImpl implements AgentService {
                         update(agent, OFFLINE);
                     case BUSY:
                         update(agent, IDLE);
-                        idleAgentQueueManager.send(idleAgentQueue, agent.getId().getBytes());
+                        idleAgentQueueManager.send(idleAgentQueue, agentId.getBytes());
                 }
             }
         } finally {

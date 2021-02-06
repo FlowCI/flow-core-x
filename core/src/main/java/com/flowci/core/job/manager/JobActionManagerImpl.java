@@ -204,6 +204,10 @@ public class JobActionManagerImpl implements JobActionManager {
 
                 NodeTree tree = ymlManager.getTree(job);
                 for (Step step : steps) {
+                    if (!step.isStepType()) {
+                        continue;
+                    }
+
                     Node node = tree.get(step.getNodePath());
                     FlowNode flow = node.getParentFlowNode();
                     Selector selector = flow.fetchSelector();
