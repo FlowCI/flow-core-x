@@ -106,6 +106,12 @@ public class AgentServiceImpl implements AgentService {
         idleAgentQueueManager.startConsumer(idleAgentQueue, false, (header, body, envelope) -> {
             String agentId = new String(body);
             log.debug("Got an idle agent {}", agentId);
+
+            try {
+                eventManager.publish(new HasIdleAgentEvent(this, get(agentId)));
+            } catch (Exception e) {
+                log.warn(e.getMessage());
+            }
             return true;
         }, null);
     }
