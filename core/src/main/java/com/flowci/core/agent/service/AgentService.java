@@ -18,7 +18,6 @@ package com.flowci.core.agent.service;
 
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.job.domain.Job;
 import com.flowci.tree.Selector;
 
 import java.util.Collection;
@@ -89,14 +88,7 @@ public interface AgentService {
     /**
      * Find available agent and lock
      */
-    Optional<Agent> acquire(Job job, Selector selector);
-
-    /**
-     * Try to lock agent resource, and set agent status to BUSY
-     *
-     * @return return agent instance, otherwise return empty
-     */
-    Optional<Agent> tryLock(String jobId, String agentId);
+    Optional<Agent> acquire(String jobId, Selector selector);
 
     /**
      * Release agent, set to IDLE
