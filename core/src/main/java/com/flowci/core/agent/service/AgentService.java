@@ -96,6 +96,11 @@ public interface AgentService {
     void release(Collection<String> ids);
 
     /**
+     * Assign job to agent
+     */
+    void assign(String jobId, Agent agent);
+
+    /**
      * Create agent by name and tags
      */
     Agent create(String name, Set<String> tags, Optional<String> hostId);

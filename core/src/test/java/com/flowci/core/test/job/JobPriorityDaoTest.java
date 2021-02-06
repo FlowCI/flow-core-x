@@ -1,7 +1,7 @@
 package com.flowci.core.test.job;
 
 import com.flowci.core.job.dao.JobPriorityDao;
-import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.JobKey;
 import com.flowci.core.job.domain.JobPriority;
 import com.flowci.core.test.SpringScenario;
 import com.google.common.collect.Lists;
@@ -64,12 +64,18 @@ public class JobPriorityDaoTest extends SpringScenario {
         p2.setQueue(Lists.newArrayList(10L, 11L, 12L));
         jobPriorityDao.save(p2);
 
+        JobPriority p3 = new JobPriority();
+        p3.setFlowId("flowC");
+        p3.setQueue(Lists.newArrayList());
+        jobPriorityDao.save(p3);
+
         // when:
-        List<Job> all = jobPriorityDao.findAllMinBuildNumber();
-        Assert.assertEquals(2, all.size());
+        List<JobKey> all = jobPriorityDao.findAllMinBuildNumber();
+        Assert.assertEquals(3, all.size());
 
         // then:
         Assert.assertEquals(1L, (long) all.get(0).getBuildNumber());
         Assert.assertEquals(10L, (long) all.get(1).getBuildNumber());
+        Assert.assertNull(all.get(2).getBuildNumber());
     }
 }

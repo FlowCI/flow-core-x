@@ -1,6 +1,6 @@
 package com.flowci.core.job.dao;
 
-import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.JobKey;
 import com.flowci.core.job.domain.JobPriority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -65,12 +65,15 @@ public class CustomJobPriorityDaoImpl implements CustomJobPriorityDao {
     }
 
     @Override
-    public List<Job> findAllMinBuildNumber() {
+    public List<JobKey> findAllMinBuildNumber() {
         Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.project().and(AccumulatorOperators.Min.minOf(FieldQueue)).as("buildNumber").andExclude("_id")
+                Aggregation.project().and(AccumulatorOperators.Min.minOf(FieldQueue))
+                        .as("buildNumber")
+                        .andInclude("flowId")
+                        .andExclude("_id")
         );
 
-        return operations.aggregate(aggregation, "job_priority", Job.class).getMappedResults();
+        return operations.aggregate(aggregation, "job_priority", JobKey.class).getMappedResults();
     }
 
     private static class NumberResult {

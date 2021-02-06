@@ -28,7 +28,6 @@ import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.job.event.JobDeletedEvent;
 import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.core.job.manager.YmlManager;
-import com.flowci.core.job.util.JobKeyBuilder;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
@@ -141,7 +140,7 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Job get(String flowId, Long buildNumber) {
-        String key = JobKeyBuilder.build(flowId, buildNumber);
+        String key = JobKey.of(flowId, buildNumber).toString();
         Optional<Job> optional = jobDao.findByKey(key);
 
         if (optional.isPresent()) {
@@ -280,7 +279,7 @@ public class JobServiceImpl implements JobService {
 
         // create job
         Job job = new Job();
-        job.setKey(JobKeyBuilder.build(flow.getId(), jobNumber.getNumber()));
+        job.setKey(JobKey.of(flow.getId(), jobNumber.getNumber()).toString());
         job.setFlowId(flow.getId());
         job.setFlowName(flow.getName());
         job.setTrigger(trigger);

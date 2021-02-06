@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 flow.ci
+ * Copyright 2021 flow.ci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package com.flowci.core.job.util;
+package com.flowci.core.agent.event;
 
-/**
- * @author yang
- */
-public abstract class JobKeyBuilder {
+import com.flowci.core.agent.domain.Agent;
+import lombok.Getter;
+import org.springframework.context.ApplicationEvent;
 
-    private static final char Splitter = '-';
+public class IdleAgentEvent extends ApplicationEvent {
 
-    public static String build(String flowId, Long buildNumber) {
-        return flowId + Splitter + buildNumber;
+    @Getter
+    private final Agent agent;
+
+    public IdleAgentEvent(Object source, Agent agent) {
+        super(source);
+        this.agent = agent;
     }
 }

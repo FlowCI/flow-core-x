@@ -1,6 +1,6 @@
 package com.flowci.core.job.dao;
 
-import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.JobKey;
 
 import java.util.List;
 
@@ -13,5 +13,5 @@ public interface CustomJobPriorityDao {
     long findMinBuildNumber(String flowId);
 
     // only return job with flow id and build number
-    List<Job> findAllMinBuildNumber();
+    List<JobKey> findAllMinBuildNumber();
 }

@@ -3,7 +3,7 @@ package com.flowci.core.job.manager;
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellIn;
-import com.flowci.core.agent.event.HasIdleAgentEvent;
+import com.flowci.core.agent.event.IdleAgentEvent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.git.GitClient;
@@ -169,11 +169,62 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     @EventListener
-    public void onIdleAgent(HasIdleAgentEvent event) {
-        // find ongoing job which has waiting agent step
+    public void onIdleAgent(IdleAgentEvent event) {
+        Agent idleAgent = event.getAgent();
+        List<JobKey> keys = jobPriorityDao.findAllMinBuildNumber();
+        // TODO: flow priority
 
+        for (JobKey key : keys) {
+            if (key.getBuildNumber() == null) {
+                continue;
+            }
 
+            Optional<Job> optional = jobDao.findByKey(key.toString());
+            if (!optional.isPresent()) {
+                continue;
+            }
 
+            Job job = optional.get();
+            if (!job.isRunning()) {
+                continue;
+            }
+
+            Optional<InterLock> lock = lock(job.getId(), "LockJobFromIdleAgent");
+            if (!lock.isPresent()) {
+                toFailureStatus(job, null, new CIException("Fail to lock job"));
+                continue;
+            }
+
+            try {
+                // check waiting for agent step
+                List<Step> steps = stepService.list(job, Lists.newArrayList(Executed.Status.WAITING_AGENT));
+                if (steps.isEmpty()) {
+                    continue;
+                }
+
+                NodeTree tree = ymlManager.getTree(job);
+                for (Step step : steps) {
+                    Node node = tree.get(step.getNodePath());
+                    FlowNode flow = node.getParentFlowNode();
+                    Selector selector = flow.fetchSelector();
+
+                    if (!idleAgent.match(selector)) {
+                        continue;
+                    }
+
+                    try {
+                        agentService.assign(job.getId(), idleAgent);
+                        jobAgentDao.addFlowToAgent(job.getId(), idleAgent.getId(), flow.getPathAsString());
+                        dispatch(job, node, step, idleAgent);
+                        return;
+                    } catch (Exception e) {
+                        toFailureStatus(job, step, new CIException(e.getMessage()));
+                    }
+                }
+            } finally {
+                unlock(lock.get(), "LockJobFromIdleAgent");
+            }
+        }
     }
 
     @Override
@@ -298,7 +349,6 @@ public class JobActionManagerImpl implements JobActionManager {
         });
 
         sm.add(CreatedToQueued, new Action<JobSmContext>() {
-
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
@@ -337,6 +387,11 @@ public class JobActionManagerImpl implements JobActionManager {
 
         sm.add(QueuedToRunning, new Action<JobSmContext>() {
             @Override
+            public boolean canRun(JobSmContext context) {
+                return lockJobBefore(context);
+            }
+
+            @Override
             public void accept(JobSmContext context) throws Exception {
                 Job job = context.job;
                 eventManager.publish(new JobReceivedEvent(this, job));
@@ -358,6 +413,11 @@ public class JobActionManagerImpl implements JobActionManager {
             public void onException(Throwable e, JobSmContext context) {
                 context.setError(e);
                 sm.execute(Queued, Failure, context);
+            }
+
+            @Override
+            public void onFinally(JobSmContext context) {
+                unlockJobAfter(context);
             }
         });
 

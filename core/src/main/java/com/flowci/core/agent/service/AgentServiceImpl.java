@@ -27,6 +27,7 @@ import com.flowci.core.agent.event.*;
 import com.flowci.core.agent.manager.AgentEventManager;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CipherHelper;
+import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.manager.SpringTaskManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
@@ -113,7 +114,20 @@ public class AgentServiceImpl implements AgentService {
             log.debug("Got an idle agent {}", agentId);
 
             try {
-                eventManager.publish(new HasIdleAgentEvent(this, get(agentId)));
+                Agent agent = get(agentId);
+                if (!agent.isIdle()) {
+                    log.debug("Agent {} no longer idle", agentId);
+                    return true;
+                }
+
+                eventManager.publish(new IdleAgentEvent(this, agent));
+
+                // agent not used, push back to queue
+                if (agent.isIdle()) {
+                    ThreadHelper.sleep(5 * 1000);
+                    idleAgentQueueManager.send(idleAgentQueue, agent.getId().getBytes());
+                }
+
             } catch (Exception e) {
                 log.warn(e.getMessage());
             }
@@ -242,8 +256,24 @@ public class AgentServiceImpl implements AgentService {
                         update(agent, OFFLINE);
                     case BUSY:
                         update(agent, IDLE);
+                        idleAgentQueueManager.send(idleAgentQueue, agent.getId().getBytes());
                 }
             }
+        } finally {
+            unlock(lock.get());
+        }
+    }
+
+    @Override
+    public void assign(String jobId, Agent agent) {
+        Optional<InterLock> lock = lock();
+        if (!lock.isPresent()) {
+            throw new StatusException("Unable to get lock");
+        }
+
+        try {
+            agent.setJobId(jobId);
+            update(agent, BUSY);
         } finally {
             unlock(lock.get());
         }
@@ -350,6 +380,10 @@ public class AgentServiceImpl implements AgentService {
         target.setResource(init.getResource());
 
         update(target, init.getStatus());
+
+        if (target.isIdle()) {
+            idleAgentQueueManager.send(idleAgentQueue, target.getId().getBytes());
+        }
     }
 
     @EventListener
@@ -360,21 +394,6 @@ public class AgentServiceImpl implements AgentService {
         } catch (NotFoundException ignore) {
 
         }
-    }
-
-    @EventListener
-    public void notifyToFindAgent(AgentStatusEvent event) {
-        Agent agent = event.getAgent();
-
-        if (!agent.hasJob()) {
-            return;
-        }
-
-        if (!agent.isIdle()) {
-            return;
-        }
-
-        idleAgentQueueManager.send(idleAgentQueue, agent.getId().getBytes());
     }
 
     //====================================================================
