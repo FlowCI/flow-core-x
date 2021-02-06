@@ -170,6 +170,10 @@ public class JobActionManagerImpl implements JobActionManager {
 
     @EventListener
     public void onIdleAgent(HasIdleAgentEvent event) {
+        // find ongoing job which has waiting agent step
+
+
+
     }
 
     @Override

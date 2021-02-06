@@ -1,5 +1,6 @@
 package com.flowci.core.job.dao;
 
+import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobPriority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -9,6 +10,8 @@ import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+
+import java.util.List;
 
 public class CustomJobPriorityDaoImpl implements CustomJobPriorityDao {
 
@@ -59,6 +62,15 @@ public class CustomJobPriorityDaoImpl implements CustomJobPriorityDao {
         }
 
         return numberResult.number == null ? Long.MAX_VALUE : numberResult.number;
+    }
+
+    @Override
+    public List<Job> findAllMinBuildNumber() {
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.project().and(AccumulatorOperators.Min.minOf(FieldQueue)).as("buildNumber").andExclude("_id")
+        );
+
+        return operations.aggregate(aggregation, "job_priority", Job.class).getMappedResults();
     }
 
     private static class NumberResult {
