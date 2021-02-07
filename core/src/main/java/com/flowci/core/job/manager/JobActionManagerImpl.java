@@ -658,11 +658,46 @@ public class JobActionManagerImpl implements JobActionManager {
         Optional<Agent> optional = agentService.acquire(job.getId(), selector);
         if (optional.isPresent()) {
             Agent agent = optional.get();
+            job.addAgentSnapshot(agent);
             jobAgentDao.addFlowToAgent(job.getId(), agent.getId(), flow.getPathAsString());
+            setJobStatusAndSave(job, job.getStatus(), null);
             return optional;
         }
 
         return Optional.empty();
+    }
+
+    private boolean assignAgentToWaitingStep(Agent agent, Job job, NodeTree tree) {
+        List<Step> steps = stepService.list(job, Lists.newArrayList(Executed.Status.WAITING_AGENT));
+        if (steps.isEmpty()) {
+            return false;
+        }
+
+        for (Step waitingForAgentStep : steps) {
+            if (!waitingForAgentStep.isStepType()) {
+                continue;
+            }
+
+            Node n = tree.get(waitingForAgentStep.getNodePath());
+            FlowNode f = n.getParentFlowNode();
+            Selector s = f.fetchSelector();
+
+            if (!agent.match(s)) {
+                continue;
+            }
+
+            if (agent.isIdle()) {
+                agentService.assign(job.getId(), agent);
+                job.addAgentSnapshot(agent);
+                setJobStatusAndSave(job, job.getStatus(), null);
+            }
+
+            jobAgentDao.addFlowToAgent(job.getId(), agent.getId(), f.getPathAsString());
+            dispatch(job, n, waitingForAgentStep, agent);
+            return true;
+        }
+
+        return false;
     }
 
     private String releaseAgentFromJob(Job job, Node node, Step step) {
@@ -858,37 +893,6 @@ public class JobActionManagerImpl implements JobActionManager {
         return status;
     }
 
-    private boolean assignAgentToWaitingStep(Agent agent, Job job, NodeTree tree) {
-        List<Step> steps = stepService.list(job, Lists.newArrayList(Executed.Status.WAITING_AGENT));
-        if (steps.isEmpty()) {
-            return false;
-        }
-
-        for (Step waitingForAgentStep : steps) {
-            if (!waitingForAgentStep.isStepType()) {
-                continue;
-            }
-
-            Node n = tree.get(waitingForAgentStep.getNodePath());
-            FlowNode f = n.getParentFlowNode();
-            Selector s = f.fetchSelector();
-
-            if (!agent.match(s)) {
-                continue;
-            }
-
-            if (agent.isIdle()) {
-                agentService.assign(job.getId(), agent);
-            }
-
-            jobAgentDao.addFlowToAgent(job.getId(), agent.getId(), f.getPathAsString());
-            dispatch(job, n, waitingForAgentStep, agent);
-            return true;
-        }
-
-        return false;
-    }
-
     private void executeJob(Job job, List<Node> nodes) throws ScriptException {
         job.setCurrentPathFromNodes(nodes);
         setJobStatusAndSave(job, job.getStatus(), null);
@@ -922,7 +926,8 @@ public class JobActionManagerImpl implements JobActionManager {
 
             Optional<Agent> optionalFromPool = fetchAgentFromPool(job, node);
             if (optionalFromPool.isPresent()) {
-                dispatch(job, node, step, optionalFromPool.get());
+                Agent agent = optionalFromPool.get();
+                dispatch(job, node, step, agent);
                 continue;
             }
 
