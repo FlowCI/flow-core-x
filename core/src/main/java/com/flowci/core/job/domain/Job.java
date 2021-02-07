@@ -255,8 +255,8 @@ public class Job extends Mongoable implements Pathable {
     }
 
     @JsonIgnore
-    public boolean isCancelled() {
-        return status == Status.CANCELLED;
+    public boolean isRunning() {
+        return status == Status.RUNNING;
     }
 
     @JsonIgnore

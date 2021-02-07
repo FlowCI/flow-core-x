@@ -3,7 +3,7 @@ package com.flowci.core.job.manager;
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellIn;
-import com.flowci.core.agent.event.AgentIdleEvent;
+import com.flowci.core.agent.event.IdleAgentEvent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.git.GitClient;
@@ -15,7 +15,6 @@ import com.flowci.core.job.dao.JobAgentDao;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.dao.JobPriorityDao;
 import com.flowci.core.job.domain.*;
-import com.flowci.core.job.event.JobDeletedEvent;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.service.LocalTaskService;
@@ -23,7 +22,6 @@ import com.flowci.core.job.service.StepService;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.domain.ObjectWrapper;
 import com.flowci.domain.SimpleSecret;
 import com.flowci.domain.Vars;
 import com.flowci.exception.CIException;
@@ -52,7 +50,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
 @Log4j2
@@ -105,8 +102,6 @@ public class JobActionManagerImpl implements JobActionManager {
 
     private static final int DefaultJobLockTimeout = 20; // seconds
 
-    private static final String FetchAgentLockKey = "fetch-agent";
-
     @Autowired
     private Path repoDir;
 
@@ -155,9 +150,6 @@ public class JobActionManagerImpl implements JobActionManager {
     @Autowired
     private StateMachine<JobSmContext> sm;
 
-    // flow id, notify lock for agent
-    private final Map<String, AcquireLock> acquireLocks = new ConcurrentHashMap<>();
-
     // job node execute thread pool
     private final Map<String, ThreadPoolTaskExecutor> pool = new ConcurrentHashMap<>();
 
@@ -177,27 +169,41 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     @EventListener
-    public void doNotifyToFindAgent(AgentIdleEvent event) {
-        Agent agent = event.getAgent();
-        Optional<Job> optional = jobDao.findById(agent.getId());
-        if (optional.isPresent()) {
-            String flowId = optional.get().getFlowId();
-            acquireLocks.computeIfPresent(flowId, (s, lock) -> {
-                ThreadHelper.notifyAll(lock);
-                return lock;
-            });
-        }
-    }
+    public void onIdleAgent(IdleAgentEvent event) {
+        Agent idleAgent = event.getAgent();
+        List<JobKey> keys = jobPriorityDao.findAllMinBuildNumber();
+        // TODO: flow priority
 
-    @EventListener
-    public void stopJobsThatWaitingForAgent(JobDeletedEvent event) {
-        AcquireLock lock = acquireLocks.get(event.getFlow().getId());
-        if (Objects.isNull(lock)) {
-            return;
-        }
+        for (JobKey key : keys) {
+            if (key.getBuildNumber() == null) {
+                continue;
+            }
 
-        lock.stop = true;
-        ThreadHelper.notifyAll(lock);
+            Optional<Job> optional = jobDao.findByKey(key.toString());
+            if (!optional.isPresent()) {
+                continue;
+            }
+
+            Job job = optional.get();
+            if (!job.isRunning()) {
+                continue;
+            }
+
+            Optional<InterLock> lock = lock(job.getId(), "LockJobFromIdleAgent");
+            if (!lock.isPresent()) {
+                toFailureStatus(job, null, new CIException("Fail to lock job"));
+                continue;
+            }
+
+            try {
+                NodeTree tree = ymlManager.getTree(job);
+                assignAgentToWaitingStep(idleAgent, job, tree);
+            } catch (Exception e) {
+                toFailureStatus(job, null, new CIException(e.getMessage()));
+            } finally {
+                unlock(lock.get(), "LockJobFromIdleAgent");
+            }
+        }
     }
 
     @Override
@@ -322,7 +328,6 @@ public class JobActionManagerImpl implements JobActionManager {
         });
 
         sm.add(CreatedToQueued, new Action<JobSmContext>() {
-
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
@@ -361,6 +366,11 @@ public class JobActionManagerImpl implements JobActionManager {
 
         sm.add(QueuedToRunning, new Action<JobSmContext>() {
             @Override
+            public boolean canRun(JobSmContext context) {
+                return lockJobBefore(context);
+            }
+
+            @Override
             public void accept(JobSmContext context) throws Exception {
                 Job job = context.job;
                 eventManager.publish(new JobReceivedEvent(this, job));
@@ -375,15 +385,18 @@ public class JobActionManagerImpl implements JobActionManager {
 
                 // start from root path, and block current thread since don't send ack back to queue
                 NodeTree tree = ymlManager.getTree(job);
-                CountDownLatch latch = new CountDownLatch(1);
-                executeJob(job, Lists.newArrayList(tree.getRoot()), latch);
-                latch.await();
+                executeJob(job, Lists.newArrayList(tree.getRoot()));
             }
 
             @Override
             public void onException(Throwable e, JobSmContext context) {
                 context.setError(e);
                 sm.execute(Queued, Failure, context);
+            }
+
+            @Override
+            public void onFinally(JobSmContext context) {
+                unlockJobAfter(context);
             }
         });
 
@@ -413,11 +426,24 @@ public class JobActionManagerImpl implements JobActionManager {
                 Job job = context.job;
                 Step step = context.step;
 
+                stepService.resultUpdate(step);
+                log.debug("Step {} been recorded", step.getNodePath());
+
+                // update job attributes and context
+                updateJobContextAndLatestStatus(job, step);
+                setJobStatusAndSave(job, Job.Status.RUNNING, null);
+
                 NodeTree tree = ymlManager.getTree(job);
                 Node node = tree.get(step.getNodePath());
 
                 if (node.isLastChildOfParent()) {
-                    releaseAgentFromJob(context.job, node, step);
+                    String agentId = releaseAgentFromJob(context.job, node, step);
+                    Agent agent = agentService.get(agentId);
+
+                    if (assignAgentToWaitingStep(agent, job, tree)) {
+                        return;
+                    }
+
                     releaseAgentToPool(context.job, node, step);
                 }
 
@@ -629,7 +655,7 @@ public class JobActionManagerImpl implements JobActionManager {
         Selector selector = flow.fetchSelector();
 
         // find agent outside job, blocking thread
-        Optional<Agent> optional = agentService.acquire(job, selector);
+        Optional<Agent> optional = agentService.acquire(job.getId(), selector);
         if (optional.isPresent()) {
             Agent agent = optional.get();
             jobAgentDao.addFlowToAgent(job.getId(), agent.getId(), flow.getPathAsString());
@@ -639,10 +665,11 @@ public class JobActionManagerImpl implements JobActionManager {
         return Optional.empty();
     }
 
-    private void releaseAgentFromJob(Job job, Node node, Step step) {
+    private String releaseAgentFromJob(Job job, Node node, Step step) {
         String agentId = step.getAgentId();
         FlowNode flow = node.getParentFlowNode();
         jobAgentDao.removeFlowFromAgent(job.getId(), agentId, flow.getPathAsString());
+        return agentId;
     }
 
     private void releaseAgentToPool(Job job, Node node, Step step) {
@@ -670,13 +697,8 @@ public class JobActionManagerImpl implements JobActionManager {
             return;
         }
 
-        // release agent and put it back to pool
-        execAgentOperation(
-                () -> toFailureStatus(job, step, new CIException("Unable to acquire lock")),
-                () -> {
-                    agentService.release(Sets.newHashSet(agentId));
-                    jobAgentDao.removeAgent(job.getId(), agentId);
-                });
+        agentService.release(Sets.newHashSet(agentId));
+        jobAgentDao.removeAgent(job.getId(), agentId);
     }
 
     private void toFailureStatus(Job job, Step step, CIException e) {
@@ -784,13 +806,6 @@ public class JobActionManagerImpl implements JobActionManager {
         NodeTree tree = ymlManager.getTree(job);
         Node node = tree.get(NodePath.create(step.getNodePath())); // current node
 
-        stepService.resultUpdate(step);
-        log.debug("Step {} been recorded", step.getNodePath());
-
-        // update job attributes and context
-        updateJobContextAndLatestStatus(job, node, step);
-        setJobStatusAndSave(job, Job.Status.RUNNING, null);
-
         // return if current step is failure
         if (!step.isSuccess()) {
             log.debug("Job {} stop on {}", job.getId(), step.getNodePath());
@@ -819,7 +834,7 @@ public class JobActionManagerImpl implements JobActionManager {
             return true;
         }
 
-        executeJob(job, next, null);
+        executeJob(job, next);
         return true;
     }
 
@@ -843,7 +858,38 @@ public class JobActionManagerImpl implements JobActionManager {
         return status;
     }
 
-    private void executeJob(Job job, List<Node> nodes, CountDownLatch latch) throws ScriptException {
+    private boolean assignAgentToWaitingStep(Agent agent, Job job, NodeTree tree) {
+        List<Step> steps = stepService.list(job, Lists.newArrayList(Executed.Status.WAITING_AGENT));
+        if (steps.isEmpty()) {
+            return false;
+        }
+
+        for (Step waitingForAgentStep : steps) {
+            if (!waitingForAgentStep.isStepType()) {
+                continue;
+            }
+
+            Node n = tree.get(waitingForAgentStep.getNodePath());
+            FlowNode f = n.getParentFlowNode();
+            Selector s = f.fetchSelector();
+
+            if (!agent.match(s)) {
+                continue;
+            }
+
+            if (agent.isIdle()) {
+                agentService.assign(job.getId(), agent);
+            }
+
+            jobAgentDao.addFlowToAgent(job.getId(), agent.getId(), f.getPathAsString());
+            dispatch(job, n, waitingForAgentStep, agent);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void executeJob(Job job, List<Node> nodes) throws ScriptException {
         job.setCurrentPathFromNodes(nodes);
         setJobStatusAndSave(job, job.getStatus(), null);
 
@@ -855,96 +901,33 @@ public class JobActionManagerImpl implements JobActionManager {
 
             if (!condition) {
                 setSkipStatusToStep(step);
-                updateJobContextAndLatestStatus(job, node, step);
+                updateJobContextAndLatestStatus(job, step);
 
                 List<Node> next = tree.skip(node.getPath());
-                executeJob(job, next, latch);
+                executeJob(job, next);
                 continue;
             }
 
             // skip current node cmd dispatch if the node has children
             if (node.hasChildren()) {
-                executeJob(job, node.getNext(), latch);
+                executeJob(job, node.getNext());
+                continue;
+            }
+
+            Optional<Agent> optionalFromJob = fetchAgentFromJob(job, node);
+            if (optionalFromJob.isPresent()) {
+                dispatch(job, node, step, optionalFromJob.get());
+                continue;
+            }
+
+            Optional<Agent> optionalFromPool = fetchAgentFromPool(job, node);
+            if (optionalFromPool.isPresent()) {
+                dispatch(job, node, step, optionalFromPool.get());
                 continue;
             }
 
             stepService.toStatus(step, Executed.Status.WAITING_AGENT, null, false);
-            findAgentAndDispatch(tree, job, node, step, latch);
         }
-    }
-
-    private void findAgentAndDispatch(NodeTree tree, Job instance, Node node, Step step, CountDownLatch latch) {
-        String jobId = instance.getId();
-        String flowId = instance.getFlowId();
-
-        ThreadPoolTaskExecutor executor = pool.get(jobId);
-        if (executor == null) {
-            executor = ThreadHelper.createTaskExecutor(tree.getMaxHeight(), 1, 0, jobId);
-            pool.put(jobId, executor);
-        }
-
-        executor.execute(() -> {
-            while (true) {
-                ObjectWrapper<Boolean> isBreak = new ObjectWrapper<>(false);
-                execAgentOperation(
-                        () -> toFailureStatus(instance, step, new CIException("Unable to acquire lock")),
-                        () -> {
-                            Job job = reload(jobId);
-
-                            if (job.isExpired()) {
-                                on(job, Job.Status.TIMEOUT, (c) -> c.setError(new Exception("agent not found within timeout")));
-                                isBreak.setValue(true);
-                                return;
-                            }
-
-                            if (job.isCancelling() || job.isDone()) {
-                                isBreak.setValue(true);
-                                return;
-                            }
-
-                            // find agent from job within current thread
-                            Optional<Agent> optional = fetchAgentFromJob(instance, node);
-                            if (optional.isPresent()) {
-                                Agent agent = optional.get();
-                                dispatch(instance, node, step, agent);
-                                isBreak.setValue(true);
-                                return;
-                            }
-
-                            optional = fetchAgentFromPool(job, node);
-                            if (optional.isPresent()) {
-                                Agent agent = optional.get();
-
-                                job.addAgentSnapshot(agent);
-                                setJobStatusAndSave(job, Job.Status.RUNNING, null);
-
-                                dispatch(job, node, step, agent);
-                                isBreak.setValue(true);
-                                return;
-                            }
-
-                            log.debug("Unable to get agent for job {}/{} - {}",
-                                    job.getFlowName(), job.getBuildNumber(), node.getPathAsString());
-                        }
-                );
-
-                if (isBreak.getValue()) {
-                    break;
-                }
-
-                AcquireLock lock = acquireLocks.computeIfAbsent(flowId, s -> new AcquireLock());
-                if (lock.stop) {
-                    acquireLocks.remove(flowId);
-                    break;
-                }
-
-                ThreadHelper.wait(lock, RetryInterval);
-            }
-
-            if (latch != null) {
-                latch.countDown();
-            }
-        });
     }
 
     /**
@@ -994,20 +977,6 @@ public class JobActionManagerImpl implements JobActionManager {
         sm.execute(context.getCurrent(), new Status(statusFromContext.name()), context);
     }
 
-    private void execAgentOperation(Runnable onLockNotFound, Runnable onAgentLock) {
-        Optional<InterLock> lock = lock(FetchAgentLockKey, "fetch agent");
-        if (!lock.isPresent()) {
-            onLockNotFound.run();
-            return;
-        }
-
-        try {
-            onAgentLock.run();
-        } finally {
-            unlock(lock.get(), FetchAgentLockKey);
-        }
-    }
-
     private void setJobStatusAndSave(Job job, Job.Status newStatus, String message) {
         // check status order, just save job if new status is downgrade
         if (job.getStatus().getOrder() >= newStatus.getOrder()) {
@@ -1026,7 +995,7 @@ public class JobActionManagerImpl implements JobActionManager {
         logInfo(job, "status = {}", job.getStatus());
     }
 
-    private void updateJobContextAndLatestStatus(Job job, Node node, Step step) {
+    private void updateJobContextAndLatestStatus(Job job, Step step) {
         job.setFinishAt(step.getFinishAt());
 
         // merge output to job context
@@ -1035,7 +1004,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
         context.put(Variables.Job.StartAt, job.startAtInStr());
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
-        context.put(Variables.Job.Steps, stepService.toVarString(job, node));
+        context.put(Variables.Job.Steps, stepService.toVarString(job, step));
 
         // DO NOT update job status from context
         job.setStatusToContext(StatusHelper.convert(step));
@@ -1087,27 +1056,10 @@ public class JobActionManagerImpl implements JobActionManager {
             jobPriorityDao.removeJob(job.getFlowId(), job.getBuildNumber());
             pool.remove(job.getId());
 
-            execAgentOperation(
-                    () -> {
-                    },
-
-                    // release agent
-                    () -> {
-                        JobAgent agents = getJobAgent(job.getId());
-                        agentService.release(agents.all());
-                        for (String agentId : agents.all()) {
-                            log.debug("------ [RELEASE] job {}/{} , agent {}",
-                                    job.getFlowName(), job.getBuildNumber(), agentId);
-                        }
-                    }
-            );
+            JobAgent agents = getJobAgent(job.getId());
+            agentService.release(agents.all());
 
             localTaskService.executeAsync(job);
         }
-    }
-
-    private static class AcquireLock {
-
-        public boolean stop = false;
     }
 }

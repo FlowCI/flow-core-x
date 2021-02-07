@@ -104,7 +104,7 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public String toVarString(Job job, Node current) {
+    public String toVarString(Job job, Step current) {
         StringBuilder builder = new StringBuilder();
         for (Step step : list(job)) {
             NodePath path = NodePath.create(step.getNodePath());
@@ -113,10 +113,8 @@ public class StepServiceImpl implements StepService {
                     .append(step.getStatus().name());
             builder.append(";");
 
-            if (current != null) {
-                if (step.getNodePath().equals(current.getPath().getPathInStr())) {
-                    break;
-                }
+            if (step.getNodePath().equals(current.getNodePath())) {
+                break;
             }
         }
         return builder.deleteCharAt(builder.length() - 1).toString();

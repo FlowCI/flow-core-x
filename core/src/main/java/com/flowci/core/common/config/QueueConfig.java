@@ -75,6 +75,18 @@ public class QueueConfig {
         return manager;
     }
 
+    @Bean("idleAgentQueue")
+    public String idleAgentQueue() {
+        return "flow.idle.agent";
+    }
+
+    @Bean("idleAgentQueueManager")
+    public RabbitOperations idleAgentQueueManager(Connection rabbitConnection, String idleAgentQueue) throws IOException {
+        RabbitOperations manager = new RabbitOperations(rabbitConnection, 1);
+        manager.declareTemp(idleAgentQueue);
+        return manager;
+    }
+
     @Bean("wsBroadcastQueue")
     public String wsBroadcastQueue() {
         return "bc.ws.q." + StringHelper.randomString(8);

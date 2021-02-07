@@ -1,18 +1,21 @@
 package com.flowci.core.test.job;
 
 import com.flowci.core.job.dao.JobPriorityDao;
+import com.flowci.core.job.domain.JobKey;
 import com.flowci.core.job.domain.JobPriority;
 import com.flowci.core.test.SpringScenario;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
 import java.util.Optional;
 
 public class JobPriorityDaoTest extends SpringScenario {
 
     @Autowired
-    private JobPriorityDao agentPriorityDao;
+    private JobPriorityDao jobPriorityDao;
 
     @Test
     public void should_operate_agent_priority() {
@@ -22,29 +25,57 @@ public class JobPriorityDaoTest extends SpringScenario {
         JobPriority p = new JobPriority();
         p.setFlowId(flowId);
 
-        agentPriorityDao.insert(p);
+        jobPriorityDao.insert(p);
 
         // when: add job to priority
-        agentPriorityDao.addJob(flowId, 1L);
-        agentPriorityDao.addJob(flowId, 2L);
+        jobPriorityDao.addJob(flowId, 1L);
+        jobPriorityDao.addJob(flowId, 2L);
 
         // then: job list should be added
-        Optional<JobPriority> optional = agentPriorityDao.findByFlowId(flowId);
+        Optional<JobPriority> optional = jobPriorityDao.findByFlowId(flowId);
         Assert.assertTrue(optional.isPresent());
 
         JobPriority priority = optional.get();
         Assert.assertEquals(2, priority.getQueue().size());
-        Assert.assertEquals(1L, agentPriorityDao.findMinBuildNumber(flowId));
+        Assert.assertEquals(1L, jobPriorityDao.findMinBuildNumber(flowId));
 
         // when: remove job from priority
-        agentPriorityDao.removeJob(flowId, 1L);
+        jobPriorityDao.removeJob(flowId, 1L);
 
         // then: build number should be removed
-        optional = agentPriorityDao.findByFlowId(flowId);
+        optional = jobPriorityDao.findByFlowId(flowId);
         Assert.assertTrue(optional.isPresent());
 
         priority = optional.get();
         Assert.assertEquals(1, priority.getQueue().size());
-        Assert.assertEquals(2L, agentPriorityDao.findMinBuildNumber(flowId));
+        Assert.assertEquals(2L, jobPriorityDao.findMinBuildNumber(flowId));
+    }
+
+    @Test
+    public void should_get_all_min_buildnumber() {
+        // given:
+        JobPriority p1 = new JobPriority();
+        p1.setFlowId("flowA");
+        p1.setQueue(Lists.newArrayList(1L, 2L, 3L));
+        jobPriorityDao.save(p1);
+
+        JobPriority p2 = new JobPriority();
+        p2.setFlowId("flowB");
+        p2.setQueue(Lists.newArrayList(10L, 11L, 12L));
+        jobPriorityDao.save(p2);
+
+        JobPriority p3 = new JobPriority();
+        p3.setFlowId("flowC");
+        p3.setQueue(Lists.newArrayList());
+        jobPriorityDao.save(p3);
+
+        // when:
+        List<JobKey> all = jobPriorityDao.findAllMinBuildNumber();
+        Assert.assertEquals(3, all.size());
+
+        // then:
+        Assert.assertEquals(1L, (long) all.get(0).getBuildNumber());
+        Assert.assertEquals(10L, (long) all.get(1).getBuildNumber());
+        Assert.assertNull(all.get(2).getBuildNumber());
     }
 }

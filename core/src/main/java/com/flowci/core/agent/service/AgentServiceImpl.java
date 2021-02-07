@@ -27,24 +27,26 @@ import com.flowci.core.agent.event.*;
 import com.flowci.core.agent.manager.AgentEventManager;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CipherHelper;
+import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.manager.SpringTaskManager;
-import com.flowci.core.job.domain.Job;
+import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
+import com.flowci.exception.StatusException;
 import com.flowci.tree.Selector;
+import com.flowci.util.ObjectsHelper;
+import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
-import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
 
@@ -60,6 +62,14 @@ import static com.flowci.core.agent.domain.Agent.Status.*;
 @Log4j2
 @Service
 public class AgentServiceImpl implements AgentService {
+
+    private static final String FetchAgentLockKey = "fetch-agent";
+
+    private static final int DefaultAgentLockTimeout = 20; // seconds
+
+    private static final int MinIdleAgentPushBack = 2; // seconds
+
+    private static final int MaxIdleAgentPushBack = 10; // seconds
 
     @Autowired
     private AppProperties.Zookeeper zkProperties;
@@ -82,7 +92,13 @@ public class AgentServiceImpl implements AgentService {
     @Autowired
     private AgentEventManager agentEventManager;
 
-    @PostConstruct
+    @Autowired
+    private String idleAgentQueue;
+
+    @Autowired
+    private RabbitOperations idleAgentQueueManager;
+
+    @EventListener(ContextRefreshedEvent.class)
     public void initAgentStatus() {
         taskManager.run("init-agent-status", () -> {
             for (Agent agent : agentDao.findAll()) {
@@ -94,6 +110,35 @@ public class AgentServiceImpl implements AgentService {
                 agentDao.save(agent);
             }
         });
+    }
+
+    @EventListener(ContextRefreshedEvent.class)
+    public void subscribeIdleAgentQueue() throws IOException {
+        idleAgentQueueManager.startConsumer(idleAgentQueue, false, (header, body, envelope) -> {
+            String agentId = new String(body);
+            log.debug("Got an idle agent {}", agentId);
+
+            try {
+                Agent agent = get(agentId);
+                if (!agent.isIdle()) {
+                    log.debug("Agent {} no longer idle", agentId);
+                    return true;
+                }
+
+                eventManager.publish(new IdleAgentEvent(this, agent));
+
+                // agent not used after event, push back to queue
+                if (agent.isIdle()) {
+                    int randomSec = ObjectsHelper.randomNumber(MinIdleAgentPushBack, MaxIdleAgentPushBack);
+                    ThreadHelper.sleep(randomSec * 1000L);
+                    idleAgentQueueManager.send(idleAgentQueue, agent.getId().getBytes());
+                }
+
+            } catch (Exception e) {
+                log.warn(e.getMessage());
+            }
+            return true;
+        }, null);
     }
 
     //====================================================================
@@ -177,48 +222,66 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Optional<Agent> acquire(Job job, Selector selector) {
-        String jobId = job.getId();
-
-        List<Agent> agents = find(selector, IDLE);
-        if (agents.isEmpty()) {
-            eventManager.publish(new NoIdleAgentEvent(this, jobId, selector));
-            return Optional.empty();
+    public Optional<Agent> acquire(String jobId, Selector selector) {
+        Optional<InterLock> lock = lock();
+        if (!lock.isPresent()) {
+            throw new StatusException("Unable to get lock");
         }
 
-        Agent agent = agents.get(0);
-        agent.setJobId(job.getId());
-        update(agent, BUSY);
-        return Optional.of(agent);
-    }
+        try {
+            List<Agent> agents = find(selector, IDLE);
+            if (agents.isEmpty()) {
+                eventManager.publish(new NoIdleAgentEvent(this, jobId, selector));
+                return Optional.empty();
+            }
 
-    @Override
-    public Optional<Agent> tryLock(String jobId, String agentId) {
-        // check agent is available form db
-        Agent agent = get(agentId);
-        if (agent.isBusy()) {
-            return Optional.empty();
+            Agent agent = agents.get(0);
+            agent.setJobId(jobId);
+            update(agent, BUSY);
+
+            return Optional.of(agent);
+        } finally {
+            unlock(lock.get());
         }
-
-        // lock and set status to busy
-        agent.setJobId(jobId);
-        update(agent, Status.BUSY);
-        return Optional.of(agent);
     }
 
     @Override
     public void release(Collection<String> ids) {
-        for (String agentId : ids) {
-            Agent agent = get(agentId);
-            agent.setJobId(null);
+        Optional<InterLock> lock = lock();
+        if (!lock.isPresent()) {
+            throw new StatusException("Unable to get lock");
+        }
 
-            switch (agent.getStatus()) {
-                case OFFLINE:
-                    update(agent, OFFLINE);
-                    return;
-                case BUSY:
-                    update(agent, IDLE);
+        try {
+            for (String agentId : ids) {
+                Agent agent = get(agentId);
+                agent.setJobId(null);
+
+                switch (agent.getStatus()) {
+                    case OFFLINE:
+                        update(agent, OFFLINE);
+                    case BUSY:
+                        update(agent, IDLE);
+                        idleAgentQueueManager.send(idleAgentQueue, agentId.getBytes());
+                }
             }
+        } finally {
+            unlock(lock.get());
+        }
+    }
+
+    @Override
+    public void assign(String jobId, Agent agent) {
+        Optional<InterLock> lock = lock();
+        if (!lock.isPresent()) {
+            throw new StatusException("Unable to get lock");
+        }
+
+        try {
+            agent.setJobId(jobId);
+            update(agent, BUSY);
+        } finally {
+            unlock(lock.get());
         }
     }
 
@@ -323,7 +386,10 @@ public class AgentServiceImpl implements AgentService {
         target.setResource(init.getResource());
 
         update(target, init.getStatus());
-        syncLockNode(target, true);
+
+        if (target.isIdle()) {
+            idleAgentQueueManager.send(idleAgentQueue, target.getId().getBytes());
+        }
     }
 
     @EventListener
@@ -331,47 +397,28 @@ public class AgentServiceImpl implements AgentService {
         try {
             Agent target = getByToken(event.getToken());
             update(target, OFFLINE);
-            syncLockNode(target, false);
         } catch (NotFoundException ignore) {
 
         }
-    }
-
-    @EventListener
-    public void notifyToFindAgent(AgentStatusEvent event) {
-        Agent agent = event.getAgent();
-
-        if (!agent.hasJob()) {
-            return;
-        }
-
-        if (!agent.isIdle()) {
-            return;
-        }
-
-        eventManager.publish(new AgentIdleEvent(this, agent));
     }
 
     //====================================================================
     //        %% Private methods
     //====================================================================
 
-    private void syncLockNode(Agent agent, boolean isCreate) {
-        String lockPath = Util.getZkLockPath(zkProperties.getAgentRoot(), agent);
+    private Optional<InterLock> lock() {
+        String path = zk.makePath("/agent-locks", FetchAgentLockKey);
+        Optional<InterLock> lock = zk.lock(path, DefaultAgentLockTimeout);
+        lock.ifPresent(interLock -> log.debug("Lock: {}", FetchAgentLockKey));
+        return lock;
+    }
 
-        if (isCreate) {
-            try {
-                zk.create(CreateMode.PERSISTENT, lockPath, null);
-            } catch (Throwable ignore) {
-
-            }
-            return;
-        }
-
+    private void unlock(InterLock lock) {
         try {
-            zk.delete(lockPath, true);
-        } catch (Throwable ignore) {
-
+            zk.release(lock);
+            log.debug("Unlock: {}", FetchAgentLockKey);
+        } catch (Exception warn) {
+            log.warn(warn);
         }
     }
 }
