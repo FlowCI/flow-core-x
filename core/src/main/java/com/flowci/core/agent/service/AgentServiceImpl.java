@@ -100,7 +100,7 @@ public class AgentServiceImpl implements AgentService {
 
     @EventListener(ContextRefreshedEvent.class)
     public void initAgentStatus() {
-        taskManager.run("init-agent-status", () -> {
+        taskManager.run("init-agent-status", true, () -> {
             for (Agent agent : agentDao.findAll()) {
                 if (agent.isStarting() || agent.isOffline()) {
                     continue;

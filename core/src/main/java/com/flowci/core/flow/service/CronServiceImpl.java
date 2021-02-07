@@ -119,7 +119,7 @@ public class CronServiceImpl implements CronService {
             String expressionBase64 = Base64.getEncoder().encodeToString(expression.getBytes());
             String taskName = String.format("%s-%s", flow.getName(), expressionBase64);
 
-            taskManager.run(taskName, () -> {
+            taskManager.run(taskName, false, () -> {
                 try {
                     Yml yml = ymlService.getYml(flow.getId(), Yml.DEFAULT_NAME);
                     log.info("Start flow '{}' from cron task", flow.getName());

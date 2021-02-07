@@ -362,7 +362,7 @@ public class AgentHostServiceImpl implements AgentHostService {
 
     @Scheduled(cron = "0 0/5 * * * ?")
     public void scheduleCollect() {
-        taskManager.run("agent-host-collect", () -> {
+        taskManager.run("agent-host-collect", false, () -> {
             for (AgentHost host : list()) {
                 collect(host);
             }
