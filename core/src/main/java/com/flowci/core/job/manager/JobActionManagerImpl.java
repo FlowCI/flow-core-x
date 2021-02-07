@@ -196,35 +196,10 @@ public class JobActionManagerImpl implements JobActionManager {
             }
 
             try {
-                // check waiting for agent step
-                List<Step> steps = stepService.list(job, Lists.newArrayList(Executed.Status.WAITING_AGENT));
-                if (steps.isEmpty()) {
-                    continue;
-                }
-
                 NodeTree tree = ymlManager.getTree(job);
-                for (Step step : steps) {
-                    if (!step.isStepType()) {
-                        continue;
-                    }
-
-                    Node node = tree.get(step.getNodePath());
-                    FlowNode flow = node.getParentFlowNode();
-                    Selector selector = flow.fetchSelector();
-
-                    if (!idleAgent.match(selector)) {
-                        continue;
-                    }
-
-                    try {
-                        agentService.assign(job.getId(), idleAgent);
-                        jobAgentDao.addFlowToAgent(job.getId(), idleAgent.getId(), flow.getPathAsString());
-                        dispatch(job, node, step, idleAgent);
-                        return;
-                    } catch (Exception e) {
-                        toFailureStatus(job, step, new CIException(e.getMessage()));
-                    }
-                }
+                assignAgentToWaitingStep(idleAgent, job, tree);
+            } catch (Exception e) {
+                toFailureStatus(job, null, new CIException(e.getMessage()));
             } finally {
                 unlock(lock.get(), "LockJobFromIdleAgent");
             }
@@ -451,11 +426,24 @@ public class JobActionManagerImpl implements JobActionManager {
                 Job job = context.job;
                 Step step = context.step;
 
+                stepService.resultUpdate(step);
+                log.debug("Step {} been recorded", step.getNodePath());
+
+                // update job attributes and context
+                updateJobContextAndLatestStatus(job, step);
+                setJobStatusAndSave(job, Job.Status.RUNNING, null);
+
                 NodeTree tree = ymlManager.getTree(job);
                 Node node = tree.get(step.getNodePath());
 
                 if (node.isLastChildOfParent()) {
-                    releaseAgentFromJob(context.job, node, step);
+                    String agentId = releaseAgentFromJob(context.job, node, step);
+                    Agent agent = agentService.get(agentId);
+
+                    if (assignAgentToWaitingStep(agent, job, tree)) {
+                        return;
+                    }
+
                     releaseAgentToPool(context.job, node, step);
                 }
 
@@ -677,10 +665,11 @@ public class JobActionManagerImpl implements JobActionManager {
         return Optional.empty();
     }
 
-    private void releaseAgentFromJob(Job job, Node node, Step step) {
+    private String releaseAgentFromJob(Job job, Node node, Step step) {
         String agentId = step.getAgentId();
         FlowNode flow = node.getParentFlowNode();
         jobAgentDao.removeFlowFromAgent(job.getId(), agentId, flow.getPathAsString());
+        return agentId;
     }
 
     private void releaseAgentToPool(Job job, Node node, Step step) {
@@ -817,13 +806,6 @@ public class JobActionManagerImpl implements JobActionManager {
         NodeTree tree = ymlManager.getTree(job);
         Node node = tree.get(NodePath.create(step.getNodePath())); // current node
 
-        stepService.resultUpdate(step);
-        log.debug("Step {} been recorded", step.getNodePath());
-
-        // update job attributes and context
-        updateJobContextAndLatestStatus(job, node, step);
-        setJobStatusAndSave(job, Job.Status.RUNNING, null);
-
         // return if current step is failure
         if (!step.isSuccess()) {
             log.debug("Job {} stop on {}", job.getId(), step.getNodePath());
@@ -876,6 +858,37 @@ public class JobActionManagerImpl implements JobActionManager {
         return status;
     }
 
+    private boolean assignAgentToWaitingStep(Agent agent, Job job, NodeTree tree) {
+        List<Step> steps = stepService.list(job, Lists.newArrayList(Executed.Status.WAITING_AGENT));
+        if (steps.isEmpty()) {
+            return false;
+        }
+
+        for (Step waitingForAgentStep : steps) {
+            if (!waitingForAgentStep.isStepType()) {
+                continue;
+            }
+
+            Node n = tree.get(waitingForAgentStep.getNodePath());
+            FlowNode f = n.getParentFlowNode();
+            Selector s = f.fetchSelector();
+
+            if (!agent.match(s)) {
+                continue;
+            }
+
+            if (agent.isIdle()) {
+                agentService.assign(job.getId(), agent);
+            }
+
+            jobAgentDao.addFlowToAgent(job.getId(), agent.getId(), f.getPathAsString());
+            dispatch(job, n, waitingForAgentStep, agent);
+            return true;
+        }
+
+        return false;
+    }
+
     private void executeJob(Job job, List<Node> nodes) throws ScriptException {
         job.setCurrentPathFromNodes(nodes);
         setJobStatusAndSave(job, job.getStatus(), null);
@@ -888,7 +901,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
             if (!condition) {
                 setSkipStatusToStep(step);
-                updateJobContextAndLatestStatus(job, node, step);
+                updateJobContextAndLatestStatus(job, step);
 
                 List<Node> next = tree.skip(node.getPath());
                 executeJob(job, next);
@@ -982,7 +995,7 @@ public class JobActionManagerImpl implements JobActionManager {
         logInfo(job, "status = {}", job.getStatus());
     }
 
-    private void updateJobContextAndLatestStatus(Job job, Node node, Step step) {
+    private void updateJobContextAndLatestStatus(Job job, Step step) {
         job.setFinishAt(step.getFinishAt());
 
         // merge output to job context
@@ -991,7 +1004,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
         context.put(Variables.Job.StartAt, job.startAtInStr());
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
-        context.put(Variables.Job.Steps, stepService.toVarString(job, node));
+        context.put(Variables.Job.Steps, stepService.toVarString(job, step));
 
         // DO NOT update job status from context
         job.setStatusToContext(StatusHelper.convert(step));
