@@ -36,6 +36,7 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.tree.Selector;
+import com.flowci.util.ObjectsHelper;
 import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.Sets;
@@ -65,6 +66,10 @@ public class AgentServiceImpl implements AgentService {
     private static final String FetchAgentLockKey = "fetch-agent";
 
     private static final int DefaultAgentLockTimeout = 20; // seconds
+
+    private static final int MinIdleAgentPushBack = 2; // seconds
+
+    private static final int MaxIdleAgentPushBack = 10; // seconds
 
     @Autowired
     private AppProperties.Zookeeper zkProperties;
@@ -122,9 +127,10 @@ public class AgentServiceImpl implements AgentService {
 
                 eventManager.publish(new IdleAgentEvent(this, agent));
 
-                // agent not used, push back to queue
+                // agent not used after event, push back to queue
                 if (agent.isIdle()) {
-                    ThreadHelper.sleep(5 * 1000);
+                    int randomSec = ObjectsHelper.randomNumber(MinIdleAgentPushBack, MaxIdleAgentPushBack);
+                    ThreadHelper.sleep(randomSec * 1000L);
                     idleAgentQueueManager.send(idleAgentQueue, agent.getId().getBytes());
                 }
 

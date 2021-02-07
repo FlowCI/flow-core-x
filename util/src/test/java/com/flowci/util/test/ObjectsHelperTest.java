@@ -46,4 +46,10 @@ public class ObjectsHelperTest {
         r = ObjectsHelper.hasValue(obj, Sets.newHashSet("id", "name", "isCreated", "array"));
         Assert.assertTrue(r);
     }
+
+    @Test
+    public void should_get_random_between() {
+        int i = ObjectsHelper.randomNumber(5, 10);
+        Assert.assertTrue(i >= 5 && i <= 10);
+    }
 }

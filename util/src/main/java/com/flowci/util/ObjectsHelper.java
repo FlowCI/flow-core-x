@@ -26,6 +26,10 @@ import java.util.function.Consumer;
  */
 public abstract class ObjectsHelper {
 
+    public static int randomNumber(int min, int max) {
+        return (int) ((Math.random() * (max - min)) + min);
+    }
+
     public static boolean hasCollection(Collection<?> collection) {
         return collection != null && collection.size() > 0;
     }
