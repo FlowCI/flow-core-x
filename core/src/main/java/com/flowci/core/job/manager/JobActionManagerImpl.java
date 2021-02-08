@@ -216,8 +216,11 @@ public class JobActionManagerImpl implements JobActionManager {
             try {
                 NodeTree tree = ymlManager.getTree(job);
                 boolean isAssigned = assignAgentToWaitingStep(agentId, job, tree);
-                event.setFetched(!isAssigned); // set to
-                return;
+
+                if (isAssigned) {
+                    event.setFetched(false); // set to false since agent has been assigned
+                    return;
+                }
             } catch (Exception e) {
                 toFailureStatus(job, null, new CIException(e.getMessage()));
             } finally {

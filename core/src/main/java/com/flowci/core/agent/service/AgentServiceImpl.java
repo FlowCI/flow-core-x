@@ -205,23 +205,27 @@ public class AgentServiceImpl implements AgentService {
             return Optional.empty();
         }
 
-        Optional<Agent> optional = agentDao.findById(agentId);
-        if (!optional.isPresent()) {
-            return Optional.empty();
-        }
+        try {
+            Optional<Agent> optional = agentDao.findById(agentId);
+            if (!optional.isPresent()) {
+                return Optional.empty();
+            }
 
-        Agent agent = optional.get();
-        if (!agent.isIdle()) {
-            return Optional.empty();
-        }
+            Agent agent = optional.get();
+            if (!agent.isIdle()) {
+                return Optional.empty();
+            }
 
-        if (!agent.match(selector)) {
-            return Optional.empty();
-        }
+            if (!agent.match(selector)) {
+                return Optional.empty();
+            }
 
-        agent.setJobId(jobId);
-        update(agent, BUSY);
-        return optional;
+            agent.setJobId(jobId);
+            update(agent, BUSY);
+            return optional;
+        } finally {
+            unlock(lock.get());
+        }
     }
 
     @Override
@@ -365,28 +369,41 @@ public class AgentServiceImpl implements AgentService {
 
     @EventListener
     public void onConnected(OnConnectedEvent event) {
-        Agent target = getByToken(event.getToken());
-        AgentInit init = event.getInit();
+        Optional<InterLock> lock = lock();
+        if (!lock.isPresent()) {
+            log.error("Agent lock not available");
+            return;
+        }
 
-        target.setK8sCluster(init.getK8sCluster());
-        target.setUrl("http://" + init.getIp() + ":" + init.getPort());
-        target.setOs(init.getOs());
-        target.setResource(init.getResource());
+        try {
+            Agent target = getByToken(event.getToken());
+            AgentInit init = event.getInit();
 
-        update(target, init.getStatus());
+            target.setK8sCluster(init.getK8sCluster());
+            target.setUrl("http://" + init.getIp() + ":" + init.getPort());
+            target.setOs(init.getOs());
+            target.setResource(init.getResource());
 
-        if (target.isIdle()) {
-            idleAgentQueueManager.send(idleAgentQueue, target.getId().getBytes());
+            update(target, init.getStatus());
+
+            if (target.isIdle()) {
+                idleAgentQueueManager.send(idleAgentQueue, target.getId().getBytes());
+            }
+        } finally {
+            unlock(lock.get());
         }
     }
 
     @EventListener
     public void onDisconnected(OnDisconnectedEvent event) {
+        Optional<InterLock> lock = lock();
         try {
             Agent target = getByToken(event.getToken());
             update(target, OFFLINE);
         } catch (NotFoundException ignore) {
 
+        } finally {
+            lock.ifPresent(this::unlock);
         }
     }
 
