@@ -119,21 +119,16 @@ public class AgentServiceImpl implements AgentService {
             log.debug("Got an idle agent {}", agentId);
 
             try {
-                Agent agent = get(agentId);
-                if (!agent.isIdle()) {
-                    log.debug("Agent {} no longer idle", agentId);
-                    return true;
-                }
-
-                eventManager.publish(new IdleAgentEvent(this, agent));
+                IdleAgentEvent event = new IdleAgentEvent(this, agentId);
+                eventManager.publish(event);
 
                 // agent not used after event, push back to queue
-                if (agent.isIdle()) {
+                Boolean shouldPushBack = event.getFetched();
+                if (shouldPushBack) {
                     int randomSec = ObjectsHelper.randomNumber(MinIdleAgentPushBack, MaxIdleAgentPushBack);
                     ThreadHelper.sleep(randomSec * 1000L);
-                    idleAgentQueueManager.send(idleAgentQueue, agent.getId().getBytes());
+                    idleAgentQueueManager.send(idleAgentQueue, agentId.getBytes());
                 }
-
             } catch (Exception e) {
                 log.warn(e.getMessage());
             }
@@ -191,16 +186,6 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public List<Agent> find(Selector selector) {
-        return agentDao.findAll(selector.getLabel(), null);
-    }
-
-    @Override
-    public List<Agent> find(Selector selector, Status status) {
-        return agentDao.findAll(selector.getLabel(), Sets.newHashSet(status));
-    }
-
-    @Override
     public Agent delete(String token) {
         Agent agent = getByToken(token);
         delete(agent);
@@ -214,11 +199,29 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Agent setTags(String token, Set<String> tags) {
-        Agent agent = getByToken(token);
-        agent.setTags(tags);
-        agentDao.save(agent);
-        return agent;
+    public Optional<Agent> acquire(String jobId, Selector selector, String agentId) {
+        Optional<InterLock> lock = lock();
+        if (!lock.isPresent()) {
+            return Optional.empty();
+        }
+
+        Optional<Agent> optional = agentDao.findById(agentId);
+        if (!optional.isPresent()) {
+            return Optional.empty();
+        }
+
+        Agent agent = optional.get();
+        if (!agent.isIdle()) {
+            return Optional.empty();
+        }
+
+        if (!agent.match(selector)) {
+            return Optional.empty();
+        }
+
+        agent.setJobId(jobId);
+        update(agent, BUSY);
+        return optional;
     }
 
     @Override
@@ -229,7 +232,7 @@ public class AgentServiceImpl implements AgentService {
         }
 
         try {
-            List<Agent> agents = find(selector, IDLE);
+            List<Agent> agents = agentDao.findAll(selector.getLabel(), Sets.newHashSet(IDLE));
             if (agents.isEmpty()) {
                 eventManager.publish(new NoIdleAgentEvent(this, jobId, selector));
                 return Optional.empty();
@@ -265,21 +268,6 @@ public class AgentServiceImpl implements AgentService {
                         idleAgentQueueManager.send(idleAgentQueue, agentId.getBytes());
                 }
             }
-        } finally {
-            unlock(lock.get());
-        }
-    }
-
-    @Override
-    public void assign(String jobId, Agent agent) {
-        Optional<InterLock> lock = lock();
-        if (!lock.isPresent()) {
-            throw new StatusException("Unable to get lock");
-        }
-
-        try {
-            agent.setJobId(jobId);
-            update(agent, BUSY);
         } finally {
             unlock(lock.get());
         }

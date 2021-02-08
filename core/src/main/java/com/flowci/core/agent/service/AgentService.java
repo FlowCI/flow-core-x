@@ -61,16 +61,6 @@ public interface AgentService {
     Iterable<Agent> list(Collection<String> ids);
 
     /**
-     * Find agent by status and tags from database
-     *
-     * @param selector Agent selector, optional
-     * @throws com.flowci.exception.NotFoundException
-     */
-    List<Agent> find(Selector selector);
-
-    List<Agent> find(Selector selector, Agent.Status status);
-
-    /**
      * Delete agent by token
      */
     Agent delete(String token);
@@ -81,24 +71,19 @@ public interface AgentService {
     void delete(Agent agent);
 
     /**
-     * Set agent tags by token
-     */
-    Agent setTags(String token, Set<String> tags);
-
-    /**
-     * Find available agent and lock
+     * Find available agent and set to busy, atomic
      */
     Optional<Agent> acquire(String jobId, Selector selector);
 
     /**
-     * Release agent, set to IDLE
+     * Acquire job id to specific agent and set to busy, atomic
      */
-    void release(Collection<String> ids);
+    Optional<Agent> acquire(String jobId, Selector selector, String agentId);
 
     /**
-     * Assign job to agent
+     * Release agent, set to IDLE, atomic
      */
-    void assign(String jobId, Agent agent);
+    void release(Collection<String> ids);
 
     /**
      * Create agent by name and tags

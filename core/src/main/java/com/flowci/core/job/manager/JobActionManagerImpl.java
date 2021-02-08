@@ -186,7 +186,9 @@ public class JobActionManagerImpl implements JobActionManager {
 
     @EventListener
     public void onIdleAgent(IdleAgentEvent event) {
-        Agent idleAgent = event.getAgent();
+        String agentId = event.getAgentId();
+        event.setFetched(true);
+
         List<JobKey> keys = jobPriorityDao.findAllMinBuildNumber();
         // TODO: flow priority
 
@@ -213,7 +215,9 @@ public class JobActionManagerImpl implements JobActionManager {
 
             try {
                 NodeTree tree = ymlManager.getTree(job);
-                assignAgentToWaitingStep(idleAgent, job, tree);
+                boolean isAssigned = assignAgentToWaitingStep(agentId, job, tree);
+                event.setFetched(!isAssigned); // set to
+                return;
             } catch (Exception e) {
                 toFailureStatus(job, null, new CIException(e.getMessage()));
             } finally {
@@ -454,9 +458,8 @@ public class JobActionManagerImpl implements JobActionManager {
 
                 if (node.isLastChildOfParent()) {
                     String agentId = releaseAgentFromJob(context.job, node, step);
-                    Agent agent = agentService.get(agentId);
 
-                    if (assignAgentToWaitingStep(agent, job, tree)) {
+                    if (assignAgentToWaitingStep(agentId, job, tree)) {
                         return;
                     }
 
@@ -683,7 +686,7 @@ public class JobActionManagerImpl implements JobActionManager {
         return Optional.empty();
     }
 
-    private boolean assignAgentToWaitingStep(Agent agent, Job job, NodeTree tree) {
+    private boolean assignAgentToWaitingStep(String agentId, Job job, NodeTree tree) {
         List<Step> steps = stepService.list(job, Lists.newArrayList(Executed.Status.WAITING_AGENT));
         if (steps.isEmpty()) {
             return false;
@@ -698,19 +701,17 @@ public class JobActionManagerImpl implements JobActionManager {
             FlowNode f = n.getParentFlowNode();
             Selector s = f.fetchSelector();
 
-            if (!agent.match(s)) {
-                continue;
-            }
+            Optional<Agent> acquired = agentService.acquire(job.getId(), s, agentId);
+            if (acquired.isPresent()) {
+                Agent agent = acquired.get();
 
-            if (agent.isIdle()) {
-                agentService.assign(job.getId(), agent);
                 job.addAgentSnapshot(agent);
                 setJobStatusAndSave(job, job.getStatus(), null);
-            }
 
-            jobAgentDao.addFlowToAgent(job.getId(), agent.getId(), f.getPathAsString());
-            dispatch(job, n, waitingForAgentStep, agent);
-            return true;
+                jobAgentDao.addFlowToAgent(job.getId(), agent.getId(), f.getPathAsString());
+                dispatch(job, n, waitingForAgentStep, agent);
+                return true;
+            }
         }
 
         return false;

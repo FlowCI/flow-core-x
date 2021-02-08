@@ -16,17 +16,19 @@
 
 package com.flowci.core.agent.event;
 
-import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.common.event.AbstractEvent;
 import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
 
-public class IdleAgentEvent extends ApplicationEvent {
+/**
+ * The return boolean value indicate the agent should push back to queue or not
+ */
+public class IdleAgentEvent extends AbstractEvent<Boolean> {
 
     @Getter
-    private final Agent agent;
+    private final String agentId;
 
-    public IdleAgentEvent(Object source, Agent agent) {
+    public IdleAgentEvent(Object source, String agentId) {
         super(source);
-        this.agent = agent;
+        this.agentId = agentId;
     }
 }
