@@ -21,12 +21,12 @@ import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.parser.CronParser;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.manager.SpringTaskManager;
-import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.event.FlowInitEvent;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.CreateNewJobEvent;
+import com.flowci.exception.NotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -36,7 +36,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Base64;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
@@ -55,13 +54,13 @@ public class CronServiceImpl implements CronService {
     private TaskScheduler cronScheduler;
 
     @Autowired
-    private YmlDao ymlDao;
-
-    @Autowired
     private SpringEventManager eventManager;
 
     @Autowired
     private SpringTaskManager taskManager;
+
+    @Autowired
+    private YmlService ymlService;
 
     //====================================================================
     //        %% Internal events
@@ -120,12 +119,15 @@ public class CronServiceImpl implements CronService {
             String expressionBase64 = Base64.getEncoder().encodeToString(expression.getBytes());
             String taskName = String.format("%s-%s", flow.getName(), expressionBase64);
 
-            taskManager.run(taskName, () -> {
-                Optional<Yml> yml = ymlDao.findById(flow.getId());
-                yml.ifPresent((obj) -> {
+            taskManager.run(taskName, false, () -> {
+                try {
+                    Yml yml = ymlService.getYml(flow.getId(), Yml.DEFAULT_NAME);
                     log.info("Start flow '{}' from cron task", flow.getName());
-                    eventManager.publish(new CreateNewJobEvent(this, flow, obj.getRaw(), Trigger.SCHEDULER, null));
-                });
+
+                    eventManager.publish(new CreateNewJobEvent(this, flow, yml.getRaw(), Trigger.SCHEDULER, null));
+                } catch (NotFoundException ignore) {
+                    // ignore
+                }
             });
         }
     }

@@ -20,16 +20,14 @@ package com.flowci.core.api.service;
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.config.domain.Config;
-import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.flow.domain.StatsCounter;
+import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.user.domain.User;
+import org.springframework.core.io.Resource;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-
-import org.springframework.core.io.Resource;
-import org.springframework.data.util.Pair;
-import org.springframework.web.multipart.MultipartFile;
 
 public interface OpenRestService {
 

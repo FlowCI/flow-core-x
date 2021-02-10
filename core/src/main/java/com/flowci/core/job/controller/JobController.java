@@ -19,71 +19,43 @@ package com.flowci.core.job.controller;
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.service.FlowService;
+import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
-import com.flowci.core.job.service.*;
+import com.flowci.core.job.service.LocalTaskService;
+import com.flowci.core.job.service.ReportService;
 import com.flowci.core.user.domain.User;
-import com.flowci.exception.ArgumentException;
-import com.flowci.exception.StatusException;
-import com.flowci.tree.NodePath;
+import com.flowci.exception.NotFoundException;
 import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Base64;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author yang
  */
 @RestController
 @RequestMapping("/jobs")
-public class JobController {
-
-    private static final String DefaultPage = "0";
-
-    private static final String DefaultSize = "20";
-
-    private static final String ParameterLatest = "latest";
+public class JobController extends BaseController {
 
     @Autowired
     private SessionManager sessionManager;
 
     @Autowired
-    private FlowService flowService;
-
-    @Autowired
     private YmlService ymlService;
-
-    @Autowired
-    private JobService jobService;
-
-    @Autowired
-    private StepService stepService;
 
     @Autowired
     private LocalTaskService localTaskService;
 
     @Autowired
-    private LoggingService loggingService;
-
-    @Autowired
     private ReportService reportService;
-
-    @Autowired
-    private ArtifactService artifactService;
 
     @Autowired
     private TaskExecutor appTaskExecutor;
@@ -101,18 +73,7 @@ public class JobController {
     @GetMapping("/{flow}/{buildNumberOrLatest}")
     @Action(JobAction.GET)
     public Job get(@PathVariable("flow") String name, @PathVariable String buildNumberOrLatest) {
-        Flow flow = flowService.get(name);
-
-        if (ParameterLatest.equals(buildNumberOrLatest)) {
-            return jobService.getLatest(flow.getId());
-        }
-
-        try {
-            long buildNumber = Long.parseLong(buildNumberOrLatest);
-            return jobService.get(flow.getId(), buildNumber);
-        } catch (NumberFormatException e) {
-            throw new ArgumentException("Build number must be a integer");
-        }
+        return super.getJob(name, buildNumberOrLatest);
     }
 
     @GetMapping("/{jobId}/desc")
@@ -145,46 +106,25 @@ public class JobController {
         return localTaskService.list(job);
     }
 
-    @GetMapping("/logs/{stepId}/read")
-    @Action(JobAction.DOWNLOAD_STEP_LOG)
-    public Collection<byte[]> readStepLog(@PathVariable String stepId) {
-        return loggingService.read(stepId);
-    }
-
-    @GetMapping("/logs/{stepId}/download")
-    @Action(JobAction.DOWNLOAD_STEP_LOG)
-    public ResponseEntity<Resource> downloadStepLog(@PathVariable String stepId) {
-        Step step = stepService.get(stepId);
-        Resource resource = loggingService.get(stepId);
-        Flow flow = flowService.getById(step.getFlowId());
-
-        NodePath path = NodePath.create(step.getNodePath());
-        String fileName = String.format("%s-#%s-%s.log", flow.getName(), step.getBuildNumber(), path.name());
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
-                .body(resource);
-    }
-
     @PostMapping
     @Action(JobAction.CREATE)
     public Job create(@Validated @RequestBody CreateJob data) {
         Flow flow = flowService.get(data.getFlow());
-        String ymlStr = ymlService.getYmlString(flow);
-        return jobService.create(flow, ymlStr, Trigger.API, data.getInputs());
+        String b64Yaml = ymlService.getYmlString(flow.getId(), Yml.DEFAULT_NAME);
+        return jobService.create(flow, StringHelper.fromBase64(b64Yaml), Trigger.API, data.getInputs());
     }
 
     @PostMapping("/run")
     @Action(JobAction.RUN)
     public void createAndStart(@Validated @RequestBody CreateJob body) {
-        final User current = sessionManager.get();
-        final Flow flow = flowService.get(body.getFlow());
-        final String ymlStr = ymlService.getYmlString(flow);
-
-        if (!flow.isYamlFromRepo() && Objects.isNull(ymlStr)) {
-            throw new ArgumentException("YAML config is required to start a job");
+        User current = sessionManager.get();
+        Flow flow = flowService.get(body.getFlow());
+        String b64Yml = ymlService.getYmlString(flow.getId(), Yml.DEFAULT_NAME);
+        if (!StringHelper.hasValue(b64Yml)) {
+            throw new NotFoundException("YAML not found");
         }
+
+        String ymlStr = StringHelper.fromBase64(b64Yml);
 
         // start from thread since could be loading yaml from git repo
         appTaskExecutor.execute(() -> {
@@ -224,26 +164,5 @@ public class JobController {
                               @PathVariable String reportId) {
         Job job = get(flow, buildNumber);
         return reportService.fetch(job, reportId);
-    }
-
-    @GetMapping("/{flow}/{buildNumber}/artifacts")
-    @Action(JobAction.LIST_ARTIFACTS)
-    public List<JobArtifact> listArtifact(@PathVariable String flow, @PathVariable String buildNumber) {
-        Job job = get(flow, buildNumber);
-        return artifactService.list(job);
-    }
-
-    @GetMapping(value = "/{flow}/{buildNumber}/artifacts/{artifactId}")
-    @Action(JobAction.DOWNLOAD_ARTIFACT)
-    public ResponseEntity<Resource> downloadArtifact(@PathVariable String flow,
-                                                     @PathVariable String buildNumber,
-                                                     @PathVariable String artifactId) {
-        Job job = get(flow, buildNumber);
-        JobArtifact artifact = artifactService.fetch(job, artifactId);
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + artifact.getFileName() + "\"")
-                .body(new InputStreamResource(artifact.getSrc()));
     }
 }

@@ -16,14 +16,14 @@
 
 package com.flowci.core.agent.service;
 
-import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.job.domain.Job;
 import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.domain.CmdIn;
+import com.flowci.tree.Selector;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * @author yang
@@ -56,12 +56,9 @@ public interface AgentService {
     List<Agent> list();
 
     /**
-     * Find agent by status and tags from database
-     *
-     * @param tags Agent tags, optional
-     * @throws com.flowci.exception.NotFoundException
+     * List agent by given ids
      */
-    List<Agent> find(Set<String> tags);
+    Iterable<Agent> list(Collection<String> ids);
 
     /**
      * Delete agent by token
@@ -74,26 +71,19 @@ public interface AgentService {
     void delete(Agent agent);
 
     /**
-     * Set agent tags by token
+     * Find available agent and set to busy, atomic
      */
-    Agent setTags(String token, Set<String> tags);
+    Optional<Agent> acquire(String jobId, Selector selector);
 
     /**
-     * Find available agent and lock
+     * Acquire job id to specific agent and set to busy, atomic
      */
-    Optional<Agent> acquire(Job job, Function<String, Boolean> canContinue);
+    Optional<Agent> acquire(String jobId, Selector selector, String agentId);
 
     /**
-     * Try to lock agent resource, and set agent status to BUSY
-     *
-     * @return return agent instance, otherwise return empty
+     * Release agent, set to IDLE, atomic
      */
-    Optional<Agent> tryLock(String jobId, String agentId);
-
-    /**
-     * Release agent, send 'stop' cmd to agent
-     */
-    void tryRelease(String agentId);
+    void release(Collection<String> ids);
 
     /**
      * Create agent by name and tags

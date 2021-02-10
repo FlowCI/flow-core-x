@@ -67,7 +67,7 @@ public class SpringEventManagerImpl implements SpringEventManager {
                 log.warn(e);
             }
             return false;
-        });
+        }, null);
     }
 
     public <T extends ApplicationEvent> T publish(T event) {

@@ -23,20 +23,20 @@ import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.plugin.event.GetPluginEvent;
-import com.flowci.domain.LocalTask;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
+import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.FlowNode;
-import com.flowci.tree.Node;
-import com.flowci.tree.StepNode;
+import com.flowci.tree.NodeTree;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
+import com.github.benmanes.caffeine.cache.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -45,6 +45,9 @@ import java.util.Set;
  */
 @Service
 public class YmlServiceImpl implements YmlService {
+
+    @Autowired
+    private Cache<String, NodeTree> flowTreeCache;
 
     @Autowired
     private YmlDao ymlDao;
@@ -63,46 +66,59 @@ public class YmlServiceImpl implements YmlService {
     //====================================================================
 
     @Override
-    public FlowNode getRaw(Flow flow) {
-        Yml yml = getYml(flow);
-        return YmlParser.load(flow.getName(), yml.getRaw());
+    public List<Yml> list(String flowId) {
+        return ymlDao.findAllWithoutRawByFlowId(flowId);
     }
 
     @Override
-    public Yml getYml(Flow flow) {
-        Optional<Yml> optional = ymlDao.findById(flow.getId());
+    public NodeTree getTree(String flowId, String name) {
+        Yml yml = getYml(flowId, name);
+        FlowNode root = YmlParser.load(yml.getRaw());
+        return flowTreeCache.get(yamlCacheKey(flowId, name), key -> NodeTree.create(root));
+    }
+
+    @Override
+    public Yml getYml(String flowId, String name) {
+        Optional<Yml> optional = ymlDao.findByFlowIdAndName(flowId, name);
         if (optional.isPresent()) {
             return optional.get();
         }
-        throw new NotFoundException("No yml defined for flow {0}", flow.getName());
-    }
-
-    @Nullable
-    @Override
-    public String getYmlString(Flow flow) {
-        Optional<Yml> optional = ymlDao.findById(flow.getId());
-        return optional.map(Yml::getRaw).orElse(null);
+        throw new NotFoundException("YAML not found");
     }
 
     @Override
-    public Yml saveYml(Flow flow, String yml) {
-        if (!StringHelper.hasValue(yml)) {
-            throw new ArgumentException("Yml content cannot be null or empty");
+    public String getYmlString(String flowId, String name) {
+        Yml yml = getYml(flowId, name);
+        return yml.getRawInB64();
+    }
+
+    @Override
+    public Yml saveYml(Flow flow, String name, String ymlInB64) {
+        if (!StringHelper.hasValue(ymlInB64)) {
+            throw new ArgumentException("YAML content cannot be null or empty");
         }
 
-        FlowNode root = YmlParser.load(flow.getName(), yml);
-        Optional<RuntimeException> hasErr = verifyPlugins(root);
+        String yaml = StringHelper.fromBase64(ymlInB64);
+        FlowNode root = YmlParser.load(yaml);
+        NodeTree tree = NodeTree.create(root);
+
+        Optional<RuntimeException> hasErr = verifyPlugins(tree.getPlugins());
         if (hasErr.isPresent()) {
             throw hasErr.get();
         }
 
-        hasErr = verifyCondition(root);
+        hasErr = verifyConditions(tree.getConditions());
         if (hasErr.isPresent()) {
             throw hasErr.get();
         }
 
-        Yml ymlObj = new Yml(flow.getId(), yml);
-        ymlDao.save(ymlObj);
+        Yml ymlObj = getOrCreate(flow.getId(), name, ymlInB64);
+
+        try {
+            ymlDao.save(ymlObj);
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateException("Yaml name or condition already existed");
+        }
 
         // sync flow envs from yml root envs
         Vars<String> vars = flow.getVariables();
@@ -110,32 +126,46 @@ public class YmlServiceImpl implements YmlService {
         vars.merge(root.getEnvironments());
         flowDao.save(flow);
 
+        // put tree into cache
+        flowTreeCache.put(yamlCacheKey(flow.getId(), name), tree);
         return ymlObj;
     }
 
     @Override
-    public void delete(Flow flow) {
-        try {
-            Yml yml = getYml(flow);
-            ymlDao.delete(yml);
-        } catch (NotFoundException ignore) {
-
-        }
+    public void delete(String flowId) {
+        ymlDao.deleteAllByFlowId(flowId);
     }
 
-    private Optional<RuntimeException> verifyCondition(Node node) {
+    @Override
+    public void delete(String flowId, String name) {
+        ymlDao.deleteByFlowIdAndName(flowId, name);
+    }
+
+    private String yamlCacheKey(String flowId, String name) {
+        return flowId + "-" + name;
+    }
+
+    private Yml getOrCreate(String flowId, String name, String ymlInB64) {
+        Optional<Yml> optional = ymlDao.findByFlowIdAndName(flowId, name);
+        if (optional.isPresent()) {
+            Yml yml = optional.get();
+            yml.setRawInB64(ymlInB64);
+            return yml;
+        }
+        return new Yml(flowId, name, ymlInB64);
+    }
+
+    /**
+     * Check conditions are existed
+     *
+     * @param conditions list of condition script
+     * @return Optional exception
+     */
+    private Optional<RuntimeException> verifyConditions(Set<String> conditions) {
         try {
-            if (node.hasCondition()) {
-                conditionManager.verify(node.getCondition());
+            for (String condition : conditions) {
+                conditionManager.verify(condition);
             }
-
-            for (Node child : node.getChildren()) {
-                Optional<RuntimeException> exception = verifyCondition(child);
-                if (exception.isPresent()) {
-                    return exception;
-                }
-            }
-
             return Optional.empty();
         } catch (Throwable e) {
             return Optional.of(new RuntimeException(e.getMessage()));
@@ -143,30 +173,18 @@ public class YmlServiceImpl implements YmlService {
     }
 
     /**
-     * Try to fetch plugins
+     * Check plugins are existed
      *
+     * @param plugins input plugin name list
      * @return Optional exception
      */
-    private Optional<RuntimeException> verifyPlugins(FlowNode flowNode) {
-        Set<String> plugins = new HashSet<>();
-
-        for (StepNode step : flowNode.getChildren()) {
-            if (step.hasPlugin()) {
-                plugins.add(step.getPlugin());
-            }
-        }
-
-        for (LocalTask t : flowNode.getNotifications()) {
-            plugins.add(t.getPlugin());
-        }
-
+    private Optional<RuntimeException> verifyPlugins(Set<String> plugins) {
         for (String plugin : plugins) {
             GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, plugin));
             if (event.hasError()) {
                 return Optional.of(event.getError());
             }
         }
-
         return Optional.empty();
     }
 }

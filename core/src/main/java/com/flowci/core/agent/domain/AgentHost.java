@@ -66,6 +66,11 @@ public abstract class AgentHost extends Mongoable {
     private Status status = Status.Disconnected;
 
     /**
+     * Is disabled
+     */
+    private boolean disabled;
+
+    /**
      * Max agent size on the host
      */
     private int maxSize = 5;

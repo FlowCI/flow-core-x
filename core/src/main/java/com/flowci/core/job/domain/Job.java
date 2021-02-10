@@ -17,13 +17,13 @@
 package com.flowci.core.job.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.domain.Variables;
-import com.flowci.core.agent.domain.Agent;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.store.Pathable;
-import com.flowci.tree.Selector;
+import com.flowci.tree.Node;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableSet;
 import lombok.Getter;
@@ -35,9 +35,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author yang
@@ -155,7 +153,7 @@ public class Job extends Mongoable implements Pathable {
      */
     @Getter
     @Setter
-    public static class AgentInfo {
+    public static class AgentSnapshot {
 
         private String name;
 
@@ -208,13 +206,10 @@ public class Job extends Mongoable implements Pathable {
 
     private Status status = Status.PENDING;
 
-    private Selector agentSelector;
+    // agent id : info
+    private Map<String, AgentSnapshot> snapshots = new HashMap<>();
 
-    private String agentId;
-
-    private AgentInfo agentInfo = new AgentInfo();
-
-    private String currentPath;
+    private Set<String> currentPath = new HashSet<>();
 
     private Vars<String> context = new StringVars();
 
@@ -260,8 +255,8 @@ public class Job extends Mongoable implements Pathable {
     }
 
     @JsonIgnore
-    public boolean isCancelled() {
-        return status == Status.CANCELLED;
+    public boolean isRunning() {
+        return status == Status.RUNNING;
     }
 
     @JsonIgnore
@@ -295,23 +290,10 @@ public class Job extends Mongoable implements Pathable {
 
     @JsonIgnore
     public String finishAtInStr() {
-        if (Objects.isNull(this.startAt)) {
+        if (Objects.isNull(this.finishAt)) {
             return StringHelper.EMPTY;
         }
         return DateFormat.format(this.finishAt);
-    }
-
-    public String getCredentialName() {
-        return context.get(Variables.Flow.GitCredential);
-    }
-
-    public String getGitUrl() {
-        return context.get(Variables.Flow.GitUrl);
-    }
-
-    public boolean isExpired() {
-        Instant expireAt = getExpireAt().toInstant();
-        return Instant.now().compareTo(expireAt) > 0;
     }
 
     @JsonIgnore
@@ -328,18 +310,46 @@ public class Job extends Mongoable implements Pathable {
         return context.get(Variables.Job.Error);
     }
 
+    public String getCredentialName() {
+        return context.get(Variables.Flow.GitCredential);
+    }
+
+    public String getGitUrl() {
+        return context.get(Variables.Flow.GitUrl);
+    }
+
+    public boolean isExpired() {
+        Instant expireAt = getExpireAt().toInstant();
+        return Instant.now().compareTo(expireAt) > 0;
+    }
+
+    public void addAgentSnapshot(Agent agent) {
+        AgentSnapshot s = new AgentSnapshot();
+        s.name = agent.getName();
+        s.os = agent.getOs().name();
+        s.cpu = agent.getResource().getCpu();
+        s.totalMemory = agent.getResource().getTotalMemory();
+        s.freeMemory = agent.getResource().getFreeMemory();
+        s.totalDisk = agent.getResource().getTotalDisk();
+        s.freeDisk = agent.getResource().getFreeDisk();
+
+        this.snapshots.put(agent.getId(), s);
+    }
+
     public void setErrorToContext(String err) {
         context.put(Variables.Job.Error, err);
     }
 
-    public void setAgentSnapshot(Agent agent) {
-        agentInfo.setName(agent.getName());
-        agentInfo.setOs(agent.getOs().name());
-        agentInfo.setCpu(agent.getResource().getCpu());
-        agentInfo.setTotalMemory(agent.getResource().getTotalMemory());
-        agentInfo.setFreeMemory(agent.getResource().getFreeMemory());
-        agentInfo.setTotalDisk(agent.getResource().getTotalDisk());
-        agentInfo.setFreeDisk(agent.getResource().getFreeDisk());
+    public void setCurrentPathFromNodes(List<Node> nodes) {
+        this.currentPath.clear();
+        for (Node n : nodes) {
+            this.currentPath.add(n.getPathAsString());
+        }
+    }
+
+    public void setCurrentPathFromNodes(Node node) {
+        this.currentPath.clear();
+        this.currentPath.add(node.getPathAsString());
     }
 
     @Override

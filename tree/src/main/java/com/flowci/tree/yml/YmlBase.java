@@ -20,10 +20,9 @@ import com.flowci.domain.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.exception.YmlException;
 import com.flowci.tree.Node;
-import com.flowci.tree.StepNode;
+import com.flowci.tree.RegularStepNode;
 import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 
 import java.io.Serializable;
@@ -51,10 +50,9 @@ public abstract class YmlBase<T extends Node> implements Serializable {
     // or dockers
     public List<DockerYml> dockers;
 
-    @NonNull
     public List<StepYml> steps = new LinkedList<>();
 
-    StringVars getVariableMap() {
+    protected StringVars getVariableMap() {
         StringVars variables = new StringVars(envs.size());
         for (Map.Entry<String, String> entry : envs.entrySet()) {
             variables.put(entry.getKey(), entry.getValue());
@@ -62,28 +60,25 @@ public abstract class YmlBase<T extends Node> implements Serializable {
         return variables;
     }
 
-    void setEnvs(StringVars variables) {
-        for (Map.Entry<String, String> entry : variables.entrySet()) {
-            this.envs.put(entry.getKey(), entry.getValue());
-        }
-    }
-
-    void setSteps(T parent) {
+    protected void setStepsToNode(T parent) {
         int index = 1;
         Set<String> uniqueName = new HashSet<>(steps.size());
 
         for (StepYml child : steps) {
-            StepNode step = child.toNode(parent, index++);
+            Node step = child.toNode(parent, index++);
 
-            if (!uniqueName.add(step.getName())) {
-                throw new YmlException("Duplicate name {0} in step", step.getName());
+            if (step instanceof RegularStepNode) {
+                String stepName = step.getName();
+                if (!uniqueName.add(stepName)) {
+                    throw new YmlException("Duplicate name {0} in step", stepName);
+                }
             }
 
             parent.getChildren().add(step);
         }
     }
 
-    void setDocker(T node) {
+    void setDockerToNode(T node) {
         if (hasDocker() && hasDockers()) {
             throw new YmlException("Only accept either 'docker' or 'dockers' section");
         }

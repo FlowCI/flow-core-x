@@ -16,7 +16,6 @@
 
 package com.flowci.util;
 
-import java.util.Map;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.DumperOptions.LineBreak;
@@ -24,6 +23,8 @@ import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.representer.Representer;
+
+import java.util.Map;
 
 /**
  * @author yang
@@ -43,14 +44,14 @@ public abstract class YamlHelper {
         DUMPER_OPTIONS.setLineBreak(LINE_BREAK);
     }
 
-    public static Yaml create(Map<String, Integer> order, Class<? extends Object> theRoot) {
-        Constructor rootConstructor = new Constructor(theRoot);
+    public static Yaml create(Map<String, Integer> order, Class<? extends Object> root) {
+        Constructor rootConstructor = new Constructor(root);
         Representer representer = new YamlOrderedSkipEmptyRepresenter(order);
         return new Yaml(rootConstructor, representer, DUMPER_OPTIONS);
     }
 
-    public static Yaml create(Class<? extends Object> theRoot) {
-        Constructor rootConstructor = new Constructor(theRoot);
-        return new Yaml(rootConstructor);
+    public static Yaml create(Class<?> root) {
+        Constructor constructor = new Constructor(root);
+        return new Yaml(constructor);
     }
 }

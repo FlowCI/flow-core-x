@@ -22,7 +22,14 @@ public class SpringTaskManager {
     @Autowired
     private AppProperties.Zookeeper zkProperties;
 
-    public void run(String name, Runnable task) {
+    /**
+     * Run global task
+     *
+     * @param name task name
+     * @param once indicate the task only can be run once
+     * @param task task body
+     */
+    public void run(String name, boolean once, Runnable task) {
         try {
             if (!lock(name)) {
                 return;
@@ -32,7 +39,9 @@ public class SpringTaskManager {
             task.run();
             log.info("task {} finished", name);
         } finally {
-            release(name);
+            if (!once) {
+                release(name);
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 flow.ci
+ * Copyright 2021 flow.ci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package com.flowci.core.job.util;
+package com.flowci.core.agent.event;
+
+import com.flowci.core.common.event.AbstractEvent;
+import lombok.Getter;
 
 /**
- * @author yang
+ * The return boolean value indicate the agent should push back to queue or not
  */
-public abstract class JobKeyBuilder {
+public class IdleAgentEvent extends AbstractEvent<Boolean> {
 
-    private static final char Splitter = '-';
+    @Getter
+    private final String agentId;
 
-    public static String build(String flowId, Long buildNumber) {
-        return flowId + Splitter + buildNumber;
+    public IdleAgentEvent(Object source, String agentId) {
+        super(source);
+        this.agentId = agentId;
     }
 }

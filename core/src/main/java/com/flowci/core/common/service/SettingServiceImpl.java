@@ -33,7 +33,7 @@ public class SettingServiceImpl implements SettingService {
      */
     @PostConstruct
     public void setDefaultValue() {
-        taskManager.run("init-default-settings", () -> {
+        taskManager.run("init-default-settings", true, () -> {
             Optional<Settings> optional = settingsDao.findById(Settings.DefaultId);
 
             String address = serverProperties.getAddress().toString().replace("/", "");

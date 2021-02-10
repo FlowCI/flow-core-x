@@ -17,9 +17,8 @@
 package com.flowci.tree.yml;
 
 import com.flowci.exception.YmlException;
-import com.flowci.tree.Node;
-import com.flowci.tree.NodePath;
-import com.flowci.tree.StepNode;
+import com.flowci.tree.*;
+import com.flowci.util.FileHelper;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
@@ -27,8 +26,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author yang
@@ -36,9 +34,17 @@ import java.util.List;
 @Setter
 @Getter
 @NoArgsConstructor
-public class StepYml extends YmlBase<StepNode> {
+public class StepYml extends YmlBase<RegularStepNode> {
 
     private static final String DefaultStepPrefix = "step-";
+
+    private static final String DefaultParallelPrefix = "parallel-";
+
+    private static final Set<String> FieldsForStep = ObjectsHelper.fields(StepYml.class);
+
+    static {
+        FieldsForStep.remove("parallel");
+    }
 
     private String bash; // bash script
 
@@ -54,50 +60,79 @@ public class StepYml extends YmlBase<StepNode> {
 
     private List<String> exports = new LinkedList<>();
 
-    private boolean allow_failure = false;
+    private Boolean allow_failure;
 
-    StepYml(StepNode node) {
-        setName(node.getName());
-        setEnvs(node.getEnvironments());
-        setBash(node.getBash());
-        setPwsh(node.getPwsh());
-        setRetry(node.getRetry());
-        setTimeout(node.getTimeout());
-        setPlugin(node.getPlugin());
-        setAllow_failure(node.isAllowFailure());
-    }
+    private Cache cache;
 
-    public StepNode toNode(Node parent, int index) {
-        StepNode node = new StepNode(buildName(index), parent);
-        node.setCondition(condition);
-        node.setBash(bash);
-        node.setPwsh(pwsh);
-        node.setRetry(retry);
-        node.setTimeout(timeout);
-        node.setPlugin(plugin);
-        node.setExports(Sets.newHashSet(exports));
-        node.setAllowFailure(allow_failure);
-        node.setEnvironments(getVariableMap());
-        setDocker(node);
+    /**
+     * Only for parallel step, other fields will not valid
+     */
+    private Map<String, FlowYml> parallel;
 
-        if (StringHelper.hasValue(node.getName()) && !NodePath.validate(node.getName())) {
-            throw new YmlException("Invalid name '{0}'", node.getName());
+    public Node toNode(Node parent, int index) {
+        if (parallel != null) {
+            try {
+                if (ObjectsHelper.hasValue(this, FieldsForStep)) {
+                    throw new YmlException("Parallel section only");
+                }
+            } catch (ReflectiveOperationException e) {
+                throw new YmlException(e.getMessage());
+            }
+
+            if (parallel.isEmpty()) {
+                throw new YmlException("Parallel flow must be defined");
+            }
+
+            String name = DefaultParallelPrefix + index;
+            ParallelStepNode step = new ParallelStepNode(name, parent);
+            for (Map.Entry<String, FlowYml> entry : parallel.entrySet()) {
+                String subflowName = entry.getKey();
+
+                FlowYml yaml = entry.getValue();
+                yaml.setName(subflowName);
+
+                // set parallel flow node parent to parallel step
+                FlowNode pFlowNode = yaml.toNode(step);
+                pFlowNode.setParent(step);
+
+                step.getParallel().put(subflowName, pFlowNode);
+            }
+            
+            return step;
+        }
+
+        RegularStepNode step = new RegularStepNode(buildName(index), parent);
+        step.setCondition(condition);
+        step.setBash(bash);
+        step.setPwsh(pwsh);
+        step.setRetry(retry);
+        step.setTimeout(timeout);
+        step.setPlugin(plugin);
+        step.setExports(Sets.newHashSet(exports));
+        step.setAllowFailure(allow_failure != null && allow_failure);
+        step.setEnvironments(getVariableMap());
+
+        setCacheToNode(step);
+        setDockerToNode(step);
+
+        if (StringHelper.hasValue(step.getName()) && !NodePath.validate(step.getName())) {
+            throw new YmlException("Invalid name '{0}'", step.getName());
         }
 
         if (ObjectsHelper.hasCollection(steps)) {
-            if (node.hasPlugin()) {
+            if (step.hasPlugin()) {
                 throw new YmlException("The plugin section is not allowed on the step with sub steps");
             }
 
-            setSteps(node);
+            setStepsToNode(step);
         }
 
         // backward compatible, set script to bash
         if (StringHelper.hasValue(script) && !StringHelper.hasValue(bash)) {
-            node.setBash(script);
+            step.setBash(script);
         }
 
-        return node;
+        return step;
     }
 
     private String buildName(int index) {
@@ -106,5 +141,43 @@ public class StepYml extends YmlBase<StepNode> {
         }
 
         return DefaultStepPrefix + index;
+    }
+
+    /**
+     * set cache from yaml
+     * read only cache if path not specified
+     */
+    private void setCacheToNode(RegularStepNode node) {
+        if (Objects.isNull(cache)) {
+            return;
+        }
+
+        if (!StringHelper.hasValue(cache.getKey())) {
+            throw new YmlException("Cache key must be defined");
+        }
+
+        if (!NodePath.validate(cache.getKey())) {
+            throw new YmlException("Invalid cache key {0}", cache.getKey());
+        }
+
+        if (!ObjectsHelper.hasCollection(cache.getPaths())) {
+            cache.setPaths(Collections.emptyList());
+        }
+
+        for (String path : cache.getPaths()) {
+            if (FileHelper.isStartWithRoot(path)) {
+                throw new YmlException("Cache path cannot be defined as absolute path");
+            }
+        }
+
+        if (FileHelper.hasOverlapOrDuplicatePath(cache.getPaths())) {
+            throw new YmlException("Cache paths are overlap or duplicate");
+        }
+
+        Cache c = new Cache();
+        c.setKey(cache.getKey());
+        c.setPaths(cache.getPaths());
+
+        node.setCache(c);
     }
 }

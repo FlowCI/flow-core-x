@@ -46,7 +46,7 @@ public class QueueConfig {
 
     @Bean("rabbitTaskExecutor")
     public ThreadPoolTaskExecutor rabbitConsumerExecutor() {
-        return ThreadHelper.createTaskExecutor(10, 10, 50, "rabbit-task-");
+        return ThreadHelper.createTaskExecutor(20, 10, 100, "rabbit-task-");
     }
 
     @Bean
@@ -72,6 +72,18 @@ public class QueueConfig {
         String exchange = rabbitProperties.getJobDlExchange();
         manager.declareExchangeAndBind(exchange, BuiltinExchangeType.DIRECT, true, false, args, queue, JobDlRoutingKey);
 
+        return manager;
+    }
+
+    @Bean("idleAgentQueue")
+    public String idleAgentQueue() {
+        return "flow.idle.agent";
+    }
+
+    @Bean("idleAgentQueueManager")
+    public RabbitOperations idleAgentQueueManager(Connection rabbitConnection, String idleAgentQueue) throws IOException {
+        RabbitOperations manager = new RabbitOperations(rabbitConnection, 1);
+        manager.declareTemp(idleAgentQueue);
         return manager;
     }
 

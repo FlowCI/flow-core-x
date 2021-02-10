@@ -84,7 +84,7 @@ public class AppConfig {
     public ThreadPoolTaskExecutor getAppTaskExecutor() {
         int corePoolSize = appProperties.getCorePoolSize();
         int maxPoolSize = appProperties.getMaxPoolSize();
-        return ThreadHelper.createTaskExecutor(maxPoolSize, corePoolSize, 10, "app-task-");
+        return ThreadHelper.createTaskExecutor(maxPoolSize, corePoolSize, 100, "app-task-");
     }
 
     @Bean(name = "applicationEventMulticaster")

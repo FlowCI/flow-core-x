@@ -20,7 +20,6 @@ package com.flowci.core.api.service;
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.common.helper.DateHelper;
-import com.flowci.core.secret.domain.AndroidSign;
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.flow.dao.FlowUserDao;
@@ -30,9 +29,10 @@ import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.StatsService;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.JobKey;
 import com.flowci.core.job.service.ArtifactService;
 import com.flowci.core.job.service.ReportService;
-import com.flowci.core.job.util.JobKeyBuilder;
+import com.flowci.core.secret.domain.AndroidSign;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.user.domain.User;
@@ -158,7 +158,8 @@ public class OpenRestServiceImpl implements OpenRestService {
 
     private Job getJob(String name, long number) {
         Flow flow = flowService.get(name);
-        String key = JobKeyBuilder.build(flow.getId(), number);
+
+        String key = JobKey.of(flow.getId(), number).toString();
         Optional<Job> optional = jobDao.findByKey(key);
 
         if (optional.isPresent()) {

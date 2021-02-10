@@ -23,6 +23,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,7 +32,7 @@ import java.util.Map;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class DockerOption {
+public class DockerOption implements Serializable {
 
     private String image;
 

@@ -19,55 +19,28 @@ package com.flowci.tree;
 import com.flowci.exception.YmlException;
 import com.flowci.tree.yml.FlowYml;
 import com.flowci.util.YamlHelper;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import org.yaml.snakeyaml.DumperOptions.LineBreak;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
-import java.util.Map;
+import static com.flowci.tree.FlowNode.DEFAULT_ROOT_NAME;
 
 /**
  * @author yang
  */
 public class YmlParser {
 
-    private static final LineBreak LINE_BREAK = LineBreak.getPlatformLineBreak();
-
-    private static final Map<String, Integer> FieldsOrder = ImmutableMap.<String, Integer>builder()
-        .put("envs", 1)
-        .put("trigger", 2)
-        .put("selector", 3)
-        .put("cron", 4)
-        .put("notifications", 5)
-        .put("steps", 6)
-        .build();
-
     /**
      * Create Node instance from yml
      */
-    public static synchronized FlowNode load(String defaultName, String yml) {
+    public static synchronized FlowNode load(String yml) {
         Yaml yaml = YamlHelper.create(FlowYml.class);
 
         try {
             FlowYml root = yaml.load(yml);
-
-            // set default flow name if not defined in yml
-            if (Strings.isNullOrEmpty(root.getName())) {
-                root.setName(defaultName);
-            }
-
-            return root.toNode();
+            root.setName(DEFAULT_ROOT_NAME);
+            return root.toNode(null);
         } catch (YAMLException e) {
             throw new YmlException(e.getMessage());
         }
-    }
-
-    public static synchronized String parse(FlowNode root) {
-        FlowYml flow = new FlowYml(root);
-        Yaml yaml = YamlHelper.create(FieldsOrder, FlowYml.class);
-        String dump = yaml.dump(flow);
-        dump = dump.substring(dump.indexOf(LINE_BREAK.getString()) + 1);
-        return dump;
     }
 }

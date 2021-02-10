@@ -51,17 +51,14 @@ public class AgentHostController {
     @DeleteMapping("/{name}")
     @Action(AgentHostAction.DELETE)
     public AgentHost deleteByName(@PathVariable String name) {
-        AgentHost host = agentHostService.get(name);
-        agentHostService.delete(host);
-        return host;
+        return agentHostService.delete(name);
     }
 
     @PostMapping
     @Action(AgentHostAction.CREATE_UPDATE)
     public AgentHost createOrUpdate(@RequestBody @Validated SaveAgentHost body) {
         AgentHost host = body.toObj();
-        agentHostService.createOrUpdate(host);
-        return host;
+        return agentHostService.createOrUpdate(host);
     }
 
     @PostMapping("/{name}/test")
@@ -69,5 +66,11 @@ public class AgentHostController {
     public void testConnection(@PathVariable String name) {
         AgentHost host = agentHostService.get(name);
         agentHostService.testConn(host);
+    }
+
+    @PostMapping("/{name}/switch/{value}")
+    @Action(AgentHostAction.CREATE_UPDATE)
+    public AgentHost disableOrEnableByName(@PathVariable String name, @PathVariable boolean value) {
+        return agentHostService.disableOrEnable(name, value);
     }
 }

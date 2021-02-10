@@ -19,7 +19,9 @@ package com.flowci.core.job.config;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.helper.ThreadHelper;
+import com.flowci.core.job.domain.JobSmContext;
 import com.flowci.core.job.domain.Step;
+import com.flowci.sm.StateMachine;
 import com.flowci.tree.NodeTree;
 import com.flowci.util.FileHelper;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -33,7 +35,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author yang
@@ -45,9 +46,12 @@ public class JobConfig {
     @Autowired
     private AppProperties appProperties;
 
+    @Autowired
+    private ThreadPoolTaskExecutor appTaskExecutor;
+
     @Bean("jobTreeCache")
     public Cache<String, NodeTree> jobTreeCache() {
-        return CacheHelper.createLocalCache(50, 60);
+        return CacheHelper.createLocalCache(50, 120);
     }
 
     @Bean("jobStepCache")
@@ -65,5 +69,10 @@ public class JobConfig {
     @Bean("jobConditionExecutor")
     public ThreadPoolTaskExecutor jobConditionExecutor() {
         return ThreadHelper.createTaskExecutor(20, 20, 100, "job-cond-");
+    }
+
+    @Bean("sm")
+    public StateMachine<JobSmContext> jobStateMachine() {
+        return new StateMachine<>("JOB_STATUS", appTaskExecutor);
     }
 }

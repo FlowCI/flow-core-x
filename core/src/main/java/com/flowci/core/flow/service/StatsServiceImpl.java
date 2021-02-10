@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.helper.DateHelper;
 import com.flowci.core.flow.dao.StatsItemDao;
-import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.*;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.job.domain.Job;
@@ -28,9 +27,7 @@ import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.exception.NotFoundException;
-import com.flowci.tree.FlowNode;
-import com.flowci.tree.StepNode;
-import com.flowci.tree.YmlParser;
+import com.flowci.tree.NodeTree;
 import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,13 +55,13 @@ public class StatsServiceImpl implements StatsService {
     private Resource defaultTypeJsonFile;
 
     @Autowired
-    private YmlDao ymlDao;
-
-    @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
     private StatsItemDao statsItemDao;
+
+    @Autowired
+    private YmlService ymlService;
 
     @Autowired
     private PluginService pluginService;
@@ -115,23 +112,22 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public List<StatsType> getStatsType(Flow flow) {
-        Optional<Yml> optional = ymlDao.findById(flow.getId());
         List<StatsType> list = new LinkedList<>(defaultTypes.values());
-        if (!optional.isPresent()) {
+
+        List<Yml> yamlList = ymlService.list(flow.getId());
+        if (yamlList.isEmpty()) {
             return list;
         }
 
-        FlowNode root = YmlParser.load(flow.getName(), optional.get().getRaw());
-        for (StepNode child : root.getChildren()) {
-            if (!child.hasPlugin()) {
-                continue;
-            }
+        for (Yml item : yamlList) {
+            NodeTree tree = ymlService.getTree(flow.getId(), item.getName());
+            for (String pluginName : tree.getPlugins()) {
+                try {
+                    Plugin plugin = pluginService.get(pluginName);
+                    list.addAll(plugin.getStatsTypes());
+                } catch (NotFoundException ignore) {
 
-            try {
-                Plugin plugin = pluginService.get(child.getPlugin());
-                list.addAll(plugin.getStatsTypes());
-            } catch (NotFoundException ignore) {
-
+                }
             }
         }
 

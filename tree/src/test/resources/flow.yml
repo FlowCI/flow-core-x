@@ -26,6 +26,11 @@ steps:
    envs:
      FLOW_WORKSPACE: "echo step"
      FLOW_VERSION: "echo step version"
+   cache:
+     key: mycache
+     paths:
+     - "./"
+     - "vendor"
    timeout: 3600
    allow_failure: true
 

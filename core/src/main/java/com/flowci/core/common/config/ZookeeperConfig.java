@@ -97,7 +97,7 @@ public class ZookeeperConfig {
             server = new LocalServer(path, address, port);
             taskExecutor.execute(server);
         } catch (ZookeeperException e) {
-            throw new CIException("Unable to start embedded zookeeper: {}", e.getMessage());
+            throw new CIException("Unable to start embedded zookeeper: {0}", e.getMessage());
         }
     }
 }
