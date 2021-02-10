@@ -215,7 +215,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
             try {
                 NodeTree tree = ymlManager.getTree(job);
-                boolean isAssigned = assignAgentToWaitingStep(agentId, job, tree);
+                boolean isAssigned = assignAgentToWaitingStep(agentId, job, tree, true);
 
                 if (isAssigned) {
                     event.setFetched(false); // set to false since agent has been assigned
@@ -462,7 +462,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 if (node.isLastChildOfParent()) {
                     String agentId = releaseAgentFromJob(context.job, node, step);
 
-                    if (assignAgentToWaitingStep(agentId, job, tree)) {
+                    if (assignAgentToWaitingStep(agentId, job, tree, false)) {
                         return;
                     }
 
@@ -553,16 +553,14 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-
                 JobAgent jobAgent = getJobAgent(job.getId());
-                for (Agent agent : agentService.list(jobAgent.all())) {
-                    if (agent.isBusy()) {
-                        sm.execute(context.getCurrent(), Cancelling, context);
-                        return;
-                    }
+
+                if (jobAgent.allBusyAgents().isEmpty()) {
+                    setRestStepsToSkipped(job);
+                    return;
                 }
 
-                setRestStepsToSkipped(job);
+                sm.execute(context.getCurrent(), Cancelling, context);
             }
 
             @Override
@@ -689,7 +687,7 @@ public class JobActionManagerImpl implements JobActionManager {
         return Optional.empty();
     }
 
-    private boolean assignAgentToWaitingStep(String agentId, Job job, NodeTree tree) {
+    private boolean assignAgentToWaitingStep(String agentId, Job job, NodeTree tree, boolean shouldIdle) {
         List<Step> steps = stepService.list(job, Lists.newArrayList(Executed.Status.WAITING_AGENT));
         if (steps.isEmpty()) {
             return false;
@@ -704,7 +702,7 @@ public class JobActionManagerImpl implements JobActionManager {
             FlowNode f = n.getParentFlowNode();
             Selector s = f.fetchSelector();
 
-            Optional<Agent> acquired = agentService.acquire(job.getId(), s, agentId);
+            Optional<Agent> acquired = agentService.acquire(job.getId(), s, agentId, shouldIdle);
             if (acquired.isPresent()) {
                 Agent agent = acquired.get();
 

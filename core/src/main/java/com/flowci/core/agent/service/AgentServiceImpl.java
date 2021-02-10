@@ -199,7 +199,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Optional<Agent> acquire(String jobId, Selector selector, String agentId) {
+    public Optional<Agent> acquire(String jobId, Selector selector, String agentId, boolean shouldIdle) {
         Optional<InterLock> lock = lock();
         if (!lock.isPresent()) {
             return Optional.empty();
@@ -212,7 +212,7 @@ public class AgentServiceImpl implements AgentService {
             }
 
             Agent agent = optional.get();
-            if (!agent.isIdle()) {
+            if (shouldIdle && !agent.isIdle()) {
                 return Optional.empty();
             }
 

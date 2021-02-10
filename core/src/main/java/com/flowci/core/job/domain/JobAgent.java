@@ -39,6 +39,16 @@ public final class JobAgent {
         return agents.keySet();
     }
 
+    public Collection<String> allBusyAgents() {
+        List<String> busy = new LinkedList<>();
+        this.agents.forEach((k, v) -> {
+            if (!v.isEmpty()) {
+                busy.add(k);
+            }
+        });
+        return busy;
+    }
+
     public boolean isOccupiedByFlow(String agentId) {
         Set<String> flows = agents.get(agentId);
         return flows != null && !flows.isEmpty();

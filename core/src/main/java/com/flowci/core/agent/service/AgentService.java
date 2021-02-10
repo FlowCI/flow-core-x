@@ -78,7 +78,7 @@ public interface AgentService {
     /**
      * Acquire job id to specific agent and set to busy, atomic
      */
-    Optional<Agent> acquire(String jobId, Selector selector, String agentId);
+    Optional<Agent> acquire(String jobId, Selector selector, String agentId, boolean shouldIdle);
 
     /**
      * Release agent, set to IDLE, atomic
