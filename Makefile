@@ -14,7 +14,7 @@ DOCKER_RUN 		:= docker run -it --rm -w /ws $(DOCKER_VOLUME) --network host $(DOC
 
 DOCKER_BUILD 	:= ./build.sh
 
-.PHONY: build test clean package docker
+.PHONY: build test clean package image
 
 build:
 	$(DOCKER_RUN) $(MVN_BUILD)
@@ -25,7 +25,7 @@ package:
 test:
 	$(DOCKER_RUN) $(MVN_TEST)
 
-docker: package
+image: package
 	$(DOCKER_BUILD) $(tag)
 
 clean:
