@@ -68,5 +68,3 @@ Need Help? submit issue from [here](https://github.com/FlowCI/docs/issues)
 ## Preview
 
 ![demo](https://github.com/FlowCI/docs/raw/master/src/demo.gif)
-
-![tty](https://github.com/FlowCI/docs/raw/master/src/step_tty.gif)
