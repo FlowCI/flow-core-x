@@ -450,12 +450,15 @@ public class JobActionManagerImpl implements JobActionManager {
                 Step step = context.step;
 
                 stepService.resultUpdate(step);
+                updateJobContextAndLatestStatus(job, step);
                 log.debug("Step {} been recorded", step.getNodePath());
 
-                // update job attributes and context
-                updateJobContextAndLatestStatus(job, step);
-                setJobStatusAndSave(job, Job.Status.RUNNING, null);
+                if (!step.isSuccess()) {
+                    toFinishStatus(context);
+                    return;
+                }
 
+                setJobStatusAndSave(job, Job.Status.RUNNING, null);
                 NodeTree tree = ymlManager.getTree(job);
                 Node node = tree.get(step.getNodePath());
 
@@ -501,8 +504,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                setRestStepsToSkipped(job);
-                sendKillCmdToAllAgents(job);
+                setOngingStepsToSkipped(job);
             }
 
             @Override
@@ -520,6 +522,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 Job job = context.job;
                 Step step = context.step;
                 stepService.toStatus(step, Step.Status.EXCEPTION, null, false);
+                setOngingStepsToSkipped(job);
                 logInfo(job, "finished with status {}", Failure);
             }
 
@@ -535,7 +538,7 @@ public class JobActionManagerImpl implements JobActionManager {
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 setJobStatusAndSave(job, Job.Status.CANCELLING, null);
-                sendKillCmdToAllAgents(job);
+                setOngingStepsToSkipped(job);
             }
 
             @Override
@@ -556,7 +559,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 JobAgent jobAgent = getJobAgent(job.getId());
 
                 if (jobAgent.allBusyAgents().isEmpty()) {
-                    setRestStepsToSkipped(job);
+                    setOngingStepsToSkipped(job);
                     return;
                 }
 
@@ -566,7 +569,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void onException(Throwable e, JobSmContext context) {
                 Job job = context.job;
-                setRestStepsToSkipped(job);
+                setOngingStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.CANCELLED, e.getMessage());
             }
 
@@ -587,7 +590,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                setRestStepsToSkipped(job);
+                setOngingStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.CANCELLED, null);
             }
 
@@ -772,19 +775,19 @@ public class JobActionManagerImpl implements JobActionManager {
         job.getContext().merge(root.getEnvironments(), false);
     }
 
-    private void sendKillCmdToAllAgents(Job job) {
-        JobAgent jobAgent = getJobAgent(job.getId());
-        for (Agent agent : agentService.list(jobAgent.all())) {
-            if (agent.isOnline()) {
+    private void setOngingStepsToSkipped(Job job) {
+        List<Step> steps = stepService.list(job, Executed.OngoingStatus);
+        for (Step step : steps) {
+            if (!step.hasAgent()) {
+                continue;
+            }
+
+            Agent agent = agentService.get(step.getAgentId());
+            if (agent.isBusy()) {
                 CmdIn killCmd = cmdManager.createKillCmd();
                 agentService.dispatch(killCmd, agent);
             }
         }
-    }
-
-    private void setRestStepsToSkipped(Job job) {
-        List<Step> steps = stepService.list(job);
-        steps.removeIf(step -> !step.isOngoing());
         stepService.toStatus(steps, Step.Status.SKIPPED, null);
     }
 
@@ -858,12 +861,6 @@ public class JobActionManagerImpl implements JobActionManager {
     private boolean toNextStep(Job job, Step step) throws ScriptException {
         NodeTree tree = ymlManager.getTree(job);
         Node node = tree.get(NodePath.create(step.getNodePath())); // current node
-
-        // return if current step is failure
-        if (!step.isSuccess()) {
-            log.debug("Job {} stop on {}", job.getId(), step.getNodePath());
-            return false;
-        }
 
         List<Node> next = node.getNext();
         if (next.isEmpty()) {

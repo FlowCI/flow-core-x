@@ -136,6 +136,11 @@ public class Step implements Executed {
     private Long logSize = -1L;
 
     @JsonIgnore
+    public boolean hasAgent() {
+        return StringHelper.hasValue(agentId);
+    }
+
+    @JsonIgnore
     public boolean hasParent() {
         return StringHelper.hasValue(parent);
     }
