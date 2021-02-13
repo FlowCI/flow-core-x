@@ -19,13 +19,15 @@ flow.ci is an open-source CI/CD automation server that designed for reducing the
 
     flow.ci is designed to work in the cloud -- public, private, or hybrid, it could be deployed with multiple instances, the configuration/jobs data on the node may not be lost when the instance fails.
 
+- __High Performance__
+
+  - __scaling__: automatically scale agent either on K8s cluster or Linux host
+  - __parallel__: job steps can be executed in parallel on multiple agents
+  - __cache__: cache anything to speed up the build
+
 - __Zero Configuration__
 
     flow.ci tries to minimize the complexity of any configuration, the server could be started with three command lines. It also provides build templates of many programming languages, a job could be started just using it.
-
-- __Dynamic Agents__
-
-    flow.ci could scale agent automatically either on K8s cluster or Linux host.
 
 - __Online Debugging__
     
