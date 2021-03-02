@@ -504,7 +504,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                setOngingStepsToSkipped(job);
+                setOngoingStepsToSkipped(job);
             }
 
             @Override
@@ -522,7 +522,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 Job job = context.job;
                 Step step = context.step;
                 stepService.toStatus(step, Step.Status.EXCEPTION, null, false);
-                setOngingStepsToSkipped(job);
+                setOngoingStepsToSkipped(job);
                 logInfo(job, "finished with status {}", Failure);
             }
 
@@ -538,7 +538,7 @@ public class JobActionManagerImpl implements JobActionManager {
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 setJobStatusAndSave(job, Job.Status.CANCELLING, null);
-                setOngingStepsToSkipped(job);
+                setOngoingStepsToSkipped(job);
             }
 
             @Override
@@ -558,8 +558,9 @@ public class JobActionManagerImpl implements JobActionManager {
                 Job job = context.job;
                 JobAgent jobAgent = getJobAgent(job.getId());
 
-                if (jobAgent.allBusyAgents().isEmpty()) {
-                    setOngingStepsToSkipped(job);
+                List<Step> ongoingSteps = stepService.list(job, Executed.OngoingStatus);
+                if (jobAgent.allBusyAgents(ongoingSteps).isEmpty()) {
+                    setOngoingStepsToSkipped(job);
                     return;
                 }
 
@@ -569,7 +570,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void onException(Throwable e, JobSmContext context) {
                 Job job = context.job;
-                setOngingStepsToSkipped(job);
+                setOngoingStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.CANCELLED, e.getMessage());
             }
 
@@ -590,7 +591,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                setOngingStepsToSkipped(job);
+                setOngoingStepsToSkipped(job);
                 setJobStatusAndSave(job, Job.Status.CANCELLED, null);
             }
 
@@ -775,7 +776,7 @@ public class JobActionManagerImpl implements JobActionManager {
         job.getContext().merge(root.getEnvironments(), false);
     }
 
-    private void setOngingStepsToSkipped(Job job) {
+    private void setOngoingStepsToSkipped(Job job) {
         List<Step> steps = stepService.list(job, Executed.OngoingStatus);
         for (Step step : steps) {
             if (!step.hasAgent()) {
