@@ -39,11 +39,21 @@ public final class JobAgent {
         return agents.keySet();
     }
 
-    public Collection<String> allBusyAgents() {
-        List<String> busy = new LinkedList<>();
+    /**
+     * All busy agents, which are occupied by flow and assigned to step
+     */
+    public Collection<String> allBusyAgents(Collection<Step> ongoingSteps) {
+        Set<String> busy = new HashSet<>(agents.size());
         this.agents.forEach((k, v) -> {
-            if (!v.isEmpty()) {
-                busy.add(k);
+            if (v.isEmpty()) {
+                return;
+            }
+
+            for(Step s : ongoingSteps) {
+                if (s.hasAgent() && s.getAgentId().equals(k)) {
+                    busy.add(k);
+                    return;
+                }
             }
         });
         return busy;
