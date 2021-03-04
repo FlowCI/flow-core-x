@@ -769,7 +769,7 @@ public class JobActionManagerImpl implements JobActionManager {
         stepService.init(job);
         localTaskService.init(job);
 
-        FlowNode root = YmlParser.load(yml);
+        FlowNode root = ymlManager.parse(yml);
 
         job.setCurrentPathFromNodes(root);
         job.getContext().merge(root.getEnvironments(), false);

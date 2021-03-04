@@ -24,6 +24,7 @@ import com.flowci.core.agent.domain.TtyCmd;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.OnCmdOutEvent;
 import com.flowci.core.common.config.AppProperties;
+import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.domain.Flow;
@@ -35,6 +36,8 @@ import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.core.job.manager.JobActionManager;
+import com.flowci.core.job.manager.YmlManager;
+import com.flowci.tree.FlowNode;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -63,6 +66,12 @@ public class JobEventServiceImpl implements JobEventService {
 
     @Autowired
     private JobActionManager jobActionManager;
+
+    @Autowired
+    private ConditionManager conditionManager;
+
+    @Autowired
+    private YmlManager ymlManager;
 
     @Autowired
     private TaskExecutor appTaskExecutor;
@@ -101,8 +110,22 @@ public class JobEventServiceImpl implements JobEventService {
     public void startNewJob(CreateNewJobEvent event) {
         appTaskExecutor.execute(() -> {
             try {
+                FlowNode root = ymlManager.parse(event.getYml());
+                boolean canCreateJob = true;
+
+                if (root.hasCondition()) {
+                    root.getEnvironments().merge(event.getInput());
+                    canCreateJob = conditionManager.run(root.getCondition(), root.getEnvironments());
+                }
+
+                if (!canCreateJob) {
+                    log.info("Unable to create job of flow {} since condition not match", event.getFlow().getName());
+                    return;
+                }
+
                 Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
                 jobService.start(job);
+
             } catch (Throwable e) {
                 log.warn(e);
             }

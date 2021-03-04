@@ -36,7 +36,6 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
-import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
@@ -210,7 +209,7 @@ public class JobServiceImpl implements JobService {
 
         // load yaml
         JobYml yml = ymlManager.get(job);
-        FlowNode root = YmlParser.load(yml.getRaw());
+        FlowNode root = ymlManager.parse(yml.getRaw());
 
         // reset
         job.setTimeout(flow.getStepTimeout());

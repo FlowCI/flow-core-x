@@ -18,12 +18,16 @@ package com.flowci.core.job.manager;
 
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobYml;
+import com.flowci.tree.FlowNode;
 import com.flowci.tree.NodeTree;
 
 /**
  * @author yang
  */
 public interface YmlManager {
+
+    FlowNode parse(String yml);
+
 
     JobYml get(Job job);
 

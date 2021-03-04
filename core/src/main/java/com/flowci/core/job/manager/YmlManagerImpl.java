@@ -44,6 +44,11 @@ public class YmlManagerImpl implements YmlManager {
     private JobYmlDao jobYmlDao;
 
     @Override
+    public FlowNode parse(String yml) {
+        return YmlParser.load(yml);
+    }
+
+    @Override
     public JobYml get(Job job) {
         Optional<JobYml> optional = jobYmlDao.findById(job.getId());
 
