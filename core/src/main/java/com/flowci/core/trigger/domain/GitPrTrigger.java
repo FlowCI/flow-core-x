@@ -16,22 +16,12 @@
 
 package com.flowci.core.trigger.domain;
 
-import static com.flowci.core.trigger.domain.Variables.PR_BASE_REPO_BRANCH;
-import static com.flowci.core.trigger.domain.Variables.PR_BASE_REPO_COMMIT;
-import static com.flowci.core.trigger.domain.Variables.PR_BASE_REPO_NAME;
-import static com.flowci.core.trigger.domain.Variables.PR_HEAD_REPO_BRANCH;
-import static com.flowci.core.trigger.domain.Variables.PR_HEAD_REPO_COMMIT;
-import static com.flowci.core.trigger.domain.Variables.PR_HEAD_REPO_NAME;
-import static com.flowci.core.trigger.domain.Variables.PR_MESSAGE;
-import static com.flowci.core.trigger.domain.Variables.PR_NUMBER;
-import static com.flowci.core.trigger.domain.Variables.PR_TIME;
-import static com.flowci.core.trigger.domain.Variables.PR_TITLE;
-import static com.flowci.core.trigger.domain.Variables.PR_URL;
-
 import com.flowci.domain.StringVars;
 import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
+
+import static com.flowci.core.trigger.domain.Variables.*;
 
 /**
  * @author yang
@@ -80,6 +70,12 @@ public final class GitPrTrigger extends GitTrigger {
         map.put(PR_BASE_REPO_NAME, base.repoName);
         map.put(PR_BASE_REPO_BRANCH, base.ref);
         map.put(PR_BASE_REPO_COMMIT, base.commit);
+
+        // set empty string to COMMIT variables
+        for (String commitVar : COMMIT_VARS) {
+            map.put(commitVar, StringHelper.EMPTY);
+        }
+
         return map;
     }
 

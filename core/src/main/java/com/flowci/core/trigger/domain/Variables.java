@@ -17,6 +17,10 @@
 
 package com.flowci.core.trigger.domain;
 
+import com.google.common.collect.ImmutableList;
+
+import java.util.Collection;
+
 public class Variables {
 
     /**
@@ -46,6 +50,16 @@ public class Variables {
 
     public static final String GIT_COMMIT_NUM = "FLOWCI_GIT_COMMIT_NUM";
 
+    public static final Collection<String> COMMIT_VARS = ImmutableList.<String>builder()
+            .add(GIT_AUTHOR)
+            .add(GIT_BRANCH)
+            .add(GIT_COMMIT_ID)
+            .add(GIT_COMMIT_MESSAGE)
+            .add(GIT_COMMIT_TIME)
+            .add(GIT_COMMIT_URL)
+            .add(GIT_COMMIT_NUM)
+            .build();
+
     /**
      * Variables for git pull request
      */
@@ -70,6 +84,20 @@ public class Variables {
     public static final String PR_BASE_REPO_BRANCH = "FLOWCI_GIT_PR_BASE_REPO_BRANCH";
 
     public static final String PR_BASE_REPO_COMMIT = "FLOWCI_GIT_PR_BASE_REPO_COMMIT";
+
+    public static final Collection<String> PR_VARS = ImmutableList.<String>builder()
+            .add(PR_TITLE)
+            .add(PR_MESSAGE)
+            .add(PR_URL)
+            .add(PR_TIME)
+            .add(PR_NUMBER)
+            .add(PR_HEAD_REPO_NAME)
+            .add(PR_HEAD_REPO_BRANCH)
+            .add(PR_HEAD_REPO_COMMIT)
+            .add(PR_BASE_REPO_NAME)
+            .add(PR_BASE_REPO_BRANCH)
+            .add(PR_BASE_REPO_COMMIT)
+            .build();
 
     private Variables() {
 

@@ -41,9 +41,13 @@ public abstract class TriggerConverter {
     private ObjectMapper objectMapper;
 
     public Optional<GitTrigger> convert(String event, InputStream body) {
-        Map<String, Function<InputStream, GitTrigger>> mapping = getMapping();
-        GitTrigger trigger = mapping.get(event).apply(body);
-        return Optional.ofNullable(trigger);
+        try {
+            Map<String, Function<InputStream, GitTrigger>> mapping = getMapping();
+            GitTrigger trigger = mapping.get(event).apply(body);
+            return Optional.ofNullable(trigger);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     abstract GitSource getGitSource();

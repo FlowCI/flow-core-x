@@ -17,10 +17,7 @@
 package com.flowci.core.trigger.domain;
 
 import com.flowci.domain.StringVars;
-import java.io.Serializable;
-
 import com.flowci.util.StringHelper;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -59,6 +56,12 @@ public final class GitPushTrigger extends GitTrigger {
         map.put(Variables.GIT_COMMIT_TIME, time);
         map.put(Variables.GIT_COMMIT_URL, commitUrl);
         map.put(Variables.GIT_COMMIT_NUM, Integer.toString(numOfCommit));
+
+        // set empty string to PR variables
+        for (String prVar : Variables.PR_VARS) {
+            map.put(prVar, StringHelper.EMPTY);
+        }
+
         return map;
     }
 
