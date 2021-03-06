@@ -13,6 +13,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class AgentProfile extends Mongoable {
 
+    public static final AgentProfile EMPTY = new AgentProfile();
+
     private int cpuNum;
 
     private double cpuUsage;

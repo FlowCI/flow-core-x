@@ -18,6 +18,7 @@ package com.flowci.core.job.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.domain.AgentProfile;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
@@ -159,7 +160,9 @@ public class Job extends Mongoable implements Pathable {
 
         private String os;
 
-        private int cpu;
+        private int cpuNum;
+
+        private double cpuUsage;
 
         private int totalMemory;
 
@@ -323,15 +326,16 @@ public class Job extends Mongoable implements Pathable {
         return Instant.now().compareTo(expireAt) > 0;
     }
 
-    public void addAgentSnapshot(Agent agent) {
+    public void addAgentSnapshot(Agent agent, AgentProfile profile) {
         AgentSnapshot s = new AgentSnapshot();
         s.name = agent.getName();
         s.os = agent.getOs().name();
-        s.cpu = agent.getResource().getCpu();
-        s.totalMemory = agent.getResource().getTotalMemory();
-        s.freeMemory = agent.getResource().getFreeMemory();
-        s.totalDisk = agent.getResource().getTotalDisk();
-        s.freeDisk = agent.getResource().getFreeDisk();
+        s.cpuNum = profile.getCpuNum();
+        s.cpuUsage = profile.getCpuUsage();
+        s.totalMemory = profile.getTotalMemory();
+        s.freeMemory = profile.getFreeMemory();
+        s.totalDisk = profile.getTotalDisk();
+        s.freeDisk = profile.getFreeDisk();
 
         this.snapshots.put(agent.getId(), s);
     }

@@ -19,11 +19,8 @@ package com.flowci.core.agent.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.dao.AgentDao;
 import com.flowci.core.agent.dao.AgentProfileDao;
-import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.domain.*;
 import com.flowci.core.agent.domain.Agent.Status;
-import com.flowci.core.agent.domain.AgentInit;
-import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.agent.domain.Util;
 import com.flowci.core.agent.event.*;
 import com.flowci.core.agent.manager.AgentEventManager;
 import com.flowci.core.common.config.AppProperties;
@@ -151,6 +148,12 @@ public class AgentServiceImpl implements AgentService {
             throw new NotFoundException("Agent {0} does not existed", id);
         }
         return optional.get();
+    }
+
+    @Override
+    public AgentProfile getProfile(String token) {
+        Optional<AgentProfile> optional = agentProfileDao.findById(token);
+        return optional.orElse(AgentProfile.EMPTY);
     }
 
     @Override
