@@ -108,6 +108,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
         return "/topic/agents";
     }
 
+    @Bean("topicForAgentProfile")
+    public String topicForAgentProfile() {
+        return "/topic/agent_profile";
+    }
+
     /**
      * To subscribe agent host update
      */

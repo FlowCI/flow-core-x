@@ -24,8 +24,10 @@ import com.flowci.core.agent.domain.Agent.Status;
 import com.flowci.core.agent.event.*;
 import com.flowci.core.agent.manager.AgentEventManager;
 import com.flowci.core.common.config.AppProperties;
+import com.flowci.core.common.domain.PushEvent;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.helper.ThreadHelper;
+import com.flowci.core.common.manager.SocketPushManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.manager.SpringTaskManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
@@ -70,6 +72,9 @@ public class AgentServiceImpl implements AgentService {
     private static final int MaxIdleAgentPushBack = 10; // seconds
 
     @Autowired
+    private String topicForAgentProfile;
+
+    @Autowired
     private AppProperties.Zookeeper zkProperties;
 
     @Autowired
@@ -98,6 +103,9 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private RabbitOperations idleAgentQueueManager;
+
+    @Autowired
+    private SocketPushManager socketPushManager;
 
     @EventListener(ContextRefreshedEvent.class)
     public void initAgentStatus() {
@@ -395,6 +403,7 @@ public class AgentServiceImpl implements AgentService {
     @EventListener
     public void onProfileReceived(OnAgentProfileEvent event) {
         agentProfileDao.save(event.getProfile());
+        socketPushManager.push(topicForAgentProfile, PushEvent.STATUS_CHANGE, event.getProfile());
     }
 
     @EventListener
