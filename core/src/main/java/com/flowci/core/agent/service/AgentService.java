@@ -96,11 +96,6 @@ public interface AgentService {
     Agent update(String token, String name, Set<String> tags);
 
     /**
-     * Update agent resource
-     */
-    Agent update(String token, Agent.Resource resource);
-
-    /**
      * Update agent status
      */
     Agent update(Agent agent, Agent.Status status);

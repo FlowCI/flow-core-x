@@ -18,6 +18,7 @@ package com.flowci.core.agent.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.dao.AgentDao;
+import com.flowci.core.agent.dao.AgentProfileDao;
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.Agent.Status;
 import com.flowci.core.agent.domain.AgentInit;
@@ -79,6 +80,9 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private AgentDao agentDao;
+
+    @Autowired
+    private AgentProfileDao agentProfileDao;
 
     @Autowired
     private SpringEventManager eventManager;
@@ -315,14 +319,6 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Agent update(String token, Agent.Resource resource) {
-        Agent agent = getByToken(token);
-        agent.setResource(resource);
-        agentDao.save(agent);
-        return agent;
-    }
-
-    @Override
     public Agent update(Agent agent, Status status) {
         if (agent.getStatus() == status) {
             agentDao.save(agent);
@@ -382,7 +378,6 @@ public class AgentServiceImpl implements AgentService {
             target.setK8sCluster(init.getK8sCluster());
             target.setUrl("http://" + init.getIp() + ":" + init.getPort());
             target.setOs(init.getOs());
-            target.setResource(init.getResource());
 
             update(target, init.getStatus());
 
@@ -392,6 +387,11 @@ public class AgentServiceImpl implements AgentService {
         } finally {
             unlock(lock.get());
         }
+    }
+
+    @EventListener
+    public void onProfileReceived(OnAgentProfileEvent event) {
+        agentProfileDao.save(event.getProfile());
     }
 
     @EventListener

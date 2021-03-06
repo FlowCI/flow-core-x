@@ -64,22 +64,6 @@ public class Agent extends Mongoable {
         }
     }
 
-    @Getter
-    @Setter
-    @Accessors(chain = true)
-    public static class Resource {
-
-        private int cpu;
-
-        private int totalMemory; // in MB
-
-        private int freeMemory; // in MB
-
-        private int totalDisk; // in MB
-
-        private int freeDisk; // in MB
-    }
-
     @Indexed(name = "index_agent_name", unique = true)
     private String name;
 
@@ -96,8 +80,6 @@ public class Agent extends Mongoable {
     private boolean k8sCluster;
 
     private OS os = OS.UNKNOWN;
-
-    private Resource resource = new Resource();
 
     private Set<String> tags = Collections.emptySet();
 

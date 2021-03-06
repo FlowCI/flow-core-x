@@ -17,9 +17,7 @@
 
 package com.flowci.core.api;
 
-import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.service.AgentService;
-import com.flowci.core.api.adviser.ApiAuth;
 import com.flowci.core.api.domain.AddStatsItem;
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
@@ -131,12 +129,6 @@ public class OpenRestController {
                                   @Validated @RequestPart("body") CreateJobArtifact meta,
                                   @RequestPart("file") MultipartFile file) {
         openRestService.saveJobArtifact(name, number, meta, file);
-    }
-
-    @PostMapping("/profile")
-    public void profile(@RequestHeader(ApiAuth.HeaderAgentToken) String token,
-                        @RequestBody Agent.Resource resource) {
-        agentService.update(token, resource);
     }
 
     @PostMapping("/logs/upload")
