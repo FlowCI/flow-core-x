@@ -152,7 +152,7 @@ public class AgentEventManager extends BinaryWebSocketHandler {
             Objects.requireNonNull(init.getStatus(), "Agent status is missing");
 
             init.setToken(token);
-            init.setIp(session.getRemoteAddress() == null ? null : session.getRemoteAddress().toString());
+            init.setIp(session.getRemoteAddress() == null ? null : session.getRemoteAddress().getAddress().toString());
 
             eventManager.publish(new OnConnectedEvent(this, token, session, init));
             agentSessionStore.put(token, session);
