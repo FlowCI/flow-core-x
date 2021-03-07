@@ -22,14 +22,15 @@ import com.flowci.domain.Common.OS;
 import com.flowci.domain.SimpleKeyPair;
 import com.flowci.tree.Selector;
 import com.google.common.base.Strings;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -64,22 +65,6 @@ public class Agent extends Mongoable {
         }
     }
 
-    @Getter
-    @Setter
-    @Accessors(chain = true)
-    public static class Resource {
-
-        private int cpu;
-
-        private int totalMemory; // in MB
-
-        private int freeMemory; // in MB
-
-        private int totalDisk; // in MB
-
-        private int freeDisk; // in MB
-    }
-
     @Indexed(name = "index_agent_name", unique = true)
     private String name;
 
@@ -97,13 +82,11 @@ public class Agent extends Mongoable {
 
     private OS os = OS.UNKNOWN;
 
-    private Resource resource = new Resource();
-
     private Set<String> tags = Collections.emptySet();
 
     private Status status = Status.OFFLINE;
 
-    private Date statusUpdatedAt;
+    private Instant statusUpdatedAt;
 
     private String jobId;
 
@@ -123,7 +106,7 @@ public class Agent extends Mongoable {
 
     public void setStatus(Status status) {
         this.status = status;
-        this.statusUpdatedAt = new Date();
+        this.statusUpdatedAt = Instant.now();
     }
 
     public void setTags(Set<String> tags) {

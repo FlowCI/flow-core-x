@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.flowci.core.common.domain.JsonablePage;
 import org.springframework.data.domain.Pageable;
 
+import java.time.Instant;
+
 /**
  * @author yang
  */
@@ -35,6 +37,10 @@ public abstract class JacksonHelper {
 
         SimpleModule module = new SimpleModule();
         module.addDeserializer(Pageable.class, new JsonablePage.PageableDeserializer());
+
+        module.addSerializer(Instant.class, new DateHelper.InstantUTCSerializer());
+        module.addDeserializer(Instant.class, new DateHelper.InstantUTCDeserializer());
+
         mapper.registerModule(module);
 
         return mapper;

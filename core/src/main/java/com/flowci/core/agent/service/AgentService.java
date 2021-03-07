@@ -17,6 +17,7 @@
 package com.flowci.core.agent.service;
 
 import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.domain.AgentProfile;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.tree.Selector;
 
@@ -34,6 +35,11 @@ public interface AgentService {
      * Get agent by id
      */
     Agent get(String id);
+
+    /**
+     * Get agent profile by token
+     */
+    AgentProfile getProfile(String token);
 
     /**
      * Get agent by name
@@ -94,11 +100,6 @@ public interface AgentService {
      * Update agent name or and tags
      */
     Agent update(String token, String name, Set<String> tags);
-
-    /**
-     * Update agent resource
-     */
-    Agent update(String token, Agent.Resource resource);
 
     /**
      * Update agent status

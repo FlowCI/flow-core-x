@@ -17,6 +17,7 @@
 package com.flowci.core.job.manager;
 
 import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.domain.AgentProfile;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.event.IdleAgentEvent;
@@ -682,7 +683,8 @@ public class JobActionManagerImpl implements JobActionManager {
         Optional<Agent> optional = agentService.acquire(job.getId(), selector);
         if (optional.isPresent()) {
             Agent agent = optional.get();
-            job.addAgentSnapshot(agent);
+            AgentProfile profile = agentService.getProfile(agent.getToken());
+            job.addAgentSnapshot(agent, profile);
             jobAgentDao.addFlowToAgent(job.getId(), agent.getId(), flow.getPathAsString());
             setJobStatusAndSave(job, job.getStatus(), null);
             return optional;
@@ -709,8 +711,8 @@ public class JobActionManagerImpl implements JobActionManager {
             Optional<Agent> acquired = agentService.acquire(job.getId(), s, agentId, shouldIdle);
             if (acquired.isPresent()) {
                 Agent agent = acquired.get();
-
-                job.addAgentSnapshot(agent);
+                AgentProfile profile = agentService.getProfile(agent.getToken());
+                job.addAgentSnapshot(agent, profile);
                 setJobStatusAndSave(job, job.getStatus(), null);
 
                 jobAgentDao.addFlowToAgent(job.getId(), agent.getId(), f.getPathAsString());
