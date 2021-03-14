@@ -35,6 +35,8 @@ public class SaveAgentHost {
 
     private Set<String> tags = new HashSet<>();
 
+    private int exitOnIdle;
+
     @NotNull
     private AgentHost.Type type;
 
@@ -68,6 +70,7 @@ public class SaveAgentHost {
             host.setIp(ip);
             host.setMaxSize(maxSize);
             host.setPort(port);
+            host.setExitOnIdle(exitOnIdle);
             return host;
         }
 
@@ -77,6 +80,7 @@ public class SaveAgentHost {
             host.setName(name);
             host.setTags(tags);
             host.setMaxSize(maxSize);
+            host.setExitOnIdle(exitOnIdle);
             return host;
         }
 
@@ -88,6 +92,7 @@ public class SaveAgentHost {
             host.setSecret(secret);
             host.setNamespace(namespace);
             host.setMaxSize(maxSize);
+            host.setExitOnIdle(exitOnIdle);
             return host;
         }
 

@@ -270,6 +270,7 @@ public class AgentHostServiceImpl implements AgentHostService {
                 agent = agentService.create(new CreateOrUpdateAgent()
                         .setName(name)
                         .setTags(host.getTags())
+                        .setExitOnIdle(host.getExitOnIdle())
                         .setHostId(host.getId())
                 );
 
