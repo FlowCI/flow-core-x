@@ -29,7 +29,7 @@ import java.util.Set;
 
 @Getter
 @Setter
-public class SaveAgentHost {
+public class AgentHostOption {
 
     private String id;
 

@@ -19,7 +19,7 @@ package com.flowci.core.agent.service;
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.AgentProfile;
 import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.agent.domain.CreateOrUpdateAgent;
+import com.flowci.core.agent.domain.AgentOption;
 import com.flowci.tree.Selector;
 
 import java.util.Collection;
@@ -94,12 +94,12 @@ public interface AgentService {
     /**
      * Create agent by name and tags
      */
-    Agent create(CreateOrUpdateAgent option);
+    Agent create(AgentOption option);
 
     /**
      * Update agent name or and tags
      */
-    Agent update(CreateOrUpdateAgent option);
+    Agent update(AgentOption option);
 
     /**
      * Update agent status

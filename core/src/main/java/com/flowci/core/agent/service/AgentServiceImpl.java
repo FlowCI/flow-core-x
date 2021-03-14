@@ -293,7 +293,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Agent create(CreateOrUpdateAgent option) {
+    public Agent create(AgentOption option) {
         String name = option.getName();
 
         Agent exist = agentDao.findByName(name);
@@ -320,7 +320,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Agent update(CreateOrUpdateAgent option) {
+    public Agent update(AgentOption option) {
         Agent agent = getByToken(option.getToken());
         agent.setName(option.getName());
         agent.setTags(option.getTags());

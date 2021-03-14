@@ -28,7 +28,7 @@ import java.util.Set;
  */
 @Data
 @Accessors(chain = true)
-public class CreateOrUpdateAgent {
+public class AgentOption {
 
     @NotEmpty
     private String name;

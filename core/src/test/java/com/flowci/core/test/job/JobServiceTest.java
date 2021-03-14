@@ -19,7 +19,7 @@ package com.flowci.core.test.job;
 import com.flowci.core.agent.dao.AgentDao;
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.agent.domain.CreateOrUpdateAgent;
+import com.flowci.core.agent.domain.AgentOption;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.CmdSentEvent;
@@ -233,7 +233,7 @@ public class JobServiceTest extends ZookeeperScenario {
         String yaml = StringHelper.toString(load("flow-with-notify.yml"));
         yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toBase64(yaml));
 
-        Agent agent = agentService.create(new CreateOrUpdateAgent().setName("hello.agent"));
+        Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
         mockAgentOnline(agent.getToken());
 
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
@@ -350,7 +350,7 @@ public class JobServiceTest extends ZookeeperScenario {
     @Test
     public void should_handle_cmd_callback_for_success_status() {
         // init: agent and job
-        Agent agent = agentService.create(new CreateOrUpdateAgent().setName("hello.agent"));
+        Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
         Job job = prepareJobForRunningStatus(agent);
 
         NodeTree tree = ymlManager.getTree(job);
@@ -395,7 +395,7 @@ public class JobServiceTest extends ZookeeperScenario {
         // init: agent and job
         String yaml = StringHelper.toString(load("flow-with-failure.yml"));
         yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toBase64(yaml));
-        Agent agent = agentService.create(new CreateOrUpdateAgent().setName("hello.agent"));
+        Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
         Job job = prepareJobForRunningStatus(agent);
 
         NodeTree tree = ymlManager.getTree(job);
@@ -418,7 +418,7 @@ public class JobServiceTest extends ZookeeperScenario {
         // init: agent and job
         String yaml = StringHelper.toString(load("flow-all-failure.yml"));
         yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toBase64(yaml));
-        Agent agent = agentService.create(new CreateOrUpdateAgent().setName("hello.agent"));
+        Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
         Job job = prepareJobForRunningStatus(agent);
 
         NodeTree tree = ymlManager.getTree(job);
@@ -465,7 +465,7 @@ public class JobServiceTest extends ZookeeperScenario {
         yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toBase64(yaml));
 
         // mock agent online
-        Agent agent = agentService.create(new CreateOrUpdateAgent().setName("hello.agent.2"));
+        Agent agent = agentService.create(new AgentOption().setName("hello.agent.2"));
         mockAgentOnline(agent.getToken());
 
         // given: start job and wait for running

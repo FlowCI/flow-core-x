@@ -19,7 +19,7 @@ package com.flowci.core.test.agent;
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.Agent.Status;
 import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.agent.domain.CreateOrUpdateAgent;
+import com.flowci.core.agent.domain.AgentOption;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.service.AgentService;
@@ -56,7 +56,7 @@ public class AgentServiceTest extends ZookeeperScenario {
 
     @Test
     public void should_create_agent_in_db() {
-        Agent agent = agentService.create(new CreateOrUpdateAgent()
+        Agent agent = agentService.create(new AgentOption()
                 .setName("hello.test")
                 .setTags(ImmutableSet.of("local", "android"))
         );
@@ -67,7 +67,7 @@ public class AgentServiceTest extends ZookeeperScenario {
     @Test
     public void should_make_agent_online() throws InterruptedException {
         // init:
-        Agent agent = agentService.create(new CreateOrUpdateAgent()
+        Agent agent = agentService.create(new AgentOption()
                 .setName("hello.test")
                 .setTags(ImmutableSet.of("local", "android"))
         );
@@ -84,7 +84,7 @@ public class AgentServiceTest extends ZookeeperScenario {
     public void should_dispatch_cmd_to_agent() throws InterruptedException {
         // init:
         CmdIn cmd = new ShellIn();
-        Agent agent = agentService.create(new CreateOrUpdateAgent().setName("hello.agent"));
+        Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
 
         // when:
         CountDownLatch counter = new CountDownLatch(1);

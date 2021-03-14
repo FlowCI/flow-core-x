@@ -267,7 +267,7 @@ public class AgentHostServiceImpl implements AgentHostService {
 
             Agent agent = null;
             try {
-                agent = agentService.create(new CreateOrUpdateAgent()
+                agent = agentService.create(new AgentOption()
                         .setName(name)
                         .setTags(host.getTags())
                         .setExitOnIdle(host.getExitOnIdle())

@@ -18,7 +18,7 @@ package com.flowci.core.agent.controller;
 
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.AgentAction;
-import com.flowci.core.agent.domain.CreateOrUpdateAgent;
+import com.flowci.core.agent.domain.AgentOption;
 import com.flowci.core.agent.domain.DeleteAgent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.auth.annotation.Action;
@@ -54,7 +54,7 @@ public class AgentController {
 
     @PostMapping()
     @Action(AgentAction.CREATE_UPDATE)
-    public Agent createOrUpdate(@Validated @RequestBody CreateOrUpdateAgent body) {
+    public Agent createOrUpdate(@Validated @RequestBody AgentOption body) {
         if (body.hasToken()) {
             return agentService.update(body);
         }
