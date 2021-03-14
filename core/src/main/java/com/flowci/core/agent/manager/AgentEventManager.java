@@ -1,10 +1,7 @@
 package com.flowci.core.agent.manager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flowci.core.agent.domain.AgentInit;
-import com.flowci.core.agent.domain.AgentProfile;
-import com.flowci.core.agent.domain.ShellLog;
-import com.flowci.core.agent.domain.TtyCmd;
+import com.flowci.core.agent.domain.*;
 import com.flowci.core.agent.event.*;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
@@ -154,9 +151,12 @@ public class AgentEventManager extends BinaryWebSocketHandler {
             init.setToken(token);
             init.setIp(session.getRemoteAddress() == null ? null : session.getRemoteAddress().getAddress().toString());
 
-            eventManager.publish(new OnConnectedEvent(this, token, session, init));
+            OnConnectedEvent event = new OnConnectedEvent(this, token, session, init);
+            eventManager.publish(event);
             agentSessionStore.put(token, session);
-            writeMessage(token, new ResponseMessage<Void>(StatusCode.OK, null));
+
+            Agent agent = event.getAgent();
+            writeMessage(token, new ResponseMessage<>(StatusCode.OK, agent.getConfig()));
             log.debug("Agent {} is connected with status {}", token, init.getStatus());
         } catch (Exception e) {
             log.warn(e);

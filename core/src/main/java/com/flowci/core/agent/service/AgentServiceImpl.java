@@ -399,6 +399,8 @@ public class AgentServiceImpl implements AgentService {
             if (target.isIdle()) {
                 idleAgentQueueManager.send(idleAgentQueue, target.getId().getBytes());
             }
+
+            event.setAgent(target);
         } finally {
             unlock(lock.get());
         }
