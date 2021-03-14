@@ -48,7 +48,6 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.*;
 
 import static com.flowci.core.agent.domain.Agent.Status.*;
@@ -294,7 +293,9 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Agent create(String name, Set<String> tags, Optional<String> hostId) {
+    public Agent create(CreateOrUpdateAgent option) {
+        String name = option.getName();
+
         Agent exist = agentDao.findByName(name);
         if (exist != null) {
             throw new DuplicateException("Agent name {0} is already defined", name);
@@ -302,9 +303,10 @@ public class AgentServiceImpl implements AgentService {
 
         try {
             // create agent
-            Agent agent = new Agent(name, tags);
+            Agent agent = new Agent(name, option.getTags());
             agent.setToken(UUID.randomUUID().toString());
-            hostId.ifPresent(agent::setHostId);
+            agent.setHostId(option.getHostId());
+            agent.setExitOnIdle(option.getExitOnIdle());
 
             String dummyEmailForAgent = "agent." + name + "@flow.ci";
             agent.setRsa(CipherHelper.RSA.gen(dummyEmailForAgent));
@@ -318,15 +320,16 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Agent update(String token, String name, Set<String> tags) {
-        Agent agent = getByToken(token);
-        agent.setName(name);
-        agent.setTags(tags);
+    public Agent update(CreateOrUpdateAgent option) {
+        Agent agent = getByToken(option.getToken());
+        agent.setName(option.getName());
+        agent.setTags(option.getTags());
+        agent.setExitOnIdle(option.getExitOnIdle());
 
         try {
             return agentDao.save(agent);
         } catch (DuplicateKeyException e) {
-            throw new DuplicateException("Agent name {0} is already defined", name);
+            throw new DuplicateException("Agent name {0} is already defined", option.getName());
         }
     }
 

@@ -17,14 +17,17 @@
 package com.flowci.core.agent.domain;
 
 import com.google.common.base.Strings;
-import java.util.Set;
-import javax.validation.constraints.NotEmpty;
 import lombok.Data;
+import lombok.experimental.Accessors;
+
+import javax.validation.constraints.NotEmpty;
+import java.util.Set;
 
 /**
  * @author yang
  */
 @Data
+@Accessors(chain = true)
 public class CreateOrUpdateAgent {
 
     @NotEmpty
@@ -33,6 +36,10 @@ public class CreateOrUpdateAgent {
     private Set<String> tags;
 
     private String token;
+
+    private int exitOnIdle;
+
+    private String hostId;
 
     public boolean hasToken() {
         return !Strings.isNullOrEmpty(token);

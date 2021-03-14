@@ -28,7 +28,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author yang
@@ -57,10 +56,10 @@ public class AgentController {
     @Action(AgentAction.CREATE_UPDATE)
     public Agent createOrUpdate(@Validated @RequestBody CreateOrUpdateAgent body) {
         if (body.hasToken()) {
-            return agentService.update(body.getToken(), body.getName(), body.getTags());
+            return agentService.update(body);
         }
 
-        return agentService.create(body.getName(), body.getTags(), Optional.empty());
+        return agentService.create(body);
     }
 
     @DeleteMapping()

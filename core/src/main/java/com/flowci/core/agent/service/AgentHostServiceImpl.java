@@ -267,7 +267,11 @@ public class AgentHostServiceImpl implements AgentHostService {
 
             Agent agent = null;
             try {
-                agent = agentService.create(name, host.getTags(), Optional.of(host.getId()));
+                agent = agentService.create(new CreateOrUpdateAgent()
+                        .setName(name)
+                        .setTags(host.getTags())
+                        .setHostId(host.getId())
+                );
 
                 StartOption startOption = mapping.get(host.getClass()).buildStartOption(host, agent);
                 String cid = cm.start(startOption);

@@ -84,6 +84,8 @@ public class Agent extends Mongoable {
 
     private Set<String> tags = Collections.emptySet();
 
+    private int exitOnIdle;
+
     private Status status = Status.OFFLINE;
 
     private Instant statusUpdatedAt;
@@ -102,6 +104,11 @@ public class Agent extends Mongoable {
     public Agent(String name, Set<String> tags) {
         this.name = name;
         this.setTags(tags);
+    }
+
+    @JsonIgnore
+    public AgentConfig getConfig() {
+        return new AgentConfig().setExitOnIdle(exitOnIdle);
     }
 
     public void setStatus(Status status) {
