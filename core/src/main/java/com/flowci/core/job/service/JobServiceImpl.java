@@ -244,6 +244,30 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    public Job rerunFromFailureStep(Flow flow, Job job) {
+        if (!job.isDone()) {
+            throw new StatusException("Job not finished, cannot re-start");
+        }
+
+        if (!job.isFailure()) {
+            throw new StatusException("Job is not failure status, cannot re-start from failure step");
+        }
+
+        // reset job properties
+        job.setFinishAt(null);
+        job.setStartAt(null);
+        job.setSnapshots(Maps.newHashMap());
+        job.setStatus(Job.Status.PENDING);
+        job.setTrigger(Trigger.MANUAL);
+        job.setCreatedBy(sessionManager.getUserEmail());
+
+        // TODO:
+
+
+        return null;
+    }
+
+    @Override
     public void delete(Flow flow) {
         appTaskExecutor.execute(() -> {
             jobNumberDao.deleteAllByFlowId(flow.getId());

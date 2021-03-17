@@ -175,7 +175,7 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public void resultUpdate(Job job, Step stepFromAgent) {
+    public void resultUpdate(Step stepFromAgent) {
         checkNotNull(stepFromAgent.getId());
         Step entity = get(stepFromAgent.getId());
 
@@ -186,7 +186,6 @@ public class StepServiceImpl implements StepService {
         entity.setFinishAt(stepFromAgent.getFinishAt());
         entity.setLogSize(stepFromAgent.getLogSize());
         entity.setOutput(stepFromAgent.getOutput());
-        entity.setContext(job.getContext());
 
         // change status and save
         toStatus(entity, stepFromAgent.getStatus(), stepFromAgent.getError(), false);

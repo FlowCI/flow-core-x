@@ -74,7 +74,7 @@ public interface StepService {
     /**
      * To update properties are related with cmd executed result
      */
-    void resultUpdate(Job job, Step stepFromAgent);
+    void resultUpdate(Step stepFromAgent);
 
     /**
      * Delete steps by flow id

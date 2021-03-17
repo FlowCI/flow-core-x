@@ -273,6 +273,11 @@ public class Job extends Mongoable implements Pathable {
     }
 
     @JsonIgnore
+    public boolean isFailure() {
+        return status == Status.FAILURE;
+    }
+
+    @JsonIgnore
     public String getQueueName() {
         return "flow.q." + flowId + ".job";
     }

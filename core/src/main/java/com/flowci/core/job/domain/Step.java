@@ -116,12 +116,6 @@ public class Step implements Executed {
     private Vars<String> output = new StringVars();
 
     /**
-     * Context of all previous steps context
-     */
-    @JsonIgnore
-    private Vars<String> context;
-
-    /**
      * Cmd start at timestamp
      */
     private Date startAt;
