@@ -281,11 +281,7 @@ public class JobActionManagerImpl implements JobActionManager {
         sm.add(PendingToCreated, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) {
-                Job job = context.job;
-                String yml = context.yml;
-
-                setupJobYamlAndSteps(job, yml);
-                setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
+                doFromXToCreated(context);
             }
         });
 
@@ -325,13 +321,17 @@ public class JobActionManagerImpl implements JobActionManager {
         sm.add(LoadingToCreated, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) {
-                Job job = context.job;
-                String yml = context.yml;
-
-                setupJobYamlAndSteps(job, yml);
-                setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
+                doFromXToCreated(context);
             }
         });
+    }
+
+    private void doFromXToCreated(JobSmContext context) {
+        Job job = context.job;
+        String yml = context.yml;
+
+        setupJobYamlAndSteps(job, yml);
+        setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
     }
 
     private void fromCreated() {
