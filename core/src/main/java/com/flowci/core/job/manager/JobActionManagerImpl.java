@@ -450,7 +450,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 Job job = context.job;
                 Step step = context.step;
 
-                stepService.resultUpdate(step);
+                stepService.resultUpdate(job, step);
                 updateJobContextAndLatestStatus(job, step);
                 log.debug("Step {} been recorded", step.getNodePath());
 
