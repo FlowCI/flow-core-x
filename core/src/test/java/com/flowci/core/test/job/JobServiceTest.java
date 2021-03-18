@@ -538,7 +538,7 @@ public class JobServiceTest extends ZookeeperScenario {
 
         jobAgentDao.addFlowToAgent(job.getId(), agent.getId(), tree.getRoot().getPathAsString());
 
-        job.setCurrentPathFromNodes(firstNode);
+        job.resetCurrentPath().getCurrentPath().add(firstNode.getPathAsString());
         job.setStatus(Status.RUNNING);
         job.setStatusToContext(Status.RUNNING);
 

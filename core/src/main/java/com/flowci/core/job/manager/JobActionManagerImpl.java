@@ -215,6 +215,12 @@ public class JobActionManagerImpl implements JobActionManager {
             }
 
             try {
+                Agent agent = agentService.get(agentId);
+                if (agent.isBusy()) {
+                    event.setFetched(false);
+                    return;
+                }
+
                 NodeTree tree = ymlManager.getTree(job);
                 boolean isAssigned = assignAgentToWaitingStep(agentId, job, tree, true);
 
@@ -409,14 +415,18 @@ public class JobActionManagerImpl implements JobActionManager {
 
                 NodeTree tree = ymlManager.getTree(job);
 
-                // start job from job's current path
-                List<Node> stepsToStart = Lists.newLinkedList();
+                // start job from job's current step path
+                List<Node> nodesToStart = Lists.newLinkedList();
                 for (String p : job.getCurrentPath()) {
-                    stepsToStart.add(tree.get(p));
+                    nodesToStart.add(tree.get(p));
                 }
 
-                logInfo(job, "QueuedToRunning: start from nodes " + stepsToStart.toString());
-                executeJob(job, stepsToStart);
+                if (nodesToStart.isEmpty()) {
+                    nodesToStart.add(tree.getRoot());
+                }
+
+                logInfo(job, "QueuedToRunning: start from nodes " + nodesToStart.toString());
+                executeJob(job, nodesToStart);
             }
 
             @Override
@@ -467,6 +477,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 }
 
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
+
                 NodeTree tree = ymlManager.getTree(job);
                 Node node = tree.get(step.getNodePath());
 
@@ -780,8 +791,6 @@ public class JobActionManagerImpl implements JobActionManager {
         localTaskService.init(job);
 
         FlowNode root = ymlManager.parse(yml);
-
-        job.setCurrentPathFromNodes(root);
         job.getContext().merge(root.getEnvironments(), false);
     }
 
@@ -919,7 +928,6 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     private void executeJob(Job job, List<Node> nodes) throws ScriptException {
-        job.setCurrentPathFromNodes(nodes);
         setJobStatusAndSave(job, job.getStatus(), null);
 
         NodeTree tree = ymlManager.getTree(job);
@@ -942,6 +950,10 @@ public class JobActionManagerImpl implements JobActionManager {
                 executeJob(job, node.getNext());
                 continue;
             }
+
+            // add dispatchable step
+            job.addToCurrentPath(step);
+            jobDao.save(job);
 
             Optional<Agent> optionalFromJob = fetchAgentFromJob(job, node);
             if (optionalFromJob.isPresent()) {
@@ -1027,6 +1039,11 @@ public class JobActionManagerImpl implements JobActionManager {
 
     private void updateJobContextAndLatestStatus(Job job, Step step) {
         job.setFinishAt(step.getFinishAt());
+
+        // remove step path if success, keep failure for rerun later
+        if (step.isSuccess()) {
+            job.removeFromCurrentPath(step);
+        }
 
         // merge output to job context
         Vars<String> context = job.getContext();

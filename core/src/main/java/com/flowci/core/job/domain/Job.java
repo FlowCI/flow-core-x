@@ -24,9 +24,9 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.store.Pathable;
-import com.flowci.tree.Node;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableSet;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
@@ -44,6 +44,7 @@ import java.util.*;
 @Getter
 @Setter
 @Document(collection = "job")
+@EqualsAndHashCode(callSuper = true)
 @CompoundIndex(
         name = "index_job_flowid_and_buildnum",
         def = "{'flowId': 1, 'buildNumber': 1}",
@@ -212,6 +213,7 @@ public class Job extends Mongoable implements Pathable {
     // agent id : info
     private Map<String, AgentSnapshot> snapshots = new HashMap<>();
 
+    // current running steps
     private Set<String> currentPath = new HashSet<>();
 
     private Vars<String> context = new StringVars();
@@ -349,25 +351,16 @@ public class Job extends Mongoable implements Pathable {
         context.put(Variables.Job.Error, err);
     }
 
-    public void setCurrentPathFromNodes(List<Node> nodes) {
+    public Job resetCurrentPath() {
         this.currentPath.clear();
-        for (Node n : nodes) {
-            this.currentPath.add(n.getPathAsString());
-        }
+        return this;
     }
 
-    public void setCurrentPathFromNodes(Node node) {
-        this.currentPath.clear();
-        this.currentPath.add(node.getPathAsString());
+    public void addToCurrentPath(Step step) {
+        this.currentPath.add(step.getNodePath());
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return super.equals(o);
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
+    public void removeFromCurrentPath(Step step) {
+        this.currentPath.remove(step.getNodePath());
     }
 }

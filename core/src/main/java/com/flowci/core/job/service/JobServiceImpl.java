@@ -220,7 +220,7 @@ public class JobServiceImpl implements JobService {
         job.setSnapshots(Maps.newHashMap());
         job.setStatus(Job.Status.PENDING);
         job.setTrigger(Trigger.MANUAL);
-        job.setCurrentPathFromNodes(root);
+        job.resetCurrentPath();
         job.setCreatedBy(sessionManager.getUserEmail());
 
         // re-init job context
@@ -232,6 +232,9 @@ public class JobServiceImpl implements JobService {
         context.put(GIT_COMMIT_ID, lastCommitId);
         context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         context.merge(root.getEnvironments(), false);
+
+        // reset job agent
+        jobAgentDao.save(new JobAgent(job.getId(), flow.getId()));
 
         // cleanup
         stepService.delete(job);
@@ -261,6 +264,9 @@ public class JobServiceImpl implements JobService {
         job.setStatus(Job.Status.CREATED);
         job.setTrigger(Trigger.MANUAL);
         job.setCreatedBy(sessionManager.getUserEmail());
+
+        // reset job agent
+        jobAgentDao.save(new JobAgent(job.getId(), flow.getId()));
 
         jobActionManager.toStart(job);
         return job;
