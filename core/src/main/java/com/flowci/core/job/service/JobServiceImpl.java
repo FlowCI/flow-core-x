@@ -261,10 +261,8 @@ public class JobServiceImpl implements JobService {
         job.setTrigger(Trigger.MANUAL);
         job.setCreatedBy(sessionManager.getUserEmail());
 
-        // TODO:
-
-
-        return null;
+        jobActionManager.toStart(job);
+        return job;
     }
 
     @Override
