@@ -256,8 +256,9 @@ public class JobServiceImpl implements JobService {
         // reset job properties
         job.setFinishAt(null);
         job.setStartAt(null);
+        job.setExpire(flow.getStepTimeout());
         job.setSnapshots(Maps.newHashMap());
-        job.setStatus(Job.Status.PENDING);
+        job.setStatus(Job.Status.CREATED);
         job.setTrigger(Trigger.MANUAL);
         job.setCreatedBy(sessionManager.getUserEmail());
 

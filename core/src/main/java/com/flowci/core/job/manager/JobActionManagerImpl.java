@@ -407,17 +407,12 @@ public class JobActionManagerImpl implements JobActionManager {
                 job.setStartAt(new Date());
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
-                // start from root path, and block current thread since don't send ack back to queue
                 NodeTree tree = ymlManager.getTree(job);
 
-                // start job from root or from current path
+                // start job from job's current path
                 List<Node> stepsToStart = Lists.newLinkedList();
                 for (String p : job.getCurrentPath()) {
                     stepsToStart.add(tree.get(p));
-                }
-
-                if (stepsToStart.isEmpty()) {
-                    stepsToStart.add(tree.getRoot());
                 }
 
                 logInfo(job, "QueuedToRunning: start from nodes " + stepsToStart.toString());
