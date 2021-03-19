@@ -215,12 +215,6 @@ public class JobActionManagerImpl implements JobActionManager {
             }
 
             try {
-                Agent agent = agentService.get(agentId);
-                if (agent.isBusy()) {
-                    event.setFetched(false);
-                    return;
-                }
-
                 NodeTree tree = ymlManager.getTree(job);
                 boolean isAssigned = assignAgentToWaitingStep(agentId, job, tree, true);
 

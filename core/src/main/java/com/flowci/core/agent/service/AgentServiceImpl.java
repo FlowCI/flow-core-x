@@ -127,6 +127,12 @@ public class AgentServiceImpl implements AgentService {
             String agentId = new String(body);
             log.debug("Got an idle agent {}", agentId);
 
+            Agent agent = get(agentId);
+            if (!agent.isIdle()) {
+                log.debug("Agent {} is not idle", agentId);
+                return true;
+            }
+
             try {
                 IdleAgentEvent event = new IdleAgentEvent(this, agentId);
                 eventManager.publish(event);

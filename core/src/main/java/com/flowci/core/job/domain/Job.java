@@ -189,9 +189,9 @@ public class Job extends Mongoable implements Pathable {
 
     private static final SimpleDateFormat DateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
-    private static final Integer MinPriority = 1;
+    public static final Integer MinPriority = 1;
 
-    private static final Integer MaxPriority = 255;
+    public static final Integer MaxPriority = 255;
 
     /**
      * Job key is generated from {flow id}-{build number}

@@ -221,6 +221,7 @@ public class JobServiceImpl implements JobService {
         job.setStatus(Job.Status.PENDING);
         job.setTrigger(Trigger.MANUAL);
         job.resetCurrentPath();
+        job.setPriority(Job.MaxPriority);
         job.setCreatedBy(sessionManager.getUserEmail());
 
         // re-init job context
@@ -261,6 +262,7 @@ public class JobServiceImpl implements JobService {
         job.setStartAt(null);
         job.setExpire(flow.getStepTimeout());
         job.setSnapshots(Maps.newHashMap());
+        job.setPriority(Job.MaxPriority);
         job.setStatus(Job.Status.CREATED);
         job.setTrigger(Trigger.MANUAL);
         job.setCreatedBy(sessionManager.getUserEmail());
