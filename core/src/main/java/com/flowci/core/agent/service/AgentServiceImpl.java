@@ -48,6 +48,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
 
 import static com.flowci.core.agent.domain.Agent.Status.*;
@@ -399,6 +400,7 @@ public class AgentServiceImpl implements AgentService {
             target.setK8sCluster(init.getK8sCluster());
             target.setUrl("http://" + init.getIp() + ":" + init.getPort());
             target.setOs(init.getOs());
+            target.setConnectedAt(Instant.now());
 
             update(target, init.getStatus());
 
