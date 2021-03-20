@@ -202,7 +202,7 @@ public class JobServiceTest extends ZookeeperScenario {
         NodeTree tree = ymlManager.getTree(job);
 
         Assert.assertEquals(Status.CREATED, job.getStatus());
-        Assert.assertTrue(job.getCurrentPath().contains(tree.getRoot().getPathAsString()));
+        Assert.assertTrue(job.getCurrentPath().isEmpty());
 
         jobActionManager.toStart(job);
         Assert.assertEquals(Status.QUEUED, job.getStatus());
@@ -518,7 +518,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertNotNull(context.get(Variables.Job.TriggerBy));
 
         // then: verify job properties
-        Assert.assertTrue(job.getCurrentPath().contains(FlowNode.DEFAULT_ROOT_NAME));
+        Assert.assertTrue(job.getCurrentPath().isEmpty());
         Assert.assertFalse(job.isExpired());
         Assert.assertNotNull(job.getCreatedAt());
         Assert.assertNotNull(job.getCreatedBy());
