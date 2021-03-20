@@ -220,7 +220,8 @@ public class JobServiceImpl implements JobService {
         job.setSnapshots(Maps.newHashMap());
         job.setStatus(Job.Status.PENDING);
         job.setTrigger(Trigger.MANUAL);
-        job.setCurrentPathFromNodes(root);
+        job.resetCurrentPath();
+        job.setPriority(Job.MaxPriority);
         job.setCreatedBy(sessionManager.getUserEmail());
 
         // re-init job context
@@ -233,12 +234,42 @@ public class JobServiceImpl implements JobService {
         context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         context.merge(root.getEnvironments(), false);
 
+        // reset job agent
+        jobAgentDao.save(new JobAgent(job.getId(), flow.getId()));
+
         // cleanup
         stepService.delete(job);
         localTaskService.delete(job);
         ymlManager.delete(job);
 
         jobActionManager.toCreated(job, yml.getRaw());
+        jobActionManager.toStart(job);
+        return job;
+    }
+
+    @Override
+    public Job rerunFromFailureStep(Flow flow, Job job) {
+        if (!job.isDone()) {
+            throw new StatusException("Job not finished, cannot re-start");
+        }
+
+        if (!job.isFailure()) {
+            throw new StatusException("Job is not failure status, cannot re-start from failure step");
+        }
+
+        // reset job properties
+        job.setFinishAt(null);
+        job.setStartAt(null);
+        job.setExpire(flow.getStepTimeout());
+        job.setSnapshots(Maps.newHashMap());
+        job.setPriority(Job.MaxPriority);
+        job.setStatus(Job.Status.CREATED);
+        job.setTrigger(Trigger.MANUAL);
+        job.setCreatedBy(sessionManager.getUserEmail());
+
+        // reset job agent
+        jobAgentDao.save(new JobAgent(job.getId(), flow.getId()));
+
         jobActionManager.toStart(job);
         return job;
     }

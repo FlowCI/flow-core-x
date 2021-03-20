@@ -90,6 +90,8 @@ public class Agent extends Mongoable {
 
     private Instant statusUpdatedAt;
 
+    private Instant connectedAt;
+
     private String jobId;
 
     private String containerId; // for started from host

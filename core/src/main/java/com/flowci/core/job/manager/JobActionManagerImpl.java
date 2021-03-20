@@ -281,11 +281,7 @@ public class JobActionManagerImpl implements JobActionManager {
         sm.add(PendingToCreated, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) {
-                Job job = context.job;
-                String yml = context.yml;
-
-                setupJobYamlAndSteps(job, yml);
-                setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
+                doFromXToCreated(context);
             }
         });
 
@@ -325,13 +321,17 @@ public class JobActionManagerImpl implements JobActionManager {
         sm.add(LoadingToCreated, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) {
-                Job job = context.job;
-                String yml = context.yml;
-
-                setupJobYamlAndSteps(job, yml);
-                setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
+                doFromXToCreated(context);
             }
         });
+    }
+
+    private void doFromXToCreated(JobSmContext context) {
+        Job job = context.job;
+        String yml = context.yml;
+
+        setupJobYamlAndSteps(job, yml);
+        setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
     }
 
     private void fromCreated() {
@@ -407,9 +407,20 @@ public class JobActionManagerImpl implements JobActionManager {
                 job.setStartAt(new Date());
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
 
-                // start from root path, and block current thread since don't send ack back to queue
                 NodeTree tree = ymlManager.getTree(job);
-                executeJob(job, Lists.newArrayList(tree.getRoot()));
+
+                // start job from job's current step path
+                List<Node> nodesToStart = Lists.newLinkedList();
+                for (String p : job.getCurrentPath()) {
+                    nodesToStart.add(tree.get(p));
+                }
+
+                if (nodesToStart.isEmpty()) {
+                    nodesToStart.add(tree.getRoot());
+                }
+
+                logInfo(job, "QueuedToRunning: start from nodes " + nodesToStart.toString());
+                executeJob(job, nodesToStart);
             }
 
             @Override
@@ -460,6 +471,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 }
 
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
+
                 NodeTree tree = ymlManager.getTree(job);
                 Node node = tree.get(step.getNodePath());
 
@@ -773,8 +785,6 @@ public class JobActionManagerImpl implements JobActionManager {
         localTaskService.init(job);
 
         FlowNode root = ymlManager.parse(yml);
-
-        job.setCurrentPathFromNodes(root);
         job.getContext().merge(root.getEnvironments(), false);
     }
 
@@ -912,7 +922,6 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     private void executeJob(Job job, List<Node> nodes) throws ScriptException {
-        job.setCurrentPathFromNodes(nodes);
         setJobStatusAndSave(job, job.getStatus(), null);
 
         NodeTree tree = ymlManager.getTree(job);
@@ -935,6 +944,10 @@ public class JobActionManagerImpl implements JobActionManager {
                 executeJob(job, node.getNext());
                 continue;
             }
+
+            // add dispatchable step
+            job.addToCurrentPath(step);
+            jobDao.save(job);
 
             Optional<Agent> optionalFromJob = fetchAgentFromJob(job, node);
             if (optionalFromJob.isPresent()) {
@@ -1020,6 +1033,11 @@ public class JobActionManagerImpl implements JobActionManager {
 
     private void updateJobContextAndLatestStatus(Job job, Step step) {
         job.setFinishAt(step.getFinishAt());
+
+        // remove step path if success, keep failure for rerun later
+        if (step.isSuccess()) {
+            job.removeFromCurrentPath(step);
+        }
 
         // merge output to job context
         Vars<String> context = job.getContext();

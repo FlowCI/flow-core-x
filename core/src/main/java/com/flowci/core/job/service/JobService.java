@@ -17,11 +17,8 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
-import com.flowci.core.job.domain.JobDesc;
-import com.flowci.core.job.domain.JobItem;
-import com.flowci.core.job.domain.JobYml;
 import com.flowci.domain.StringVars;
 import org.springframework.data.domain.Page;
 
@@ -87,6 +84,11 @@ public interface JobService {
      * Restart job
      */
     Job rerun(Flow flow, Job job);
+
+    /**
+     * Restart job from failure step
+     */
+    Job rerunFromFailureStep(Flow flow, Job job);
 
     /**
      * Delete all jobs of the flow within an executor

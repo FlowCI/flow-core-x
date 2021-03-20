@@ -175,20 +175,20 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public void resultUpdate(Step cmd) {
-        checkNotNull(cmd.getId());
-        Step entity = get(cmd.getId());
+    public void resultUpdate(Step stepFromAgent) {
+        checkNotNull(stepFromAgent.getId());
+        Step entity = get(stepFromAgent.getId());
 
         // only update properties should from agent
-        entity.setProcessId(cmd.getProcessId());
-        entity.setCode(cmd.getCode());
-        entity.setStartAt(cmd.getStartAt());
-        entity.setFinishAt(cmd.getFinishAt());
-        entity.setLogSize(cmd.getLogSize());
-        entity.setOutput(cmd.getOutput());
+        entity.setProcessId(stepFromAgent.getProcessId());
+        entity.setCode(stepFromAgent.getCode());
+        entity.setStartAt(stepFromAgent.getStartAt());
+        entity.setFinishAt(stepFromAgent.getFinishAt());
+        entity.setLogSize(stepFromAgent.getLogSize());
+        entity.setOutput(stepFromAgent.getOutput());
 
         // change status and save
-        toStatus(entity, cmd.getStatus(), cmd.getError(), false);
+        toStatus(entity, stepFromAgent.getStatus(), stepFromAgent.getError(), false);
     }
 
     @Override

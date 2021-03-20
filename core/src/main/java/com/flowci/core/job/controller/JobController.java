@@ -139,6 +139,12 @@ public class JobController extends BaseController {
     public void rerun(@Validated @RequestBody RerunJob body) {
         Job job = jobService.get(body.getJobId());
         Flow flow = flowService.getById(job.getFlowId());
+
+        if (body.isFromFailureStep()) {
+            jobService.rerunFromFailureStep(flow, job);
+            return;
+        }
+
         jobService.rerun(flow, job);
     }
 
