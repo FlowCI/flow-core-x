@@ -67,6 +67,10 @@ public class StateMachine<T extends Context> {
         try {
             action.accept(context);
 
+            if (context.getTo() != target) {
+                return;
+            }
+
             // execute target hook
             hooksOnTargetStatus.computeIfPresent(target, (status, hooks) -> {
                 for (Consumer<T> hook : hooks) {

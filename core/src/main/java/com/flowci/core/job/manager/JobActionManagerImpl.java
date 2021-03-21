@@ -80,6 +80,7 @@ public class JobActionManagerImpl implements JobActionManager {
     private static final Status Cancelling = new Status(Job.Status.CANCELLING.name());
     private static final Status Queued = new Status(Job.Status.QUEUED.name());
     private static final Status Running = new Status(Job.Status.RUNNING.name());
+    private static final Status RunningPost = new Status(Job.Status.RUNNING_POST.name());
     private static final Status Timeout = new Status(Job.Status.TIMEOUT.name());
     private static final Status Failure = new Status(Job.Status.FAILURE.name());
     private static final Status Success = new Status(Job.Status.SUCCESS.name());
@@ -111,6 +112,12 @@ public class JobActionManagerImpl implements JobActionManager {
     private static final Transition RunningToCanceled = new Transition(Running, Cancelled);
     private static final Transition RunningToTimeout = new Transition(Running, Timeout);
     private static final Transition RunningToFailure = new Transition(Running, Failure);
+
+    // running post
+    private static final Transition RunningPostToFailure = new Transition(RunningPost, Failure);
+    private static final Transition RunningPostToCanceled = new Transition(RunningPost, Cancelled);
+    private static final Transition RunningPostToTimeout = new Transition(RunningPost, Timeout);
+
 
     // cancelling
     private static final Transition CancellingToCancelled = new Transition(Cancelling, Cancelled);
@@ -535,6 +542,8 @@ public class JobActionManagerImpl implements JobActionManager {
                 stepService.toStatus(step, Step.Status.EXCEPTION, null, false);
                 setOngoingStepsToSkipped(job);
                 logInfo(job, "finished with status {}", Failure);
+
+                // TOOO: Run post steps
             }
 
             @Override
@@ -576,6 +585,8 @@ public class JobActionManagerImpl implements JobActionManager {
                 }
 
                 sm.execute(context.getCurrent(), Cancelling, context);
+
+                // TOOO: Run post steps
             }
 
             @Override
@@ -789,7 +800,7 @@ public class JobActionManagerImpl implements JobActionManager {
     private void setOngoingStepsToSkipped(Job job) {
         List<Step> steps = stepService.list(job, Executed.OngoingStatus);
         for (Step step : steps) {
-            if (!step.hasAgent()) {
+            if (!step.hasAgent() || step.isPost()) {
                 continue;
             }
 
