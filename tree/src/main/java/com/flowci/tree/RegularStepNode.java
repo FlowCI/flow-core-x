@@ -18,6 +18,11 @@ public final class RegularStepNode extends Node {
     public static final boolean ALLOW_FAILURE_DEFAULT = false;
 
     /**
+     * Indicate the step is post step
+     */
+    private boolean post;
+
+    /**
      * bash script
      */
     private String bash;

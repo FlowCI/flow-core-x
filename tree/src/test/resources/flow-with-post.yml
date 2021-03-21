@@ -1,0 +1,96 @@
+name: root
+envs:
+  FLOW_WORKSPACE: "echo hello"
+  FLOW_VERSION: "echo version"
+
+condition: |
+  return $FLOWCI_GIT_BRANCH == "develop" || $FLOWCI_GIT_BRANCH == "master";
+
+docker:
+  image: "helloworld:0.1"
+
+selector:
+  label:
+    - ios
+    - local
+
+notifications:
+  - plugin: 'email-notify'
+    envs:
+      FLOWCI_SMTP_CONFIG: 'test-config'
+
+steps:
+  - parallel:
+      subflow-A:
+        selector:
+          label: [ "linux" ]
+        steps:
+          - name: A
+            plugin: 'A-plugin'
+            script: |
+              echo "A"
+          - name: B
+            condition: |
+              return true
+            script: |
+              echo "B"
+        post:
+          - name: subA-post-1
+            bash: "echo sub A post-1"
+
+      subflow-B:
+        selector:
+          label: [ "linux" ]
+        steps:
+          - name: A
+            plugin: 'B-plugin'
+            script: |
+              echo "A"
+
+  - condition: |
+      println(FLOW_WORKSPACE)
+      true
+    name: step2
+    envs:
+      FLOW_WORKSPACE: "echo step"
+      FLOW_VERSION: "echo step version"
+    cache:
+      key: mycache
+      paths:
+        - "./"
+        - "vendor"
+    timeout: 3600
+    allow_failure: true
+
+
+  - name: step3
+    steps:
+      - name: step-3-1
+        bash: |
+          echo "step-3-1"
+
+      - name: step-3-2
+        bash: |
+          echo "step-3-2"
+
+  - name: step4
+    allow_failure: false
+    docker:
+      image: "ubuntu:18.04"
+      ports:
+        - "6400:6400"
+        - "2700:2700"
+      entrypoint: [ "/bin/sh" ]
+      network: host
+    bash: "echo 2"
+    pwsh: "echo powershell"
+
+
+post:
+  - name: post-1
+    bash: "echo post-1"
+
+  - name: post-2
+    condition: |
+      return ${FLOWCI_STATUS} == "SUCCESS"
+    bash: "echo post-2"

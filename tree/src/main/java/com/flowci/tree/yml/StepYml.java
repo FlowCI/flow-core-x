@@ -123,8 +123,7 @@ public class StepYml extends YmlBase<RegularStepNode> {
             if (step.hasPlugin()) {
                 throw new YmlException("The plugin section is not allowed on the step with sub steps");
             }
-
-            setStepsToNode(step);
+            setStepsToParent(step, steps, false, new HashSet<>(steps.size()));
         }
 
         // backward compatible, set script to bash

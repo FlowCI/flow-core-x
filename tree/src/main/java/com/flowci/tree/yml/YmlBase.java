@@ -60,24 +60,6 @@ public abstract class YmlBase<T extends Node> implements Serializable {
         return variables;
     }
 
-    protected void setStepsToNode(T parent) {
-        int index = 1;
-        Set<String> uniqueName = new HashSet<>(steps.size());
-
-        for (StepYml child : steps) {
-            Node step = child.toNode(parent, index++);
-
-            if (step instanceof RegularStepNode) {
-                String stepName = step.getName();
-                if (!uniqueName.add(stepName)) {
-                    throw new YmlException("Duplicate name {0} in step", stepName);
-                }
-            }
-
-            parent.getChildren().add(step);
-        }
-    }
-
     void setDockerToNode(T node) {
         if (hasDocker() && hasDockers()) {
             throw new YmlException("Only accept either 'docker' or 'dockers' section");
@@ -128,5 +110,22 @@ public abstract class YmlBase<T extends Node> implements Serializable {
 
     private boolean hasDockers() {
         return dockers != null && dockers.size() > 0;
+    }
+
+    protected static <T extends Node> void setStepsToParent(T parent, List<StepYml> steps, boolean post, Set<String> nameSet) {
+        int index = 1;
+        for (StepYml child : steps) {
+            Node step = child.toNode(parent, index++);
+
+            if (step instanceof RegularStepNode) {
+                String stepName = step.getName();
+                if (!nameSet.add(stepName)) {
+                    throw new YmlException("Duplicate name {0} in step", stepName);
+                }
+                ((RegularStepNode) step).setPost(post);
+            }
+
+            parent.getChildren().add(step);
+        }
     }
 }

@@ -67,6 +67,7 @@ public final class NodeTree {
 
     /**
      * Get all last steps
+     *
      * @return
      */
     public Collection<Node> ends() {
@@ -211,5 +212,13 @@ public final class NodeTree {
                 ends.add(v);
             }
         });
+    }
+
+    private static boolean isPostStep(Node n) {
+        if (n instanceof RegularStepNode) {
+            RegularStepNode r = (RegularStepNode) n;
+            return r.isPost();
+        }
+        return false;
     }
 }
