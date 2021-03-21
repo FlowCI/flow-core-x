@@ -477,15 +477,13 @@ public class JobActionManagerImpl implements JobActionManager {
 
                 if (node.isLastChildOfParent()) {
                     String agentId = releaseAgentFromJob(context.job, node, step);
-
                     if (assignAgentToWaitingStep(agentId, job, tree, false)) {
                         return;
                     }
-
                     releaseAgentToPool(context.job, node, step);
                 }
 
-                if (toNextStep(context.job, context.step)) {
+                if (toNextStep(tree, context.job, context.step)) {
                     return;
                 }
 
@@ -871,8 +869,7 @@ public class JobActionManagerImpl implements JobActionManager {
      *
      * @return true if next step dispatched or have to wait for previous steps, false if no more steps or failure
      */
-    private boolean toNextStep(Job job, Step step) throws ScriptException {
-        NodeTree tree = ymlManager.getTree(job);
+    private boolean toNextStep(NodeTree tree, Job job, Step step) throws ScriptException {
         Node node = tree.get(NodePath.create(step.getNodePath())); // current node
 
         List<Node> next = node.getNext();
@@ -1046,6 +1043,11 @@ public class JobActionManagerImpl implements JobActionManager {
         context.put(Variables.Job.StartAt, job.startAtInStr());
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
         context.put(Variables.Job.Steps, stepService.toVarString(job, step));
+
+        // DO NOT update job status from post step
+        if (step.isPost()) {
+            return;
+        }
 
         // DO NOT update job status from context
         job.setStatusToContext(StatusHelper.convert(step));

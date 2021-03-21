@@ -182,13 +182,6 @@ public abstract class Node implements Serializable {
         return wrapper.getValue();
     }
 
-    public void forEachNext(Node node, Consumer<Node> onNext) {
-        for (Node next : node.next) {
-            onNext.accept(next);
-            forEachNext(next, onNext);
-        }
-    }
-
     public void forEachChildren(Consumer<Node> onChild) {
         forEachChildren(this, onChild);
     }

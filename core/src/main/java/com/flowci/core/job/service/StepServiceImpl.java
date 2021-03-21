@@ -268,6 +268,7 @@ public class StepServiceImpl implements StepService {
             step.setAllowFailure(r.isAllowFailure());
             step.setPlugin(r.getPlugin());
             step.setType(Step.Type.STEP);
+            step.setPost(r.isPost());
 
             if (r.hasChildren()) {
                 step.setType(Step.Type.STAGE);
