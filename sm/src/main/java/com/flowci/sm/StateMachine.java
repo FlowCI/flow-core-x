@@ -67,7 +67,7 @@ public class StateMachine<T extends Context> {
         try {
             action.accept(context);
 
-            if (context.getTo() != target) {
+            if (!isOnSameContext(current, target, context)) {
                 return;
             }
 
@@ -85,5 +85,9 @@ public class StateMachine<T extends Context> {
         } finally {
             action.onFinally(context);
         }
+    }
+
+    private boolean isOnSameContext(Status current, Status target, T context) {
+        return context.getTo() == target && context.getCurrent() == current;
     }
 }
