@@ -339,6 +339,11 @@ public class YmlParserTest {
         Assert.assertEquals(1, nextFromRoot.size());
         Assert.assertEquals(postOfSubA, nextFromRoot.get(0).getPath());
 
+        List<Node> nextFromSubflowC = Lists.newArrayList(tree.post(NodePath.create("flow/parallel-3/subflow-C/C")));
+        Assert.assertEquals(2, nextFromSubflowC.size());
+        Assert.assertEquals(postOfSubC, nextFromSubflowC.get(0).getPath());
+        Assert.assertEquals(postOfSubD, nextFromSubflowC.get(1).getPath());
+
         List<Node> nextFromSubA = Lists.newArrayList(tree.post(postOfSubA));
         Assert.assertEquals(2, nextFromSubA.size());
         Assert.assertEquals(postOfSubC, nextFromSubA.get(0).getPath());

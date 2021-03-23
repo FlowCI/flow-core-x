@@ -117,13 +117,27 @@ public final class NodeTree {
     /**
      * Find next post step
      */
-    public Collection<Node> post(NodePath current) {
-        Node n = get(current);
+    public Collection<Node> post(NodePath path) {
+        Node n = get(path);
+
+        // check if step in parallel
+        if (!isPostStep(n)) {
+            ParallelStepNode parent = n.getParent(ParallelStepNode.class);
+            if (parent != null) {
+                return findPostSteps(parent);
+            }
+        }
+
         Collection<Node> post = new HashSet<>();
         for (Node next : n.next) {
             post.addAll(findNextPost(next));
         }
+
         return post;
+    }
+
+    public Collection<Node> post(String path) {
+        return post(NodePath.create(path));
     }
 
     public Node get(NodePath path) {
@@ -284,5 +298,12 @@ public final class NodeTree {
             return Sets.newHashSet(r);
         }
         return Collections.emptyList();
+    }
+
+    private static boolean isPostStep(Node n) {
+        if (n instanceof RegularStepNode) {
+            return ((RegularStepNode) n).isPost();
+        }
+        return false;
     }
 }

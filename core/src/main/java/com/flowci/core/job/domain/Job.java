@@ -118,7 +118,7 @@ public class Job extends Mongoable implements Pathable {
         RUNNING(4),
 
         /**
-         * Running Post steps, only happened before failure status
+         * Running Post steps, only happened before failure or cancel status
          */
         RUNNING_POST(4),
 
