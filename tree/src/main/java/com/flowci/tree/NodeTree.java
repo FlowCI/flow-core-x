@@ -18,6 +18,7 @@ package com.flowci.tree;
 
 import com.flowci.exception.ArgumentException;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import lombok.Getter;
 
 import java.util.*;
@@ -111,6 +112,18 @@ public final class NodeTree {
         }
 
         return Lists.newArrayList(nextWithSameParent);
+    }
+
+    /**
+     * Find next post step
+     */
+    public Collection<Node> post(NodePath current) {
+        Node n = get(current);
+        Collection<Node> post = new HashSet<>();
+        for (Node next : n.next) {
+            post.addAll(findNextPost(next));
+        }
+        return post;
     }
 
     public Node get(NodePath path) {
@@ -214,11 +227,62 @@ public final class NodeTree {
         });
     }
 
-    private static boolean isPostStep(Node n) {
-        if (n instanceof RegularStepNode) {
-            RegularStepNode r = (RegularStepNode) n;
-            return r.isPost();
+    private Collection<Node> findNextPost(Node node) {
+        if (node instanceof ParallelStepNode) {
+            Collection<Node> output = findPostSteps((ParallelStepNode) node);
+            if (!output.isEmpty()) {
+                return output;
+            }
         }
-        return false;
+
+        if (node instanceof FlowNode) {
+            Collection<Node> output = findPostSteps((FlowNode) node);
+            if (!output.isEmpty()) {
+                return output;
+            }
+        }
+
+        if (node instanceof RegularStepNode) {
+            Collection<Node> output = findPostSteps((RegularStepNode) node);
+            if (!output.isEmpty()) {
+                return output;
+            }
+        }
+
+        Collection<Node> post = new HashSet<>();
+        for (Node next : node.next) {
+            post.addAll(findNextPost(next));
+        }
+        return post;
+    }
+
+    private Collection<Node> findPostSteps(ParallelStepNode p) {
+        Collection<Node> post = new HashSet<>();
+        for (Node child : p.getChildren()) {
+            FlowNode f = (FlowNode) child;
+            post.addAll(findPostSteps(f));
+        }
+        return post;
+    }
+
+    private Collection<Node> findPostSteps(FlowNode f) {
+        Collection<Node> post = new HashSet<>();
+        for (Node child : f.getChildren()) {
+            if (child instanceof RegularStepNode) {
+                post.addAll(findPostSteps((RegularStepNode) child));
+            }
+
+            if (child instanceof ParallelStepNode) {
+                post.addAll(findPostSteps((ParallelStepNode) child));
+            }
+        }
+        return post;
+    }
+
+    private Collection<Node> findPostSteps(RegularStepNode r) {
+        if (r.isPost()) {
+            return Sets.newHashSet(r);
+        }
+        return Collections.emptyList();
     }
 }

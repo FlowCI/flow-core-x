@@ -158,12 +158,13 @@ public class StepServiceImpl implements StepService {
             NodeTree tree = ymlManager.getTree(entity.getJobId());
             NodePath path = NodePath.create(entity.getNodePath());
             Node node = tree.get(path);
-            node.forEachChildren((childNode) -> {
-                Step childStep = get(entity.getJobId(), childNode.getPathAsString());
+
+            for (Node child : node.getChildren()) {
+                Step childStep = get(entity.getJobId(), child.getPathAsString());
                 childStep.setStartAt(entity.getStartAt());
                 childStep.setFinishAt(entity.getFinishAt());
                 saveStatus(childStep, status, err);
-            });
+            }
         }
 
         String jobId = entity.getJobId();

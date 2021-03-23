@@ -20,6 +20,10 @@ notifications:
       FLOWCI_SMTP_CONFIG: 'test-config'
 
 steps:
+  - name: clone
+    bash: |
+      echo "git clone"
+
   - parallel:
       subflow-A:
         selector:
@@ -47,21 +51,27 @@ steps:
             script: |
               echo "A"
 
-  - condition: |
-      println(FLOW_WORKSPACE)
-      true
-    name: step2
-    envs:
-      FLOW_WORKSPACE: "echo step"
-      FLOW_VERSION: "echo step version"
-    cache:
-      key: mycache
-      paths:
-        - "./"
-        - "vendor"
-    timeout: 3600
-    allow_failure: true
 
+  - parallel:
+      subflow-C:
+        steps:
+        - name: C
+          bash: |
+            echo "Sub-C"
+        post:
+        - name: Post-C
+          bash: |
+            echo "Post-C"
+
+      subflow-D:
+        steps:
+        - name: D
+          bash: |
+            echo "Sub-D"
+        post:
+          - name: Post-D
+            bash: |
+              echo "Post-D"
 
   - name: step3
     steps:

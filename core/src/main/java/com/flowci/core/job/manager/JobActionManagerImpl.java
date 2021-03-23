@@ -112,12 +112,13 @@ public class JobActionManagerImpl implements JobActionManager {
     private static final Transition RunningToCanceled = new Transition(Running, Cancelled);
     private static final Transition RunningToTimeout = new Transition(Running, Timeout);
     private static final Transition RunningToFailure = new Transition(Running, Failure);
+    private static final Transition RunningToRunningPost = new Transition(Running, RunningPost);
 
     // running post
+    private static final Transition RunningPostToRunningPost = new Transition(RunningPost, RunningPost);
     private static final Transition RunningPostToFailure = new Transition(RunningPost, Failure);
     private static final Transition RunningPostToCanceled = new Transition(RunningPost, Cancelled);
     private static final Transition RunningPostToTimeout = new Transition(RunningPost, Timeout);
-
 
     // cancelling
     private static final Transition CancellingToCancelled = new Transition(Cancelling, Cancelled);
@@ -543,7 +544,10 @@ public class JobActionManagerImpl implements JobActionManager {
                 setOngoingStepsToSkipped(job);
                 logInfo(job, "finished with status {}", Failure);
 
-                // TOOO: Run post steps
+
+                if ()
+
+                sm.execute(context.getCurrent(), RunningPost, context);
             }
 
             @Override
@@ -586,7 +590,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
                 sm.execute(context.getCurrent(), Cancelling, context);
 
-                // TOOO: Run post steps
+                // TODO: Run post steps
             }
 
             @Override
@@ -669,7 +673,7 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     private Optional<Agent> fetchAgentFromJob(Job job, Node node) {
-        FlowNode flow = node.getParentFlowNode();
+        FlowNode flow = node.getParent(FlowNode.class);
         Selector selector = flow.fetchSelector();
         JobAgent agents = getJobAgent(job.getId());
 
@@ -697,7 +701,7 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     private Optional<Agent> fetchAgentFromPool(Job job, Node node) {
-        FlowNode flow = node.getParentFlowNode();
+        FlowNode flow = node.getParent(FlowNode.class);
         Selector selector = flow.fetchSelector();
 
         // find agent outside job, blocking thread
@@ -726,7 +730,7 @@ public class JobActionManagerImpl implements JobActionManager {
             }
 
             Node n = tree.get(waitingForAgentStep.getNodePath());
-            FlowNode f = n.getParentFlowNode();
+            FlowNode f = n.getParent(FlowNode.class);
             Selector s = f.fetchSelector();
 
             Optional<Agent> acquired = agentService.acquire(job.getId(), s, agentId, shouldIdle);
@@ -747,7 +751,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
     private String releaseAgentFromJob(Job job, Node node, Step step) {
         String agentId = step.getAgentId();
-        FlowNode flow = node.getParentFlowNode();
+        FlowNode flow = node.getParent(FlowNode.class);
         jobAgentDao.removeFlowFromAgent(job.getId(), agentId, flow.getPathAsString());
         return agentId;
     }
@@ -761,14 +765,14 @@ public class JobActionManagerImpl implements JobActionManager {
         }
 
         NodeTree tree = ymlManager.getTree(job);
-        Selector currentSelector = node.getParentFlowNode().fetchSelector();
+        Selector currentSelector = node.getParent(FlowNode.class).fetchSelector();
 
         // find selectors of pending steps
         List<Step> notStartedSteps = stepService.list(job, Executed.WaitingStatus);
         Set<Selector> selectors = new HashSet<>(tree.getSelectors().size());
         for (Step s : notStartedSteps) {
             Node n = tree.get(s.getNodePath());
-            Selector selector = n.getParentFlowNode().getSelector();
+            Selector selector = n.getParent(FlowNode.class).getSelector();
             selectors.add(selector);
         }
 

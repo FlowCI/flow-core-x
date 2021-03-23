@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -123,21 +122,16 @@ public abstract class Node implements Serializable {
     }
 
     @JsonIgnore
-    public FlowNode getParentFlowNode() {
-        ObjectWrapper<FlowNode> wrapper = new ObjectWrapper<>();
+    public <T extends Node> T getParent(Class<T> klass) {
+        ObjectWrapper<T> wrapper = new ObjectWrapper<>();
         this.forEachBottomUp(this, (n) -> {
-            if (n instanceof FlowNode) {
-                wrapper.setValue((FlowNode) n);
+            if (klass.isInstance(n)) {
+                wrapper.setValue((T) n);
                 return false;
             }
             return true;
         });
         return wrapper.getValue();
-    }
-
-    @JsonIgnore
-    public boolean hasParent() {
-        return parent != null;
     }
 
     @JsonIgnore
@@ -180,17 +174,6 @@ public abstract class Node implements Serializable {
         });
 
         return wrapper.getValue();
-    }
-
-    public void forEachChildren(Consumer<Node> onChild) {
-        forEachChildren(this, onChild);
-    }
-
-    private void forEachChildren(Node current, Consumer<Node> onChild) {
-        for (Node child : current.getChildren()) {
-            onChild.accept(child);
-            forEachChildren(child, onChild);
-        }
     }
 
     protected final void forEachBottomUp(Node node, Function<Node, Boolean> onNode) {
