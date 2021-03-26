@@ -117,14 +117,14 @@ public final class NodeTree {
     /**
      * Find next post step
      */
-    public Collection<Node> post(NodePath path) {
+    public List<Node> post(NodePath path) {
         Node n = get(path);
 
         // check if step in parallel
         if (!isPostStep(n)) {
             ParallelStepNode parent = n.getParent(ParallelStepNode.class);
             if (parent != null) {
-                return findPostSteps(parent);
+                return Lists.newArrayList(findPostSteps(parent));
             }
         }
 
@@ -133,10 +133,10 @@ public final class NodeTree {
             post.addAll(findNextPost(next));
         }
 
-        return post;
+        return Lists.newArrayList(post);
     }
 
-    public Collection<Node> post(String path) {
+    public List<Node> post(String path) {
         return post(NodePath.create(path));
     }
 

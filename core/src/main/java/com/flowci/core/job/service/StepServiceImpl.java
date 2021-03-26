@@ -34,8 +34,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * ExecutedCmd == Step
  *
@@ -151,8 +149,11 @@ public class StepServiceImpl implements StepService {
     public Step toStatus(Step entity, Executed.Status status, String err, boolean allChildren) {
         saveStatus(entity, status, err);
 
-        Step parent = getWithNullReturn(entity.getJobId(), entity.getParent());
-        updateAllParents(parent, entity);
+        // update parent status if not post step
+        if (!entity.isPost()) {
+            Step parent = getWithNullReturn(entity.getJobId(), entity.getParent());
+            updateAllParents(parent, entity);
+        }
 
         if (allChildren) {
             NodeTree tree = ymlManager.getTree(entity.getJobId());
@@ -177,19 +178,8 @@ public class StepServiceImpl implements StepService {
 
     @Override
     public void resultUpdate(Step stepFromAgent) {
-        checkNotNull(stepFromAgent.getId());
-        Step entity = get(stepFromAgent.getId());
-
-        // only update properties should from agent
-        entity.setProcessId(stepFromAgent.getProcessId());
-        entity.setCode(stepFromAgent.getCode());
-        entity.setStartAt(stepFromAgent.getStartAt());
-        entity.setFinishAt(stepFromAgent.getFinishAt());
-        entity.setLogSize(stepFromAgent.getLogSize());
-        entity.setOutput(stepFromAgent.getOutput());
-
         // change status and save
-        toStatus(entity, stepFromAgent.getStatus(), stepFromAgent.getError(), false);
+        toStatus(stepFromAgent, stepFromAgent.getStatus(), stepFromAgent.getError(), false);
     }
 
     @Override
@@ -231,12 +221,8 @@ public class StepServiceImpl implements StepService {
     }
 
     private Step saveStatus(Step step, Step.Status status, String error) {
-        if (status == step.getStatus()) {
-            return step;
-        }
-
-        step.setStatus(status);
         step.setError(error);
+        step.setStatus(status);
         executedCmdDao.save(step);
         return step;
     }

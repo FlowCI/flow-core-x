@@ -19,7 +19,6 @@ package com.flowci.tree.test;
 import com.flowci.domain.DockerOption;
 import com.flowci.exception.YmlException;
 import com.flowci.tree.*;
-import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import org.junit.Assert;
 import org.junit.Before;
@@ -335,29 +334,29 @@ public class YmlParserTest {
         NodePath post1OfRoot = NodePath.create("flow/post-1");
         NodePath post2OfRoot = NodePath.create("flow/post-2");
 
-        List<Node> nextFromRoot = Lists.newArrayList(tree.post(NodePath.create("flow")));
+        List<Node> nextFromRoot = tree.post(NodePath.create("flow"));
         Assert.assertEquals(1, nextFromRoot.size());
         Assert.assertEquals(postOfSubA, nextFromRoot.get(0).getPath());
 
-        List<Node> nextFromSubflowC = Lists.newArrayList(tree.post(NodePath.create("flow/parallel-3/subflow-C/C")));
+        List<Node> nextFromSubflowC = tree.post(NodePath.create("flow/parallel-3/subflow-C/C"));
         Assert.assertEquals(2, nextFromSubflowC.size());
         Assert.assertEquals(postOfSubC, nextFromSubflowC.get(0).getPath());
         Assert.assertEquals(postOfSubD, nextFromSubflowC.get(1).getPath());
 
-        List<Node> nextFromSubA = Lists.newArrayList(tree.post(postOfSubA));
+        List<Node> nextFromSubA = tree.post(postOfSubA);
         Assert.assertEquals(2, nextFromSubA.size());
         Assert.assertEquals(postOfSubC, nextFromSubA.get(0).getPath());
         Assert.assertEquals(postOfSubD, nextFromSubA.get(1).getPath());
 
-        List<Node> nextFromSubC = Lists.newArrayList(tree.post(postOfSubC));
+        List<Node> nextFromSubC = tree.post(postOfSubC);
         Assert.assertEquals(1, nextFromSubC.size());
         Assert.assertEquals(post1OfRoot, nextFromSubC.get(0).getPath());
 
-        List<Node> nextFromSubD = Lists.newArrayList(tree.post(postOfSubD));
+        List<Node> nextFromSubD = tree.post(postOfSubD);
         Assert.assertEquals(1, nextFromSubD.size());
         Assert.assertEquals(post1OfRoot, nextFromSubD.get(0).getPath());
 
-        List<Node> nextPostFromRootPost1 = Lists.newArrayList(tree.post(post1OfRoot));
+        List<Node> nextPostFromRootPost1 = tree.post(post1OfRoot);
         Assert.assertEquals(1, nextPostFromRootPost1.size());
         Assert.assertEquals(post2OfRoot, nextPostFromRootPost1.get(0).getPath());
     }
