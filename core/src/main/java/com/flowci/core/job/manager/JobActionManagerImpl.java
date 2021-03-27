@@ -719,13 +719,11 @@ public class JobActionManagerImpl implements JobActionManager {
         Step step = context.step;
 
         NodeTree tree = ymlManager.getTree(job);
-        Collection<Node> post = tree.post(step.getNodePath());
-
-        // TODO: check flow status for post step ?
+        List<Node> post = tree.post(step.getNodePath());
 
         // DO NOT check post size, it has been checked in previous
         job.setStatus(Job.Status.RUNNING_POST);
-        executeJob(job, Lists.newArrayList(post));
+        executeJob(job, post);
     }
 
     private boolean lockJobBefore(JobSmContext context) {
@@ -990,7 +988,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
         List<Node> next = node.getNext();
         if (post) {
-            next = tree.post(node.getPath());
+            next = tree.post(step.getNodePath());
         }
 
         if (next.isEmpty()) {
@@ -1139,7 +1137,8 @@ public class JobActionManagerImpl implements JobActionManager {
         Step step = context.step;
 
         NodeTree tree = ymlManager.getTree(job);
-        Collection<Node> post = tree.post(step.getNodePath());
+        List<Node> post = tree.post(step.getNodePath());
+
         if (post.isEmpty()) {
             return false;
         }
