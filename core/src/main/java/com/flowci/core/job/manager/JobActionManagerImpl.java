@@ -117,6 +117,7 @@ public class JobActionManagerImpl implements JobActionManager {
     // running post
     private static final Transition RunningPostToRunningPost = new Transition(RunningPost, RunningPost);
     private static final Transition RunningPostToFailure = new Transition(RunningPost, Failure);
+    private static final Transition RunningPostToCancelling = new Transition(RunningPost, Cancelling);
     private static final Transition RunningPostToCanceled = new Transition(RunningPost, Cancelled);
     private static final Transition RunningPostToTimeout = new Transition(RunningPost, Timeout);
 
@@ -272,7 +273,7 @@ public class JobActionManagerImpl implements JobActionManager {
             return;
         }
 
-        if (step.isPost()) {
+        if (job.isRunningPost()) {
             on(job, Job.Status.RUNNING_POST, (context) -> context.step = step);
             return;
         }
@@ -576,10 +577,10 @@ public class JobActionManagerImpl implements JobActionManager {
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 JobAgent jobAgent = getJobAgent(job.getId());
-
                 List<Step> ongoingSteps = stepService.list(job, Executed.OngoingStatus);
+
+                // no busy agents, run post steps directly if needed
                 if (jobAgent.allBusyAgents(ongoingSteps).isEmpty()) {
-                    setOngoingStepsToSkipped(job);
                     toRunningPostStatusIfNeeded(context);
                     return;
                 }
@@ -659,6 +660,12 @@ public class JobActionManagerImpl implements JobActionManager {
         sm.add(RunningPostToFailure, toActualStatusAction);
         sm.add(RunningPostToTimeout, toActualStatusAction);
         sm.add(RunningPostToCanceled, toActualStatusAction);
+        sm.add(RunningPostToCancelling, new Action<JobSmContext>() {
+            @Override
+            public void accept(JobSmContext context) throws Exception {
+                sm.execute(context.getCurrent(), Cancelled, context);
+            }
+        });
     }
 
     private void fromCancelling() {
@@ -671,8 +678,6 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                setOngoingStepsToSkipped(job);
-
                 if (!toRunningPostStatusIfNeeded(context)) {
                     setJobStatusAndSave(job, Job.Status.CANCELLED, null);
                 }
@@ -901,8 +906,17 @@ public class JobActionManagerImpl implements JobActionManager {
 
     private void setOngoingStepsToSkipped(Job job) {
         List<Step> steps = stepService.list(job, Executed.OngoingStatus);
-        for (Step step : steps) {
-            if (!step.hasAgent() || step.isPost()) {
+        Iterator<Step> iter = steps.iterator();
+
+        while (iter.hasNext()) {
+            Step step = iter.next();
+
+            if (step.isPost()) {
+                iter.remove();
+                continue;
+            }
+
+            if (!step.hasAgent()) {
                 continue;
             }
 
@@ -912,6 +926,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 agentService.dispatch(killCmd, agent);
             }
         }
+
         stepService.toStatus(steps, Step.Status.SKIPPED, null);
     }
 
