@@ -158,8 +158,10 @@ public class JobEventServiceImpl implements JobEventService {
             switch (ind) {
                 case CmdOut.ShellOutInd:
                     ShellOut shellOut = objectMapper.readValue(body, ShellOut.class);
+
                     Step step = stepService.get(shellOut.getId());
                     step.setFrom(shellOut);
+                    stepService.resultUpdate(step);
 
                     log.info("[Callback]: {}-{} = {}", step.getJobId(), step.getNodePath(), step.getStatus());
                     handleCallback(step);

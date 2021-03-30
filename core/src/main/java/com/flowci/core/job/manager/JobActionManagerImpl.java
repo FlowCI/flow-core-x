@@ -69,6 +69,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+import static com.flowci.core.job.domain.Executed.Status.RUNNING;
+import static com.flowci.core.job.domain.Executed.Status.WAITING_AGENT;
+
 @Log4j2
 @Service
 public class JobActionManagerImpl implements JobActionManager {
@@ -477,7 +480,6 @@ public class JobActionManagerImpl implements JobActionManager {
                 Job job = context.job;
                 Step step = context.step;
 
-                stepService.resultUpdate(step);
                 updateJobContextAndLatestStatus(job, step);
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
                 log.debug("Step {} been recorded", step.getNodePath());
@@ -523,7 +525,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                setOngoingStepsToSkipped(job);
+                killOngoingSteps(job);
             }
 
             @Override
@@ -541,7 +543,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 Job job = context.job;
                 Step step = context.step;
                 stepService.toStatus(step, Step.Status.EXCEPTION, null, false);
-                setOngoingStepsToSkipped(job);
+                killOngoingSteps(job);
 
                 toRunningPostStatusIfNeeded(context);
             }
@@ -558,7 +560,7 @@ public class JobActionManagerImpl implements JobActionManager {
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 setJobStatusAndSave(job, Job.Status.CANCELLING, null);
-                setOngoingStepsToSkipped(job);
+                killOngoingSteps(job);
             }
 
             @Override
@@ -591,7 +593,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void onException(Throwable e, JobSmContext context) {
                 Job job = context.job;
-                setOngoingStepsToSkipped(job);
+                killOngoingSteps(job);
                 setJobStatusAndSave(job, Job.Status.CANCELLED, e.getMessage());
             }
 
@@ -628,7 +630,6 @@ public class JobActionManagerImpl implements JobActionManager {
                 Job job = context.job;
                 Step step = context.step;
 
-                stepService.resultUpdate(step);
                 updateJobContextAndLatestStatus(job, step);
                 setJobStatusAndSave(job, Job.Status.RUNNING_POST, null);
                 log.debug("Step {} been recorded", step.getNodePath());
@@ -659,7 +660,13 @@ public class JobActionManagerImpl implements JobActionManager {
 
         sm.add(RunningPostToFailure, toActualStatusAction);
         sm.add(RunningPostToTimeout, toActualStatusAction);
-        sm.add(RunningPostToCanceled, toActualStatusAction);
+        sm.add(RunningPostToCanceled, new Action<JobSmContext>() {
+            @Override
+            public void accept(JobSmContext context) throws Exception {
+                // TODO: send kill to all running steps
+            }
+        });
+
         sm.add(RunningPostToCancelling, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) throws Exception {
@@ -678,6 +685,13 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
+                Step step = context.step;
+
+                if (step == null) {
+                    setJobStatusAndSave(job, Job.Status.CANCELLED, null);
+                    return;
+                }
+
                 if (!toRunningPostStatusIfNeeded(context)) {
                     setJobStatusAndSave(job, Job.Status.CANCELLED, null);
                 }
@@ -822,7 +836,7 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     private boolean assignAgentToWaitingStep(String agentId, Job job, NodeTree tree, boolean shouldIdle) {
-        List<Step> steps = stepService.list(job, Lists.newArrayList(Executed.Status.WAITING_AGENT));
+        List<Step> steps = stepService.list(job, Lists.newArrayList(WAITING_AGENT));
         if (steps.isEmpty()) {
             return false;
         }
@@ -904,8 +918,11 @@ public class JobActionManagerImpl implements JobActionManager {
         job.getContext().merge(root.getEnvironments(), false);
     }
 
-    private void setOngoingStepsToSkipped(Job job) {
-        List<Step> steps = stepService.list(job, Executed.OngoingStatus);
+    private void killOngoingSteps(Job job) {
+        List<Step> steps = stepService.list(job, Sets.newHashSet(WAITING_AGENT));
+        stepService.toStatus(steps, Step.Status.SKIPPED, null);
+
+        steps = stepService.list(job, Sets.newHashSet(RUNNING));
         Iterator<Step> iter = steps.iterator();
 
         while (iter.hasNext()) {
@@ -916,18 +933,17 @@ public class JobActionManagerImpl implements JobActionManager {
                 continue;
             }
 
-            if (!step.hasAgent()) {
-                continue;
-            }
-
-            Agent agent = agentService.get(step.getAgentId());
-            if (agent.isBusy()) {
-                CmdIn killCmd = cmdManager.createKillCmd();
-                agentService.dispatch(killCmd, agent);
+            if (step.hasAgent()) {
+                Agent agent = agentService.get(step.getAgentId());
+                if (agent.isBusy()) {
+                    CmdIn killCmd = cmdManager.createKillCmd();
+                    agentService.dispatch(killCmd, agent);
+                    iter.remove(); // update step status from callback
+                }
             }
         }
 
-        stepService.toStatus(steps, Step.Status.SKIPPED, null);
+        stepService.toStatus(steps, Step.Status.KILLING, null);
     }
 
     private void on(Job job, Job.Status target, Consumer<JobSmContext> configContext) {
@@ -1092,7 +1108,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 continue;
             }
 
-            stepService.toStatus(step, Executed.Status.WAITING_AGENT, null, false);
+            stepService.toStatus(step, WAITING_AGENT, null, false);
         }
     }
 
@@ -1117,7 +1133,7 @@ public class JobActionManagerImpl implements JobActionManager {
 
     private void dispatch(Job job, Node node, Step step, Agent agent) {
         step.setAgentId(agent.getId());
-        stepService.toStatus(step, Step.Status.RUNNING, null, false);
+        stepService.toStatus(step, RUNNING, null, false);
 
         ShellIn cmd = cmdManager.createShellCmd(job, step, node);
         agentService.dispatch(cmd, agent);
