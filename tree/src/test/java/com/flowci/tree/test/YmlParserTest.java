@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
 
 import static com.flowci.tree.FlowNode.DEFAULT_ROOT_NAME;
@@ -359,6 +360,13 @@ public class YmlParserTest {
         List<Node> nextPostFromRootPost1 = tree.post(post1OfRoot);
         Assert.assertEquals(1, nextPostFromRootPost1.size());
         Assert.assertEquals(post2OfRoot, nextPostFromRootPost1.get(0).getPath());
+
+        // get prev post step
+        Collection<Node> prevsOfPost1 = tree.prevs(nextFromSubD, false);
+        Assert.assertEquals(1, prevsOfPost1.size());
+
+        prevsOfPost1 = tree.prevs(nextFromSubD, true);
+        Assert.assertEquals(2, prevsOfPost1.size());
     }
 
     private String loadContent(String resource) throws IOException {

@@ -288,6 +288,7 @@ public class JobActionManagerImpl implements JobActionManager {
     public void toCancelled(Job job, String reason) {
         on(job, Job.Status.CANCELLED, context -> {
             context.setError(new CIException(reason));
+            context.callFromMethod = true;
         });
     }
 
@@ -525,7 +526,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                killOngoingSteps(job);
+                killOngoingSteps(job, false);
             }
 
             @Override
@@ -543,7 +544,7 @@ public class JobActionManagerImpl implements JobActionManager {
                 Job job = context.job;
                 Step step = context.step;
                 stepService.toStatus(step, Step.Status.EXCEPTION, null, false);
-                killOngoingSteps(job);
+                killOngoingSteps(job, false);
 
                 toRunningPostStatusIfNeeded(context);
             }
@@ -560,7 +561,7 @@ public class JobActionManagerImpl implements JobActionManager {
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 setJobStatusAndSave(job, Job.Status.CANCELLING, null);
-                killOngoingSteps(job);
+                killOngoingSteps(job, false);
             }
 
             @Override
@@ -593,7 +594,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void onException(Throwable e, JobSmContext context) {
                 Job job = context.job;
-                killOngoingSteps(job);
+                killOngoingSteps(job, false);
                 setJobStatusAndSave(job, Job.Status.CANCELLED, e.getMessage());
             }
 
@@ -663,14 +664,23 @@ public class JobActionManagerImpl implements JobActionManager {
         sm.add(RunningPostToCanceled, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) throws Exception {
-                // TODO: send kill to all running steps
+                if (!context.callFromMethod) {
+                    return;
+                }
+                sm.execute(context.getCurrent(), Cancelling, context);
             }
         });
 
         sm.add(RunningPostToCancelling, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) throws Exception {
-                sm.execute(context.getCurrent(), Cancelled, context);
+                if (!context.callFromMethod) {
+                    sm.execute(context.getCurrent(), Cancelled, context);
+                    return;
+                }
+
+                Job job = context.job;
+                killOngoingSteps(job, true);
             }
         });
     }
@@ -918,7 +928,7 @@ public class JobActionManagerImpl implements JobActionManager {
         job.getContext().merge(root.getEnvironments(), false);
     }
 
-    private void killOngoingSteps(Job job) {
+    private void killOngoingSteps(Job job, boolean includePost) {
         List<Step> steps = stepService.list(job, Sets.newHashSet(WAITING_AGENT));
         stepService.toStatus(steps, Step.Status.SKIPPED, null);
 
@@ -928,7 +938,7 @@ public class JobActionManagerImpl implements JobActionManager {
         while (iter.hasNext()) {
             Step step = iter.next();
 
-            if (step.isPost()) {
+            if (!includePost && step.isPost()) {
                 iter.remove();
                 continue;
             }
@@ -1031,7 +1041,7 @@ public class JobActionManagerImpl implements JobActionManager {
         }
 
         // check prev steps status
-        Set<Executed.Status> previous = getStepsStatus(job, tree.prevs(next));
+        Set<Executed.Status> previous = getStepsStatus(job, tree.prevs(next, post));
         boolean hasFailure = !Collections.disjoint(previous, Executed.FailureStatus);
         boolean hasOngoing = !Collections.disjoint(previous, Executed.OngoingStatus);
         if (hasFailure) {

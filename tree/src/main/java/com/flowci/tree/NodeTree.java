@@ -31,6 +31,8 @@ public final class NodeTree {
 
     private static final int DefaultSize = 20;
 
+    private static final int DefaultSizeForPrev = 5;
+
     /**
      * Create node tree from FlowNode object
      */
@@ -75,15 +77,25 @@ public final class NodeTree {
         return ends;
     }
 
-    /**
-     * Get all previous node list from path
-     */
-    public Collection<Node> prevs(List<Node> nodes) {
-        List<Node> list = new LinkedList<>();
-        for (Node n : nodes) {
-            list.addAll(n.getPrev());
+    public Collection<Node> prevs(Collection<Node> nodes, boolean post) {
+        Collection<Node> ps = prevs(nodes);
+
+        if (!post) {
+            return ps;
         }
-        return list;
+
+        Set<Node> prevPost = new HashSet<>(DefaultSizeForPrev);
+        for (Node p : ps) {
+            if (isPostStep(p)) {
+                prevPost.add(p);
+            }
+        }
+
+        if (prevPost.isEmpty()) {
+            return prevs(ps, true);
+        }
+
+        return prevPost;
     }
 
     /**
@@ -150,6 +162,17 @@ public final class NodeTree {
 
     public Node get(String nodePath) {
         return get(NodePath.create(nodePath));
+    }
+
+    /**
+     * Get all previous node list from path
+     */
+    private Collection<Node> prevs(Collection<Node> nodes) {
+        Set<Node> list = new HashSet<>(DefaultSizeForPrev);
+        for (Node n : nodes) {
+            list.addAll(n.getPrev());
+        }
+        return list;
     }
 
     private Node findNextWithSameParent(Node node, Node parent) {
