@@ -1021,6 +1021,9 @@ public class JobActionManagerImpl implements JobActionManager {
     /**
      * Dispatch next step to agent, job will be saved on final function of Running status
      *
+     * @param job current job
+     * @param step current step
+     * @param post indicate to next post steps or regular steps
      * @return true if next step dispatched or have to wait for previous steps, false if no more steps or failure
      */
     private boolean toNextStep(Job job, Step step, boolean post) throws ScriptException {
