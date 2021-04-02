@@ -67,6 +67,10 @@ public class StateMachine<T extends Context> {
         try {
             action.accept(context);
 
+            if (!isOnSameContext(current, target, context)) {
+                return;
+            }
+
             // execute target hook
             hooksOnTargetStatus.computeIfPresent(target, (status, hooks) -> {
                 for (Consumer<T> hook : hooks) {
@@ -81,5 +85,9 @@ public class StateMachine<T extends Context> {
         } finally {
             action.onFinally(context);
         }
+    }
+
+    private boolean isOnSameContext(Status current, Status target, T context) {
+        return context.getTo() == target && context.getCurrent() == current;
     }
 }

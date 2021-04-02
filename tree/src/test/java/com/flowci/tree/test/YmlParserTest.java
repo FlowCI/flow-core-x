@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
 
 import static com.flowci.tree.FlowNode.DEFAULT_ROOT_NAME;
@@ -317,6 +318,55 @@ public class YmlParserTest {
         Assert.assertEquals(step2Path, tree.skip(subflowA_BPath).get(0).getPath());
 
         Assert.assertEquals(step2Path, tree.skip(subflowB_APath).get(0).getPath());
+    }
+
+    @Test
+    public void should_load_and_get_post_steps() throws IOException {
+        content = loadContent("flow-with-post.yml");
+        FlowNode root = YmlParser.load(content);
+        Assert.assertNotNull(root);
+
+        NodeTree tree = NodeTree.create(root);
+        Assert.assertNotNull(tree);
+
+        NodePath postOfSubA = NodePath.create("flow/parallel-2/subflow-A/subA-post-1");
+        NodePath postOfSubC = NodePath.create("flow/parallel-3/subflow-C/Post-C");
+        NodePath postOfSubD = NodePath.create("flow/parallel-3/subflow-D/Post-D");
+        NodePath post1OfRoot = NodePath.create("flow/post-1");
+        NodePath post2OfRoot = NodePath.create("flow/post-2");
+
+        List<Node> nextFromRoot = tree.post(NodePath.create("flow"));
+        Assert.assertEquals(1, nextFromRoot.size());
+        Assert.assertEquals(postOfSubA, nextFromRoot.get(0).getPath());
+
+        List<Node> nextFromSubflowC = tree.post(NodePath.create("flow/parallel-3/subflow-C/C"));
+        Assert.assertEquals(2, nextFromSubflowC.size());
+        Assert.assertEquals(postOfSubC, nextFromSubflowC.get(0).getPath());
+        Assert.assertEquals(postOfSubD, nextFromSubflowC.get(1).getPath());
+
+        List<Node> nextFromSubA = tree.post(postOfSubA);
+        Assert.assertEquals(2, nextFromSubA.size());
+        Assert.assertEquals(postOfSubC, nextFromSubA.get(0).getPath());
+        Assert.assertEquals(postOfSubD, nextFromSubA.get(1).getPath());
+
+        List<Node> nextFromSubC = tree.post(postOfSubC);
+        Assert.assertEquals(1, nextFromSubC.size());
+        Assert.assertEquals(post1OfRoot, nextFromSubC.get(0).getPath());
+
+        List<Node> nextFromSubD = tree.post(postOfSubD);
+        Assert.assertEquals(1, nextFromSubD.size());
+        Assert.assertEquals(post1OfRoot, nextFromSubD.get(0).getPath());
+
+        List<Node> nextPostFromRootPost1 = tree.post(post1OfRoot);
+        Assert.assertEquals(1, nextPostFromRootPost1.size());
+        Assert.assertEquals(post2OfRoot, nextPostFromRootPost1.get(0).getPath());
+
+        // get prev post step
+        Collection<Node> prevsOfPost1 = tree.prevs(nextFromSubD, false);
+        Assert.assertEquals(1, prevsOfPost1.size());
+
+        prevsOfPost1 = tree.prevs(nextFromSubD, true);
+        Assert.assertEquals(2, prevsOfPost1.size());
     }
 
     private String loadContent(String resource) throws IOException {

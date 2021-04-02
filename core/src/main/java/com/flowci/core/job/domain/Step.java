@@ -80,6 +80,8 @@ public class Step implements Executed {
 
     private boolean allowFailure;
 
+    private boolean post;
+
     private String plugin;
 
     private List<DockerOption> dockers;
