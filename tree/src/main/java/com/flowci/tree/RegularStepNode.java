@@ -53,6 +53,11 @@ public final class RegularStepNode extends Node {
     private Set<String> exports = new HashSet<>(0);
 
     /**
+     * Included secret name in the step
+     */
+    private Set<String> secrets;
+
+    /**
      * Is allow failure
      */
     private boolean allowFailure = ALLOW_FAILURE_DEFAULT;

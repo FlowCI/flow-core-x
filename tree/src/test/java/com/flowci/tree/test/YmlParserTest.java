@@ -83,6 +83,8 @@ public class YmlParserTest {
         Assert.assertEquals("echo step", step1.getEnv("FLOW_WORKSPACE"));
         Assert.assertEquals("echo step version", step1.getEnv("FLOW_VERSION"));
         Assert.assertEquals(3600, step1.getTimeout().intValue());
+        Assert.assertEquals(1, step1.getSecrets().size());
+        Assert.assertTrue(step1.getSecrets().contains("my-secret"));
 
         Assert.assertTrue(step1.isAllowFailure());
         Assert.assertEquals("println(FLOW_WORKSPACE)\ntrue\n", step1.getCondition());
