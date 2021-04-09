@@ -23,6 +23,7 @@ import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.plugin.event.GetPluginEvent;
+import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
@@ -32,19 +33,27 @@ import com.flowci.tree.NodeTree;
 import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
 import com.github.benmanes.caffeine.cache.Cache;
+import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.function.Function;
+
 
 /**
  * @author yang
  */
 @Service
 public class YmlServiceImpl implements YmlService {
+
+    private final List<NodeElementChecker> elementCheckers = ImmutableList.of(
+            new ConditionChecker(),
+            new PluginChecker(),
+            new SecretChecker()
+    );
 
     @Autowired
     private Cache<String, NodeTree> flowTreeCache;
@@ -102,18 +111,14 @@ public class YmlServiceImpl implements YmlService {
         FlowNode root = YmlParser.load(yaml);
         NodeTree tree = NodeTree.create(root);
 
-        Optional<RuntimeException> hasErr = verifyPlugins(tree.getPlugins());
-        if (hasErr.isPresent()) {
-            throw hasErr.get();
-        }
-
-        hasErr = verifyConditions(tree.getConditions());
-        if (hasErr.isPresent()) {
-            throw hasErr.get();
+        for (NodeElementChecker checker : elementCheckers) {
+            Optional<RuntimeException> exception = checker.apply(tree);
+            if (exception.isPresent()) {
+                throw exception.get();
+            }
         }
 
         Yml ymlObj = getOrCreate(flow.getId(), name, ymlInB64);
-
         try {
             ymlDao.save(ymlObj);
         } catch (DuplicateKeyException e) {
@@ -155,36 +160,50 @@ public class YmlServiceImpl implements YmlService {
         return new Yml(flowId, name, ymlInB64);
     }
 
-    /**
-     * Check conditions are existed
-     *
-     * @param conditions list of condition script
-     * @return Optional exception
-     */
-    private Optional<RuntimeException> verifyConditions(Set<String> conditions) {
-        try {
-            for (String condition : conditions) {
-                conditionManager.verify(condition);
+    private interface NodeElementChecker extends Function<NodeTree, Optional<RuntimeException>> {
+
+    }
+
+    private class ConditionChecker implements NodeElementChecker {
+
+        @Override
+        public Optional<RuntimeException> apply(NodeTree tree) {
+            try {
+                for (String c : tree.getConditions()) {
+                    conditionManager.verify(c);
+                }
+                return Optional.empty();
+            } catch (Throwable e) {
+                return Optional.of(new RuntimeException(e.getMessage()));
             }
-            return Optional.empty();
-        } catch (Throwable e) {
-            return Optional.of(new RuntimeException(e.getMessage()));
         }
     }
 
-    /**
-     * Check plugins are existed
-     *
-     * @param plugins input plugin name list
-     * @return Optional exception
-     */
-    private Optional<RuntimeException> verifyPlugins(Set<String> plugins) {
-        for (String plugin : plugins) {
-            GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, plugin));
-            if (event.hasError()) {
-                return Optional.of(event.getError());
+    private class PluginChecker implements NodeElementChecker {
+
+        @Override
+        public Optional<RuntimeException> apply(NodeTree tree) {
+            for (String p : tree.getPlugins()) {
+                GetPluginEvent event = eventManager.publish(new GetPluginEvent(this, p));
+                if (event.hasError()) {
+                    return Optional.of(event.getError());
+                }
             }
+            return Optional.empty();
         }
-        return Optional.empty();
+    }
+
+    private class SecretChecker implements NodeElementChecker {
+
+        @Override
+        public Optional<RuntimeException> apply(NodeTree tree) {
+            for (String s : tree.getSecrets()) {
+                GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, s));
+                if (event.hasError()) {
+                    return Optional.of(event.getError());
+                }
+            }
+            return Optional.empty();
+        }
     }
 }

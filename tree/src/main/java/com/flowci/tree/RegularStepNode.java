@@ -55,7 +55,7 @@ public final class RegularStepNode extends Node {
     /**
      * Included secret name in the step
      */
-    private Set<String> secrets;
+    private Set<String> secrets = new HashSet<>(0);
 
     /**
      * Is allow failure
@@ -84,6 +84,11 @@ public final class RegularStepNode extends Node {
     @JsonIgnore
     public boolean hasCondition() {
         return !Strings.isNullOrEmpty(condition);
+    }
+
+    @JsonIgnore
+    public boolean hasSecrets() {
+        return !secrets.isEmpty();
     }
 
     @JsonIgnore

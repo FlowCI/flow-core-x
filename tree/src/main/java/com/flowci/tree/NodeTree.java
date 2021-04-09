@@ -55,6 +55,8 @@ public final class NodeTree {
 
     private final Set<String> plugins = new HashSet<>(DefaultSize);
 
+    private final Set<String> secrets = new HashSet<>(DefaultSize);
+
     private int maxHeight = 1;
 
     public NodeTree(FlowNode root) {
@@ -200,6 +202,10 @@ public final class NodeTree {
                 RegularStepNode r = (RegularStepNode) node;
                 if (r.hasPlugin()) {
                     plugins.add(r.getPlugin());
+                }
+
+                if (r.hasSecrets()) {
+                    secrets.addAll(r.getSecrets());
                 }
             }
 
