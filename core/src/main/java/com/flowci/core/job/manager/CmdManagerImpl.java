@@ -64,6 +64,7 @@ public class CmdManagerImpl implements CmdManager {
                 .setInputs(r.fetchEnvs().merge(job.getContext(), false))
                 .setTimeout(r.fetchTimeout(job.getTimeout()))
                 .setRetry(r.fetchRetry(0))
+                .setSecrets(r.getSecrets())
                 .setCache(r.getCache());
 
         if (r.hasPlugin()) {
