@@ -533,9 +533,6 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) throws ScriptException {
                 Job job = context.job;
-                Step step = context.step;
-                stepService.toStatus(step, Step.Status.EXCEPTION, null, false);
-
                 killOngoingSteps(job, job.isOnPostSteps());
                 runPostStepsIfNeeded(context);
             }
@@ -610,6 +607,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) throws ScriptException {
                 Job job = context.job;
+
                 if (!runPostStepsIfNeeded(context)) {
                     setJobStatusAndSave(job, Job.Status.CANCELLED, null);
                 }
@@ -618,14 +616,6 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void onFinally(JobSmContext context) {
                 unlockJobAfter(context);
-            }
-        });
-
-        // To run post steps
-        sm.add(CancellingToRunning, new Action<JobSmContext>() {
-            @Override
-            public void accept(JobSmContext context) throws Exception {
-                sm.executeInExecutor(Running, context.getTo(), context);
             }
         });
     }
@@ -652,6 +642,11 @@ public class JobActionManagerImpl implements JobActionManager {
     private boolean lockJobBefore(JobSmContext context) {
         Job job = context.job;
 
+        if (context.hasLock()) {
+            log.debug("Job {} has lock from other context", job.getId());
+            return true;
+        }
+
         Optional<InterLock> lock = lock(job.getId(), "LockJobBefore");
 
         if (!lock.isPresent()) {
@@ -666,9 +661,14 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     private void unlockJobAfter(JobSmContext context) {
-        Job job = context.job;
         InterLock lock = context.lock;
+        if (lock == null) {
+            return;
+        }
+
+        Job job = context.job;
         unlock(lock, job.getId());
+        context.lock = null;
     }
 
     private boolean waitIfJobNotOnTopPriority(Job job) {
@@ -1117,6 +1117,7 @@ public class JobActionManagerImpl implements JobActionManager {
         job.setOnPostSteps(true);
         job.resetCurrentPath();
         job.setStatus(Job.Status.RUNNING);
+        job.setStatusToContext(Job.Status.valueOf(context.getTo().getName()));
 
         executeJob(job, nextPostSteps);
         return true;

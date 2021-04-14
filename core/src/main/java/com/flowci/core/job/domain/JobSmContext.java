@@ -17,4 +17,8 @@ public class JobSmContext extends Context {
         String name = this.to.getName();
         return Job.Status.valueOf(name);
     }
+
+    public boolean hasLock() {
+        return lock != null;
+    }
 }
