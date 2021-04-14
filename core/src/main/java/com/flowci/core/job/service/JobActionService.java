@@ -1,10 +1,10 @@
-package com.flowci.core.job.manager;
+package com.flowci.core.job.service;
 
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.Job;
 import com.flowci.exception.CIException;
 
-public interface JobActionManager {
+public interface JobActionService {
 
     void toLoading(Job job);
 

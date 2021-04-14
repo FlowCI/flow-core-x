@@ -26,7 +26,6 @@ import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.job.event.JobDeletedEvent;
-import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.StringVars;
@@ -105,7 +104,7 @@ public class JobServiceImpl implements JobService {
     private FileManager fileManager;
 
     @Autowired
-    private JobActionManager jobActionManager;
+    private JobActionService jobActionService;
 
     @Autowired
     private StepService stepService;
@@ -179,7 +178,7 @@ public class JobServiceImpl implements JobService {
         eventManager.publish(new JobCreatedEvent(this, job));
 
         if (job.isYamlFromRepo()) {
-            jobActionManager.toLoading(job);
+            jobActionService.toLoading(job);
             return job;
         }
 
@@ -187,18 +186,18 @@ public class JobServiceImpl implements JobService {
             throw new ArgumentException("YAML config is required to start a job");
         }
 
-        jobActionManager.toCreated(job, yml);
+        jobActionService.toCreated(job, yml);
         return job;
     }
 
     @Override
     public void start(Job job) {
-        jobActionManager.toStart(job);
+        jobActionService.toStart(job);
     }
 
     @Override
     public void cancel(Job job) {
-        jobActionManager.toCancelled(job, null);
+        jobActionService.toCancelled(job, null);
     }
 
     @Override
@@ -242,8 +241,8 @@ public class JobServiceImpl implements JobService {
         localTaskService.delete(job);
         ymlManager.delete(job);
 
-        jobActionManager.toCreated(job, yml.getRaw());
-        jobActionManager.toStart(job);
+        jobActionService.toCreated(job, yml.getRaw());
+        jobActionService.toStart(job);
         return job;
     }
 
@@ -270,7 +269,7 @@ public class JobServiceImpl implements JobService {
         // reset job agent
         jobAgentDao.save(new JobAgent(job.getId(), flow.getId()));
 
-        jobActionManager.toStart(job);
+        jobActionService.toStart(job);
         return job;
     }
 

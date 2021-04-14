@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flowci.core.job.manager;
+package com.flowci.core.job.service;
 
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.AgentProfile;
@@ -34,8 +34,8 @@ import com.flowci.core.job.dao.JobPriorityDao;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
-import com.flowci.core.job.service.LocalTaskService;
-import com.flowci.core.job.service.StepService;
+import com.flowci.core.job.manager.CmdManager;
+import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.Errors;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
@@ -75,7 +75,7 @@ import static com.flowci.core.job.domain.Executed.Status.WAITING_AGENT;
 
 @Log4j2
 @Service
-public class JobActionManagerImpl implements JobActionManager {
+public class JobActionServiceImpl implements JobActionService {
 
     private static final Status Pending = new Status(Job.Status.PENDING.name());
     private static final Status Created = new Status(Job.Status.CREATED.name());
@@ -112,13 +112,12 @@ public class JobActionManagerImpl implements JobActionManager {
     private static final Transition RunningToRunning = new Transition(Running, Running);
     private static final Transition RunningToSuccess = new Transition(Running, Success);
     private static final Transition RunningToCancelling = new Transition(Running, Cancelling);
-    private static final Transition RunningToCanceled = new Transition(Running, Cancelled);
+    private static final Transition RunningToCancelled = new Transition(Running, Cancelled);
     private static final Transition RunningToTimeout = new Transition(Running, Timeout);
     private static final Transition RunningToFailure = new Transition(Running, Failure);
 
     // cancelling
     private static final Transition CancellingToCancelled = new Transition(Cancelling, Cancelled);
-    private static final Transition CancellingToRunning = new Transition(Cancelling, Running);
 
     private static final long RetryInterval = 10 * 1000; // 10 seconds
 
@@ -558,7 +557,7 @@ public class JobActionManagerImpl implements JobActionManager {
             }
         });
 
-        sm.add(RunningToCanceled, new Action<JobSmContext>() {
+        sm.add(RunningToCancelled, new Action<JobSmContext>() {
             @Override
             public boolean canRun(JobSmContext context) {
                 return lockJobBefore(context);

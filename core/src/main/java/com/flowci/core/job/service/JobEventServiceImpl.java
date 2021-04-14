@@ -35,7 +35,6 @@ import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
-import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.Errors;
 import com.flowci.tree.FlowNode;
@@ -66,7 +65,7 @@ public class JobEventServiceImpl implements JobEventService {
     private RabbitOperations jobsQueueManager;
 
     @Autowired
-    private JobActionManager jobActionManager;
+    private JobActionService jobActionService;
 
     @Autowired
     private ConditionManager conditionManager;
@@ -146,7 +145,7 @@ public class JobEventServiceImpl implements JobEventService {
         }
 
         Job job = jobService.get(agent.getJobId());
-        jobActionManager.toCancelled(job, Errors.AgentOffline);
+        jobActionService.toCancelled(job, Errors.AgentOffline);
     }
 
     @EventListener
@@ -184,7 +183,7 @@ public class JobEventServiceImpl implements JobEventService {
     @Override
     public void handleCallback(Step step) {
         Job job = jobService.get(step.getJobId());
-        jobActionManager.toContinue(job, step);
+        jobActionService.toContinue(job, step);
     }
 
     //====================================================================
@@ -198,7 +197,7 @@ public class JobEventServiceImpl implements JobEventService {
             String jobId = new String(body);
             try {
                 Job job = jobService.get(jobId);
-                jobActionManager.toTimeout(job);
+                jobActionService.toTimeout(job);
             } catch (Exception e) {
                 log.warn(e);
             }
@@ -224,7 +223,7 @@ public class JobEventServiceImpl implements JobEventService {
                 try {
                     Job job = jobService.get(jobId);
                     logInfo(job, "received from queue");
-                    jobActionManager.toRun(job);
+                    jobActionService.toRun(job);
                 } catch (Exception e) {
                     log.warn(e);
                 }

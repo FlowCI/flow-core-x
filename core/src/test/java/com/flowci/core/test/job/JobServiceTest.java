@@ -40,7 +40,7 @@ import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.event.StartAsyncLocalTaskEvent;
-import com.flowci.core.job.manager.JobActionManager;
+import com.flowci.core.job.service.JobActionService;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.service.JobEventService;
 import com.flowci.core.job.service.JobService;
@@ -117,7 +117,7 @@ public class JobServiceTest extends ZookeeperScenario {
     private AgentService agentService;
 
     @Autowired
-    private JobActionManager jobActionManager;
+    private JobActionService jobActionService;
 
     @Autowired
     private YmlManager ymlManager;
@@ -204,7 +204,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals(Status.CREATED, job.getStatus());
         Assert.assertTrue(job.getCurrentPath().isEmpty());
 
-        jobActionManager.toStart(job);
+        jobActionService.toStart(job);
         Assert.assertEquals(Status.QUEUED, job.getStatus());
 
         Assert.assertNotNull(job);
@@ -289,7 +289,7 @@ public class JobServiceTest extends ZookeeperScenario {
             }
         });
 
-        jobActionManager.toStart(job);
+        jobActionService.toStart(job);
         Assert.assertTrue(counterForStep1.await(10, TimeUnit.SECONDS));
 
         // then: verify step 1 agent
