@@ -39,26 +39,6 @@ public final class JobAgent {
         return agents.keySet();
     }
 
-    /**
-     * All busy agents, which are occupied by flow and assigned to step
-     */
-    public Collection<String> allBusyAgents(Collection<Step> ongoingSteps) {
-        Set<String> busy = new HashSet<>(agents.size());
-        this.agents.forEach((k, v) -> {
-            if (v.isEmpty()) {
-                return;
-            }
-
-            for(Step s : ongoingSteps) {
-                if (s.hasAgent() && s.getAgentId().equals(k)) {
-                    busy.add(k);
-                    return;
-                }
-            }
-        });
-        return busy;
-    }
-
     public boolean isOccupiedByFlow(String agentId) {
         Set<String> flows = agents.get(agentId);
         return flows != null && !flows.isEmpty();

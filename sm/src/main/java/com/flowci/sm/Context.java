@@ -13,4 +13,5 @@ public abstract class Context {
 
     protected Throwable error;
 
+    protected boolean skip;
 }

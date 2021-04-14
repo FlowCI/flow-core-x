@@ -37,6 +37,7 @@ import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.core.job.manager.YmlManager;
+import com.flowci.core.job.util.Errors;
 import com.flowci.tree.FlowNode;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,7 +146,7 @@ public class JobEventServiceImpl implements JobEventService {
         }
 
         Job job = jobService.get(agent.getJobId());
-        jobActionManager.toCancelled(job, "Agent unexpected offline");
+        jobActionManager.toCancelled(job, Errors.AgentOffline);
     }
 
     @EventListener

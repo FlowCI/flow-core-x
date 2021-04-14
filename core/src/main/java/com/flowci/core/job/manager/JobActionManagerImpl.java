@@ -36,6 +36,7 @@ import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.service.LocalTaskService;
 import com.flowci.core.job.service.StepService;
+import com.flowci.core.job.util.Errors;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
@@ -83,7 +84,6 @@ public class JobActionManagerImpl implements JobActionManager {
     private static final Status Cancelling = new Status(Job.Status.CANCELLING.name());
     private static final Status Queued = new Status(Job.Status.QUEUED.name());
     private static final Status Running = new Status(Job.Status.RUNNING.name());
-    private static final Status RunningPost = new Status(Job.Status.RUNNING_POST.name());
     private static final Status Timeout = new Status(Job.Status.TIMEOUT.name());
     private static final Status Failure = new Status(Job.Status.FAILURE.name());
     private static final Status Success = new Status(Job.Status.SUCCESS.name());
@@ -115,18 +115,10 @@ public class JobActionManagerImpl implements JobActionManager {
     private static final Transition RunningToCanceled = new Transition(Running, Cancelled);
     private static final Transition RunningToTimeout = new Transition(Running, Timeout);
     private static final Transition RunningToFailure = new Transition(Running, Failure);
-    private static final Transition RunningToRunningPost = new Transition(Running, RunningPost);
-
-    // running post
-    private static final Transition RunningPostToRunningPost = new Transition(RunningPost, RunningPost);
-    private static final Transition RunningPostToFailure = new Transition(RunningPost, Failure);
-    private static final Transition RunningPostToCancelling = new Transition(RunningPost, Cancelling);
-    private static final Transition RunningPostToCanceled = new Transition(RunningPost, Cancelled);
-    private static final Transition RunningPostToTimeout = new Transition(RunningPost, Timeout);
 
     // cancelling
     private static final Transition CancellingToCancelled = new Transition(Cancelling, Cancelled);
-    private static final Transition CancellingToRunningPost = new Transition(Cancelling, RunningPost);
+    private static final Transition CancellingToRunning = new Transition(Cancelling, Running);
 
     private static final long RetryInterval = 10 * 1000; // 10 seconds
 
@@ -191,7 +183,6 @@ public class JobActionManagerImpl implements JobActionManager {
             fromCreated();
             fromQueued();
             fromRunning();
-            fromRunningPost();
             fromCancelling();
 
             sm.addHookActionOnTargetStatus(new ActionOnFinishStatus(), Success, Failure, Timeout, Cancelled);
@@ -276,19 +267,19 @@ public class JobActionManagerImpl implements JobActionManager {
             return;
         }
 
-        if (job.isRunningPost()) {
-            on(job, Job.Status.RUNNING_POST, (context) -> context.step = step);
-            return;
-        }
-
         on(job, Job.Status.RUNNING, (context) -> context.step = step);
     }
 
     @Override
-    public void toCancelled(Job job, String reason) {
+    public void toCancelled(Job job, CIException exception) {
         on(job, Job.Status.CANCELLED, context -> {
-            context.setError(new CIException(reason));
-            context.callFromMethod = true;
+            context.setError(exception);
+
+            Set<String> currentPath = job.getCurrentPath();
+            if (!currentPath.isEmpty()) {
+                String nodePath = currentPath.iterator().next();
+                context.step = stepService.get(job.getId(), nodePath);
+            }
         });
     }
 
@@ -494,7 +485,7 @@ public class JobActionManagerImpl implements JobActionManager {
                     return;
                 }
 
-                if (toNextStep(job, step, false)) {
+                if (toNextStep(job, step)) {
                     return;
                 }
 
@@ -526,7 +517,7 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void accept(JobSmContext context) {
                 Job job = context.job;
-                killOngoingSteps(job, false);
+                killOngoingSteps(job, job.isOnPostSteps());
             }
 
             @Override
@@ -540,13 +531,13 @@ public class JobActionManagerImpl implements JobActionManager {
         // do not lock job since it will be called from RunningToRunning status
         sm.add(RunningToFailure, new Action<JobSmContext>() {
             @Override
-            public void accept(JobSmContext context) {
+            public void accept(JobSmContext context) throws ScriptException {
                 Job job = context.job;
                 Step step = context.step;
                 stepService.toStatus(step, Step.Status.EXCEPTION, null, false);
-                killOngoingSteps(job, false);
 
-                toRunningPostStatusIfNeeded(context);
+                killOngoingSteps(job, job.isOnPostSteps());
+                runPostStepsIfNeeded(context);
             }
 
             @Override
@@ -561,7 +552,7 @@ public class JobActionManagerImpl implements JobActionManager {
             public void accept(JobSmContext context) {
                 Job job = context.job;
                 setJobStatusAndSave(job, Job.Status.CANCELLING, null);
-                killOngoingSteps(job, false);
+                killOngoingSteps(job, job.isOnPostSteps());
             }
 
             @Override
@@ -577,14 +568,18 @@ public class JobActionManagerImpl implements JobActionManager {
             }
 
             @Override
-            public void accept(JobSmContext context) {
+            public void accept(JobSmContext context) throws ScriptException {
                 Job job = context.job;
+
+                List<Step> steps = stepService.list(job, Sets.newHashSet(WAITING_AGENT));
+                stepService.toStatus(steps, Step.Status.SKIPPED, null);
+
                 JobAgent jobAgent = getJobAgent(job.getId());
-                List<Step> ongoingSteps = stepService.list(job, Executed.OngoingStatus);
+                steps = stepService.list(job, Sets.newHashSet(RUNNING));
 
                 // no busy agents, run post steps directly if needed
-                if (jobAgent.allBusyAgents(ongoingSteps).isEmpty()) {
-                    toRunningPostStatusIfNeeded(context);
+                if (getBusyAgents(jobAgent, steps).isEmpty()) {
+                    runPostStepsIfNeeded(context);
                     return;
                 }
 
@@ -594,93 +589,13 @@ public class JobActionManagerImpl implements JobActionManager {
             @Override
             public void onException(Throwable e, JobSmContext context) {
                 Job job = context.job;
-                killOngoingSteps(job, false);
+                killOngoingSteps(job, job.isOnPostSteps());
                 setJobStatusAndSave(job, Job.Status.CANCELLED, e.getMessage());
             }
 
             @Override
             public void onFinally(JobSmContext context) {
                 unlockJobAfter(context);
-            }
-        });
-
-        // from RunningToFailure or RunningToCancelled
-        sm.add(RunningToRunningPost, new Action<JobSmContext>() {
-            @Override
-            public void accept(JobSmContext context) throws Exception {
-                doFromCancellingOrRunningToRunningPost(context);
-            }
-
-            @Override
-            public void onException(Throwable e, JobSmContext context) {
-                Job job = context.job;
-                setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
-            }
-        });
-    }
-
-    private void fromRunningPost() {
-        sm.add(RunningPostToRunningPost, new Action<JobSmContext>() {
-            @Override
-            public boolean canRun(JobSmContext context) {
-                return lockJobBefore(context);
-            }
-
-            @Override
-            public void accept(JobSmContext context) throws Exception {
-                Job job = context.job;
-                Step step = context.step;
-
-                updateJobContextAndLatestStatus(job, step);
-                setJobStatusAndSave(job, Job.Status.RUNNING_POST, null);
-                log.debug("Step {} been recorded", step.getNodePath());
-
-                if (releaseAgentOrAssignToWaitingStep(job, step)) {
-                    return;
-                }
-
-                if (toNextStep(job, step, true)) {
-                    return;
-                }
-
-                toFinishStatus(context);
-            }
-
-            @Override
-            public void onFinally(JobSmContext context) {
-                unlockJobAfter(context);
-            }
-        });
-
-        Action<JobSmContext> toActualStatusAction = new Action<JobSmContext>() {
-            @Override
-            public void accept(JobSmContext context) throws Exception {
-                logInfo(context.job, "RunningPost to {}", context.getTargetToJobStatus());
-            }
-        };
-
-        sm.add(RunningPostToFailure, toActualStatusAction);
-        sm.add(RunningPostToTimeout, toActualStatusAction);
-        sm.add(RunningPostToCanceled, new Action<JobSmContext>() {
-            @Override
-            public void accept(JobSmContext context) throws Exception {
-                if (!context.callFromMethod) {
-                    return;
-                }
-                sm.execute(context.getCurrent(), Cancelling, context);
-            }
-        });
-
-        sm.add(RunningPostToCancelling, new Action<JobSmContext>() {
-            @Override
-            public void accept(JobSmContext context) throws Exception {
-                if (!context.callFromMethod) {
-                    sm.execute(context.getCurrent(), Cancelled, context);
-                    return;
-                }
-
-                Job job = context.job;
-                killOngoingSteps(job, true);
             }
         });
     }
@@ -693,16 +608,9 @@ public class JobActionManagerImpl implements JobActionManager {
             }
 
             @Override
-            public void accept(JobSmContext context) {
+            public void accept(JobSmContext context) throws ScriptException {
                 Job job = context.job;
-                Step step = context.step;
-
-                if (step == null) {
-                    setJobStatusAndSave(job, Job.Status.CANCELLED, null);
-                    return;
-                }
-
-                if (!toRunningPostStatusIfNeeded(context)) {
+                if (!runPostStepsIfNeeded(context)) {
                     setJobStatusAndSave(job, Job.Status.CANCELLED, null);
                 }
             }
@@ -713,11 +621,11 @@ public class JobActionManagerImpl implements JobActionManager {
             }
         });
 
-        // from CancellingToCancelled
-        sm.add(CancellingToRunningPost, new Action<JobSmContext>() {
+        // To run post steps
+        sm.add(CancellingToRunning, new Action<JobSmContext>() {
             @Override
             public void accept(JobSmContext context) throws Exception {
-                doFromCancellingOrRunningToRunningPost(context);
+                sm.executeInExecutor(Running, context.getTo(), context);
             }
         });
     }
@@ -739,20 +647,6 @@ public class JobActionManagerImpl implements JobActionManager {
             releaseAgentToPool(job, node, step);
         }
         return false;
-    }
-
-    private void doFromCancellingOrRunningToRunningPost(JobSmContext context) throws ScriptException {
-        log.debug("---- CancellingOrRunningToRunningPost ----");
-
-        Job job = context.job;
-        Step step = context.step;
-
-        NodeTree tree = ymlManager.getTree(job);
-        List<Node> post = tree.post(step.getNodePath());
-
-        // DO NOT check post size, it has been checked in previous
-        job.setStatus(Job.Status.RUNNING_POST);
-        executeJob(job, post);
     }
 
     private boolean lockJobBefore(JobSmContext context) {
@@ -797,6 +691,33 @@ public class JobActionManagerImpl implements JobActionManager {
             job = reload(job.getId());
             log.debug("Job {}/{} wait since not on top priority", job.getFlowName(), job.getBuildNumber());
         }
+    }
+
+    /**
+     * All busy agents, which are occupied by flow and assigned to step
+     */
+    private Collection<Agent> getBusyAgents(JobAgent jobAgent, Collection<Step> ongoingSteps) {
+        Map<String, Set<String>> agents = jobAgent.getAgents();
+        Set<Agent> busy = new HashSet<>(agents.size());
+
+        agents.forEach((agentId, v) -> {
+            if (v.isEmpty()) {
+                return;
+            }
+
+            Agent agent = agentService.get(agentId);
+            if (!agent.isBusy()) {
+                return;
+            }
+
+            for (Step s : ongoingSteps) {
+                if (s.hasAgent() && s.getAgentId().equals(agentId)) {
+                    busy.add(agent);
+                    return;
+                }
+            }
+        });
+        return busy;
     }
 
     private Optional<Agent> fetchAgentFromJob(Job job, Node node) {
@@ -1021,17 +942,16 @@ public class JobActionManagerImpl implements JobActionManager {
     /**
      * Dispatch next step to agent, job will be saved on final function of Running status
      *
-     * @param job current job
+     * @param job  current job
      * @param step current step
-     * @param post indicate to next post steps or regular steps
      * @return true if next step dispatched or have to wait for previous steps, false if no more steps or failure
      */
-    private boolean toNextStep(Job job, Step step, boolean post) throws ScriptException {
+    private boolean toNextStep(Job job, Step step) throws ScriptException {
         NodeTree tree = ymlManager.getTree(job);
         Node node = tree.get(NodePath.create(step.getNodePath())); // current node
 
         List<Node> next = node.getNext();
-        if (post) {
+        if (job.isOnPostSteps()) {
             next = tree.post(step.getNodePath());
         }
 
@@ -1044,7 +964,7 @@ public class JobActionManagerImpl implements JobActionManager {
         }
 
         // check prev steps status
-        Set<Executed.Status> previous = getStepsStatus(job, tree.prevs(next, post));
+        Set<Executed.Status> previous = getStepsStatus(job, tree.prevs(next, job.isOnPostSteps()));
         boolean hasFailure = !Collections.disjoint(previous, Executed.FailureStatus);
         boolean hasOngoing = !Collections.disjoint(previous, Executed.OngoingStatus);
         if (hasFailure) {
@@ -1130,6 +1050,7 @@ public class JobActionManagerImpl implements JobActionManager {
      */
     private boolean runCondition(Job job, Node node) throws ScriptException {
         boolean shouldRun = true;
+
         if (job.getTrigger() == Job.Trigger.MANUAL || job.getTrigger() == Job.Trigger.API) {
             if (node.getPath().isRoot()) {
                 shouldRun = false;
@@ -1173,21 +1094,31 @@ public class JobActionManagerImpl implements JobActionManager {
     }
 
     /**
-     * To running post status
+     * To running post status, skip current state machine action and switch job status to Running
      * Return `true` if post step found
      */
-    private boolean toRunningPostStatusIfNeeded(JobSmContext context) {
-        Job job = context.job;
-        Step step = context.step;
-
-        NodeTree tree = ymlManager.getTree(job);
-        List<Node> post = tree.post(step.getNodePath());
-
-        if (post.isEmpty()) {
+    private boolean runPostStepsIfNeeded(JobSmContext context) throws ScriptException {
+        if (context.getError() == Errors.AgentOffline) {
             return false;
         }
 
-        sm.execute(context.getCurrent(), RunningPost, context);
+        Job job = context.job;
+        Step step = context.step;
+        Objects.requireNonNull(step, "The step not defined when running post steps");
+
+        NodeTree tree = ymlManager.getTree(job);
+        List<Node> nextPostSteps = tree.post(step.getNodePath());
+        if (nextPostSteps.isEmpty()) {
+            return false;
+        }
+
+        context.setSkip(true);
+
+        job.setOnPostSteps(true);
+        job.resetCurrentPath();
+        job.setStatus(Job.Status.RUNNING);
+
+        executeJob(job, nextPostSteps);
         return true;
     }
 

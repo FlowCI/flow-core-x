@@ -13,8 +13,6 @@ public class JobSmContext extends Context {
 
     public InterLock lock;
 
-    public boolean callFromMethod;
-
     public Job.Status getTargetToJobStatus() {
         String name = this.to.getName();
         return Job.Status.valueOf(name);

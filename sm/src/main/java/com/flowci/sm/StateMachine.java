@@ -67,7 +67,7 @@ public class StateMachine<T extends Context> {
         try {
             action.accept(context);
 
-            if (!isOnSameContext(current, target, context)) {
+            if (!isOnSameContext(current, target, context) || context.skip) {
                 return;
             }
 

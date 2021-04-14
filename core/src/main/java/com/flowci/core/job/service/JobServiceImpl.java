@@ -198,7 +198,7 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public void cancel(Job job) {
-        jobActionManager.toCancelled(job, StringHelper.EMPTY);
+        jobActionManager.toCancelled(job, null);
     }
 
     @Override
