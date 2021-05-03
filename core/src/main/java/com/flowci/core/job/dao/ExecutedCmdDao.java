@@ -37,7 +37,9 @@ public interface ExecutedCmdDao extends MongoRepository<Step, String> {
 
     Optional<Step> findByJobIdAndNodePath(String jobId, String nodePath);
 
-    List<Step> findByFlowIdAndBuildNumber(String flowId, long buildNumber);
+    List<Step> findAllByJobIdAndNodePathIn(String jobId, Collection<String> nodePaths);
 
-    List<Step> findByJobIdAndStatusIn(String jobId, Collection<Executed.Status> statuses);
+    List<Step> findAllByFlowIdAndBuildNumber(String flowId, long buildNumber);
+
+    List<Step> findAllByJobIdAndStatusIn(String jobId, Collection<Executed.Status> statuses);
 }

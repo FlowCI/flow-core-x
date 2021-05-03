@@ -98,7 +98,12 @@ public class StepServiceImpl implements StepService {
 
     @Override
     public List<Step> list(Job job, Collection<Executed.Status> status) {
-        return executedCmdDao.findByJobIdAndStatusIn(job.getId(), status);
+        return executedCmdDao.findAllByJobIdAndStatusIn(job.getId(), status);
+    }
+
+    @Override
+    public List<Step> listByPath(Job job, Collection<String> paths) {
+        return executedCmdDao.findAllByJobIdAndNodePathIn(job.getId(), paths);
     }
 
     @Override
@@ -229,7 +234,7 @@ public class StepServiceImpl implements StepService {
 
     private List<Step> list(String jobId, String flowId, long buildNumber) {
         return jobStepCache.get(jobId,
-                s -> executedCmdDao.findByFlowIdAndBuildNumber(flowId, buildNumber));
+                s -> executedCmdDao.findAllByFlowIdAndBuildNumber(flowId, buildNumber));
     }
 
     private static Step newInstance(Job job, Node node) {

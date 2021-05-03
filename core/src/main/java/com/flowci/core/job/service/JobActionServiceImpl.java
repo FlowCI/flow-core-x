@@ -1105,12 +1105,26 @@ public class JobActionServiceImpl implements JobActionService {
         Step step = context.step;
         Objects.requireNonNull(step, "The step not defined when running post steps");
 
+        if (job.isOnPostSteps()) {
+            return true;
+        }
+
         NodeTree tree = ymlManager.getTree(job);
         List<Node> nextPostSteps = tree.post(step.getNodePath());
         if (nextPostSteps.isEmpty()) {
             return false;
         }
 
+        // check current all steps that should be in finish status
+        List<Step> steps = stepService.listByPath(job, job.getCurrentPath());
+        for (Step s : steps) {
+            if (s.isOngoing() || s.isKilling()) {
+                log.debug("Step ({} = {}) is ongoing or killing status", s.getNodePath(), s.getStatus());
+                return false;
+            }
+        }
+
+        log.debug("All current steps finished, will run post steps");
         context.setSkip(true);
 
         job.setOnPostSteps(true);
@@ -1118,6 +1132,7 @@ public class JobActionServiceImpl implements JobActionService {
         job.setStatus(Job.Status.RUNNING);
         job.setStatusToContext(Job.Status.valueOf(context.getTo().getName()));
 
+        log.debug("Run post steps: {}", nextPostSteps);
         executeJob(job, nextPostSteps);
         return true;
     }
