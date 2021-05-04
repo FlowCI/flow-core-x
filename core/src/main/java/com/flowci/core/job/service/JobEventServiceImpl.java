@@ -144,8 +144,7 @@ public class JobEventServiceImpl implements JobEventService {
             return;
         }
 
-        Job job = jobService.get(agent.getJobId());
-        jobActionService.toCancelled(job, Errors.AgentOffline);
+        jobActionService.toCancelled(agent.getJobId(), Errors.AgentOffline);
     }
 
     @EventListener
@@ -182,8 +181,7 @@ public class JobEventServiceImpl implements JobEventService {
 
     @Override
     public void handleCallback(Step step) {
-        Job job = jobService.get(step.getJobId());
-        jobActionService.toContinue(job, step);
+        jobActionService.toContinue(step);
     }
 
     //====================================================================
@@ -196,8 +194,7 @@ public class JobEventServiceImpl implements JobEventService {
         jobsQueueManager.startConsumer(deadLetterQueue, true, (header, body, envelope) -> {
             String jobId = new String(body);
             try {
-                Job job = jobService.get(jobId);
-                jobActionService.toTimeout(job);
+                jobActionService.toTimeout(jobId);
             } catch (Exception e) {
                 log.warn(e);
             }
@@ -219,11 +216,9 @@ public class JobEventServiceImpl implements JobEventService {
             jobsQueueManager.declare(queue, true, 255, rabbitProperties.getJobDlExchange());
 
             jobsQueueManager.startConsumer(queue, false, (header, body, envelope) -> {
-                String jobId = new String(body);
                 try {
-                    Job job = jobService.get(jobId);
-                    logInfo(job, "received from queue");
-                    jobActionService.toRun(job);
+                    String jobId = new String(body);
+                    jobActionService.toRun(jobId);
                 } catch (Exception e) {
                     log.warn(e);
                 }

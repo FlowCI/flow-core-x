@@ -178,7 +178,7 @@ public class JobServiceImpl implements JobService {
         eventManager.publish(new JobCreatedEvent(this, job));
 
         if (job.isYamlFromRepo()) {
-            jobActionService.toLoading(job);
+            jobActionService.toLoading(job.getId());
             return job;
         }
 
@@ -186,18 +186,18 @@ public class JobServiceImpl implements JobService {
             throw new ArgumentException("YAML config is required to start a job");
         }
 
-        jobActionService.toCreated(job, yml);
+        jobActionService.toCreated(job.getId(), yml);
         return job;
     }
 
     @Override
     public void start(Job job) {
-        jobActionService.toStart(job);
+        jobActionService.toStart(job.getId());
     }
 
     @Override
     public void cancel(Job job) {
-        jobActionService.toCancelled(job, null);
+        jobActionService.toCancelled(job.getId(), null);
     }
 
     @Override
@@ -241,8 +241,8 @@ public class JobServiceImpl implements JobService {
         localTaskService.delete(job);
         ymlManager.delete(job);
 
-        jobActionService.toCreated(job, yml.getRaw());
-        jobActionService.toStart(job);
+        jobActionService.toCreated(job.getId(), yml.getRaw());
+        jobActionService.toStart(job.getId());
         return job;
     }
 
@@ -269,7 +269,7 @@ public class JobServiceImpl implements JobService {
         // reset job agent
         jobAgentDao.save(new JobAgent(job.getId(), flow.getId()));
 
-        jobActionService.toStart(job);
+        jobActionService.toStart(job.getId());
         return job;
     }
 

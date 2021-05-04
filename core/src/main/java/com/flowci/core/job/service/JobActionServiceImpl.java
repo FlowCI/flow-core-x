@@ -59,7 +59,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -67,7 +66,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 import static com.flowci.core.job.domain.Executed.Status.RUNNING;
@@ -171,9 +169,6 @@ public class JobActionServiceImpl implements JobActionService {
     @Autowired
     private StateMachine<JobSmContext> sm;
 
-    // job node execute thread pool
-    private final Map<String, ThreadPoolTaskExecutor> pool = new ConcurrentHashMap<>();
-
     @EventListener
     public void init(ContextRefreshedEvent ignore) {
         try {
@@ -214,7 +209,7 @@ public class JobActionServiceImpl implements JobActionService {
 
             Optional<InterLock> lock = lock(job.getId(), "LockJobFromIdleAgent");
             if (!lock.isPresent()) {
-                toFailureStatus(job, null, new CIException("Fail to lock job"));
+                toFailureStatus(job, new CIException("Fail to lock job"));
                 continue;
             }
 
@@ -227,7 +222,7 @@ public class JobActionServiceImpl implements JobActionService {
                     return;
                 }
             } catch (Exception e) {
-                toFailureStatus(job, null, new CIException(e.getMessage()));
+                toFailureStatus(job, new CIException(e.getMessage()));
             } finally {
                 unlock(lock.get(), "LockJobFromIdleAgent");
             }
@@ -235,73 +230,76 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     @Override
-    public void toLoading(Job job) {
-        on(job, Job.Status.LOADING, null);
+    public void toLoading(String jobId) {
+        onTransition(jobId, Loading, null);
     }
 
     @Override
-    public void toCreated(Job job, String yml) {
-        on(job, Job.Status.CREATED, context -> {
-            context.yml = yml;
+    public void toCreated(String jobId, String yml) {
+        onTransition(jobId, Created, context -> {
+            context.setYml(yml);
         });
     }
 
     @Override
-    public void toStart(Job job) {
-        on(job, Job.Status.QUEUED, null);
+    public void toStart(String jobId) {
+        onTransition(jobId, Queued, null);
     }
 
     @Override
-    public void toRun(Job job) {
-        if (job.isDone()) {
-            return;
-        }
-        on(job, Job.Status.RUNNING, null);
+    public void toRun(String jobId) {
+        onTransition(jobId, Running, null);
     }
 
     @Override
-    public void toContinue(Job job, Step step) {
-        if (job.isCancelling()) {
-            on(job, Job.Status.CANCELLED, (context) -> context.step = step);
-            return;
-        }
+    public void toContinue(Step step) {
+        onTransition(step.getJobId(), Running, c -> {
+            c.setStep(step);
 
-        on(job, Job.Status.RUNNING, (context) -> context.step = step);
-    }
+            Job job = c.getJob();
+            log.debug("---- Job Status {} {} {} {}", job.isOnPostSteps(), step.getNodePath(), job.getStatus(), job.getStatusFromContext());
 
-    @Override
-    public void toCancelled(Job job, CIException exception) {
-        on(job, Job.Status.CANCELLED, context -> {
-            context.setError(exception);
-
-            Set<String> currentPath = job.getCurrentPath();
-            if (!currentPath.isEmpty()) {
-                String nodePath = currentPath.iterator().next();
-                context.step = stepService.get(job.getId(), nodePath);
+            if (job.isCancelling()) {
+                c.setTo(Cancelled);
             }
         });
     }
 
     @Override
-    public void toTimeout(Job job) {
-        on(job, Job.Status.TIMEOUT, null);
+    public void toCancelled(String jobId, CIException exception) {
+        onTransition(jobId, Cancelled, context -> {
+            context.setError(exception);
+
+            Job job = context.getJob();
+            Set<String> currentPath = job.getCurrentPath();
+
+            if (!currentPath.isEmpty()) {
+                String nodePath = currentPath.iterator().next();
+                context.setStep(stepService.get(job.getId(), nodePath));
+            }
+        });
+    }
+
+    @Override
+    public void toTimeout(String jobId) {
+        onTransition(jobId, Timeout, null);
     }
 
     private void fromPending() {
-        sm.add(PendingToCreated, new Action<JobSmContext>() {
+        sm.add(PendingToCreated, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
                 doFromXToCreated(context);
             }
         });
 
-        sm.add(PendingToLoading, new Action<JobSmContext>() {
+        sm.add(PendingToLoading, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
-                Job job = context.job;
+                Job job = context.getJob();
                 setJobStatusAndSave(job, Job.Status.LOADING, null);
 
-                context.yml = fetchYamlFromGit(job);
+                context.setYml(fetchYamlFromGit(job));
                 sm.execute(Loading, Created, context);
             }
 
@@ -312,7 +310,7 @@ public class JobActionServiceImpl implements JobActionService {
             }
         });
 
-        sm.add(PendingToCancelled, new Action<JobSmContext>() {
+        sm.add(PendingToCancelled, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
                 context.setError(new Exception("cancelled while pending"));
@@ -321,14 +319,14 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     private void fromLoading() {
-        sm.add(LoadingToFailure, new Action<JobSmContext>() {
+        sm.add(LoadingToFailure, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
                 // handled on ActionOnFinishStatus
             }
         });
 
-        sm.add(LoadingToCreated, new Action<JobSmContext>() {
+        sm.add(LoadingToCreated, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
                 doFromXToCreated(context);
@@ -337,34 +335,34 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     private void doFromXToCreated(JobSmContext context) {
-        Job job = context.job;
-        String yml = context.yml;
+        Job job = context.getJob();
+        String yml = context.getYml();
 
         setupJobYamlAndSteps(job, yml);
         setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
     }
 
     private void fromCreated() {
-        sm.add(CreatedToTimeout, new Action<JobSmContext>() {
+        sm.add(CreatedToTimeout, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
-                Job job = context.job;
+                Job job = context.getJob();
                 context.setError(new Exception("expired before enqueue"));
                 log.debug("[Job: Timeout] {} has expired", job.getKey());
             }
         });
 
-        sm.add(CreatedToFailure, new Action<JobSmContext>() {
+        sm.add(CreatedToFailure, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
                 // handled on ActionOnFinishStatus
             }
         });
 
-        sm.add(CreatedToQueued, new Action<JobSmContext>() {
+        sm.add(CreatedToQueued, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
-                Job job = context.job;
+                Job job = context.getJob();
                 setJobStatusAndSave(job, Job.Status.QUEUED, null);
 
                 String queue = job.getQueueName();
@@ -383,14 +381,14 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     private void fromQueued() {
-        sm.add(QueuedToTimeout, new Action<JobSmContext>() {
+        sm.add(QueuedToTimeout, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
                 // handled on ActionOnFinishStatus
             }
         });
 
-        sm.add(QueuedToCancelled, new Action<JobSmContext>() {
+        sm.add(QueuedToCancelled, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
                 context.setError(new Exception("cancelled from queue"));
@@ -398,19 +396,20 @@ public class JobActionServiceImpl implements JobActionService {
             }
         });
 
-        sm.add(QueuedToRunning, new Action<JobSmContext>() {
+        sm.add(QueuedToRunning, new JobActionBase() {
+
             @Override
             public boolean canRun(JobSmContext context) {
-                return lockJobBefore(context);
+                return !context.getJob().isDone();
             }
 
             @Override
             public void accept(JobSmContext context) throws Exception {
-                Job job = context.job;
+                Job job = context.getJob();
                 eventManager.publish(new JobReceivedEvent(this, job));
 
                 jobPriorityDao.addJob(job.getFlowId(), job.getBuildNumber());
-                if (!waitIfJobNotOnTopPriority(job)) {
+                if (!waitIfJobNotOnTopPriority(context)) {
                     return;
                 }
 
@@ -438,17 +437,12 @@ public class JobActionServiceImpl implements JobActionService {
                 context.setError(e);
                 sm.execute(Queued, Failure, context);
             }
-
-            @Override
-            public void onFinally(JobSmContext context) {
-                unlockJobAfter(context);
-            }
         });
 
-        sm.add(QueuedToFailure, new Action<JobSmContext>() {
+        sm.add(QueuedToFailure, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
-                Job job = context.job;
+                Job job = context.getJob();
 
                 // set current step to exception
                 for (String path : job.getCurrentPath()) {
@@ -460,16 +454,16 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     private void fromRunning() {
-        sm.add(RunningToRunning, new Action<JobSmContext>() {
+        sm.add(RunningToRunning, new JobActionBase() {
             @Override
             public boolean canRun(JobSmContext context) {
-                return lockJobBefore(context);
+                return !context.getJob().isDone();
             }
 
             @Override
             public void accept(JobSmContext context) throws Exception {
-                Job job = context.job;
-                Step step = context.step;
+                Job job = context.getJob();
+                Step step = context.getStep();
 
                 updateJobContextAndLatestStatus(job, step);
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
@@ -496,57 +490,52 @@ public class JobActionServiceImpl implements JobActionService {
                 context.setError(e);
                 sm.execute(context.getCurrent(), Failure, context);
             }
-
-            @Override
-            public void onFinally(JobSmContext context) {
-                unlockJobAfter(context);
-            }
         });
 
         // do not lock job since it will be called from RunningToRunning status
-        sm.add(RunningToSuccess, new Action<JobSmContext>() {
+        sm.add(RunningToSuccess, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
-                Job job = context.job;
+                Job job = context.getJob();
                 logInfo(job, "finished with status {}", Success);
             }
         });
 
-        sm.add(RunningToTimeout, new Action<JobSmContext>() {
+        sm.add(RunningToTimeout, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
-                Job job = context.job;
+                Job job = context.getJob();
                 killOngoingSteps(job, job.isOnPostSteps());
             }
 
             @Override
             public void onException(Throwable e, JobSmContext context) {
-                Job job = context.job;
+                Job job = context.getJob();
                 setJobStatusAndSave(job, Job.Status.TIMEOUT, null);
             }
         });
 
         // failure from job end or exception
         // do not lock job since it will be called from RunningToRunning status
-        sm.add(RunningToFailure, new Action<JobSmContext>() {
+        sm.add(RunningToFailure, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) throws ScriptException {
-                Job job = context.job;
+                Job job = context.getJob();
                 killOngoingSteps(job, job.isOnPostSteps());
                 runPostStepsIfNeeded(context);
             }
 
             @Override
             public void onException(Throwable e, JobSmContext context) {
-                Job job = context.job;
+                Job job = context.getJob();
                 setJobStatusAndSave(job, Job.Status.FAILURE, e.getMessage());
             }
         });
 
-        sm.add(RunningToCancelling, new Action<JobSmContext>() {
+        sm.add(RunningToCancelling, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) {
-                Job job = context.job;
+                Job job = context.getJob();
                 setJobStatusAndSave(job, Job.Status.CANCELLING, null);
                 killOngoingSteps(job, job.isOnPostSteps());
             }
@@ -557,15 +546,10 @@ public class JobActionServiceImpl implements JobActionService {
             }
         });
 
-        sm.add(RunningToCancelled, new Action<JobSmContext>() {
-            @Override
-            public boolean canRun(JobSmContext context) {
-                return lockJobBefore(context);
-            }
-
+        sm.add(RunningToCancelled, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) throws ScriptException {
-                Job job = context.job;
+                Job job = context.getJob();
 
                 List<Step> steps = stepService.list(job, Sets.newHashSet(WAITING_AGENT));
                 stepService.toStatus(steps, Step.Status.SKIPPED, null);
@@ -584,37 +568,21 @@ public class JobActionServiceImpl implements JobActionService {
 
             @Override
             public void onException(Throwable e, JobSmContext context) {
-                Job job = context.job;
+                Job job = context.getJob();
                 killOngoingSteps(job, job.isOnPostSteps());
                 setJobStatusAndSave(job, Job.Status.CANCELLED, e.getMessage());
-            }
-
-            @Override
-            public void onFinally(JobSmContext context) {
-                unlockJobAfter(context);
             }
         });
     }
 
     private void fromCancelling() {
-        sm.add(CancellingToCancelled, new Action<JobSmContext>() {
-            @Override
-            public boolean canRun(JobSmContext context) {
-                return lockJobBefore(context);
-            }
-
+        sm.add(CancellingToCancelled, new JobActionBase() {
             @Override
             public void accept(JobSmContext context) throws ScriptException {
-                Job job = context.job;
-
+                Job job = context.getJob();
                 if (!runPostStepsIfNeeded(context)) {
                     setJobStatusAndSave(job, Job.Status.CANCELLED, null);
                 }
-            }
-
-            @Override
-            public void onFinally(JobSmContext context) {
-                unlockJobAfter(context);
             }
         });
     }
@@ -638,42 +606,13 @@ public class JobActionServiceImpl implements JobActionService {
         return false;
     }
 
-    private boolean lockJobBefore(JobSmContext context) {
-        Job job = context.job;
+    private boolean waitIfJobNotOnTopPriority(JobSmContext context) {
+        Job job = context.getJob();
 
-        if (context.hasLock()) {
-            log.debug("Job {} has lock from other context", job.getId());
-            return true;
-        }
-
-        Optional<InterLock> lock = lock(job.getId(), "LockJobBefore");
-
-        if (!lock.isPresent()) {
-            toFailureStatus(context.job, context.step, new CIException("Fail to lock job"));
-            return false;
-        }
-
-        context.lock = lock.get();
-        context.job = reload(job.getId());
-        log.debug("Job {} is locked", job.getId());
-        return true;
-    }
-
-    private void unlockJobAfter(JobSmContext context) {
-        InterLock lock = context.lock;
-        if (lock == null) {
-            return;
-        }
-
-        Job job = context.job;
-        unlock(lock, job.getId());
-        context.lock = null;
-    }
-
-    private boolean waitIfJobNotOnTopPriority(Job job) {
         while (true) {
             if (job.isExpired()) {
-                on(job, Job.Status.TIMEOUT, (c) -> c.setError(new Exception("time out while queueing")));
+                context.setError(new Exception("time out while queueing"));
+                sm.execute(context.getCurrent(), Timeout, context);
                 return false;
             }
 
@@ -687,7 +626,7 @@ public class JobActionServiceImpl implements JobActionService {
             }
 
             ThreadHelper.sleep(RetryInterval);
-            job = reload(job.getId());
+            job = getJob(job.getId());
             log.debug("Job {}/{} wait since not on top priority", job.getFlowName(), job.getBuildNumber());
         }
     }
@@ -832,11 +771,13 @@ public class JobActionServiceImpl implements JobActionService {
         jobAgentDao.removeAgent(job.getId(), agentId);
     }
 
-    private void toFailureStatus(Job job, Step step, CIException e) {
-        on(job, Job.Status.FAILURE, (c) -> {
-            c.step = step;
-            c.setError(e);
-        });
+    private void toFailureStatus(Job job, CIException e) {
+        JobSmContext context = new JobSmContext(job.getId());
+        context.setJob(job);
+        context.setCurrent(new Status(job.getStatus().name()));
+        context.setTo(Failure);
+        context.setError(e);
+        sm.execute(context);
     }
 
     private void setupJobYamlAndSteps(Job job, String yml) {
@@ -876,18 +817,29 @@ public class JobActionServiceImpl implements JobActionService {
         stepService.toStatus(steps, Step.Status.KILLING, null);
     }
 
-    private void on(Job job, Job.Status target, Consumer<JobSmContext> configContext) {
-        Status current = new Status(job.getStatus().name());
-        Status to = new Status(target.name());
+    private void onTransition(String jobId, Status to, Consumer<JobSmContext> onContext) {
+        Optional<InterLock> lock = lock(jobId, "Before Transition");
 
-        JobSmContext context = new JobSmContext();
-        context.job = job;
-
-        if (configContext != null) {
-            configContext.accept(context);
+        if (!lock.isPresent()) {
+            Job job = getJob(jobId);
+            toFailureStatus(job, new CIException("Fail to lock job"));
+            return;
         }
 
-        sm.execute(current, to, context);
+        log.debug("Job {} is locked", jobId);
+        Job job = getJob(jobId);
+
+        JobSmContext context = new JobSmContext(jobId);
+        context.setLock(lock.get());
+        context.setJob(job);
+        context.setCurrent(new Status(job.getStatus().name()));
+        context.setTo(to);
+
+        if (onContext != null) {
+            onContext.accept(context);
+        }
+
+        sm.execute(context);
     }
 
     private String fetchYamlFromGit(Job job) {
@@ -1083,7 +1035,7 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     private void toFinishStatus(JobSmContext context) {
-        Job job = context.job;
+        Job job = context.getJob();
 
         Job.Status statusFromContext = job.getStatusFromContext();
         String error = job.getErrorFromContext();
@@ -1101,8 +1053,8 @@ public class JobActionServiceImpl implements JobActionService {
             return false;
         }
 
-        Job job = context.job;
-        Step step = context.step;
+        Job job = context.getJob();
+        Step step = context.getStep();
         Objects.requireNonNull(step, "The step not defined when running post steps");
 
         if (job.isOnPostSteps()) {
@@ -1133,6 +1085,7 @@ public class JobActionServiceImpl implements JobActionService {
         job.setStatusToContext(Job.Status.valueOf(context.getTo().getName()));
 
         log.debug("Run post steps: {}", nextPostSteps);
+        log.debug("---- Job Status Before Post {} {}", job.getStatus(), job.getStatusFromContext());
         executeJob(job, nextPostSteps);
         return true;
     }
@@ -1193,21 +1146,21 @@ public class JobActionServiceImpl implements JobActionService {
         log.info("[Job] " + job.getKey() + " " + message, params);
     }
 
-    private Job reload(String jobId) {
+    private Job getJob(String jobId) {
         return jobDao.findById(jobId).get();
     }
 
-    private Optional<InterLock> lock(String key, String message) {
-        String path = zk.makePath("/job-locks", key);
+    private Optional<InterLock> lock(String jobId, String message) {
+        String path = zk.makePath("/job-locks", jobId);
         Optional<InterLock> lock = zk.lock(path, DefaultJobLockTimeout);
-        lock.ifPresent(interLock -> log.debug("Lock: {} - {}", key, message));
+        lock.ifPresent(interLock -> log.debug("Lock: {} - {}", jobId, message));
         return lock;
     }
 
-    private void unlock(InterLock lock, String key) {
+    private void unlock(InterLock lock, String jobId) {
         try {
             zk.release(lock);
-            log.debug("Unlock: {}", key);
+            log.debug("Unlock: {}", jobId);
         } catch (Exception warn) {
             log.warn(warn);
         }
@@ -1217,19 +1170,33 @@ public class JobActionServiceImpl implements JobActionService {
 
         @Override
         public void accept(JobSmContext context) {
-            Job job = context.job;
+            Job job = context.getJob();
 
             // save job with status
             Throwable error = context.getError();
             String message = error == null ? "" : error.getMessage();
             setJobStatusAndSave(job, context.getTargetToJobStatus(), message);
             jobPriorityDao.removeJob(job.getFlowId(), job.getBuildNumber());
-            pool.remove(job.getId());
 
             JobAgent agents = getJobAgent(job.getId());
             agentService.release(agents.all());
 
             localTaskService.executeAsync(job);
+        }
+    }
+
+    private abstract class JobActionBase extends Action<JobSmContext> {
+
+        @Override
+        public void onFinally(JobSmContext context) {
+            InterLock lock = context.getLock();
+            if (lock == null) {
+                return;
+            }
+
+            Job job = context.getJob();
+            unlock(lock, job.getId());
+            context.setLock(null);
         }
     }
 }

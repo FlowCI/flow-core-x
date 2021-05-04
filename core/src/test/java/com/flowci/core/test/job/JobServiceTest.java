@@ -204,7 +204,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals(Status.CREATED, job.getStatus());
         Assert.assertTrue(job.getCurrentPath().isEmpty());
 
-        jobActionService.toStart(job);
+        jobActionService.toStart(job.getId());
         Assert.assertEquals(Status.QUEUED, job.getStatus());
 
         Assert.assertNotNull(job);
@@ -289,7 +289,7 @@ public class JobServiceTest extends ZookeeperScenario {
             }
         });
 
-        jobActionService.toStart(job);
+        jobActionService.toStart(job.getId());
         Assert.assertTrue(counterForStep1.await(10, TimeUnit.SECONDS));
 
         // then: verify step 1 agent

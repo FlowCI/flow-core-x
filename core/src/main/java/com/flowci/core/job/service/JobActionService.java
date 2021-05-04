@@ -1,22 +1,21 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.job.domain.Step;
-import com.flowci.core.job.domain.Job;
 import com.flowci.exception.CIException;
 
 public interface JobActionService {
 
-    void toLoading(Job job);
+    void toLoading(String jobId);
 
-    void toCreated(Job job, String yml);
+    void toCreated(String jobId, String yml);
 
-    void toStart(Job job);
+    void toStart(String jobId);
 
-    void toRun(Job job);
+    void toRun(String jobId);
 
-    void toContinue(Job job, Step step);
+    void toContinue(Step step);
 
-    void toCancelled(Job job, CIException exception);
+    void toCancelled(String jobId, CIException exception);
 
-    void toTimeout(Job job);
+    void toTimeout(String jobId);
 }
