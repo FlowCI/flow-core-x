@@ -913,7 +913,8 @@ public class JobActionServiceImpl implements JobActionService {
         }
 
         // check prev steps status
-        Set<Executed.Status> previous = getStepsStatus(job, tree.prevs(next, job.isOnPostSteps()));
+        Collection<Node> prevs = tree.prevs(next, job.isOnPostSteps());
+        Set<Executed.Status> previous = getStepsStatus(job, prevs);
         boolean hasFailure = !Collections.disjoint(previous, Executed.FailureStatus);
         boolean hasOngoing = !Collections.disjoint(previous, Executed.OngoingStatus);
         if (hasFailure) {
@@ -1063,6 +1064,16 @@ public class JobActionServiceImpl implements JobActionService {
         List<Node> nextPostSteps = tree.post(step.getNodePath());
         if (nextPostSteps.isEmpty()) {
             return false;
+        }
+
+        // remove running or finished post steps
+        Iterator<Node> iterator = nextPostSteps.iterator();
+        while(iterator.hasNext()) {
+            Node postNode = iterator.next();
+            Step postStep = stepService.get(job.getId(), postNode.getPathAsString());
+            if (postStep.isOngoing() || postStep.isKilling() || postStep.isFinished()) {
+                iterator.remove();
+            }
         }
 
         // check current all steps that should be in finish status
