@@ -916,13 +916,15 @@ public class JobActionServiceImpl implements JobActionService {
         Collection<Node> prevs = tree.prevs(next, job.isOnPostSteps());
         Set<Executed.Status> previous = getStepsStatus(job, prevs);
         boolean hasFailure = !Collections.disjoint(previous, Executed.FailureStatus);
-        boolean hasOngoing = !Collections.disjoint(previous, Executed.OngoingStatus);
         if (hasFailure) {
             return false;
         }
 
+        boolean hasOngoing = !Collections.disjoint(previous, Executed.OngoingStatus);
+        boolean hasWaiting = !Collections.disjoint(previous, Executed.WaitingStatus);
+
         // do not execute next
-        if (hasOngoing) {
+        if (hasOngoing || hasWaiting) {
             return true;
         }
 
