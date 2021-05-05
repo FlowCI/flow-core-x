@@ -17,12 +17,17 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.domain.*;
+import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Job.Trigger;
+import com.flowci.core.job.domain.JobDesc;
+import com.flowci.core.job.domain.JobItem;
+import com.flowci.core.job.domain.JobYml;
 import com.flowci.domain.StringVars;
+import com.flowci.zookeeper.InterLock;
 import org.springframework.data.domain.Page;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * @author yang
@@ -94,5 +99,14 @@ public interface JobService {
      * Delete all jobs of the flow within an executor
      */
     void delete(Flow flow);
+
+    /**
+     * Lock job by id
+     *
+     * @param jobId
+     */
+    Optional<InterLock> lock(String jobId);
+
+    void unlock(InterLock lock, String jobId);
 }
 

@@ -1,6 +1,6 @@
 package com.flowci.core.job.service;
 
-import com.flowci.core.job.domain.Step;
+import com.flowci.core.agent.domain.ShellOut;
 import com.flowci.exception.CIException;
 
 public interface JobActionService {
@@ -13,7 +13,7 @@ public interface JobActionService {
 
     void toRun(String jobId);
 
-    void toContinue(Step step);
+    void toContinue(String jobId, ShellOut shellOut);
 
     void toCancelled(String jobId, CIException exception);
 

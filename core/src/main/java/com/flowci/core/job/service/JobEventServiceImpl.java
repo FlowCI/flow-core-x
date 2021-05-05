@@ -32,7 +32,6 @@ import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
@@ -157,13 +156,7 @@ public class JobEventServiceImpl implements JobEventService {
             switch (ind) {
                 case CmdOut.ShellOutInd:
                     ShellOut shellOut = objectMapper.readValue(body, ShellOut.class);
-
-                    Step step = stepService.get(shellOut.getId());
-                    step.setFrom(shellOut);
-                    stepService.resultUpdate(step);
-
-                    log.info("[Callback]: {}-{} = {}", step.getJobId(), step.getNodePath(), step.getStatus());
-                    handleCallback(step);
+                    handleCallback(shellOut);
                     break;
 
                 case CmdOut.TtyOutInd:
@@ -180,8 +173,9 @@ public class JobEventServiceImpl implements JobEventService {
     }
 
     @Override
-    public void handleCallback(Step step) {
-        jobActionService.toContinue(step);
+    public void handleCallback(ShellOut so) {
+        String jobId = stepService.get(so.getId()).getJobId();
+        jobActionService.toContinue(jobId, so);
     }
 
     //====================================================================
@@ -205,10 +199,6 @@ public class JobEventServiceImpl implements JobEventService {
     //====================================================================
     //        %% Utils
     //====================================================================
-
-    private void logInfo(Job job, String message, Object... params) {
-        log.info("[Job] " + job.getKey() + " " + message, params);
-    }
 
     private void declareJobQueueAndStartConsumer(Flow flow) {
         try {

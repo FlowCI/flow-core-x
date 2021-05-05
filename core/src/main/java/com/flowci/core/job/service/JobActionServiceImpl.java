@@ -16,10 +16,7 @@
 
 package com.flowci.core.job.service;
 
-import com.flowci.core.agent.domain.Agent;
-import com.flowci.core.agent.domain.AgentProfile;
-import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.agent.domain.ShellIn;
+import com.flowci.core.agent.domain.*;
 import com.flowci.core.agent.event.IdleAgentEvent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
@@ -50,7 +47,6 @@ import com.flowci.tree.*;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.flowci.zookeeper.InterLock;
-import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -119,16 +115,11 @@ public class JobActionServiceImpl implements JobActionService {
 
     private static final long RetryInterval = 10 * 1000; // 10 seconds
 
-    private static final int DefaultJobLockTimeout = 20; // seconds
-
     @Autowired
     private Path repoDir;
 
     @Autowired
     private Path tmpDir;
-
-    @Autowired
-    private ZookeeperClient zk;
 
     @Autowired
     private JobDao jobDao;
@@ -156,6 +147,9 @@ public class JobActionServiceImpl implements JobActionService {
 
     @Autowired
     private LocalTaskService localTaskService;
+
+    @Autowired
+    private JobService jobService;
 
     @Autowired
     private AgentService agentService;
@@ -207,7 +201,7 @@ public class JobActionServiceImpl implements JobActionService {
                 continue;
             }
 
-            Optional<InterLock> lock = lock(job.getId(), "LockJobFromIdleAgent");
+            Optional<InterLock> lock = jobService.lock(job.getId());
             if (!lock.isPresent()) {
                 toFailureStatus(job, new CIException("Fail to lock job"));
                 continue;
@@ -224,7 +218,7 @@ public class JobActionServiceImpl implements JobActionService {
             } catch (Exception e) {
                 toFailureStatus(job, new CIException(e.getMessage()));
             } finally {
-                unlock(lock.get(), "LockJobFromIdleAgent");
+                jobService.unlock(lock.get(), job.getId());
             }
         }
     }
@@ -252,10 +246,14 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     @Override
-    public void toContinue(Step step) {
-        onTransition(step.getJobId(), Running, c -> {
-            c.setStep(step);
+    public void toContinue(String jobId, ShellOut so) {
+        onTransition(jobId, Running, c -> {
+            Step step = stepService.get(so.getId());
+            step.setFrom(so);
+            stepService.resultUpdate(step);
+            log.info("[Callback]: {}-{} = {}", step.getJobId(), step.getNodePath(), step.getStatus());
 
+            c.setStep(step);
             Job job = c.getJob();
             log.debug("---- Job Status {} {} {} {}", job.isOnPostSteps(), step.getNodePath(), job.getStatus(), job.getStatusFromContext());
 
@@ -467,7 +465,7 @@ public class JobActionServiceImpl implements JobActionService {
 
                 updateJobContextAndLatestStatus(job, step);
                 setJobStatusAndSave(job, Job.Status.RUNNING, null);
-                log.debug("Step {} been recorded", step.getNodePath());
+                log.debug("Step {} {} been recorded", step.getNodePath(), step.getStatus());
 
                 if (!step.isSuccess()) {
                     toFinishStatus(context);
@@ -818,7 +816,7 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     private void onTransition(String jobId, Status to, Consumer<JobSmContext> onContext) {
-        Optional<InterLock> lock = lock(jobId, "Before Transition");
+        Optional<InterLock> lock = jobService.lock(jobId);
 
         if (!lock.isPresent()) {
             Job job = getJob(jobId);
@@ -1070,9 +1068,12 @@ public class JobActionServiceImpl implements JobActionService {
         // check current all steps that should be in finish status
         List<Step> steps = stepService.listByPath(job, job.getCurrentPath());
         for (Step s : steps) {
+            log.debug("Step {} status ------------- {}", s.getNodePath(), s.getStatus());
+
             if (s.isOngoing() || s.isKilling()) {
+                context.setSkip(true);
                 log.debug("Step ({} = {}) is ongoing or killing status", s.getNodePath(), s.getStatus());
-                return false;
+                return true;
             }
         }
 
@@ -1150,22 +1151,6 @@ public class JobActionServiceImpl implements JobActionService {
         return jobDao.findById(jobId).get();
     }
 
-    private Optional<InterLock> lock(String jobId, String message) {
-        String path = zk.makePath("/job-locks", jobId);
-        Optional<InterLock> lock = zk.lock(path, DefaultJobLockTimeout);
-        lock.ifPresent(interLock -> log.debug("Lock: {} - {}", jobId, message));
-        return lock;
-    }
-
-    private void unlock(InterLock lock, String jobId) {
-        try {
-            zk.release(lock);
-            log.debug("Unlock: {}", jobId);
-        } catch (Exception warn) {
-            log.warn(warn);
-        }
-    }
-
     private class ActionOnFinishStatus implements Consumer<JobSmContext> {
 
         @Override
@@ -1195,7 +1180,7 @@ public class JobActionServiceImpl implements JobActionService {
             }
 
             Job job = context.getJob();
-            unlock(lock, job.getId());
+            jobService.unlock(lock, job.getId());
             context.setLock(null);
         }
     }

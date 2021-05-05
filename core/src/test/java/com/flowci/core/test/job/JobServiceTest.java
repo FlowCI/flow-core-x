@@ -17,10 +17,7 @@
 package com.flowci.core.test.job;
 
 import com.flowci.core.agent.dao.AgentDao;
-import com.flowci.core.agent.domain.Agent;
-import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.agent.domain.AgentOption;
-import com.flowci.core.agent.domain.ShellIn;
+import com.flowci.core.agent.domain.*;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.service.AgentService;
@@ -40,12 +37,8 @@ import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.event.StartAsyncLocalTaskEvent;
-import com.flowci.core.job.service.JobActionService;
 import com.flowci.core.job.manager.YmlManager;
-import com.flowci.core.job.service.JobEventService;
-import com.flowci.core.job.service.JobService;
-import com.flowci.core.job.service.LocalTaskService;
-import com.flowci.core.job.service.StepService;
+import com.flowci.core.job.service.*;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.test.ZookeeperScenario;
@@ -315,7 +308,7 @@ public class JobServiceTest extends ZookeeperScenario {
         firstStep.setFinishAt(new Date());
 
         executedCmdDao.save(firstStep);
-        jobEventService.handleCallback(firstStep);
+        jobEventService.handleCallback(getShellOutFromStep(firstStep));
 
         // then: verify step 2 agent
         Assert.assertTrue(counterForStep2.await(10, TimeUnit.SECONDS));
@@ -340,7 +333,7 @@ public class JobServiceTest extends ZookeeperScenario {
         secondStep.setFinishAt(new Date());
 
         executedCmdDao.save(secondStep);
-        jobEventService.handleCallback(secondStep);
+        jobEventService.handleCallback(getShellOutFromStep(secondStep));
 
         // // then: should job with SUCCESS status and sent notification task
         Assert.assertEquals(Status.SUCCESS, jobService.get(job.getId()).getStatus());
@@ -363,8 +356,9 @@ public class JobServiceTest extends ZookeeperScenario {
 
         firstStep.setStatus(Step.Status.SUCCESS);
         firstStep.setOutput(output);
+
         executedCmdDao.save(firstStep);
-        jobEventService.handleCallback(firstStep);
+        jobEventService.handleCallback(getShellOutFromStep(firstStep));
 
         // then: job context should be updated
         job = jobDao.findById(job.getId()).get();
@@ -381,7 +375,7 @@ public class JobServiceTest extends ZookeeperScenario {
         secondStep.setStatus(Step.Status.SUCCESS);
         secondStep.setOutput(output);
         executedCmdDao.save(secondStep);
-        jobEventService.handleCallback(secondStep);
+        jobEventService.handleCallback(getShellOutFromStep(secondStep));
 
         // then: job context should be updated
         job = jobDao.findById(job.getId()).get();
@@ -405,7 +399,7 @@ public class JobServiceTest extends ZookeeperScenario {
         // when: cmd of first node with failure
         firstStep.setStatus(Step.Status.EXCEPTION);
         executedCmdDao.save(firstStep);
-        jobEventService.handleCallback(firstStep);
+        jobEventService.handleCallback(getShellOutFromStep(firstStep));
 
         // then: job should be failure
         job = jobDao.findById(job.getId()).get();
@@ -432,7 +426,7 @@ public class JobServiceTest extends ZookeeperScenario {
         firstStep.setStatus(Step.Status.EXCEPTION);
         firstStep.setOutput(output);
         executedCmdDao.save(firstStep);
-        jobEventService.handleCallback(firstStep);
+        jobEventService.handleCallback(getShellOutFromStep(firstStep));
 
         // then: job status should be running and current path should be change to second node
         job = jobDao.findById(job.getId()).get();
@@ -450,7 +444,7 @@ public class JobServiceTest extends ZookeeperScenario {
         secondCmd.setStatus(Step.Status.TIMEOUT);
         secondCmd.setOutput(output);
         executedCmdDao.save(secondCmd);
-        jobEventService.handleCallback(secondCmd);
+        jobEventService.handleCallback(getShellOutFromStep(secondCmd));
 
         // then: job should be timeout with error message
         job = jobDao.findById(job.getId()).get();
@@ -546,5 +540,13 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals(Status.RUNNING, job.getStatusFromContext());
 
         return jobDao.save(job);
+    }
+
+    private ShellOut getShellOutFromStep(Step step) {
+        return new ShellOut()
+                .setId(step.getId())
+                .setStatus(step.getStatus())
+                .setOutput(step.getOutput())
+                .setFinishAt(new Date());
     }
 }
