@@ -192,12 +192,13 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // when: create and start job
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
-        NodeTree tree = ymlManager.getTree(job);
+        job = jobService.get(job.getId());
 
         Assert.assertEquals(Status.CREATED, job.getStatus());
         Assert.assertTrue(job.getCurrentPath().isEmpty());
 
         jobActionService.toStart(job.getId());
+        job = jobService.get(job.getId());
         Assert.assertEquals(Status.QUEUED, job.getStatus());
 
         Assert.assertNotNull(job);
@@ -485,8 +486,9 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertEquals(Status.CANCELLED, job.getStatus());
 
         // then: step should be skipped
-        for (Step cmd : stepService.list(job)) {
-            Assert.assertEquals(Step.Status.SKIPPED, cmd.getStatus());
+        List<Step> steps = stepService.list(job);
+        for (Step step : steps) {
+            Assert.assertEquals(Step.Status.PENDING, step.getStatus());
         }
     }
 

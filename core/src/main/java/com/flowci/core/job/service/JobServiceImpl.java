@@ -194,7 +194,7 @@ public class JobServiceImpl implements JobService {
         }
 
         jobActionService.toCreated(job.getId(), yml);
-        return job;
+        return get(job.getId());
     }
 
     @Override
@@ -239,6 +239,7 @@ public class JobServiceImpl implements JobService {
         context.put(GIT_COMMIT_ID, lastCommitId);
         context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         context.merge(root.getEnvironments(), false);
+        jobDao.save(job);
 
         // reset job agent
         jobAgentDao.save(new JobAgent(job.getId(), flow.getId()));
@@ -250,7 +251,7 @@ public class JobServiceImpl implements JobService {
 
         jobActionService.toCreated(job.getId(), yml.getRaw());
         jobActionService.toStart(job.getId());
-        return job;
+        return get(job.getId());
     }
 
     @Override
