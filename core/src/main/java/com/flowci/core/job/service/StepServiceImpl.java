@@ -34,8 +34,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * ExecutedCmd == Step
  *
@@ -100,7 +98,12 @@ public class StepServiceImpl implements StepService {
 
     @Override
     public List<Step> list(Job job, Collection<Executed.Status> status) {
-        return executedCmdDao.findByJobIdAndStatusIn(job.getId(), status);
+        return executedCmdDao.findAllByJobIdAndStatusIn(job.getId(), status);
+    }
+
+    @Override
+    public List<Step> listByPath(Job job, Collection<String> paths) {
+        return executedCmdDao.findAllByJobIdAndNodePathIn(job.getId(), paths);
     }
 
     @Override
@@ -151,19 +154,23 @@ public class StepServiceImpl implements StepService {
     public Step toStatus(Step entity, Executed.Status status, String err, boolean allChildren) {
         saveStatus(entity, status, err);
 
-        Step parent = getWithNullReturn(entity.getJobId(), entity.getParent());
-        updateAllParents(parent, entity);
+        // update parent status if not post step
+        if (!entity.isPost()) {
+            Step parent = getWithNullReturn(entity.getJobId(), entity.getParent());
+            updateAllParents(parent, entity);
+        }
 
         if (allChildren) {
             NodeTree tree = ymlManager.getTree(entity.getJobId());
             NodePath path = NodePath.create(entity.getNodePath());
             Node node = tree.get(path);
-            node.forEachChildren((childNode) -> {
-                Step childStep = get(entity.getJobId(), childNode.getPathAsString());
+
+            for (Node child : node.getChildren()) {
+                Step childStep = get(entity.getJobId(), child.getPathAsString());
                 childStep.setStartAt(entity.getStartAt());
                 childStep.setFinishAt(entity.getFinishAt());
                 saveStatus(childStep, status, err);
-            });
+            }
         }
 
         String jobId = entity.getJobId();
@@ -175,20 +182,9 @@ public class StepServiceImpl implements StepService {
     }
 
     @Override
-    public void resultUpdate(Step cmd) {
-        checkNotNull(cmd.getId());
-        Step entity = get(cmd.getId());
-
-        // only update properties should from agent
-        entity.setProcessId(cmd.getProcessId());
-        entity.setCode(cmd.getCode());
-        entity.setStartAt(cmd.getStartAt());
-        entity.setFinishAt(cmd.getFinishAt());
-        entity.setLogSize(cmd.getLogSize());
-        entity.setOutput(cmd.getOutput());
-
+    public void resultUpdate(Step stepFromAgent) {
         // change status and save
-        toStatus(entity, cmd.getStatus(), cmd.getError(), false);
+        toStatus(stepFromAgent, stepFromAgent.getStatus(), stepFromAgent.getError(), false);
     }
 
     @Override
@@ -230,19 +226,15 @@ public class StepServiceImpl implements StepService {
     }
 
     private Step saveStatus(Step step, Step.Status status, String error) {
-        if (status == step.getStatus()) {
-            return step;
-        }
-
-        step.setStatus(status);
         step.setError(error);
+        step.setStatus(status);
         executedCmdDao.save(step);
         return step;
     }
 
     private List<Step> list(String jobId, String flowId, long buildNumber) {
         return jobStepCache.get(jobId,
-                s -> executedCmdDao.findByFlowIdAndBuildNumber(flowId, buildNumber));
+                s -> executedCmdDao.findAllByFlowIdAndBuildNumber(flowId, buildNumber));
     }
 
     private static Step newInstance(Job job, Node node) {
@@ -268,6 +260,7 @@ public class StepServiceImpl implements StepService {
             step.setAllowFailure(r.isAllowFailure());
             step.setPlugin(r.getPlugin());
             step.setType(Step.Type.STEP);
+            step.setPost(r.isPost());
 
             if (r.hasChildren()) {
                 step.setType(Step.Type.STAGE);

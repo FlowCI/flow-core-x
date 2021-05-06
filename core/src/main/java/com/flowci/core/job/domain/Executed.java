@@ -15,7 +15,6 @@ public interface Executed {
     );
 
     Set<Status> OngoingStatus = ImmutableSet.of(
-            Status.PENDING,
             Status.WAITING_AGENT,
             Status.RUNNING
     );
@@ -45,6 +44,8 @@ public interface Executed {
         WAITING_AGENT(0),
 
         RUNNING(1),
+
+        KILLING(1),
 
         SUCCESS(2),
 

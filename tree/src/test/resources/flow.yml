@@ -26,6 +26,8 @@ steps:
    envs:
      FLOW_WORKSPACE: "echo step"
      FLOW_VERSION: "echo step version"
+   secrets:
+     - "my-secret"
    cache:
      key: mycache
      paths:

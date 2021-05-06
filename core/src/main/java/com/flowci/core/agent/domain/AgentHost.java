@@ -81,6 +81,11 @@ public abstract class AgentHost extends Mongoable {
     private Set<String> tags = new HashSet<>();
 
     /**
+     * Ref to Agent.exitOnIdle
+     */
+    private int exitOnIdle;
+
+    /**
      * Error message if connection fail
      */
     private String error;

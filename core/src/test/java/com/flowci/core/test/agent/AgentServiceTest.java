@@ -19,6 +19,7 @@ package com.flowci.core.test.agent;
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.Agent.Status;
 import com.flowci.core.agent.domain.CmdIn;
+import com.flowci.core.agent.domain.AgentOption;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.service.AgentService;
@@ -31,7 +32,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 
-import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -56,7 +56,10 @@ public class AgentServiceTest extends ZookeeperScenario {
 
     @Test
     public void should_create_agent_in_db() {
-        Agent agent = agentService.create("hello.test", ImmutableSet.of("local", "android"), Optional.empty());
+        Agent agent = agentService.create(new AgentOption()
+                .setName("hello.test")
+                .setTags(ImmutableSet.of("local", "android"))
+        );
         Assert.assertNotNull(agent);
         Assert.assertEquals(agent, agentService.get(agent.getId()));
     }
@@ -64,7 +67,10 @@ public class AgentServiceTest extends ZookeeperScenario {
     @Test
     public void should_make_agent_online() throws InterruptedException {
         // init:
-        Agent agent = agentService.create("hello.test", ImmutableSet.of("local", "android"), Optional.empty());
+        Agent agent = agentService.create(new AgentOption()
+                .setName("hello.test")
+                .setTags(ImmutableSet.of("local", "android"))
+        );
 
         // when:
         Agent online = mockAgentOnline(agent.getToken());
@@ -78,7 +84,7 @@ public class AgentServiceTest extends ZookeeperScenario {
     public void should_dispatch_cmd_to_agent() throws InterruptedException {
         // init:
         CmdIn cmd = new ShellIn();
-        Agent agent = agentService.create("hello.agent", null, Optional.empty());
+        Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
 
         // when:
         CountDownLatch counter = new CountDownLatch(1);

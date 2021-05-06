@@ -58,11 +58,13 @@ public class StepYml extends YmlBase<RegularStepNode> {
 
     private Integer timeout; // timeout in seconds
 
-    private List<String> exports = new LinkedList<>();
-
     private Boolean allow_failure;
 
     private Cache cache;
+
+    private List<String> exports = new LinkedList<>();
+
+    private List<String> secrets = new LinkedList<>();
 
     /**
      * Only for parallel step, other fields will not valid
@@ -111,6 +113,7 @@ public class StepYml extends YmlBase<RegularStepNode> {
         step.setExports(Sets.newHashSet(exports));
         step.setAllowFailure(allow_failure != null && allow_failure);
         step.setEnvironments(getVariableMap());
+        step.setSecrets(Sets.newHashSet(secrets));
 
         setCacheToNode(step);
         setDockerToNode(step);
@@ -123,8 +126,7 @@ public class StepYml extends YmlBase<RegularStepNode> {
             if (step.hasPlugin()) {
                 throw new YmlException("The plugin section is not allowed on the step with sub steps");
             }
-
-            setStepsToNode(step);
+            setStepsToParent(step, steps, false, new HashSet<>(steps.size()));
         }
 
         // backward compatible, set script to bash

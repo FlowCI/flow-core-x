@@ -1,9 +1,7 @@
 package com.flowci.core.agent.manager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flowci.core.agent.domain.AgentInit;
-import com.flowci.core.agent.domain.ShellLog;
-import com.flowci.core.agent.domain.TtyCmd;
+import com.flowci.core.agent.domain.*;
 import com.flowci.core.agent.event.*;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
@@ -32,6 +30,8 @@ public class AgentEventManager extends BinaryWebSocketHandler {
     private final static int EventLength = 10;
 
     private final static String EventConnect = "connect___";
+
+    private final static String EventProfile = "profile___";
 
     private final static String EventCmdOut = "cmd_out___";
 
@@ -104,6 +104,11 @@ public class AgentEventManager extends BinaryWebSocketHandler {
 
         if (EventTTYLog.equals(event)) {
             onTtyLog(body);
+            return;
+        }
+
+        if (EventProfile.equals(event)) {
+            onProfile(token, body);
         }
     }
 
@@ -144,11 +149,14 @@ public class AgentEventManager extends BinaryWebSocketHandler {
             Objects.requireNonNull(init.getStatus(), "Agent status is missing");
 
             init.setToken(token);
-            init.setIp(session.getRemoteAddress() == null ? null : session.getRemoteAddress().toString());
+            init.setIp(session.getRemoteAddress() == null ? null : session.getRemoteAddress().getAddress().toString());
 
-            eventManager.publish(new OnConnectedEvent(this, token, session, init));
+            OnConnectedEvent event = new OnConnectedEvent(this, token, session, init);
+            eventManager.publish(event);
             agentSessionStore.put(token, session);
-            writeMessage(token, new ResponseMessage<Void>(StatusCode.OK, null));
+
+            Agent agent = event.getAgent();
+            writeMessage(token, new ResponseMessage<>(StatusCode.OK, agent.getConfig()));
             log.debug("Agent {} is connected with status {}", token, init.getStatus());
         } catch (Exception e) {
             log.warn(e);
@@ -158,8 +166,8 @@ public class AgentEventManager extends BinaryWebSocketHandler {
 
     private void onCmdOut(String token, byte[] body) {
         try {
-            eventManager.publish(new OnCmdOutEvent(this, body));
             log.debug("Agent {} got cmd back: {}", token, new String(body));
+            eventManager.publish(new OnCmdOutEvent(this, body));
         } catch (Exception e) {
             log.warn(e);
         }
@@ -178,6 +186,16 @@ public class AgentEventManager extends BinaryWebSocketHandler {
         try {
             TtyCmd.Log item = objectMapper.readValue(body, TtyCmd.Log.class);
             eventManager.publish(new OnTTYLogEvent(this, item.getId(), item.getLog()));
+        } catch (IOException e) {
+            log.warn(e);
+        }
+    }
+
+    private void onProfile(String token, byte[] body) {
+        try {
+            AgentProfile profile = objectMapper.readValue(body, AgentProfile.class);
+            profile.setId(token);
+            eventManager.publish(new OnAgentProfileEvent(this, profile));
         } catch (IOException e) {
             log.warn(e);
         }

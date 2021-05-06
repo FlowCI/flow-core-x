@@ -39,16 +39,6 @@ public final class JobAgent {
         return agents.keySet();
     }
 
-    public Collection<String> allBusyAgents() {
-        List<String> busy = new LinkedList<>();
-        this.agents.forEach((k, v) -> {
-            if (!v.isEmpty()) {
-                busy.add(k);
-            }
-        });
-        return busy;
-    }
-
     public boolean isOccupiedByFlow(String agentId) {
         Set<String> flows = agents.get(agentId);
         return flows != null && !flows.isEmpty();
@@ -85,7 +75,7 @@ public final class JobAgent {
      * Get agent if an agent was occupied within same flow
      */
     public Optional<String> getAgent(Node node) {
-        FlowNode flow = node.getParentFlowNode();
+        FlowNode flow = node.getParent(FlowNode.class);
         for (Map.Entry<String, Set<String>> entry : agents.entrySet()) {
             String agentId = entry.getKey();
             Set<String> set = entry.getValue();
@@ -102,7 +92,7 @@ public final class JobAgent {
      * find candidate agents within job, but still need to check Selector
      */
     public List<String> getCandidates(Node node) {
-        FlowNode flow = node.getParentFlowNode();
+        FlowNode flow = node.getParent(FlowNode.class);
         int flowDepth = flow.getPath().depth();
 
         List<String> candidates = new ArrayList<>(agents.size());

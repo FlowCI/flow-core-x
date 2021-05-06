@@ -2,19 +2,31 @@ package com.flowci.core.job.domain;
 
 import com.flowci.sm.Context;
 import com.flowci.zookeeper.InterLock;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@RequiredArgsConstructor
 public class JobSmContext extends Context {
 
-    public Job job;
+    private final String jobId;
 
-    public String yml;
+    private Job job;
 
-    public Step step;
+    private String yml;
 
-    public InterLock lock;
+    private Step step;
+
+    private InterLock lock;
 
     public Job.Status getTargetToJobStatus() {
         String name = this.to.getName();
         return Job.Status.valueOf(name);
+    }
+
+    public boolean hasLock() {
+        return lock != null;
     }
 }

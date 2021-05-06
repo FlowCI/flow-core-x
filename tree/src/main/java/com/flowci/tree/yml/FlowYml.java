@@ -43,6 +43,9 @@ public class FlowYml extends YmlBase<FlowNode> {
 
     private List<NotifyYml> notifications = new LinkedList<>();
 
+    // post steps
+    private List<StepYml> post = new LinkedList<>();
+
     public FlowNode toNode(Node parent) {
         if (!NodePath.validate(name)) {
             throw new YmlException("Invalid name {0}", name);
@@ -60,7 +63,9 @@ public class FlowYml extends YmlBase<FlowNode> {
             throw new YmlException("The 'steps' section must be defined");
         }
 
-        setStepsToNode(node);
+        Set<String> uniqueNames = new HashSet<>(steps.size() + post.size());
+        setStepsToParent(node, steps, false, uniqueNames);
+        setStepsToParent(node, post, true, uniqueNames);
         return node;
     }
 

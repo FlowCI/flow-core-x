@@ -18,6 +18,11 @@ public final class RegularStepNode extends Node {
     public static final boolean ALLOW_FAILURE_DEFAULT = false;
 
     /**
+     * Indicate the step is post step
+     */
+    private boolean post;
+
+    /**
      * bash script
      */
     private String bash;
@@ -48,6 +53,11 @@ public final class RegularStepNode extends Node {
     private Set<String> exports = new HashSet<>(0);
 
     /**
+     * Included secret name in the step
+     */
+    private Set<String> secrets = new HashSet<>(0);
+
+    /**
      * Is allow failure
      */
     private boolean allowFailure = ALLOW_FAILURE_DEFAULT;
@@ -74,6 +84,11 @@ public final class RegularStepNode extends Node {
     @JsonIgnore
     public boolean hasCondition() {
         return !Strings.isNullOrEmpty(condition);
+    }
+
+    @JsonIgnore
+    public boolean hasSecrets() {
+        return !secrets.isEmpty();
     }
 
     @JsonIgnore

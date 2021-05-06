@@ -19,7 +19,7 @@ package com.flowci.core.test.agent;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.domain.Agent;
-import com.flowci.core.agent.domain.CreateOrUpdateAgent;
+import com.flowci.core.agent.domain.AgentOption;
 import com.flowci.core.agent.domain.DeleteAgent;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.StatusCode;
@@ -110,7 +110,7 @@ public class AgentControllerTest extends SpringScenario {
     }
 
     private Agent createAgent(String name, Set<String> tags, Integer code) throws Exception {
-        CreateOrUpdateAgent create = new CreateOrUpdateAgent();
+        AgentOption create = new AgentOption();
         create.setName(name);
         create.setTags(tags);
 

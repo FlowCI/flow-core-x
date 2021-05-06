@@ -40,13 +40,17 @@ public class StateMachine<T extends Context> {
         map.put(t.getTo(), action);
     }
 
-    public void executeInExecutor(Status current, Status target, T context) {
-        executor.execute(() -> execute(current, target, context));
-    }
-
     public void execute(Status current, Status target, T context) {
         context.setCurrent(current);
         context.setTo(target);
+        execute(context);
+    }
+
+    public void execute(T context) {
+        Status current = context.getCurrent();
+        Status target = context.getTo();
+        Objects.requireNonNull(current, "SM current status is missing");
+        Objects.requireNonNull(target, "SM target status is missing");
 
         Map<Status, Action<T>> actionMap = actions.get(current);
         if (Objects.isNull(actionMap)) {
@@ -67,6 +71,10 @@ public class StateMachine<T extends Context> {
         try {
             action.accept(context);
 
+            if (!isOnSameContext(current, target, context) || context.skip) {
+                return;
+            }
+
             // execute target hook
             hooksOnTargetStatus.computeIfPresent(target, (status, hooks) -> {
                 for (Consumer<T> hook : hooks) {
@@ -81,5 +89,9 @@ public class StateMachine<T extends Context> {
         } finally {
             action.onFinally(context);
         }
+    }
+
+    private boolean isOnSameContext(Status current, Status target, T context) {
+        return context.getTo() == target && context.getCurrent() == current;
     }
 }

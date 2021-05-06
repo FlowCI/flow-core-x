@@ -18,16 +18,16 @@ package com.flowci.core.agent.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.dao.AgentDao;
-import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.dao.AgentProfileDao;
+import com.flowci.core.agent.domain.*;
 import com.flowci.core.agent.domain.Agent.Status;
-import com.flowci.core.agent.domain.AgentInit;
-import com.flowci.core.agent.domain.CmdIn;
-import com.flowci.core.agent.domain.Util;
 import com.flowci.core.agent.event.*;
 import com.flowci.core.agent.manager.AgentEventManager;
 import com.flowci.core.common.config.AppProperties;
+import com.flowci.core.common.domain.PushEvent;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.helper.ThreadHelper;
+import com.flowci.core.common.manager.SocketPushManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.manager.SpringTaskManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
@@ -48,6 +48,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
 
 import static com.flowci.core.agent.domain.Agent.Status.*;
@@ -72,6 +73,9 @@ public class AgentServiceImpl implements AgentService {
     private static final int MaxIdleAgentPushBack = 10; // seconds
 
     @Autowired
+    private String topicForAgentProfile;
+
+    @Autowired
     private AppProperties.Zookeeper zkProperties;
 
     @Autowired
@@ -79,6 +83,9 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private AgentDao agentDao;
+
+    @Autowired
+    private AgentProfileDao agentProfileDao;
 
     @Autowired
     private SpringEventManager eventManager;
@@ -97,6 +104,9 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private RabbitOperations idleAgentQueueManager;
+
+    @Autowired
+    private SocketPushManager socketPushManager;
 
     @EventListener(ContextRefreshedEvent.class)
     public void initAgentStatus() {
@@ -117,6 +127,12 @@ public class AgentServiceImpl implements AgentService {
         idleAgentQueueManager.startConsumer(idleAgentQueue, false, (header, body, envelope) -> {
             String agentId = new String(body);
             log.debug("Got an idle agent {}", agentId);
+
+            Agent agent = get(agentId);
+            if (!agent.isIdle()) {
+                log.debug("Agent {} is not idle", agentId);
+                return true;
+            }
 
             try {
                 IdleAgentEvent event = new IdleAgentEvent(this, agentId);
@@ -147,6 +163,12 @@ public class AgentServiceImpl implements AgentService {
             throw new NotFoundException("Agent {0} does not existed", id);
         }
         return optional.get();
+    }
+
+    @Override
+    public AgentProfile getProfile(String token) {
+        Optional<AgentProfile> optional = agentProfileDao.findById(token);
+        return optional.orElse(AgentProfile.EMPTY);
     }
 
     @Override
@@ -278,7 +300,9 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Agent create(String name, Set<String> tags, Optional<String> hostId) {
+    public Agent create(AgentOption option) {
+        String name = option.getName();
+
         Agent exist = agentDao.findByName(name);
         if (exist != null) {
             throw new DuplicateException("Agent name {0} is already defined", name);
@@ -286,9 +310,10 @@ public class AgentServiceImpl implements AgentService {
 
         try {
             // create agent
-            Agent agent = new Agent(name, tags);
+            Agent agent = new Agent(name, option.getTags());
             agent.setToken(UUID.randomUUID().toString());
-            hostId.ifPresent(agent::setHostId);
+            agent.setHostId(option.getHostId());
+            agent.setExitOnIdle(option.getExitOnIdle());
 
             String dummyEmailForAgent = "agent." + name + "@flow.ci";
             agent.setRsa(CipherHelper.RSA.gen(dummyEmailForAgent));
@@ -302,24 +327,17 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Agent update(String token, String name, Set<String> tags) {
-        Agent agent = getByToken(token);
-        agent.setName(name);
-        agent.setTags(tags);
+    public Agent update(AgentOption option) {
+        Agent agent = getByToken(option.getToken());
+        agent.setName(option.getName());
+        agent.setTags(option.getTags());
+        agent.setExitOnIdle(option.getExitOnIdle());
 
         try {
             return agentDao.save(agent);
         } catch (DuplicateKeyException e) {
-            throw new DuplicateException("Agent name {0} is already defined", name);
+            throw new DuplicateException("Agent name {0} is already defined", option.getName());
         }
-    }
-
-    @Override
-    public Agent update(String token, Agent.Resource resource) {
-        Agent agent = getByToken(token);
-        agent.setResource(resource);
-        agentDao.save(agent);
-        return agent;
     }
 
     @Override
@@ -382,16 +400,24 @@ public class AgentServiceImpl implements AgentService {
             target.setK8sCluster(init.getK8sCluster());
             target.setUrl("http://" + init.getIp() + ":" + init.getPort());
             target.setOs(init.getOs());
-            target.setResource(init.getResource());
+            target.setConnectedAt(Instant.now());
 
             update(target, init.getStatus());
 
             if (target.isIdle()) {
                 idleAgentQueueManager.send(idleAgentQueue, target.getId().getBytes());
             }
+
+            event.setAgent(target);
         } finally {
             unlock(lock.get());
         }
+    }
+
+    @EventListener
+    public void onProfileReceived(OnAgentProfileEvent event) {
+        agentProfileDao.save(event.getProfile());
+        socketPushManager.push(topicForAgentProfile, PushEvent.STATUS_CHANGE, event.getProfile());
     }
 
     @EventListener

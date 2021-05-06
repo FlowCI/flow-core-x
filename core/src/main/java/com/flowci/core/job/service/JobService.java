@@ -23,9 +23,11 @@ import com.flowci.core.job.domain.JobDesc;
 import com.flowci.core.job.domain.JobItem;
 import com.flowci.core.job.domain.JobYml;
 import com.flowci.domain.StringVars;
+import com.flowci.zookeeper.InterLock;
 import org.springframework.data.domain.Page;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * @author yang
@@ -89,8 +91,22 @@ public interface JobService {
     Job rerun(Flow flow, Job job);
 
     /**
+     * Restart job from failure step
+     */
+    Job rerunFromFailureStep(Flow flow, Job job);
+
+    /**
      * Delete all jobs of the flow within an executor
      */
     void delete(Flow flow);
+
+    /**
+     * Lock job by id
+     *
+     * @param jobId
+     */
+    Optional<InterLock> lock(String jobId);
+
+    void unlock(InterLock lock, String jobId);
 }
 

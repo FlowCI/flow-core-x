@@ -30,8 +30,8 @@ public class GetSecretEvent extends AbstractEvent<Secret> {
 
     private final String name;
 
-    public GetSecretEvent(Object source, String credentialName) {
+    public GetSecretEvent(Object source, String secretName) {
         super(source);
-        this.name = credentialName;
+        this.name = secretName;
     }
 }

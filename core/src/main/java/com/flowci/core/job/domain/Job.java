@@ -18,14 +18,15 @@ package com.flowci.core.job.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.domain.AgentProfile;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.store.Pathable;
-import com.flowci.tree.Node;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableSet;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
@@ -43,6 +44,7 @@ import java.util.*;
 @Getter
 @Setter
 @Document(collection = "job")
+@EqualsAndHashCode(callSuper = true)
 @CompoundIndex(
         name = "index_job_flowid_and_buildnum",
         def = "{'flowId': 1, 'buildNumber': 1}",
@@ -159,7 +161,9 @@ public class Job extends Mongoable implements Pathable {
 
         private String os;
 
-        private int cpu;
+        private int cpuNum;
+
+        private double cpuUsage;
 
         private int totalMemory;
 
@@ -185,9 +189,9 @@ public class Job extends Mongoable implements Pathable {
 
     private static final SimpleDateFormat DateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
-    private static final Integer MinPriority = 1;
+    public static final Integer MinPriority = 1;
 
-    private static final Integer MaxPriority = 255;
+    public static final Integer MaxPriority = 255;
 
     /**
      * Job key is generated from {flow id}-{build number}
@@ -206,9 +210,12 @@ public class Job extends Mongoable implements Pathable {
 
     private Status status = Status.PENDING;
 
+    private boolean onPostSteps = false;
+
     // agent id : info
     private Map<String, AgentSnapshot> snapshots = new HashMap<>();
 
+    // current running steps
     private Set<String> currentPath = new HashSet<>();
 
     private Vars<String> context = new StringVars();
@@ -270,6 +277,11 @@ public class Job extends Mongoable implements Pathable {
     }
 
     @JsonIgnore
+    public boolean isFailure() {
+        return status == Status.FAILURE;
+    }
+
+    @JsonIgnore
     public String getQueueName() {
         return "flow.q." + flowId + ".job";
     }
@@ -323,15 +335,16 @@ public class Job extends Mongoable implements Pathable {
         return Instant.now().compareTo(expireAt) > 0;
     }
 
-    public void addAgentSnapshot(Agent agent) {
+    public void addAgentSnapshot(Agent agent, AgentProfile profile) {
         AgentSnapshot s = new AgentSnapshot();
         s.name = agent.getName();
         s.os = agent.getOs().name();
-        s.cpu = agent.getResource().getCpu();
-        s.totalMemory = agent.getResource().getTotalMemory();
-        s.freeMemory = agent.getResource().getFreeMemory();
-        s.totalDisk = agent.getResource().getTotalDisk();
-        s.freeDisk = agent.getResource().getFreeDisk();
+        s.cpuNum = profile.getCpuNum();
+        s.cpuUsage = profile.getCpuUsage();
+        s.totalMemory = profile.getTotalMemory();
+        s.freeMemory = profile.getFreeMemory();
+        s.totalDisk = profile.getTotalDisk();
+        s.freeDisk = profile.getFreeDisk();
 
         this.snapshots.put(agent.getId(), s);
     }
@@ -340,25 +353,16 @@ public class Job extends Mongoable implements Pathable {
         context.put(Variables.Job.Error, err);
     }
 
-    public void setCurrentPathFromNodes(List<Node> nodes) {
+    public Job resetCurrentPath() {
         this.currentPath.clear();
-        for (Node n : nodes) {
-            this.currentPath.add(n.getPathAsString());
-        }
+        return this;
     }
 
-    public void setCurrentPathFromNodes(Node node) {
-        this.currentPath.clear();
-        this.currentPath.add(node.getPathAsString());
+    public void addToCurrentPath(Step step) {
+        this.currentPath.add(step.getNodePath());
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return super.equals(o);
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
+    public void removeFromCurrentPath(Step step) {
+        this.currentPath.remove(step.getNodePath());
     }
 }

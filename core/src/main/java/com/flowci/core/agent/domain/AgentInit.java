@@ -38,6 +38,4 @@ public class AgentInit {
     private Common.OS os;
 
     private Agent.Status status;
-
-    private Agent.Resource resource = new Agent.Resource();
 }

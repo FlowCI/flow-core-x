@@ -26,7 +26,6 @@ import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.job.event.JobDeletedEvent;
-import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.StringVars;
@@ -37,6 +36,8 @@ import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.util.StringHelper;
+import com.flowci.zookeeper.InterLock;
+import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +66,8 @@ import static com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID;
 public class JobServiceImpl implements JobService {
 
     private static final Sort SortByBuildNumber = Sort.by(Direction.DESC, "buildNumber");
+
+    private static final int DefaultJobLockTimeout = 20; // seconds
 
     //====================================================================
     //        %% Spring injection
@@ -105,7 +108,7 @@ public class JobServiceImpl implements JobService {
     private FileManager fileManager;
 
     @Autowired
-    private JobActionManager jobActionManager;
+    private JobActionService jobActionService;
 
     @Autowired
     private StepService stepService;
@@ -115,6 +118,9 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private SettingService settingService;
+
+    @Autowired
+    private ZookeeperClient zk;
 
     //====================================================================
     //        %% Public functions
@@ -179,7 +185,7 @@ public class JobServiceImpl implements JobService {
         eventManager.publish(new JobCreatedEvent(this, job));
 
         if (job.isYamlFromRepo()) {
-            jobActionManager.toLoading(job);
+            jobActionService.toLoading(job.getId());
             return job;
         }
 
@@ -187,18 +193,18 @@ public class JobServiceImpl implements JobService {
             throw new ArgumentException("YAML config is required to start a job");
         }
 
-        jobActionManager.toCreated(job, yml);
-        return job;
+        jobActionService.toCreated(job.getId(), yml);
+        return get(job.getId());
     }
 
     @Override
     public void start(Job job) {
-        jobActionManager.toStart(job);
+        jobActionService.toStart(job.getId());
     }
 
     @Override
     public void cancel(Job job) {
-        jobActionManager.toCancelled(job, StringHelper.EMPTY);
+        jobActionService.toCancelled(job.getId(), null);
     }
 
     @Override
@@ -220,7 +226,8 @@ public class JobServiceImpl implements JobService {
         job.setSnapshots(Maps.newHashMap());
         job.setStatus(Job.Status.PENDING);
         job.setTrigger(Trigger.MANUAL);
-        job.setCurrentPathFromNodes(root);
+        job.resetCurrentPath();
+        job.setPriority(Job.MaxPriority);
         job.setCreatedBy(sessionManager.getUserEmail());
 
         // re-init job context
@@ -232,14 +239,45 @@ public class JobServiceImpl implements JobService {
         context.put(GIT_COMMIT_ID, lastCommitId);
         context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         context.merge(root.getEnvironments(), false);
+        jobDao.save(job);
+
+        // reset job agent
+        jobAgentDao.save(new JobAgent(job.getId(), flow.getId()));
 
         // cleanup
         stepService.delete(job);
         localTaskService.delete(job);
         ymlManager.delete(job);
 
-        jobActionManager.toCreated(job, yml.getRaw());
-        jobActionManager.toStart(job);
+        jobActionService.toCreated(job.getId(), yml.getRaw());
+        jobActionService.toStart(job.getId());
+        return get(job.getId());
+    }
+
+    @Override
+    public Job rerunFromFailureStep(Flow flow, Job job) {
+        if (!job.isDone()) {
+            throw new StatusException("Job not finished, cannot re-start");
+        }
+
+        if (!job.isFailure()) {
+            throw new StatusException("Job is not failure status, cannot re-start from failure step");
+        }
+
+        // reset job properties
+        job.setFinishAt(null);
+        job.setStartAt(null);
+        job.setExpire(flow.getStepTimeout());
+        job.setSnapshots(Maps.newHashMap());
+        job.setPriority(Job.MaxPriority);
+        job.setStatus(Job.Status.CREATED);
+        job.setTrigger(Trigger.MANUAL);
+        job.setCreatedBy(sessionManager.getUserEmail());
+
+        // reset job agent
+        jobAgentDao.save(new JobAgent(job.getId(), flow.getId()));
+
+        jobActionService.toStart(job.getId());
         return job;
     }
 
@@ -266,6 +304,24 @@ public class JobServiceImpl implements JobService {
 
             eventManager.publish(new JobDeletedEvent(this, flow, numOfJobDeleted));
         });
+    }
+
+    @Override
+    public Optional<InterLock> lock(String jobId) {
+        String path = zk.makePath("/job-locks", jobId);
+        Optional<InterLock> lock = zk.lock(path, DefaultJobLockTimeout);
+        lock.ifPresent(interLock -> log.debug("Lock: {}", jobId));
+        return lock;
+    }
+
+    @Override
+    public void unlock(InterLock lock, String jobId) {
+        try {
+            zk.release(lock);
+            log.debug("Unlock: {}", jobId);
+        } catch (Exception warn) {
+            log.warn(warn);
+        }
     }
 
     //====================================================================

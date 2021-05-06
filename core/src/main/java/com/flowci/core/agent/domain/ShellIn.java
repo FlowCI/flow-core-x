@@ -50,6 +50,8 @@ public final class ShellIn extends CmdIn {
 
     private Set<String> envFilters;
 
+    private Set<String> secrets;
+
     public ShellIn() {
         super(Type.SHELL);
     }

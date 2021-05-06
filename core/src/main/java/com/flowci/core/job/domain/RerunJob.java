@@ -25,4 +25,6 @@ public class RerunJob {
 
     @NotEmpty
     private String jobId;
+
+    private boolean fromFailureStep;
 }
