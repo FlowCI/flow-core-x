@@ -166,8 +166,8 @@ public class AgentEventManager extends BinaryWebSocketHandler {
 
     private void onCmdOut(String token, byte[] body) {
         try {
-            eventManager.publish(new OnCmdOutEvent(this, body));
             log.debug("Agent {} got cmd back: {}", token, new String(body));
+            eventManager.publish(new OnCmdOutEvent(this, body));
         } catch (Exception e) {
             log.warn(e);
         }

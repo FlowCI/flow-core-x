@@ -118,11 +118,6 @@ public class Job extends Mongoable implements Pathable {
         RUNNING(4),
 
         /**
-         * Running Post steps, only happened before failure or cancel status
-         */
-        RUNNING_POST(4),
-
-        /**
          * Job will be cancelled, but waiting for response from agent
          */
         CANCELLING(5),
@@ -215,6 +210,8 @@ public class Job extends Mongoable implements Pathable {
 
     private Status status = Status.PENDING;
 
+    private boolean onPostSteps = false;
+
     // agent id : info
     private Map<String, AgentSnapshot> snapshots = new HashMap<>();
 
@@ -267,11 +264,6 @@ public class Job extends Mongoable implements Pathable {
     @JsonIgnore
     public boolean isRunning() {
         return status == Status.RUNNING;
-    }
-
-    @JsonIgnore
-    public boolean isRunningPost() {
-        return status == Status.RUNNING_POST;
     }
 
     @JsonIgnore

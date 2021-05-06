@@ -168,6 +168,16 @@ public class Step implements Executed {
         return OngoingStatus.contains(status);
     }
 
+    @JsonIgnore
+    public boolean isKilling() {
+        return status == Status.KILLING;
+    }
+
+    @JsonIgnore
+    public boolean isFinished() {
+        return FinishStatus.contains(status);
+    }
+
     public void setFrom(ShellOut out) {
         this.processId = out.getProcessId();
         this.containerId = out.getContainerId();

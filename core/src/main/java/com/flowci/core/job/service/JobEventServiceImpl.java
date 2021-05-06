@@ -32,11 +32,10 @@ import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
-import com.flowci.core.job.manager.JobActionManager;
 import com.flowci.core.job.manager.YmlManager;
+import com.flowci.core.job.util.Errors;
 import com.flowci.tree.FlowNode;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +64,7 @@ public class JobEventServiceImpl implements JobEventService {
     private RabbitOperations jobsQueueManager;
 
     @Autowired
-    private JobActionManager jobActionManager;
+    private JobActionService jobActionService;
 
     @Autowired
     private ConditionManager conditionManager;
@@ -144,8 +143,7 @@ public class JobEventServiceImpl implements JobEventService {
             return;
         }
 
-        Job job = jobService.get(agent.getJobId());
-        jobActionManager.toCancelled(job, "Agent unexpected offline");
+        jobActionService.toCancelled(agent.getJobId(), Errors.AgentOffline);
     }
 
     @EventListener
@@ -158,13 +156,7 @@ public class JobEventServiceImpl implements JobEventService {
             switch (ind) {
                 case CmdOut.ShellOutInd:
                     ShellOut shellOut = objectMapper.readValue(body, ShellOut.class);
-
-                    Step step = stepService.get(shellOut.getId());
-                    step.setFrom(shellOut);
-                    stepService.resultUpdate(step);
-
-                    log.info("[Callback]: {}-{} = {}", step.getJobId(), step.getNodePath(), step.getStatus());
-                    handleCallback(step);
+                    handleCallback(shellOut);
                     break;
 
                 case CmdOut.TtyOutInd:
@@ -181,9 +173,9 @@ public class JobEventServiceImpl implements JobEventService {
     }
 
     @Override
-    public void handleCallback(Step step) {
-        Job job = jobService.get(step.getJobId());
-        jobActionManager.toContinue(job, step);
+    public void handleCallback(ShellOut so) {
+        String jobId = stepService.get(so.getId()).getJobId();
+        jobActionService.toContinue(jobId, so);
     }
 
     //====================================================================
@@ -196,8 +188,7 @@ public class JobEventServiceImpl implements JobEventService {
         jobsQueueManager.startConsumer(deadLetterQueue, true, (header, body, envelope) -> {
             String jobId = new String(body);
             try {
-                Job job = jobService.get(jobId);
-                jobActionManager.toTimeout(job);
+                jobActionService.toTimeout(jobId);
             } catch (Exception e) {
                 log.warn(e);
             }
@@ -209,21 +200,15 @@ public class JobEventServiceImpl implements JobEventService {
     //        %% Utils
     //====================================================================
 
-    private void logInfo(Job job, String message, Object... params) {
-        log.info("[Job] " + job.getKey() + " " + message, params);
-    }
-
     private void declareJobQueueAndStartConsumer(Flow flow) {
         try {
             final String queue = flow.getQueueName();
             jobsQueueManager.declare(queue, true, 255, rabbitProperties.getJobDlExchange());
 
             jobsQueueManager.startConsumer(queue, false, (header, body, envelope) -> {
-                String jobId = new String(body);
                 try {
-                    Job job = jobService.get(jobId);
-                    logInfo(job, "received from queue");
-                    jobActionManager.toRun(job);
+                    String jobId = new String(body);
+                    jobActionService.toRun(jobId);
                 } catch (Exception e) {
                     log.warn(e);
                 }
