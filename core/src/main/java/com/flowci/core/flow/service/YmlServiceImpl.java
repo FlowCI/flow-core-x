@@ -18,6 +18,7 @@ package com.flowci.core.flow.service;
 
 import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
@@ -51,6 +52,7 @@ public class YmlServiceImpl implements YmlService {
 
     private final List<NodeElementChecker> elementCheckers = ImmutableList.of(
             new ConditionChecker(),
+            new ConfigChecker(),
             new PluginChecker(),
             new SecretChecker()
     );
@@ -199,6 +201,20 @@ public class YmlServiceImpl implements YmlService {
         public Optional<RuntimeException> apply(NodeTree tree) {
             for (String s : tree.getSecrets()) {
                 GetSecretEvent event = eventManager.publish(new GetSecretEvent(this, s));
+                if (event.hasError()) {
+                    return Optional.of(event.getError());
+                }
+            }
+            return Optional.empty();
+        }
+    }
+
+    private class ConfigChecker implements NodeElementChecker {
+
+        @Override
+        public Optional<RuntimeException> apply(NodeTree tree) {
+            for (String c : tree.getConfigs()) {
+                GetConfigEvent event = eventManager.publish(new GetConfigEvent(this, c));
                 if (event.hasError()) {
                     return Optional.of(event.getError());
                 }

@@ -52,6 +52,8 @@ public final class ShellIn extends CmdIn {
 
     private Set<String> secrets;
 
+    private Set<String> configs;
+
     public ShellIn() {
         super(Type.SHELL);
     }
