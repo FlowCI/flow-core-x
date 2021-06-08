@@ -58,6 +58,11 @@ public final class RegularStepNode extends Node {
     private Set<String> secrets = new HashSet<>(0);
 
     /**
+     * Included config name in the step
+     */
+    private Set<String> configs = new HashSet<>(0);
+
+    /**
      * Is allow failure
      */
     private boolean allowFailure = ALLOW_FAILURE_DEFAULT;
@@ -89,6 +94,11 @@ public final class RegularStepNode extends Node {
     @JsonIgnore
     public boolean hasSecrets() {
         return !secrets.isEmpty();
+    }
+
+    @JsonIgnore
+    public boolean hasConfigs() {
+        return !configs.isEmpty();
     }
 
     @JsonIgnore

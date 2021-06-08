@@ -73,7 +73,7 @@ public class OpenRestController {
 
         if (secret instanceof RSASecret) {
             RSASecret rsa = (RSASecret) secret;
-            rsa.setPublicKey(null);
+            rsa.setPrivateKey(null);
         }
 
         return secret;
