@@ -1,5 +1,5 @@
 kind: smtp
-name: sendgrid-demo
+name: sendgrid_demo
 smtp:
   server: smtp.sendgrid.net
   port: 587
