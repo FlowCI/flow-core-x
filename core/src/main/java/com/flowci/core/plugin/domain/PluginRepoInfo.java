@@ -16,15 +16,17 @@
 
 package com.flowci.core.plugin.domain;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.flowci.domain.Version;
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.mongodb.core.index.Indexed;
+
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author yang
@@ -39,6 +41,9 @@ public class PluginRepoInfo implements Serializable {
     private String name;
 
     private String source; // git repo url
+
+    @JsonAlias("source_cn")
+    private String sourceCn; // git repo url for cn
 
     private String branch = "master";
 
