@@ -16,11 +16,6 @@
 
 package com.flowci.core.test.plugin;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.domain.PluginRepoInfo;
 import com.flowci.core.plugin.event.RepoCloneEvent;
@@ -30,18 +25,19 @@ import com.flowci.domain.ObjectWrapper;
 import com.flowci.domain.Version;
 import com.flowci.util.StringHelper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.junit.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
+import org.springframework.core.io.UrlResource;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 /**
  * @author yang
@@ -66,8 +62,8 @@ public class PluginServiceTest extends SpringScenario {
     }
 
     @Test
-    public void should_load_plugin_repos_from_url() {
-        List<PluginRepoInfo> repos = pluginService.load(RepoURL);
+    public void should_load_plugin_repos_from_url() throws MalformedURLException {
+        List<PluginRepoInfo> repos = pluginService.load(new UrlResource(RepoURL));
         Assert.assertEquals(1, repos.size());
 
         PluginRepoInfo repo = repos.get(0);
@@ -82,7 +78,7 @@ public class PluginServiceTest extends SpringScenario {
     @Test
     public void should_clone_plugin_repo() throws Throwable {
         // init:
-        List<PluginRepoInfo> repos = pluginService.load(RepoURL);
+        List<PluginRepoInfo> repos = pluginService.load(new UrlResource(RepoURL));
 
         // init counter
         CountDownLatch counter = new CountDownLatch(1);

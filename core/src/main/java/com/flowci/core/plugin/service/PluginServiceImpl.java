@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.git.GitClient;
-import com.flowci.core.common.manager.HttpRequestManager;
 import com.flowci.core.common.manager.VarManager;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
@@ -38,6 +37,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -45,11 +45,9 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
 import java.util.*;
 
 /**
@@ -90,9 +88,6 @@ public class PluginServiceImpl implements PluginService {
 
     @Autowired
     private VarManager varManager;
-
-    @Autowired
-    private HttpRequestManager httpManager;
 
     private final Object reloadLock = new Object();
 
@@ -192,13 +187,11 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
-    public List<PluginRepoInfo> load(String repoUrl) {
+    public List<PluginRepoInfo> load(Resource repoUri) {
         try {
-            repoUrl = repoUrl + "?t=" + Instant.now().toEpochMilli();
-            String body = httpManager.get(repoUrl);
-            return objectMapper.readValue(body, RepoListType);
+            return objectMapper.readValue(repoUri.getInputStream(), RepoListType);
         } catch (Throwable e) {
-            log.warn("Unable to load plugin repo '{}' : {}", repoUrl, e.getMessage());
+            log.warn("Unable to load plugin repo '{}' : {}", repoUri, e.getMessage());
             return Collections.emptyList();
         }
     }
@@ -225,9 +218,7 @@ public class PluginServiceImpl implements PluginService {
     public void reload() {
         synchronized (reloadLock) {
             pluginDao.deleteAll();
-
-            String repoUrl = pluginProperties.getDefaultRepo();
-            List<PluginRepoInfo> repos = load(repoUrl);
+            List<PluginRepoInfo> repos = load(pluginProperties.getDefaultRepo());
             clone(repos);
         }
     }
