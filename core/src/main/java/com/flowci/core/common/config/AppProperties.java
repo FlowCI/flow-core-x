@@ -52,6 +52,9 @@ public class AppProperties {
     @Length(max = 16, min = 16)
     private String secret;
 
+    // indicate load yaml template and plugin from where
+    private String resourceDomain;
+
     private boolean autoLocalAgentHost;
 
     private boolean defaultSmtpConfig;

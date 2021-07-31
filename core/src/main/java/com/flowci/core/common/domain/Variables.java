@@ -29,6 +29,7 @@ public abstract class Variables {
 
         public static final String Host = "FLOWCI_SERVER_HOST";
 
+        public static final String ResourceDomain = "FLOWCI_RESOURCE_DOMAIN";
     }
 
     public abstract static class Flow {

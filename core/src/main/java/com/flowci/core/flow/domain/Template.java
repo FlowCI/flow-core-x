@@ -1,6 +1,6 @@
 package com.flowci.core.flow.domain;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +10,7 @@ public final class Template {
 
     private String url;
 
-    @JsonAlias("url_cn")
+    @JsonProperty("url_cn")
     private String urlCn;
 
     private String desc;

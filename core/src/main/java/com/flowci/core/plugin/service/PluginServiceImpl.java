@@ -75,6 +75,9 @@ public class PluginServiceImpl implements PluginService {
     private Path pluginDir;
 
     @Autowired
+    private AppProperties appProperties;
+
+    @Autowired
     private AppProperties.Plugin pluginProperties;
 
     @Autowired
@@ -247,7 +250,17 @@ public class PluginServiceImpl implements PluginService {
         log.info("Start to load plugin: {}", repo);
         Path dir = getPluginRepoDir(repo.getName(), repo.getVersion().toString());
 
-        GitClient client = new GitClient(repo.getSource(), null, null);
+        String rd = appProperties.getResourceDomain().toLowerCase();
+        String resource = repo.getSource();
+        if (rd.equals("cn")) {
+            resource = repo.getSourceCn();
+        }
+
+        if (!StringHelper.hasValue(resource)) {
+            throw new NotFoundException("Plugin {0} source is missing for domain {1}", repo.getName(), rd);
+        }
+
+        GitClient client = new GitClient(resource, null, null);
         client.klone(dir, repo.getBranch());
 
         return load(dir.toFile(), repo);
