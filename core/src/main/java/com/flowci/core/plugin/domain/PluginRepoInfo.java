@@ -16,29 +16,28 @@
 
 package com.flowci.core.plugin.domain;
 
+import com.flowci.core.common.domain.SourceWithDomain;
 import com.flowci.domain.Version;
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.mongodb.core.index.Indexed;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author yang
  */
 @Getter
 @Setter
-@EqualsAndHashCode(of = {"name"})
-@ToString(of = {"name", "version", "source", "branch"})
-public class PluginRepoInfo implements Serializable {
+@EqualsAndHashCode(of = {"name"}, callSuper = false)
+@ToString(of = {"name", "version", "branch"})
+public class PluginRepoInfo extends SourceWithDomain {
 
     @Indexed(name = "index_plugins_name", unique = true)
     private String name;
-
-    private String source; // git repo url
 
     private String branch = "master";
 

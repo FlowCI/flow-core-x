@@ -1,5 +1,6 @@
 package com.flowci.core.common.service;
 
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.dao.SettingsDao;
 import com.flowci.core.common.domain.Settings;
 import com.flowci.core.common.domain.Variables;
@@ -17,6 +18,9 @@ public class SettingServiceImpl implements SettingService {
 
     @Autowired
     private Environment environment;
+
+    @Autowired
+    private AppProperties appProperties;
 
     @Autowired
     private ServerProperties serverProperties;
@@ -49,6 +53,7 @@ public class SettingServiceImpl implements SettingService {
             }
 
             s.setServerUrl(serverUrl);
+            s.setSource(appProperties.getResourceDomain());
             settingsDao.save(s);
         });
     }
