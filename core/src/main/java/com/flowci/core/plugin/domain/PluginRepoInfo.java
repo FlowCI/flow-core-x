@@ -16,7 +16,7 @@
 
 package com.flowci.core.plugin.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flowci.core.common.domain.SourceWithDomain;
 import com.flowci.domain.Version;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -24,7 +24,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.mongodb.core.index.Indexed;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,17 +32,12 @@ import java.util.Set;
  */
 @Getter
 @Setter
-@EqualsAndHashCode(of = {"name"})
+@EqualsAndHashCode(of = {"name"}, callSuper = false)
 @ToString(of = {"name", "version", "branch"})
-public class PluginRepoInfo implements Serializable {
+public class PluginRepoInfo extends SourceWithDomain {
 
     @Indexed(name = "index_plugins_name", unique = true)
     private String name;
-
-    private String source; // git repo url
-
-    @JsonProperty("source_cn")
-    private String sourceCn; // git repo url for cn
 
     private String branch = "master";
 

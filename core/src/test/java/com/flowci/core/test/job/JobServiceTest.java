@@ -127,7 +127,7 @@ public class JobServiceTest extends ZookeeperScenario {
         mockLogin();
         flow = flowService.create("hello");
         String yaml = StringHelper.toString(load("flow.yml"));
-        yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toBase64(yaml));
+        yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
     }
 
     @Test
@@ -225,7 +225,7 @@ public class JobServiceTest extends ZookeeperScenario {
         pluginDao.save(p);
 
         String yaml = StringHelper.toString(load("flow-with-notify.yml"));
-        yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toBase64(yaml));
+        yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
 
         Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
         mockAgentOnline(agent.getToken());
@@ -389,7 +389,7 @@ public class JobServiceTest extends ZookeeperScenario {
     public void should_handle_cmd_callback_for_failure_status() throws IOException {
         // init: agent and job
         String yaml = StringHelper.toString(load("flow-with-failure.yml"));
-        yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toBase64(yaml));
+        yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
         Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
         Job job = prepareJobForRunningStatus(agent);
 
@@ -412,7 +412,7 @@ public class JobServiceTest extends ZookeeperScenario {
     public void should_handle_cmd_callback_for_failure_status_but_allow_failure() throws IOException {
         // init: agent and job
         String yaml = StringHelper.toString(load("flow-all-failure.yml"));
-        yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toBase64(yaml));
+        yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
         Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
         Job job = prepareJobForRunningStatus(agent);
 
@@ -457,7 +457,7 @@ public class JobServiceTest extends ZookeeperScenario {
     public void should_cancel_job_if_agent_offline() throws IOException, InterruptedException {
         // init:
         String yaml = StringHelper.toString(load("flow-with-condition.yml"));
-        yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, StringHelper.toBase64(yaml));
+        yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
 
         // mock agent online
         Agent agent = agentService.create(new AgentOption().setName("hello.agent.2"));

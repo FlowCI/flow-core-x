@@ -250,17 +250,14 @@ public class PluginServiceImpl implements PluginService {
         log.info("Start to load plugin: {}", repo);
         Path dir = getPluginRepoDir(repo.getName(), repo.getVersion().toString());
 
-        String rd = appProperties.getResourceDomain().toLowerCase();
-        String resource = repo.getSource();
-        if (rd.equals("cn")) {
-            resource = repo.getSourceCn();
-        }
+        String rd = appProperties.getResourceDomain();
+        String source = repo.getSourceWithDomain(rd);
 
-        if (!StringHelper.hasValue(resource)) {
+        if (!StringHelper.hasValue(source)) {
             throw new NotFoundException("Plugin {0} source is missing for domain {1}", repo.getName(), rd);
         }
 
-        GitClient client = new GitClient(resource, null, null);
+        GitClient client = new GitClient(source, null, null);
         client.klone(dir, repo.getBranch());
 
         return load(dir.toFile(), repo);

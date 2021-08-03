@@ -16,6 +16,7 @@
 
 package com.flowci.core.flow.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flowci.util.StringHelper;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -27,6 +28,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class ConfirmOption {
 
+    private static final String DESC_BLANK = "blank";
+
     private String gitUrl;
 
     private String secret;
@@ -35,6 +38,12 @@ public class ConfirmOption {
      * Yaml in base64
      */
     private String yaml = StringHelper.EMPTY;
+
+    /**
+     * Template name (desc), yaml property will be ignored if it is defined
+     */
+    @JsonProperty("desc")
+    private String templateDesc;
 
     public boolean hasGitUrl() {
         return StringHelper.hasValue(gitUrl);
@@ -46,5 +55,13 @@ public class ConfirmOption {
 
     public boolean hasYml() {
         return StringHelper.hasValue(yaml);
+    }
+
+    public boolean hasTemplateDesc() {
+        return StringHelper.hasValue(templateDesc);
+    }
+
+    public boolean hasBlankTemplate() {
+        return DESC_BLANK.equalsIgnoreCase(templateDesc);
     }
 }

@@ -1,17 +1,12 @@
 package com.flowci.core.flow.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flowci.core.common.domain.SourceWithDomain;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public final class Template {
-
-    private String url;
-
-    @JsonProperty("url_cn")
-    private String urlCn;
+public final class Template extends SourceWithDomain {
 
     private String desc;
 

@@ -104,12 +104,11 @@ public class YmlServiceImpl implements YmlService {
     }
 
     @Override
-    public Yml saveYml(Flow flow, String name, String ymlInB64) {
-        if (!StringHelper.hasValue(ymlInB64)) {
+    public Yml saveYml(Flow flow, String name, String yaml) {
+        if (!StringHelper.hasValue(yaml)) {
             throw new ArgumentException("YAML content cannot be null or empty");
         }
 
-        String yaml = StringHelper.fromBase64(ymlInB64);
         FlowNode root = YmlParser.load(yaml);
         NodeTree tree = NodeTree.create(root);
 
@@ -120,7 +119,7 @@ public class YmlServiceImpl implements YmlService {
             }
         }
 
-        Yml ymlObj = getOrCreate(flow.getId(), name, ymlInB64);
+        Yml ymlObj = getOrCreate(flow.getId(), name, StringHelper.toBase64(yaml));
         try {
             ymlDao.save(ymlObj);
         } catch (DuplicateKeyException e) {
@@ -136,6 +135,12 @@ public class YmlServiceImpl implements YmlService {
         // put tree into cache
         flowTreeCache.put(yamlCacheKey(flow.getId(), name), tree);
         return ymlObj;
+    }
+
+    @Override
+    public Yml saveYmlFromB64(Flow flow, String name, String ymlInB64) {
+        String yaml = StringHelper.fromBase64(ymlInB64);
+        return saveYml(flow, name, yaml);
     }
 
     @Override

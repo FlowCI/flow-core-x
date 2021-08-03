@@ -62,14 +62,13 @@ public class YmlController {
                         @RequestBody RequestMessage<String> body) {
         Flow flow = flowService.get(flowName);
         String yamlInB64 = body.getData();
-        ymlService.saveYml(flow, ymlName, yamlInB64);
+        ymlService.saveYmlFromB64(flow, ymlName, yamlInB64);
     }
 
     @GetMapping(value = "/{flowName}/yml/{ymlName}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Action(FlowAction.GET_YML)
     public String getYml(@PathVariable String flowName, @PathVariable String ymlName) {
         Flow flow = flowService.get(flowName);
-        String yamlInB64 = ymlService.getYmlString(flow.getId(), ymlName);
-        return yamlInB64;
+        return ymlService.getYmlString(flow.getId(), ymlName);
     }
 }
