@@ -42,6 +42,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -93,6 +94,11 @@ public class PluginServiceImpl implements PluginService {
     private VarManager varManager;
 
     private final Object reloadLock = new Object();
+
+    @PostConstruct
+    public void init() {
+        reload();
+    }
 
     @EventListener
     public void onGetPluginEvent(GetPluginEvent event) {
@@ -226,7 +232,7 @@ public class PluginServiceImpl implements PluginService {
         }
     }
 
-    @Scheduled(fixedRate = 1000 * 3600)
+    @Scheduled(initialDelay = 1000 * 3600, fixedRate = 1000 * 3600)
     public void scheduleSync() {
         if (pluginProperties.getAutoUpdate()) {
             reload();

@@ -42,11 +42,11 @@ import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
@@ -108,7 +108,7 @@ public class AgentServiceImpl implements AgentService {
     @Autowired
     private SocketPushManager socketPushManager;
 
-    @EventListener(ContextRefreshedEvent.class)
+    @PostConstruct
     public void initAgentStatus() {
         taskManager.run("init-agent-status", true, () -> {
             for (Agent agent : agentDao.findAll()) {
@@ -122,7 +122,7 @@ public class AgentServiceImpl implements AgentService {
         });
     }
 
-    @EventListener(ContextRefreshedEvent.class)
+    @PostConstruct
     public void subscribeIdleAgentQueue() throws IOException {
         idleAgentQueueManager.startConsumer(idleAgentQueue, false, (header, body, envelope) -> {
             String agentId = new String(body);
@@ -150,6 +150,22 @@ public class AgentServiceImpl implements AgentService {
             }
             return true;
         }, null);
+    }
+
+    @PostConstruct
+    public void lockNodeCleanup() {
+        List<String> children = zk.children(zkProperties.getAgentRoot());
+        for (String path : children) {
+            String agentId = Util.getAgentIdFromLockPath(path);
+            Optional<Agent> optional = agentDao.findById(agentId);
+
+            if (!optional.isPresent()) {
+                try {
+                    zk.delete(path, true);
+                } catch (Throwable ignore) {
+                }
+            }
+        }
     }
 
     //====================================================================
@@ -368,22 +384,6 @@ public class AgentServiceImpl implements AgentService {
     //====================================================================
     //        %% Spring Event Listener
     //====================================================================
-
-    @EventListener(ContextRefreshedEvent.class)
-    public void lockNodeCleanup() {
-        List<String> children = zk.children(zkProperties.getAgentRoot());
-        for (String path : children) {
-            String agentId = Util.getAgentIdFromLockPath(path);
-            Optional<Agent> optional = agentDao.findById(agentId);
-
-            if (!optional.isPresent()) {
-                try {
-                    zk.delete(path, true);
-                } catch (Throwable ignore) {
-                }
-            }
-        }
-    }
 
     @EventListener
     public void onConnected(OnConnectedEvent event) {

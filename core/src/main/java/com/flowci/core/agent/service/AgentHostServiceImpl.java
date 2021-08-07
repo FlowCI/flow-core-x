@@ -47,7 +47,6 @@ import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
@@ -56,6 +55,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -112,6 +112,12 @@ public class AgentHostServiceImpl implements AgentHostService {
         mapping.put(LocalUnixAgentHost.class, new LocalSocketHostAdaptor());
         mapping.put(SshAgentHost.class, new SshHostAdaptor());
         mapping.put(K8sAgentHost.class, new K8sHostAdaptor());
+    }
+
+    @PostConstruct
+    public void init() {
+        autoCreateLocalAgentHost();
+        syncAgents();
     }
 
     //====================================================================
@@ -377,12 +383,6 @@ public class AgentHostServiceImpl implements AgentHostService {
     //====================================================================
     //        %% Internal events
     //====================================================================
-
-    @EventListener
-    public void onContextReady(ContextRefreshedEvent event) {
-        autoCreateLocalAgentHost();
-        syncAgents();
-    }
 
     @EventListener
     public void onNoIdleAgent(NoIdleAgentEvent event) {

@@ -48,11 +48,11 @@ import com.flowci.util.ObjectsHelper;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
 
@@ -92,6 +92,12 @@ public class FlowServiceImpl implements FlowService {
 
     @Autowired
     private AppProperties appProperties;
+
+    @PostConstruct
+    public void initJobQueueForFlow() {
+        List<Flow> all = flowDao.findAll();
+        eventManager.publish(new FlowInitEvent(this, all));
+    }
 
     // ====================================================================
     // %% Public function
@@ -308,12 +314,6 @@ public class FlowServiceImpl implements FlowService {
     // ====================================================================
     // %% Internal events
     // ====================================================================
-
-    @EventListener
-    public void initJobQueueForFlow(ContextRefreshedEvent ignore) {
-        List<Flow> all = flowDao.findAll();
-        eventManager.publish(new FlowInitEvent(this, all));
-    }
 
     @EventListener
     public void deleteUserFromFlow(UserDeletedEvent event) {
