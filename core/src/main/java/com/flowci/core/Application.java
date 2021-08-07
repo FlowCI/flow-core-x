@@ -16,14 +16,33 @@
 
 package com.flowci.core;
 
+import com.flowci.util.StringHelper;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+
+import java.io.IOException;
 
 /**
  * @author yang
  */
+@Log4j2
 @SpringBootApplication
 public class Application {
+
+    @Autowired
+    private ResourceLoader resourceLoader;
+
+    @EventListener(ContextRefreshedEvent.class)
+    public void printBanner() throws IOException {
+        Resource r = resourceLoader.getResource("classpath:welcome.txt");
+        log.info(StringHelper.toString(r.getInputStream()));
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
