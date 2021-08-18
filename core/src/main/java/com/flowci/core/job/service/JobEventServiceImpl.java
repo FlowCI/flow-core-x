@@ -39,11 +39,11 @@ import com.flowci.core.job.util.Errors;
 import com.flowci.tree.FlowNode;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -80,6 +80,20 @@ public class JobEventServiceImpl implements JobEventService {
 
     @Autowired
     private StepService stepService;
+
+    @PostConstruct
+    public void startJobDeadLetterConsumer() throws IOException {
+        String deadLetterQueue = rabbitProperties.getJobDlQueue();
+        jobsQueueManager.startConsumer(deadLetterQueue, true, (header, body, envelope) -> {
+            String jobId = new String(body);
+            try {
+                jobActionService.toTimeout(jobId);
+            } catch (Exception e) {
+                log.warn(e);
+            }
+            return false;
+        }, null);
+    }
 
     //====================================================================
     //        %% Internal events
@@ -176,24 +190,6 @@ public class JobEventServiceImpl implements JobEventService {
     public void handleCallback(ShellOut so) {
         String jobId = stepService.get(so.getId()).getJobId();
         jobActionService.toContinue(jobId, so);
-    }
-
-    //====================================================================
-    //        %% Init events
-    //====================================================================
-
-    @EventListener(value = ContextRefreshedEvent.class)
-    public void startJobDeadLetterConsumer() throws IOException {
-        String deadLetterQueue = rabbitProperties.getJobDlQueue();
-        jobsQueueManager.startConsumer(deadLetterQueue, true, (header, body, envelope) -> {
-            String jobId = new String(body);
-            try {
-                jobActionService.toTimeout(jobId);
-            } catch (Exception e) {
-                log.warn(e);
-            }
-            return false;
-        }, null);
     }
 
     //====================================================================

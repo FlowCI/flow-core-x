@@ -65,6 +65,7 @@ public class CmdManagerImpl implements CmdManager {
                 .setTimeout(r.fetchTimeout(job.getTimeout()))
                 .setRetry(r.fetchRetry(0))
                 .setSecrets(r.getSecrets())
+                .setConfigs(r.getConfigs())
                 .setCache(r.getCache());
 
         if (r.hasPlugin()) {

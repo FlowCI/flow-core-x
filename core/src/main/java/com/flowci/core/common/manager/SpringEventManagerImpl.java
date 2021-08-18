@@ -27,10 +27,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.Map;
 
@@ -55,7 +54,7 @@ public class SpringEventManagerImpl implements SpringEventManager {
     @Autowired
     private RabbitOperations broadcastQueueManager;
 
-    @EventListener(ContextRefreshedEvent.class)
+    @PostConstruct
     public void subscribeBroadcastQueue() throws IOException {
         broadcastQueueManager.startConsumer(eventBroadcastQueue, true, (headers, body, envelope) -> {
             try {

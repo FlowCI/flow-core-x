@@ -16,12 +16,12 @@ import com.flowci.exception.StatusException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -42,8 +42,8 @@ public class ConfigServiceImpl implements ConfigService {
     @Autowired
     private SpringEventManager eventManager;
 
-    @EventListener
-    public void onInit(ContextRefreshedEvent ignore) {
+    @PostConstruct
+    public void onInit() {
         try {
             Config config = ConfigParser.parse(defaultSmtpConfigYml.getInputStream());
             Optional<Config> optional = configDao.findByName(config.getName());

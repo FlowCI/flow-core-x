@@ -32,6 +32,11 @@ public class Settings extends Mongoable {
 
     private String serverUrl;
 
+    /**
+     * Indicate load resource(cn) from where
+     */
+    private String source;
+
     public Settings() {
         setId(DefaultId);
     }

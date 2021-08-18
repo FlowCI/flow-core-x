@@ -29,7 +29,7 @@ import java.util.*;
 @Getter
 public final class NodeTree {
 
-    private static final int DefaultSize = 20;
+    private static final int DefaultSize = 10;
 
     private static final int DefaultSizeForPrev = 5;
 
@@ -56,6 +56,8 @@ public final class NodeTree {
     private final Set<String> plugins = new HashSet<>(DefaultSize);
 
     private final Set<String> secrets = new HashSet<>(DefaultSize);
+
+    private final Set<String> configs = new HashSet<>(DefaultSize);
 
     private int maxHeight = 1;
 
@@ -206,6 +208,10 @@ public final class NodeTree {
 
                 if (r.hasSecrets()) {
                     secrets.addAll(r.getSecrets());
+                }
+
+                if (r.hasConfigs()) {
+                    configs.addAll(r.getConfigs());
                 }
             }
 

@@ -16,16 +16,15 @@
 
 package com.flowci.core.flow.service;
 
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Variables;
+import com.flowci.core.common.manager.HttpRequestManager;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowUserDao;
-import com.flowci.core.flow.domain.ConfirmOption;
-import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.*;
 import com.flowci.core.flow.domain.Flow.Status;
-import com.flowci.core.flow.domain.WebhookStatus;
-import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
@@ -49,11 +48,11 @@ import com.flowci.util.ObjectsHelper;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
 
@@ -80,10 +79,25 @@ public class FlowServiceImpl implements FlowService {
     private FileManager fileManager;
 
     @Autowired
+    private HttpRequestManager httpRequestManager;
+
+    @Autowired
     private YmlService ymlService;
 
     @Autowired
     private CronService cronService;
+
+    @Autowired
+    private List<Template> templates;
+
+    @Autowired
+    private AppProperties appProperties;
+
+    @PostConstruct
+    public void initJobQueueForFlow() {
+        List<Flow> all = flowDao.findAll();
+        eventManager.publish(new FlowInitEvent(this, all));
+    }
 
     // ====================================================================
     // %% Public function
@@ -91,10 +105,6 @@ public class FlowServiceImpl implements FlowService {
 
     @Override
     public List<Flow> list(Status status) {
-        if (sessionManager.get().isAdmin()) {
-            return flowDao.findAll();
-        }
-
         String email = sessionManager.getUserEmail();
         List<String> flowIds = flowUserDao.findAllFlowsByUserEmail(email);
 
@@ -197,9 +207,24 @@ public class FlowServiceImpl implements FlowService {
 
         flow.setStatus(Status.CONFIRMED);
 
+        if (option.hasBlankTemplate()) {
+            return flowDao.save(flow);
+        }
+
+        // load YAML from template
+        if (option.hasTemplateDesc()) {
+            try {
+                String template = loadYmlFromTemplate(option.getTemplateDesc());
+                ymlService.saveYml(flow, Yml.DEFAULT_NAME, template);
+                return flow;
+            } catch (IOException e) {
+                throw new NotFoundException("Unable to load template {0} content", option.getTemplateDesc());
+            }
+        }
+
         // flow instance will be saved in saveYml
         if (option.hasYml()) {
-            ymlService.saveYml(flow, Yml.DEFAULT_NAME, option.getYaml());
+            ymlService.saveYmlFromB64(flow, Yml.DEFAULT_NAME, option.getYaml());
             return flow;
         }
 
@@ -291,12 +316,6 @@ public class FlowServiceImpl implements FlowService {
     // ====================================================================
 
     @EventListener
-    public void initJobQueueForFlow(ContextRefreshedEvent ignore) {
-        List<Flow> all = flowDao.findAll();
-        eventManager.publish(new FlowInitEvent(this, all));
-    }
-
-    @EventListener
     public void deleteUserFromFlow(UserDeletedEvent event) {
         // TODO:
     }
@@ -339,5 +358,16 @@ public class FlowServiceImpl implements FlowService {
     private void setupDefaultVars(Flow flow) {
         Vars<VarValue> localVars = flow.getLocally();
         localVars.put(Variables.Flow.Name, VarValue.of(flow.getName(), VarType.STRING, false));
+    }
+
+    private String loadYmlFromTemplate(String desc) throws IOException {
+        for (Template t : templates) {
+            if (t.getDesc().equals(desc)) {
+                String source = t.getSourceWithDomain(appProperties.getResourceDomain());
+                return httpRequestManager.get(source);
+            }
+        }
+
+        throw new NotFoundException("Unable to load template {0} content", desc);
     }
 }

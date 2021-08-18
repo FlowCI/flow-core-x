@@ -60,7 +60,7 @@ public class YmlServiceTest extends SpringScenario {
         Assert.assertNotNull(yml);
 
         Assert.assertNotNull(yml.getId());
-        Assert.assertEquals(flow.getId(), yml.getId());
+        Assert.assertEquals(flow.getId(), yml.getFlowId());
         Assert.assertEquals(Yml.DEFAULT_NAME, yml.getName());
     }
 

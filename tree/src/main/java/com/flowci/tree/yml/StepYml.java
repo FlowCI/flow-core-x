@@ -66,6 +66,8 @@ public class StepYml extends YmlBase<RegularStepNode> {
 
     private List<String> secrets = new LinkedList<>();
 
+    private List<String> configs = new LinkedList<>();
+
     /**
      * Only for parallel step, other fields will not valid
      */
@@ -114,6 +116,7 @@ public class StepYml extends YmlBase<RegularStepNode> {
         step.setAllowFailure(allow_failure != null && allow_failure);
         step.setEnvironments(getVariableMap());
         step.setSecrets(Sets.newHashSet(secrets));
+        step.setConfigs(Sets.newHashSet(configs));
 
         setCacheToNode(step);
         setDockerToNode(step);

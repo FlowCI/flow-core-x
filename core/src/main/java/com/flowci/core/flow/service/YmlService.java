@@ -58,7 +58,9 @@ public interface YmlService {
      *
      * @throws com.flowci.exception.ArgumentException if yml string is empty or null
      */
-    Yml saveYml(Flow flow, String name, String ymlInB64);
+    Yml saveYml(Flow flow, String name, String yml);
+
+    Yml saveYmlFromB64(Flow flow, String name, String ymlInB64);
 
     /**
      * Delete all yaml of flow

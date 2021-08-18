@@ -53,10 +53,10 @@ import com.google.common.collect.Sets;
 import groovy.util.ScriptException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -163,8 +163,8 @@ public class JobActionServiceImpl implements JobActionService {
     @Autowired
     private StateMachine<JobSmContext> sm;
 
-    @EventListener
-    public void init(ContextRefreshedEvent ignore) {
+    @PostConstruct
+    public void init() {
         try {
             fromPending();
             fromLoading();

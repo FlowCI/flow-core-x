@@ -23,6 +23,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.Resource;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
@@ -50,6 +51,9 @@ public class AppProperties {
     @NotBlank
     @Length(max = 16, min = 16)
     private String secret;
+
+    // indicate load yaml template and plugin from where
+    private String resourceDomain;
 
     private boolean autoLocalAgentHost;
 
@@ -106,7 +110,7 @@ public class AppProperties {
     @Data
     public static class Flow {
 
-        private String templatesUrl;
+        private Resource templatesUrl;
     }
 
     @Data
@@ -118,7 +122,7 @@ public class AppProperties {
     @Data
     public static class Plugin {
 
-        private String defaultRepo;
+        private Resource defaultRepo;
 
         private Boolean autoUpdate;
     }
