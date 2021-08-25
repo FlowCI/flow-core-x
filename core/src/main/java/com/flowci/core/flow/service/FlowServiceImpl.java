@@ -48,11 +48,11 @@ import com.flowci.util.ObjectsHelper;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
 
@@ -93,7 +93,7 @@ public class FlowServiceImpl implements FlowService {
     @Autowired
     private AppProperties appProperties;
 
-    @PostConstruct
+    @EventListener(ContextRefreshedEvent.class)
     public void initJobQueueForFlow() {
         List<Flow> all = flowDao.findAll();
         eventManager.publish(new FlowInitEvent(this, all));
