@@ -4,9 +4,9 @@ import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.StringVars;
 import groovy.util.ScriptException;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.Assert;
 
 public class ConditionManagerTest extends SpringScenario {
 
