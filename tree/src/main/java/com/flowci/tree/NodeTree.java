@@ -130,30 +130,16 @@ public final class NodeTree {
         return Lists.newArrayList(nextWithSameParent);
     }
 
-    /**
-     * Find next post step
-     */
     public List<Node> post(NodePath path) {
-        Node n = get(path);
-
-        // check if step in parallel
-        if (!isPostStep(n)) {
-            ParallelStepNode parent = n.getParent(ParallelStepNode.class);
-            if (parent != null) {
-                return Lists.newArrayList(findPostSteps(parent));
-            }
-        }
-
-        Collection<Node> post = new HashSet<>();
-        for (Node next : n.next) {
-            post.addAll(findNextPost(next));
-        }
-
-        return Lists.newArrayList(post);
+        List<Node> post = findNextPost(NodePath.create(path));
+        Collections.reverse(post);
+        return post;
     }
 
     public List<Node> post(String path) {
-        return post(NodePath.create(path));
+        List<Node> post = findNextPost(NodePath.create(path));
+        Collections.reverse(post);
+        return post;
     }
 
     public Node get(NodePath path) {
@@ -274,6 +260,25 @@ public final class NodeTree {
                 ends.add(v);
             }
         });
+    }
+
+    private List<Node> findNextPost(NodePath path) {
+        Node n = get(path);
+
+        // check if step in parallel
+        if (!isPostStep(n)) {
+            ParallelStepNode parent = n.getParent(ParallelStepNode.class);
+            if (parent != null) {
+                return Lists.newArrayList(findPostSteps(parent));
+            }
+        }
+
+        Collection<Node> post = new HashSet<>();
+        for (Node next : n.next) {
+            post.addAll(findNextPost(next));
+        }
+
+        return Lists.newArrayList(post);
     }
 
     private Collection<Node> findNextPost(Node node) {

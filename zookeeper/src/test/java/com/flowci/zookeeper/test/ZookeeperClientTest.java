@@ -57,7 +57,7 @@ public class ZookeeperClientTest {
         }).start();
 
         latch.await();
-        Assert.assertFalse(client.exist(lockPath));
+        Assert.assertTrue(client.exist(lockPath));
     }
 
     private void sleep(int second) {
