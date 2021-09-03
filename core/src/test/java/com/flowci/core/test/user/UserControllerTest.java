@@ -106,12 +106,13 @@ public class UserControllerTest extends SpringScenario {
     public void should_change_user_role_successfully() throws Exception {
         ResponseMessage<User> msg = createUser("test.change.role@flow.ci", "12345", User.Role.Developer);
         User user = msg.getData();
+        Assert.assertEquals(User.Role.Developer, user.getRole());
 
         ChangeRole body = new ChangeRole();
         body.setEmail(user.getEmail());
         body.setRole(User.Role.Admin.name());
 
-        ResponseMessage message = mockMvcHelper.expectSuccessAndReturnClass(
+        ResponseMessage<?> message = mockMvcHelper.expectSuccessAndReturnClass(
                 post("/users/change/role")
                         .content(objectMapper.writeValueAsBytes(body))
                         .contentType(MediaType.APPLICATION_JSON)
