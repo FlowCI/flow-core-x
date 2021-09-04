@@ -22,6 +22,7 @@ import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.flow.domain.ConfirmOption;
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.VarValue;
@@ -49,7 +50,11 @@ public class FlowMockHelper {
             new TypeReference<ResponseMessage<List<Flow>>>() {
             };
 
-    static final TypeReference<ResponseMessage<String>> FlowYmlType =
+    static final TypeReference<ResponseMessage<List<Yml>>> FlowYmlNameListType =
+            new TypeReference<ResponseMessage<List<Yml>>>() {
+            };
+
+    static final TypeReference<ResponseMessage<String>> FlowYmlContentType =
             new TypeReference<ResponseMessage<String>>() {
             };
 

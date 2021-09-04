@@ -17,13 +17,14 @@
 package com.flowci.core.test.flow;
 
 import com.flowci.core.common.domain.StatusCode;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.domain.VarType;
-import com.flowci.domain.VarValue;
+import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.User;
-import com.flowci.core.common.domain.http.ResponseMessage;
+import com.flowci.domain.VarType;
+import com.flowci.domain.VarValue;
 import com.flowci.exception.ErrorCode;
 import com.flowci.util.StringHelper;
 import org.assertj.core.util.Lists;
@@ -32,7 +33,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,14 +64,17 @@ public class FlowControllerTest extends SpringScenario {
     public void should_get_flow_and_yml_then_delete() throws Exception {
         ResponseMessage<Flow> getFlowResponse = mockMvcHelper
                 .expectSuccessAndReturnClass(get("/flows/" + flowName), FlowMockHelper.FlowType);
-
         Assert.assertEquals(StatusCode.OK, getFlowResponse.getCode());
         Assert.assertEquals(flowName, getFlowResponse.getData().getName());
 
-        ResponseMessage<String> responseMessage = mockMvcHelper
-                .expectSuccessAndReturnClass(get("/flows/" + flowName + "/yml"), FlowMockHelper.FlowYmlType);
-        String ymlResponse = new String(Base64.getDecoder().decode(responseMessage.getData()));
-        Assert.assertEquals(StringHelper.toString(load("flow.yml")), ymlResponse);
+        ResponseMessage<List<Yml>> responseMessage = mockMvcHelper
+                .expectSuccessAndReturnClass(get("/flows/" + flowName + "/yml"), FlowMockHelper.FlowYmlNameListType);
+        List<Yml> yamlNameList = responseMessage.getData();
+        Assert.assertEquals(1, yamlNameList.size());
+
+        ResponseMessage<String> contentRespMsg = mockMvcHelper
+                .expectSuccessAndReturnClass(get("/flows/" + flowName + "/yml/" + yamlNameList.get(0).getName()), FlowMockHelper.FlowYmlContentType);
+        Assert.assertEquals(StringHelper.toString(load("flow.yml")), StringHelper.fromBase64(contentRespMsg.getData()));
 
         ResponseMessage<Flow> deleted = mockMvcHelper
                 .expectSuccessAndReturnClass(delete("/flows/" + flowName), FlowMockHelper.FlowType);
