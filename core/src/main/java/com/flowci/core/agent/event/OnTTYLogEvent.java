@@ -3,7 +3,7 @@ package com.flowci.core.agent.event;
 import lombok.Getter;
 
 @Getter
-public class OnTTYLogEvent extends EventFromClient {
+public class OnTTYLogEvent extends EventFromAgent {
 
     private final String ttyId;
 

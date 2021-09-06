@@ -71,7 +71,6 @@ public class AuthControllerTest extends SpringScenario {
         Assert.assertEquals(StatusCode.OK, logoutMsg.getCode());
 
         // then: should throw new AuthenticationException("Not logged in") exception
-        Assert.assertFalse(authService.set(token));
         sessionManager.get();
     }
 
@@ -90,7 +89,7 @@ public class AuthControllerTest extends SpringScenario {
         String token = message.getData().getToken();
 
         // when: wait for expire > 5s from properties file
-        ThreadHelper.sleep(8000);
+        ThreadHelper.sleep(10000);
 
         // then: token should be expired
         Assert.assertFalse(authService.set(token));

@@ -79,7 +79,7 @@ public abstract class ZookeeperScenario extends SpringScenario {
         init.setPort(2222);
 
         StandardWebSocketSession session = new StandardWebSocketSession(headers, attributes, null, null, null);
-        multicastEvent(new OnConnectedEvent(this, token, session, init));
+        multicastEvent(new OnConnectedEvent(this, token, session, init, false));
 
         counter.await(10, TimeUnit.SECONDS);
 

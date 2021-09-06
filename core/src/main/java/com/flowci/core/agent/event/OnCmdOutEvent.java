@@ -2,7 +2,7 @@ package com.flowci.core.agent.event;
 
 import lombok.Getter;
 
-public class OnCmdOutEvent extends EventFromClient {
+public class OnCmdOutEvent extends EventFromAgent {
 
     @Getter
     private final byte[] raw;

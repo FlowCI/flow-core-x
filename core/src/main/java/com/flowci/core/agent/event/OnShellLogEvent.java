@@ -3,7 +3,7 @@ package com.flowci.core.agent.event;
 import lombok.Getter;
 
 @Getter
-public class OnShellLogEvent extends EventFromClient {
+public class OnShellLogEvent extends EventFromAgent {
 
     private final String jobId;
 

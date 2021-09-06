@@ -151,7 +151,7 @@ public class AgentEventManager extends BinaryWebSocketHandler {
             init.setToken(token);
             init.setIp(session.getRemoteAddress() == null ? null : session.getRemoteAddress().getAddress().toString());
 
-            OnConnectedEvent event = new OnConnectedEvent(this, token, session, init);
+            OnConnectedEvent event = new OnConnectedEvent(this, token, session, init, true);
             eventManager.publish(event);
             agentSessionStore.put(token, session);
 

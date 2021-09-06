@@ -404,7 +404,7 @@ public class AgentServiceImpl implements AgentService {
 
             update(target, init.getStatus());
 
-            if (target.isIdle()) {
+            if (target.isIdle() && event.isToIdleQueue()) {
                 idleAgentQueueManager.send(idleAgentQueue, target.getId().getBytes());
             }
 
