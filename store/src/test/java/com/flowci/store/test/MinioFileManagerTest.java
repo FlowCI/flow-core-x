@@ -44,7 +44,10 @@ public class MinioFileManagerTest {
 
     @Before
     public void init() throws InvalidPortException, InvalidEndpointException {
-        MinioClient client = new MinioClient("http://localhost:9000", "minio", "minio123");
+        String endpoint = System.getenv().getOrDefault("FLOWCI_MINIO_ENDPOINT", "http://localhost:9000");
+        String key = System.getenv().getOrDefault("FLOWCI_MINIO_KEY", "minio");
+        String secret = System.getenv().getOrDefault("FLOWCI_MINIO_SECRET", "minio123");
+        MinioClient client = new MinioClient(endpoint, key, secret);
         fileManager = new MinioFileManager(client, bucket);
     }
 
