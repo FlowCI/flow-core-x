@@ -2,7 +2,9 @@ package com.flowci.zookeeper.test;
 
 import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -12,12 +14,25 @@ import java.util.concurrent.Executors;
 
 public class ZookeeperClientTest {
 
+    private ZookeeperClient client;
+
+    @Before
+    public void init() {
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        String host = System.getenv().getOrDefault("FLOWCI_ZK_HOST", "127.0.0.1:2181");
+        client = new ZookeeperClient(host, 5, 10, executor);
+        client.start();
+    }
+
+    @After
+    public void cleanup() {
+        if (client != null) {
+            client.close();
+        }
+    }
+
     @Test
     public void should_lock() throws InterruptedException {
-        ExecutorService executor = Executors.newFixedThreadPool(1);
-        ZookeeperClient client = new ZookeeperClient("localhost:2181", 5, 10, executor);
-        client.start();
-
         String lockPath = client.makePath("/lock-test", "test");
 
         CountDownLatch latch = new CountDownLatch(2);
