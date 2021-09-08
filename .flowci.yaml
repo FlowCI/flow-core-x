@@ -20,6 +20,7 @@ steps:
     allow_failure: false
 
   - name: run unit test
+    timeout: 7200
     dockers:
       - image: "maven:3.6-jdk-8"
         is_runtime: true
@@ -34,7 +35,7 @@ steps:
     bash: |
       export FLOWCI_RABBITMQ_URI=amqp://guest:guest@${CONTAINER_IP_3}:5672
       export FLOWCI_MINIO_ENDPOINT=http://${CONTAINER_IP_4}:9000
-      export FLOWCI_ZK_HOST=${CONTAINER_IP_2}
+      export FLOWCI_ZK_HOST=${CONTAINER_IP_2}:2181
       export FLOWCI_MONGODB_URI=mongodb://${CONTAINER_IP_1}:27017/flow_db_ut
 
       echo "${FLOWCI_RABBITMQ_URI}"

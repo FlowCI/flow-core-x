@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.adviser.CrosInterceptor;
 import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.domain.Vars;
-import com.flowci.util.FileHelper;
 import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -38,7 +37,6 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -56,8 +54,7 @@ public class WebConfig {
     private AppProperties appProperties;
 
     @Bean("staticResourceDir")
-    public Path staticResourceDir() throws IOException {
-        FileHelper.createDirectory(appProperties.getSiteDir());
+    public Path staticResourceDir() {
         return appProperties.getSiteDir();
     }
 
