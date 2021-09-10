@@ -75,7 +75,8 @@ public abstract class ZookeeperScenario extends SpringScenario {
         AgentInit init = new AgentInit();
         init.setOs(Common.OS.LINUX);
         init.setStatus(Status.IDLE);
-        init.setK8sCluster(false);
+        init.setIsDocker(false);
+        init.setIsK8sCluster(false);
         init.setPort(2222);
 
         StandardWebSocketSession session = new StandardWebSocketSession(headers, attributes, null, null, null);

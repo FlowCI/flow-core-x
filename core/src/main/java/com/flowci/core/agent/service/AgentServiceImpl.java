@@ -397,7 +397,8 @@ public class AgentServiceImpl implements AgentService {
             Agent target = getByToken(event.getToken());
             AgentInit init = event.getInit();
 
-            target.setK8sCluster(init.getK8sCluster());
+            target.setK8sCluster(init.getIsK8sCluster());
+            target.setDocker(init.getIsDocker());
             target.setUrl("http://" + init.getIp() + ":" + init.getPort());
             target.setOs(init.getOs());
             target.setConnectedAt(Instant.now());

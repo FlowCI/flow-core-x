@@ -27,7 +27,9 @@ import lombok.Setter;
 @Setter
 public class AgentInit {
 
-    private Boolean k8sCluster; // is agent running in k8s cluster
+    private Boolean isK8sCluster; // is agent running in k8s cluster
+
+    private Boolean isDocker; // is agent running from docker
 
     private String token;
 
