@@ -17,7 +17,6 @@
 package com.flowci.core.test.plugin;
 
 import com.flowci.core.plugin.domain.Plugin;
-import com.flowci.core.plugin.domain.PluginRepoInfo;
 import com.flowci.core.plugin.event.RepoCloneEvent;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.core.test.SpringScenario;
@@ -56,17 +55,17 @@ public class PluginServiceTest extends SpringScenario {
     public void mockPluginRepo() throws IOException {
         InputStream load = load("plugin-repo.json");
         stubFor(get(urlPathEqualTo("/plugin/repo.json"))
-            .willReturn(aResponse()
-                .withBody(StringHelper.toString(load))
-                .withHeader("Content-Type", "application/json")));
+                .willReturn(aResponse()
+                        .withBody(StringHelper.toString(load))
+                        .withHeader("Content-Type", "application/json")));
     }
 
     @Test
     public void should_load_plugin_repos_from_url() throws MalformedURLException {
-        List<PluginRepoInfo> repos = pluginService.load(new UrlResource(RepoURL));
+        List<Plugin> repos = pluginService.load(new UrlResource(RepoURL));
         Assert.assertEquals(1, repos.size());
 
-        PluginRepoInfo repo = repos.get(0);
+        Plugin repo = repos.get(0);
         Assert.assertEquals("gitclone", repo.getName());
         Assert.assertEquals("https://github.com/yang-guo-2016/flowci-plugin-gitclone", repo.getSource());
         Assert.assertEquals("git clone plugin", repo.getDescription());
@@ -78,7 +77,7 @@ public class PluginServiceTest extends SpringScenario {
     @Test
     public void should_clone_plugin_repo() throws Throwable {
         // init:
-        List<PluginRepoInfo> repos = pluginService.load(new UrlResource(RepoURL));
+        List<Plugin> repos = pluginService.load(new UrlResource(RepoURL));
 
         // init counter
         CountDownLatch counter = new CountDownLatch(1);

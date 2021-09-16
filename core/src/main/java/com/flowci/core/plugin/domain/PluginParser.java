@@ -36,7 +36,7 @@ import java.util.Set;
 /**
  * @author yang
  */
-public class PluginParser {
+public abstract class PluginParser {
 
     public static Plugin parse(InputStream is) {
         Yaml yaml = YamlHelper.create(PluginWrapper.class);

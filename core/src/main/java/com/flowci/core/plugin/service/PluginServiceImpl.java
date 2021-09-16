@@ -24,7 +24,6 @@ import com.flowci.core.common.manager.VarManager;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.domain.PluginParser;
-import com.flowci.core.plugin.domain.PluginRepoInfo;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.plugin.event.RepoCloneEvent;
@@ -58,7 +57,7 @@ import java.util.*;
 @Component
 public class PluginServiceImpl implements PluginService {
 
-    private static final TypeReference<List<PluginRepoInfo>> RepoListType = new TypeReference<List<PluginRepoInfo>>() {
+    private static final TypeReference<List<Plugin>> RepoListType = new TypeReference<List<Plugin>>() {
     };
 
     private static final String PluginFileName = "plugin.yml";
@@ -196,7 +195,7 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
-    public List<PluginRepoInfo> load(Resource repoUri) {
+    public List<Plugin> load(Resource repoUri) {
         try {
             return objectMapper.readValue(repoUri.getInputStream(), RepoListType);
         } catch (Throwable e) {
@@ -206,10 +205,12 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
-    public void clone(List<PluginRepoInfo> repos) {
+    public void clone(List<Plugin> repos) {
+        // TODO: save to database in the beginning
+
         log.info("Loading plugins");
 
-        for (PluginRepoInfo repo : repos) {
+        for (Plugin repo : repos) {
             appTaskExecutor.execute(() -> {
                 try {
                     Plugin plugin = clone(repo);
@@ -227,7 +228,7 @@ public class PluginServiceImpl implements PluginService {
     public void reload() {
         synchronized (reloadLock) {
             pluginDao.deleteAll();
-            List<PluginRepoInfo> repos = load(pluginProperties.getDefaultRepo());
+            List<Plugin> repos = load(pluginProperties.getDefaultRepo());
             clone(repos);
         }
     }
@@ -252,7 +253,7 @@ public class PluginServiceImpl implements PluginService {
         pluginDao.save(pluginFromRepo);
     }
 
-    private Plugin clone(PluginRepoInfo repo) throws Exception {
+    private Plugin clone(Plugin repo) throws Exception {
         log.info("Start to load plugin: {}", repo);
         Path dir = getPluginRepoDir(repo.getName(), repo.getVersion().toString());
 
@@ -275,7 +276,7 @@ public class PluginServiceImpl implements PluginService {
      *
      * @throws IOException
      */
-    private Plugin load(File dir, PluginRepoInfo info) throws IOException {
+    private Plugin load(File dir, Plugin info) throws IOException {
         Path pluginFile = Paths.get(dir.toString(), PluginFileName);
         if (!Files.exists(pluginFile)) {
             pluginFile = Paths.get(dir.toString(), PluginFileNameAlt);

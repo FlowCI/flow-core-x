@@ -16,15 +16,14 @@
 
 package com.flowci.core.plugin.domain;
 
+import com.flowci.core.common.domain.SourceWithDomain;
 import com.flowci.core.flow.domain.StatsType;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.Input;
 import com.flowci.domain.Version;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.HashSet;
@@ -40,10 +39,30 @@ import java.util.Set;
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"id"}, callSuper = false)
 @Document(collection = "plugins")
-public class Plugin extends PluginRepoInfo {
+@ToString(of = {"name", "version", "branch"})
+public class Plugin extends SourceWithDomain {
 
     @Id
     private String id;
+
+    private boolean synced;
+
+    // the following properties should be loaded from plugin repository.json file
+
+    @Indexed(name = "index_plugins_name", unique = true)
+    private String name;
+
+    private String branch = "master";
+
+    private String description;
+
+    private Set<String> tags = new HashSet<>();
+
+    private String author;
+
+    private Version version;
+
+    // the following properties should be loaded from Plugin yaml file
 
     private List<Input> inputs = new LinkedList<>();
 

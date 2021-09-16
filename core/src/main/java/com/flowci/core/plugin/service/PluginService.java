@@ -17,7 +17,6 @@
 package com.flowci.core.plugin.service;
 
 import com.flowci.core.plugin.domain.Plugin;
-import com.flowci.core.plugin.domain.PluginRepoInfo;
 import com.flowci.domain.Vars;
 import org.springframework.core.io.Resource;
 
@@ -72,12 +71,12 @@ public interface PluginService {
     /**
      * Load plugin repo info
      */
-    List<PluginRepoInfo> load(Resource repoUri);
+    List<Plugin> load(Resource repoUri);
 
     /**
      * Git clone plugin repos in Async
      */
-    void clone(List<PluginRepoInfo> repos);
+    void clone(List<Plugin> repos);
 
     /**
      * Reload default plugin repo
