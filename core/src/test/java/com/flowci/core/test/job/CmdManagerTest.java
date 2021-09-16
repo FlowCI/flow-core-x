@@ -214,9 +214,12 @@ public class CmdManagerTest extends SpringScenario {
 
         Plugin plugin = new Plugin();
         plugin.setName("gittest");
-        plugin.setInputs(Lists.newArrayList(intInput, strInput));
-        plugin.setDocker(option);
-        plugin.setBash("echo ${GIT_DEFAULT_VAL} ${GIT_STR_VAL}");
+
+        Plugin.Meta meta = new Plugin.Meta();
+        meta.setInputs(Lists.newArrayList(intInput, strInput));
+        meta.setDocker(option);
+        meta.setBash("echo ${GIT_DEFAULT_VAL} ${GIT_STR_VAL}");
+        plugin.setMeta(meta);
 
         return plugin;
     }

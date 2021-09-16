@@ -22,7 +22,6 @@ import org.springframework.core.io.Resource;
 
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -69,14 +68,9 @@ public interface PluginService {
     Path getDir(Plugin plugin);
 
     /**
-     * Load plugin repo info
+     * Load plugin repo info from uri, refresh database and clone
      */
-    List<Plugin> load(Resource repoUri);
-
-    /**
-     * Git clone plugin repos in Async
-     */
-    void clone(List<Plugin> repos);
+    void load(Resource repoUri);
 
     /**
      * Reload default plugin repo

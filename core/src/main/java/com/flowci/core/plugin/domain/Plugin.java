@@ -42,6 +42,35 @@ import java.util.Set;
 @ToString(of = {"name", "version", "branch"})
 public class Plugin extends SourceWithDomain {
 
+    /**
+     * Metadata from YAML plugin file
+     */
+    @Data
+    public static class Meta {
+
+        private String name;
+
+        private Version version;
+
+        private List<Input> inputs = new LinkedList<>();
+
+        // output env var name which will write to job context
+        private Set<String> exports = new HashSet<>();
+
+        // Plugin that supported statistic types
+        private List<StatsType> statsTypes = new LinkedList<>();
+
+        private boolean allowFailure;
+
+        private DockerOption docker;
+
+        private String bash;
+
+        private String pwsh;
+
+        private String icon;
+    }
+
     @Id
     private String id;
 
@@ -62,39 +91,10 @@ public class Plugin extends SourceWithDomain {
 
     private Version version;
 
-    // the following properties should be loaded from Plugin yaml file
-
-    private List<Input> inputs = new LinkedList<>();
-
-    // output env var name which will write to job context
-    private Set<String> exports = new HashSet<>();
-
-    // Plugin that supported statistic types
-    private List<StatsType> statsTypes = new LinkedList<>();
-
-    private boolean allowFailure;
-
-    private DockerOption docker;
-
-    private String bash;
-
-    private String pwsh;
-
-    private String icon;
+    private Meta meta;
 
     public Plugin(String name, Version version) {
         this.setName(name);
         this.setVersion(version);
-    }
-
-    public void update(Plugin src) {
-        this.setVersion(src.getVersion());
-        this.setIcon(src.icon);
-        this.setInputs(src.inputs);
-        this.setStatsTypes(src.statsTypes);
-        this.setAllowFailure(src.allowFailure);
-        this.setBash(src.bash);
-        this.setPwsh(src.pwsh);
-        this.setDocker(src.docker);
     }
 }

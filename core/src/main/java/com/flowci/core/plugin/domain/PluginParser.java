@@ -38,10 +38,10 @@ import java.util.Set;
  */
 public abstract class PluginParser {
 
-    public static Plugin parse(InputStream is) {
+    public static Plugin.Meta parse(InputStream is) {
         Yaml yaml = YamlHelper.create(PluginWrapper.class);
         PluginWrapper load = yaml.load(is);
-        return load.toPlugin();
+        return load.toMeta();
     }
 
     @NoArgsConstructor
@@ -71,34 +71,36 @@ public abstract class PluginParser {
 
         public DockerYml docker;
 
-        public Plugin toPlugin() {
-            Plugin plugin = new Plugin(name, Version.parse(version));
-            plugin.setIcon(icon);
-            plugin.setBash(bash);
-            plugin.setPwsh(pwsh);
+        public Plugin.Meta toMeta() {
+            Plugin.Meta meta = new Plugin.Meta();
+            meta.setName(name);
+            meta.setVersion(Version.parse(version));
+            meta.setIcon(icon);
+            meta.setBash(bash);
+            meta.setPwsh(pwsh);
 
-            ObjectsHelper.ifNotNull(docker, val -> plugin.setDocker(val.toDockerOption()));
-            ObjectsHelper.ifNotNull(exports, plugin::setExports);
-            ObjectsHelper.ifNotNull(allow_failure, plugin::setAllowFailure);
+            ObjectsHelper.ifNotNull(docker, val -> meta.setDocker(val.toDockerOption()));
+            ObjectsHelper.ifNotNull(exports, meta::setExports);
+            ObjectsHelper.ifNotNull(allow_failure, meta::setAllowFailure);
             ObjectsHelper.ifNotNull(stats, list -> {
                 for (StatsWrapper wrapper : list) {
-                    plugin.getStatsTypes().add(wrapper.toStatsType());
+                    meta.getStatsTypes().add(wrapper.toStatsType());
                 }
             });
             ObjectsHelper.ifNotNull(inputs, list -> {
                 for (VariableWrapper wrapper : list) {
-                    plugin.getInputs().add(wrapper.toVariable());
+                    meta.getInputs().add(wrapper.toVariable());
                 }
             });
 
             // backward compatible, set script to bash
             if (StringHelper.hasValue(script)) {
                 if (!StringHelper.hasValue(bash)) {
-                    plugin.setBash(script);
+                    meta.setBash(script);
                 }
             }
 
-            return plugin;
+            return meta;
         }
     }
 

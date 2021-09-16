@@ -130,7 +130,7 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public Optional<String> verifyInputAndSetDefaultValue(Plugin plugin, Vars<String> context) {
-        for (Input input : plugin.getInputs()) {
+        for (Input input : plugin.getMeta().getInputs()) {
             String value = context.get(input.getName());
 
             // set default value to context
@@ -182,7 +182,7 @@ public class PluginServiceImpl implements PluginService {
     public byte[] getIcon(Plugin plugin) {
         try {
             Path path = getDir(plugin);
-            return Files.readAllBytes(Paths.get(path.toString(), plugin.getIcon()));
+            return Files.readAllBytes(Paths.get(path.toString(), plugin.getMeta().getIcon()));
         } catch (IOException e) {
             log.warn("Unable to get plugin icon file");
             return EmptyBytes;
@@ -195,41 +195,35 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
-    public List<Plugin> load(Resource repoUri) {
+    public void load(Resource repoUri) {
         try {
-            return objectMapper.readValue(repoUri.getInputStream(), RepoListType);
+            pluginDao.deleteAll();
+
+            List<Plugin> plugins = objectMapper.readValue(repoUri.getInputStream(), RepoListType);
+            pluginDao.insert(plugins);
+
+            for (Plugin plugin : plugins) {
+                appTaskExecutor.execute(() -> {
+                    try {
+                        clone(plugin);
+                        pluginDao.save(plugin);
+                        context.publishEvent(new RepoCloneEvent(this, plugin));
+                        log.info("Plugin {} been clone", plugin);
+                    } catch (Exception e) {
+                        log.warn("Unable to clone plugin repo {} {}", plugin.getSource(), e.getMessage());
+                    }
+                });
+            }
+
         } catch (Throwable e) {
             log.warn("Unable to load plugin repo '{}' : {}", repoUri, e.getMessage());
-            return Collections.emptyList();
-        }
-    }
-
-    @Override
-    public void clone(List<Plugin> repos) {
-        // TODO: save to database in the beginning
-
-        log.info("Loading plugins");
-
-        for (Plugin repo : repos) {
-            appTaskExecutor.execute(() -> {
-                try {
-                    Plugin plugin = clone(repo);
-                    saveOrUpdate(plugin);
-                    context.publishEvent(new RepoCloneEvent(this, plugin));
-                    log.info("Plugin {} been clone", plugin);
-                } catch (Exception e) {
-                    log.warn("Unable to clone plugin repo {} {}", repo.getSource(), e.getMessage());
-                }
-            });
         }
     }
 
     @Override
     public void reload() {
         synchronized (reloadLock) {
-            pluginDao.deleteAll();
-            List<Plugin> repos = load(pluginProperties.getDefaultRepo());
-            clone(repos);
+            load(pluginProperties.getDefaultRepo());
         }
     }
 
@@ -240,74 +234,49 @@ public class PluginServiceImpl implements PluginService {
         }
     }
 
-    private void saveOrUpdate(Plugin pluginFromRepo) {
-        Optional<Plugin> optional = pluginDao.findByName(pluginFromRepo.getName());
-
-        if (optional.isPresent()) {
-            Plugin exist = optional.get();
-            exist.update(pluginFromRepo);
-            pluginDao.save(exist);
-            return;
-        }
-
-        pluginDao.save(pluginFromRepo);
-    }
-
-    private Plugin clone(Plugin repo) throws Exception {
-        log.info("Start to load plugin: {}", repo);
-        Path dir = getPluginRepoDir(repo.getName(), repo.getVersion().toString());
+    private void clone(Plugin plugin) throws Exception {
+        log.info("Start to load plugin: {}", plugin);
+        Path dir = getPluginRepoDir(plugin.getName(), plugin.getVersion().toString());
 
         String rd = appProperties.getResourceDomain();
-        String source = repo.getSourceWithDomain(rd);
+        String source = plugin.getSourceWithDomain(rd);
 
         if (!StringHelper.hasValue(source)) {
-            throw new NotFoundException("Plugin {0} source is missing for domain {1}", repo.getName(), rd);
+            throw new NotFoundException("Plugin {0} source is missing for domain {1}", plugin.getName(), rd);
         }
 
         GitClient client = new GitClient(source, null, null);
-        client.klone(dir, repo.getBranch());
+        client.klone(dir, plugin.getBranch());
 
-        return load(dir.toFile(), repo);
+        setMetaFromYamlFile(dir.toFile(), plugin);
+        plugin.setSynced(true);
     }
 
-    /**
-     * Load plugin.yml from local repo
-     * and convert to Plugin object
-     *
-     * @throws IOException
-     */
-    private Plugin load(File dir, Plugin info) throws IOException {
+    private void setMetaFromYamlFile(File dir, Plugin plugin) throws IOException {
         Path pluginFile = Paths.get(dir.toString(), PluginFileName);
         if (!Files.exists(pluginFile)) {
             pluginFile = Paths.get(dir.toString(), PluginFileNameAlt);
             if (!Files.exists(pluginFile)) {
-                throw new NotFoundException("The 'plugin.yml' not found in plugin repo {0}", info.getSource());
+                throw new NotFoundException("The 'plugin.yml' not found in plugin repo {0}", plugin.getSource());
             }
         }
 
         byte[] ymlInBytes = Files.readAllBytes(pluginFile);
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(ymlInBytes)) {
-            Plugin plugin = PluginParser.parse(inputStream);
+            Plugin.Meta meta = PluginParser.parse(inputStream);
 
-            if (!info.getName().equals(plugin.getName())) {
+            if (!plugin.getName().equals(meta.getName())) {
                 throw new ArgumentException(
-                        "Plugin name {0} not match the name defined in repo {1}", plugin.getName(), info.getName());
+                        "Plugin name {0} not match the name defined in repo {1}", plugin.getName(), plugin.getName());
             }
 
-            if (!info.getVersion().equals(plugin.getVersion())) {
+            if (!plugin.getVersion().equals(meta.getVersion())) {
                 throw new ArgumentException(
                         "Plugin {0} version {1} not match the name defined in repo {2}",
-                        plugin.getName(), plugin.getVersion().toString(), info.getVersion().toString());
+                        plugin.getName(), plugin.getVersion().toString(), plugin.getVersion().toString());
             }
 
-            // tags load from repo info obj
-            plugin.setAuthor(info.getAuthor());
-            plugin.setBranch(info.getBranch());
-            plugin.setDescription(info.getDescription());
-            plugin.setSource(info.getSource());
-            plugin.setTags(info.getTags());
-
-            return plugin;
+            plugin.setMeta(meta);
         }
     }
 
