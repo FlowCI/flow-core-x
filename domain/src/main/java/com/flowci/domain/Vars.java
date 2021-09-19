@@ -36,6 +36,14 @@ import java.util.Objects;
 })
 public abstract class Vars<V> extends LinkedHashMap<String, V> implements Serializable {
 
+    /**
+     * Jackson mixin to ignore meta type for Vars
+     */
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
+    public interface Mixin {
+
+    }
+
     public static final String JSON_TYPE_FIELD = "_TYPE_";
 
     public static final String JSON_STRING_TYPE = "_string_";

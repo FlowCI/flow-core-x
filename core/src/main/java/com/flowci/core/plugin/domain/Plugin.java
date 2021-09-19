@@ -16,6 +16,8 @@
 
 package com.flowci.core.plugin.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.flowci.core.common.domain.SourceWithDomain;
 import com.flowci.core.flow.domain.StatsType;
 import com.flowci.domain.DockerOption;
@@ -41,6 +43,13 @@ import java.util.Set;
 @Document(collection = "plugins")
 @ToString(of = {"name", "version", "branch"})
 public class Plugin extends SourceWithDomain {
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
+    public interface RestResponse {
+
+        @JsonIgnore
+        Meta getMeta();
+    }
 
     /**
      * Metadata from YAML plugin file
