@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.*;
 
 /**
@@ -249,7 +250,9 @@ public class PluginServiceImpl implements PluginService {
         client.klone(dir, plugin.getBranch());
 
         setMetaFromYamlFile(dir.toFile(), plugin);
+
         plugin.setSynced(true);
+        plugin.setSyncTime(Date.from(Instant.now()));
     }
 
     private void setMetaFromYamlFile(File dir, Plugin plugin) throws IOException {

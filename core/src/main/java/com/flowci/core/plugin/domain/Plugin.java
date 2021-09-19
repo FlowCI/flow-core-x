@@ -28,10 +28,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author yang
@@ -84,6 +81,8 @@ public class Plugin extends SourceWithDomain {
     private String id;
 
     private boolean synced;
+
+    private Date syncTime;
 
     // the following properties should be loaded from plugin repository.json file
 
