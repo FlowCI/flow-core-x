@@ -89,7 +89,7 @@ public class WebConfig {
 
                 ObjectMapper mapperForHttp = JacksonHelper.create();
                 mapperForHttp.addMixIn(Vars.class, Vars.Mixin.class);
-                mapperForHttp.addMixIn(Plugin.class, Plugin.RestResponse.class);
+                mapperForHttp.addMixIn(Plugin.Meta.class, Plugin.Meta.RestResponse.class);
 
                 final List<HttpMessageConverter<?>> DefaultConverters = ImmutableList.of(
                         new ByteArrayHttpMessageConverter(),

@@ -41,18 +41,40 @@ import java.util.*;
 @ToString(of = {"name", "version", "branch"})
 public class Plugin extends SourceWithDomain {
 
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
-    public interface RestResponse {
-
-        @JsonIgnore
-        Meta getMeta();
-    }
-
     /**
      * Metadata from YAML plugin file
      */
     @Data
     public static class Meta {
+
+        @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
+        public interface RestResponse {
+
+            @JsonIgnore
+            String getName();
+
+            @JsonIgnore
+            String getVersion();
+
+            @JsonIgnore
+            List<Input> getInputs();
+
+            @JsonIgnore
+            Set<String> getExports();
+
+            @JsonIgnore
+            List<StatsType> getStatsTypes();
+
+            @JsonIgnore
+            boolean isAllowFailure();
+
+            @JsonIgnore
+            String getBash();
+
+            @JsonIgnore
+            String getPwsh();
+        }
+
 
         private String name;
 
