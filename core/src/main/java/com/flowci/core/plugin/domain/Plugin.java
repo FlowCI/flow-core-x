@@ -16,21 +16,19 @@
 
 package com.flowci.core.plugin.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.flowci.core.common.domain.SourceWithDomain;
 import com.flowci.core.flow.domain.StatsType;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.Input;
 import com.flowci.domain.Version;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author yang
@@ -40,42 +38,93 @@ import java.util.Set;
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"id"}, callSuper = false)
 @Document(collection = "plugins")
-public class Plugin extends PluginRepoInfo {
+@ToString(of = {"name", "version", "branch"})
+public class Plugin extends SourceWithDomain {
+
+    /**
+     * Metadata from YAML plugin file
+     */
+    @Data
+    public static class Meta {
+
+        @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
+        public interface RestResponse {
+
+            @JsonIgnore
+            String getName();
+
+            @JsonIgnore
+            String getVersion();
+
+            @JsonIgnore
+            List<Input> getInputs();
+
+            @JsonIgnore
+            Set<String> getExports();
+
+            @JsonIgnore
+            List<StatsType> getStatsTypes();
+
+            @JsonIgnore
+            boolean isAllowFailure();
+
+            @JsonIgnore
+            String getBash();
+
+            @JsonIgnore
+            String getPwsh();
+        }
+
+
+        private String name;
+
+        private Version version;
+
+        private List<Input> inputs = new LinkedList<>();
+
+        // output env var name which will write to job context
+        private Set<String> exports = new HashSet<>();
+
+        // Plugin that supported statistic types
+        private List<StatsType> statsTypes = new LinkedList<>();
+
+        private boolean allowFailure;
+
+        private DockerOption docker;
+
+        private String bash;
+
+        private String pwsh;
+
+        private String icon;
+    }
 
     @Id
     private String id;
 
-    private List<Input> inputs = new LinkedList<>();
+    private boolean synced;
 
-    // output env var name which will write to job context
-    private Set<String> exports = new HashSet<>();
+    private Date syncTime;
 
-    // Plugin that supported statistic types
-    private List<StatsType> statsTypes = new LinkedList<>();
+    // the following properties should be loaded from plugin repository.json file
 
-    private boolean allowFailure;
+    @Indexed(name = "index_plugins_name", unique = true)
+    private String name;
 
-    private DockerOption docker;
+    private String branch = "master";
 
-    private String bash;
+    private String description;
 
-    private String pwsh;
+    private Set<String> tags = new HashSet<>();
 
-    private String icon;
+    private String author;
+
+    private Version version;
+
+    private Meta meta;
 
     public Plugin(String name, Version version) {
         this.setName(name);
         this.setVersion(version);
-    }
-
-    public void update(Plugin src) {
-        this.setVersion(src.getVersion());
-        this.setIcon(src.icon);
-        this.setInputs(src.inputs);
-        this.setStatsTypes(src.statsTypes);
-        this.setAllowFailure(src.allowFailure);
-        this.setBash(src.bash);
-        this.setPwsh(src.pwsh);
-        this.setDocker(src.docker);
     }
 }

@@ -110,13 +110,13 @@ public class CmdManagerImpl implements CmdManager {
 
         Plugin plugin = event.getFetched();
         cmd.setPlugin(name);
-        cmd.setAllowFailure(plugin.isAllowFailure());
-        cmd.addEnvFilters(plugin.getExports());
-        cmd.addScript(plugin.getBash(), ShellIn.ShellType.Bash);
-        cmd.addScript(plugin.getPwsh(), ShellIn.ShellType.PowerShell);
+        cmd.setAllowFailure(plugin.getMeta().isAllowFailure());
+        cmd.addEnvFilters(plugin.getMeta().getExports());
+        cmd.addScript(plugin.getMeta().getBash(), ShellIn.ShellType.Bash);
+        cmd.addScript(plugin.getMeta().getPwsh(), ShellIn.ShellType.PowerShell);
 
         // apply docker from plugin as run time if it's specified
-        ObjectsHelper.ifNotNull(plugin.getDocker(), (docker) -> {
+        ObjectsHelper.ifNotNull(plugin.getMeta().getDocker(), (docker) -> {
             Iterator<DockerOption> iterator = cmd.getDockers().iterator();
             while (iterator.hasNext()) {
                 DockerOption option = iterator.next();
@@ -125,7 +125,7 @@ public class CmdManagerImpl implements CmdManager {
                     break;
                 }
             }
-            cmd.getDockers().add(plugin.getDocker());
+            cmd.getDockers().add(plugin.getMeta().getDocker());
         });
     }
 

@@ -16,16 +16,17 @@
 
 package com.flowci.core.test.plugin;
 
-import com.flowci.core.plugin.domain.*;
+import com.flowci.core.plugin.domain.Plugin;
+import com.flowci.core.plugin.domain.PluginParser;
 import com.flowci.domain.Input;
 import com.flowci.domain.VarType;
 import com.flowci.domain.Version;
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * @author yang
@@ -35,15 +36,15 @@ public class PluginParserTest {
     @Test
     public void should_parse_yml_to_plugin() {
         InputStream is = PluginParserTest.class.getClassLoader().getResourceAsStream("plugin.yml");
-        Plugin plugin = PluginParser.parse(is);
-        Assert.assertNotNull(plugin);
+        Plugin.Meta meta = PluginParser.parse(is);
+        Assert.assertNotNull(meta);
 
-        Assert.assertEquals(1, plugin.getStatsTypes().size());
-        Assert.assertEquals("gitclone", plugin.getName());
-        Assert.assertEquals(Version.of(0, 0, 1, null), plugin.getVersion());
-        Assert.assertEquals("src/icon.svg", plugin.getIcon());
+        Assert.assertEquals(1, meta.getStatsTypes().size());
+        Assert.assertEquals("gitclone", meta.getName());
+        Assert.assertEquals(Version.of(0, 0, 1, null), meta.getVersion());
+        Assert.assertEquals("src/icon.svg", meta.getIcon());
 
-        List<Input> inputs = plugin.getInputs();
+        List<Input> inputs = meta.getInputs();
         Assert.assertEquals(4, inputs.size());
 
         Input varForTimeout = inputs.get(3);
@@ -52,16 +53,16 @@ public class PluginParserTest {
         Assert.assertEquals(VarType.INT, varForTimeout.getType());
         Assert.assertEquals(60, varForTimeout.getIntDefaultValue());
 
-        Set<String> exports = plugin.getExports();
+        Set<String> exports = meta.getExports();
         Assert.assertEquals(2, exports.size());
         Assert.assertTrue(exports.contains("VAR_EXPORT_1"));
         Assert.assertTrue(exports.contains("VAR_EXPORT_2"));
 
-        String pwsh = plugin.getPwsh();
+        String pwsh = meta.getPwsh();
         Assert.assertNotNull(pwsh);
         Assert.assertEquals("$Env.PK_FILE=keyfile", pwsh.trim());
 
-        String bash = plugin.getBash();
+        String bash = meta.getBash();
         Assert.assertNotNull(bash);
         Assert.assertEquals("chmod 400 ${PK_FILE}", bash.trim());
     }

@@ -63,7 +63,7 @@ public class PluginController {
     public String getPluginIcon(@PathVariable String name) {
         Plugin plugin = pluginService.get(name);
 
-        if (StringHelper.isHttpLink(plugin.getIcon())) {
+        if (StringHelper.isHttpLink(plugin.getMeta().getIcon())) {
             return StringHelper.EMPTY;
         }
 
