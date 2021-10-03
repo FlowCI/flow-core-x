@@ -238,11 +238,9 @@ public class StepServiceImpl implements StepService {
     }
 
     private static Step newInstance(Job job, Node node) {
-        String cmdId = job.getId() + node.getPathAsString();
         Node parent = node.getParent();
 
         Step step = new Step()
-                .setId(StringHelper.toBase64(cmdId))
                 .setFlowId(job.getFlowId())
                 .setBuildNumber(job.getBuildNumber())
                 .setJobId(job.getId())
