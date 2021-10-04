@@ -293,7 +293,7 @@ public class JobServiceImpl implements JobService {
             log.info("Deleted: {} jobs of flow {}", numOfJobDeleted, flow.getName());
 
             Long numOfStepDeleted = stepService.delete(flow);
-            log.info("Deleted: {} steps of flow {}", numOfStepDeleted, flow.getName());g
+            log.info("Deleted: {} steps of flow {}", numOfStepDeleted, flow.getName());
 
             eventManager.publish(new JobDeletedEvent(this, flow, numOfJobDeleted));
         });
