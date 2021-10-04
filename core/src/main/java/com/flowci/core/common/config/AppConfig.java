@@ -58,10 +58,12 @@ public class AppConfig {
     private AppProperties appProperties;
 
     @PostConstruct
-    private void initWorkspace() throws IOException {
-        Path path = appProperties.getWorkspace();
-        FileHelper.createDirectory(path);
+    private void initDirs() throws IOException {
+        Path ws = appProperties.getWorkspace();
+        FileHelper.createDirectory(ws);
         FileHelper.createDirectory(tmpDir());
+        FileHelper.createDirectory(appProperties.getFlowDir());
+        FileHelper.createDirectory(appProperties.getSiteDir());
     }
 
     @PostConstruct

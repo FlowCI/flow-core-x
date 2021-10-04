@@ -68,7 +68,7 @@ public class RabbitOperations implements AutoCloseable {
     }
 
     public void declareTemp(String queue) throws IOException {
-        this.channel.queueDeclare(queue, false, true, true, null);
+        this.channel.queueDeclare(queue, false, false, true, null);
     }
 
     public void declare(String queue, boolean durable, Integer maxPriority, String dlExName) throws IOException {

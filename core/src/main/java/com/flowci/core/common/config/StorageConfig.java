@@ -19,7 +19,6 @@ package com.flowci.core.common.config;
 import com.flowci.store.FileManager;
 import com.flowci.store.LocalFileManager;
 import com.flowci.store.MinioFileManager;
-import com.flowci.util.FileHelper;
 import io.minio.MinioClient;
 import io.minio.errors.InvalidEndpointException;
 import io.minio.errors.InvalidPortException;
@@ -29,10 +28,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Path;
 
 @Configuration
 public class StorageConfig {
@@ -42,12 +38,6 @@ public class StorageConfig {
 
     @Autowired
     private AppProperties.Minio minioProperties;
-
-    @PostConstruct
-    private void initFlowDir() throws IOException {
-        Path path = appProperties.getFlowDir();
-        FileHelper.createDirectory(path);
-    }
 
     @Bean("fileManager")
     @ConditionalOnProperty(name = "app.minio.enabled", havingValue = "true")

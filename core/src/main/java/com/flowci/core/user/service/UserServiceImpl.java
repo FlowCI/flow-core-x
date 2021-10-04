@@ -125,10 +125,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(cacheManager = "userCacheManager", value = UserCacheName, key = "#email")
     public void changeRole(String email, Role newRole) {
         User user = getByEmail(email);
         if (user.isDefaultAdmin()) {
-            throw new StatusException("Default admin user role cannot be deleted");
+            throw new StatusException("Default admin user role cannot be changed");
         }
 
         if (user.getRole().equals(newRole)) {

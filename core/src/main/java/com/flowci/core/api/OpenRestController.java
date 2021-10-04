@@ -17,7 +17,6 @@
 
 package com.flowci.core.api;
 
-import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.api.domain.AddStatsItem;
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
@@ -57,9 +56,6 @@ public class OpenRestController {
 
     @Autowired
     private OpenRestService openRestService;
-
-    @Autowired
-    private AgentService agentService;
 
     @Autowired
     private LoggingService loggingService;

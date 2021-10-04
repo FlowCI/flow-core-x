@@ -19,20 +19,19 @@ package com.flowci.core.test.flow;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.StatusCode;
-import com.flowci.core.common.domain.http.RequestMessage;
 import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.flow.domain.ConfirmOption;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.job.domain.CreateJob;
+import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.VarValue;
+import com.flowci.util.StringHelper;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +50,11 @@ public class FlowMockHelper {
             new TypeReference<ResponseMessage<List<Flow>>>() {
             };
 
-    static final TypeReference<ResponseMessage<String>> FlowYmlType =
+    static final TypeReference<ResponseMessage<List<Yml>>> FlowYmlNameListType =
+            new TypeReference<ResponseMessage<List<Yml>>>() {
+            };
+
+    static final TypeReference<ResponseMessage<String>> FlowYmlContentType =
             new TypeReference<ResponseMessage<String>>() {
             };
 
@@ -75,7 +78,7 @@ public class FlowMockHelper {
         response = mockMvcHelper.expectSuccessAndReturnClass(
                 post("/flows/" + name + "/confirm")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new ConfirmOption().setYaml(yml))),
+                        .content(objectMapper.writeValueAsBytes(new ConfirmOption().setYaml(StringHelper.toBase64(yml)))),
                 FlowType);
         Assert.assertEquals(StatusCode.OK, response.getCode());
 

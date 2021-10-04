@@ -7,11 +7,13 @@ import com.flowci.docker.domain.*;
 import com.flowci.util.StringHelper;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.InputStream;
 import java.util.List;
 
+@Ignore
 public class K8sManagerTest {
 
     private final String podName = "my-test-pod";

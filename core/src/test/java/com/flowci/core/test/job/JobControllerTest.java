@@ -20,16 +20,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.JsonablePage;
 import com.flowci.core.common.domain.StatusCode;
-import com.flowci.core.job.domain.CreateJob;
-import com.flowci.core.job.domain.Executed.Status;
-import com.flowci.core.job.domain.Step;
-import com.flowci.core.job.domain.Job;
-import com.flowci.core.job.domain.JobItem;
+import com.flowci.core.common.domain.http.ResponseMessage;
+import com.flowci.core.job.domain.*;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.test.flow.FlowMockHelper;
-import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.util.StringHelper;
 import org.junit.Assert;
 import org.junit.Before;
@@ -166,11 +162,12 @@ public class JobControllerTest extends SpringScenario {
                 .expectSuccessAndReturnClass(get("/jobs/hello-flow/1/steps"), JobStepsType);
         Assert.assertEquals(StatusCode.OK, message.getCode());
 
-        // then:
+        // then: should have 3 steps include root step
         List<Step> steps = message.getData();
-        Assert.assertEquals(2, steps.size());
-        Assert.assertEquals(Status.PENDING, steps.get(0).getStatus());
-        Assert.assertEquals(Status.PENDING, steps.get(1).getStatus());
+        Assert.assertEquals(3, steps.size());
+        for (Step s : steps) {
+            Assert.assertEquals(Step.Status.PENDING, s.getStatus());
+        }
     }
 
     public Job createJobForFlow(String name) throws Exception {

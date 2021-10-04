@@ -17,13 +17,11 @@
 package com.flowci.core.plugin.service;
 
 import com.flowci.core.plugin.domain.Plugin;
-import com.flowci.core.plugin.domain.PluginRepoInfo;
 import com.flowci.domain.Vars;
 import org.springframework.core.io.Resource;
 
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -70,14 +68,9 @@ public interface PluginService {
     Path getDir(Plugin plugin);
 
     /**
-     * Load plugin repo info
+     * Load plugin repo info from uri, refresh database and clone
      */
-    List<PluginRepoInfo> load(Resource repoUri);
-
-    /**
-     * Git clone plugin repos in Async
-     */
-    void clone(List<PluginRepoInfo> repos);
+    void load(Resource repoUri);
 
     /**
      * Reload default plugin repo
