@@ -146,9 +146,6 @@ public class JobActionServiceImpl implements JobActionService {
     private ConditionManager conditionManager;
 
     @Autowired
-    private LocalTaskService localTaskService;
-
-    @Autowired
     private JobService jobService;
 
     @Autowired
@@ -781,7 +778,6 @@ public class JobActionServiceImpl implements JobActionService {
     private void setupJobYamlAndSteps(Job job, String yml) {
         ymlManager.create(job, yml);
         stepService.init(job);
-        localTaskService.init(job);
 
         FlowNode root = ymlManager.parse(yml);
         job.getContext().merge(root.getEnvironments(), false);
@@ -1178,8 +1174,6 @@ public class JobActionServiceImpl implements JobActionService {
 
             JobAgent agents = getJobAgent(job.getId());
             agentService.release(agents.all());
-
-            localTaskService.executeAsync(job);
         }
     }
 
