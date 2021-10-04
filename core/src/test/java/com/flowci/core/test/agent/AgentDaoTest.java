@@ -1,12 +1,12 @@
 package com.flowci.core.test.agent;
 
 import com.flowci.core.agent.dao.AgentDao;
-import com.flowci.core.test.SpringScenario;
 import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.test.SpringScenario;
 import com.google.common.collect.Sets;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.Assert;
 
 import java.util.List;
 

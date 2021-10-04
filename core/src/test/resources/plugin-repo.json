@@ -1,10 +1,13 @@
 [
   {
     "name": "gitclone",
-    "source": "https://github.com/yang-guo-2016/flowci-plugin-gitclone",
+    "source": "https://github.com/flowci-plugins/gitclone.git",
+    "source_cn": "https://gitee.com/flowci-plugins/gitclone.git",
     "description": "git clone plugin",
-    "tags": ["git", "clone"],
-    "author": "gy@flow.ci",
-    "version": "0.0.1"
+    "tags": [
+      "git"
+    ],
+    "author": "32008001@qq.com",
+    "version": "1.0.0"
   }
 ]

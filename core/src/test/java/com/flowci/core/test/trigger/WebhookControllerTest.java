@@ -16,8 +16,6 @@
 
 package com.flowci.core.test.trigger;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.test.MockMvcHelper;
@@ -25,14 +23,17 @@ import com.flowci.core.test.SpringScenario;
 import com.flowci.core.test.flow.FlowMockHelper;
 import com.flowci.domain.ObjectWrapper;
 import com.flowci.util.StringHelper;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.http.MediaType;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 /**
  * @author yang
@@ -75,7 +76,7 @@ public class WebhookControllerTest extends SpringScenario {
 
     @Test
     public void should_not_start_job_form_github_push_event_since_branch_not_match() throws Exception {
-        String yml = StringHelper.toString(load("flow-with-filter.yml"));
+        String yml = StringHelper.toString(load("flow-with-condition-dev-branch.yml"));
         flowMockHelper.create("github-test", yml);
         String payload = StringHelper.toString(load("github/webhook_push.json"));
 

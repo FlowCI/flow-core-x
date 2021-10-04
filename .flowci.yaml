@@ -1,0 +1,63 @@
+#
+# Maven Project Template
+#
+
+envs:
+  # Git config
+  FLOWCI_GIT_URL: "https://github.com/FlowCI/flow-core-x.git"
+
+  ## Credential name if git repo url is ssh or login required for http
+  # FLOWCI_GIT_CREDENTIAL: "the credentail name your created"
+
+docker:
+  image: "maven:3.6-jdk-8"
+
+steps:
+  - name: clone
+    plugin: 'gitclone'
+    envs:
+      FLOWCI_GITCLONE_TIMEOUT: 600
+    allow_failure: false
+
+  - name: run unit test
+    timeout: 7200
+    dockers:
+      - image: "maven:3.6-jdk-8"
+        is_runtime: true
+      - image: mongo:4.2
+      - image: zookeeper:3.6
+      - image: rabbitmq:3-management
+      - image: minio/minio:RELEASE.2021-06-07T21-40-51Z
+        environment:
+          MINIO_ACCESS_KEY: minio
+          MINIO_SECRET_KEY: minio123
+        command: ["server", "/data"]
+    bash: |
+      export FLOWCI_RABBITMQ_URI=amqp://guest:guest@${CONTAINER_IP_3}:5672
+      export FLOWCI_MINIO_ENDPOINT=http://${CONTAINER_IP_4}:9000
+      export FLOWCI_ZK_HOST=${CONTAINER_IP_2}:2181
+      export FLOWCI_MONGODB_URI=mongodb://${CONTAINER_IP_1}:27017/flow_db_ut
+
+      echo "${FLOWCI_RABBITMQ_URI}"
+      echo "${FLOWCI_MINIO_ENDPOINT}"
+      echo "${FLOWCI_ZK_HOST}"
+      echo "${FLOWCI_MONGODB_URI}"
+    envs:
+      MVN_CMD: "mvn clean test"
+    plugin: 'maven-runner'
+
+  - name: junit upload
+    plugin: "junit-report-uploader"
+
+  - name: jacoco upload
+    plugin: "jacoco-report-uploader"
+
+  - name: package
+    envs:
+      MVN_CMD: "mvn package -Dmaven.test.skip=true"
+    plugin: 'maven-runner'
+
+  - name: upload
+    envs:
+      artifact_pattern: "*.jar"
+    plugin: 'artifact-upload'

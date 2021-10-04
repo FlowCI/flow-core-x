@@ -124,7 +124,7 @@ public class StatsServiceImpl implements StatsService {
             for (String pluginName : tree.getPlugins()) {
                 try {
                     Plugin plugin = pluginService.get(pluginName);
-                    list.addAll(plugin.getStatsTypes());
+                    list.addAll(plugin.getMeta().getStatsTypes());
                 } catch (NotFoundException ignore) {
 
                 }

@@ -78,7 +78,9 @@ public class Agent extends Mongoable {
      */
     private String hostId;
 
-    private boolean k8sCluster;
+    private boolean isK8sCluster;
+
+    private boolean isDocker;
 
     private OS os = OS.UNKNOWN;
 

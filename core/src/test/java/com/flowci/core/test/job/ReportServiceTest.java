@@ -59,7 +59,8 @@ public class ReportServiceTest extends SpringScenario {
         report.setContentType(JobOutput.ContentType.HTML);
 
         Mockito.when(jobReportDao.findById(report.getId())).thenReturn(Optional.of(report));
-        Mockito.when(fileManager.read(Mockito.any())).thenReturn(new ByteArrayInputStream("content".getBytes()));
+        Mockito.when(fileManager.read(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(new ByteArrayInputStream("content".getBytes()));
 
         String urlPath = reportService.fetch(job, report.getId());
         Assert.assertNotNull(urlPath);

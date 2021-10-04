@@ -17,12 +17,10 @@
 package com.flowci.core.test.plugin;
 
 import com.flowci.core.plugin.domain.Plugin;
-import com.flowci.core.plugin.domain.PluginRepoInfo;
 import com.flowci.core.plugin.event.RepoCloneEvent;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.ObjectWrapper;
-import com.flowci.domain.Version;
 import com.flowci.util.StringHelper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.*;
@@ -32,8 +30,6 @@ import org.springframework.core.io.UrlResource;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -56,30 +52,13 @@ public class PluginServiceTest extends SpringScenario {
     public void mockPluginRepo() throws IOException {
         InputStream load = load("plugin-repo.json");
         stubFor(get(urlPathEqualTo("/plugin/repo.json"))
-            .willReturn(aResponse()
-                .withBody(StringHelper.toString(load))
-                .withHeader("Content-Type", "application/json")));
+                .willReturn(aResponse()
+                        .withBody(StringHelper.toString(load))
+                        .withHeader("Content-Type", "application/json")));
     }
 
-    @Test
-    public void should_load_plugin_repos_from_url() throws MalformedURLException {
-        List<PluginRepoInfo> repos = pluginService.load(new UrlResource(RepoURL));
-        Assert.assertEquals(1, repos.size());
-
-        PluginRepoInfo repo = repos.get(0);
-        Assert.assertEquals("gitclone", repo.getName());
-        Assert.assertEquals("https://github.com/yang-guo-2016/flowci-plugin-gitclone", repo.getSource());
-        Assert.assertEquals("git clone plugin", repo.getDescription());
-        Assert.assertEquals("gy@flow.ci", repo.getAuthor());
-        Assert.assertEquals(Version.parse("0.0.1"), repo.getVersion());
-    }
-
-    @Ignore
     @Test
     public void should_clone_plugin_repo() throws Throwable {
-        // init:
-        List<PluginRepoInfo> repos = pluginService.load(new UrlResource(RepoURL));
-
         // init counter
         CountDownLatch counter = new CountDownLatch(1);
         ObjectWrapper<Plugin> pluginWrapper = new ObjectWrapper<>();
@@ -89,7 +68,7 @@ public class PluginServiceTest extends SpringScenario {
         });
 
         // when:
-        pluginService.clone(repos);
+        pluginService.load(new UrlResource(RepoURL));
         counter.await(30, TimeUnit.SECONDS);
 
         // then:

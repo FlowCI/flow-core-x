@@ -4,7 +4,7 @@ import com.flowci.core.agent.domain.AgentProfile;
 import lombok.Getter;
 
 @Getter
-public class OnAgentProfileEvent extends EventFromClient {
+public class OnAgentProfileEvent extends EventFromAgent {
 
     private final AgentProfile profile;
 

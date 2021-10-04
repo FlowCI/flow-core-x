@@ -5,9 +5,9 @@ import com.flowci.core.job.domain.JobAgent;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.ParallelStepNode;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.Assert;
 
 import java.util.List;
 import java.util.Optional;

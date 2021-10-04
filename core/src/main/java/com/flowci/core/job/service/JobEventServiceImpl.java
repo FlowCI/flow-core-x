@@ -23,16 +23,12 @@ import com.flowci.core.agent.domain.ShellOut;
 import com.flowci.core.agent.domain.TtyCmd;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.OnCmdOutEvent;
-import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.common.rabbit.RabbitOperations;
-import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
-import com.flowci.core.flow.event.FlowInitEvent;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.CreateNewJobEvent;
+import com.flowci.core.job.event.JobActionEvent;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.Errors;
@@ -43,7 +39,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -52,16 +47,10 @@ import java.util.Arrays;
 public class JobEventServiceImpl implements JobEventService {
 
     @Autowired
-    private AppProperties.RabbitMQ rabbitProperties;
-
-    @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
     private SpringEventManager eventManager;
-
-    @Autowired
-    private RabbitOperations jobsQueueManager;
 
     @Autowired
     private JobActionService jobActionService;
@@ -81,42 +70,21 @@ public class JobEventServiceImpl implements JobEventService {
     @Autowired
     private StepService stepService;
 
-    @PostConstruct
-    public void startJobDeadLetterConsumer() throws IOException {
-        String deadLetterQueue = rabbitProperties.getJobDlQueue();
-        jobsQueueManager.startConsumer(deadLetterQueue, true, (header, body, envelope) -> {
-            String jobId = new String(body);
-            try {
-                jobActionService.toTimeout(jobId);
-            } catch (Exception e) {
-                log.warn(e);
-            }
-            return false;
-        }, null);
-    }
-
-    //====================================================================
-    //        %% Internal events
-    //====================================================================
-
-    @EventListener
-    public void startJobQueueConsumers(FlowInitEvent event) {
-        for (Flow flow : event.getFlows()) {
-            declareJobQueueAndStartConsumer(flow);
-        }
-    }
-
-    @EventListener
-    public void onFlowCreated(FlowCreatedEvent event) {
-        declareJobQueueAndStartConsumer(event.getFlow());
-    }
-
     @EventListener
     public void onFlowDeleted(FlowDeletedEvent event) {
-        Flow flow = event.getFlow();
-        String queue = flow.getQueueName();
-        jobsQueueManager.removeConsumer(queue);
         jobService.delete(event.getFlow());
+    }
+
+    @EventListener
+    public void onJobAction(JobActionEvent event) {
+        if (event.isToRun()) {
+            jobActionService.toRun(event.getJobId());
+            return;
+        }
+
+        if (event.isToTimeOut()) {
+            jobActionService.toTimeout(event.getJobId());
+        }
     }
 
     @EventListener
@@ -190,28 +158,5 @@ public class JobEventServiceImpl implements JobEventService {
     public void handleCallback(ShellOut so) {
         String jobId = stepService.get(so.getId()).getJobId();
         jobActionService.toContinue(jobId, so);
-    }
-
-    //====================================================================
-    //        %% Utils
-    //====================================================================
-
-    private void declareJobQueueAndStartConsumer(Flow flow) {
-        try {
-            final String queue = flow.getQueueName();
-            jobsQueueManager.declare(queue, true, 255, rabbitProperties.getJobDlExchange());
-
-            jobsQueueManager.startConsumer(queue, false, (header, body, envelope) -> {
-                try {
-                    String jobId = new String(body);
-                    jobActionService.toRun(jobId);
-                } catch (Exception e) {
-                    log.warn(e);
-                }
-                return true;
-            }, appTaskExecutor);
-        } catch (IOException e) {
-            log.warn(e);
-        }
     }
 }
