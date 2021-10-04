@@ -13,7 +13,7 @@
 
 <div align="center">
 
-**English | [简体中文](./README-cn.md)**
+**English | [简体中文](https://github.com/FlowCI/docs/blob/master/README-cn.md)**
 
 </div>
 
