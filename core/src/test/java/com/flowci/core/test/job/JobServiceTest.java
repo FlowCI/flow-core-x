@@ -36,9 +36,11 @@ import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
-import com.flowci.core.job.event.StartAsyncLocalTaskEvent;
 import com.flowci.core.job.manager.YmlManager;
-import com.flowci.core.job.service.*;
+import com.flowci.core.job.service.JobActionService;
+import com.flowci.core.job.service.JobEventService;
+import com.flowci.core.job.service.JobService;
+import com.flowci.core.job.service.StepService;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.test.ZookeeperScenario;
@@ -54,10 +56,7 @@ import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.mockito.Mockito;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationListener;
 
 import java.io.IOException;
@@ -114,9 +113,6 @@ public class JobServiceTest extends ZookeeperScenario {
 
     @Autowired
     private YmlManager ymlManager;
-
-    @MockBean
-    private LocalTaskService localTaskManager;
 
     private Flow flow;
 
@@ -232,14 +228,6 @@ public class JobServiceTest extends ZookeeperScenario {
 
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
 
-        CountDownLatch localTaskCountDown = new CountDownLatch(1);
-        Mockito.doAnswer((Answer<Void>) invocation -> {
-            localTaskCountDown.countDown();
-            return null;
-        }).when(localTaskManager).executeAsync(Mockito.any());
-
-        addEventListener((ApplicationListener<StartAsyncLocalTaskEvent>) event -> localTaskCountDown.countDown());
-
         FlowNode root = YmlParser.load(yml.getRaw());
         NodeTree tree = NodeTree.create(root);
 
@@ -338,7 +326,6 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // // then: should job with SUCCESS status and sent notification task
         Assert.assertEquals(Status.SUCCESS, jobService.get(job.getId()).getStatus());
-        Assert.assertTrue(localTaskCountDown.await(60, TimeUnit.SECONDS));
     }
 
     @Test

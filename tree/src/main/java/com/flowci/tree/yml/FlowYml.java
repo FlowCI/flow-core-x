@@ -41,8 +41,6 @@ public class FlowYml extends YmlBase<FlowNode> {
 
     private Selector selector = new Selector();
 
-    private List<NotifyYml> notifications = new LinkedList<>();
-
     // post steps
     private List<StepYml> post = new LinkedList<>();
 
@@ -57,7 +55,6 @@ public class FlowYml extends YmlBase<FlowNode> {
         node.setEnvironments(getVariableMap());
 
         setDockerToNode(node);
-        setupNotifications(node);
 
         if (!ObjectsHelper.hasCollection(steps)) {
             throw new YmlException("The 'steps' section must be defined");
@@ -67,20 +64,5 @@ public class FlowYml extends YmlBase<FlowNode> {
         setStepsToParent(node, steps, false, uniqueNames);
         setStepsToParent(node, post, true, uniqueNames);
         return node;
-    }
-
-    private void setupNotifications(FlowNode node) {
-        if (notifications.isEmpty()) {
-            return;
-        }
-
-        Set<String> uniqueName = new HashSet<>(notifications.size());
-        for (NotifyYml n : notifications) {
-            if (!uniqueName.add(n.getPlugin())) {
-                throw new YmlException("Duplicate plugin {0} defined in notifications", n.getPlugin());
-            }
-
-            node.getNotifications().add(n.toObj());
-        }
     }
 }
