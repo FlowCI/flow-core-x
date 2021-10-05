@@ -1,10 +1,12 @@
 package com.flowci.core.config.service;
 
-import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.dao.ConfigDao;
-import com.flowci.core.config.domain.*;
+import com.flowci.core.config.domain.Config;
+import com.flowci.core.config.domain.SmtpConfig;
+import com.flowci.core.config.domain.SmtpOption;
+import com.flowci.core.config.domain.TextConfig;
 import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
@@ -15,14 +17,10 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.io.Resource;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,39 +28,11 @@ import java.util.Optional;
 @Service
 public class ConfigServiceImpl implements ConfigService {
 
-    @Value("classpath:default/smtp-demo-config.yml")
-    private Resource defaultSmtpConfigYml;
-
-    @Autowired
-    private AppProperties appProperties;
-
     @Autowired
     private ConfigDao configDao;
 
     @Autowired
     private SpringEventManager eventManager;
-
-    @PostConstruct
-    public void onInit() {
-        try {
-            Config config = ConfigParser.parse(defaultSmtpConfigYml.getInputStream());
-            Optional<Config> optional = configDao.findByName(config.getName());
-
-            // delete if default smtp config is disabled
-            if (!appProperties.isDefaultSmtpConfig()) {
-                optional.ifPresent(value -> configDao.delete(value));
-                return;
-            }
-
-            if (optional.isPresent()) {
-                return;
-            }
-            configDao.save(config);
-            log.info("Config {} has been created", config.getName());
-        } catch (IOException e) {
-            log.warn(e);
-        }
-    }
 
     @EventListener
     public void onGetConfigEvent(GetConfigEvent event) {
