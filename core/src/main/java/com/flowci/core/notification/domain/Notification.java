@@ -1,6 +1,7 @@
 package com.flowci.core.notification.domain;
 
 import com.flowci.core.common.domain.Mongoable;
+import com.flowci.util.StringHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,4 +37,8 @@ public class Notification extends Mongoable {
     private TriggerAction trigger;
 
     private String condition;
+
+    public boolean hasCondition() {
+        return StringHelper.hasValue(condition);
+    }
 }

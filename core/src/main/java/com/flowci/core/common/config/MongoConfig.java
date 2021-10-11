@@ -22,6 +22,8 @@ import com.flowci.core.agent.domain.LocalUnixAgentHost;
 import com.flowci.core.agent.domain.SshAgentHost;
 import com.flowci.core.common.mongo.EncryptConverter;
 import com.flowci.core.common.mongo.VariableMapConverter;
+import com.flowci.core.notification.domain.EmailNotification;
+import com.flowci.core.notification.domain.WebhookNotification;
 import com.flowci.core.secret.domain.*;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.TextConfig;
@@ -91,6 +93,9 @@ public class MongoConfig extends AbstractMongoConfiguration {
         context.addEntity(LocalUnixAgentHost.class);
         context.addEntity(SshAgentHost.class);
         context.addEntity(K8sAgentHost.class);
+
+        context.addEntity(EmailNotification.class);
+        context.addEntity(WebhookNotification.class);
 
         return context;
     }

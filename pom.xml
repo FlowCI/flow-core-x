@@ -42,6 +42,7 @@
         <minio.version>6.0.11</minio.version>
         <log4j-core.version>2.11.2</log4j-core.version>
         <kubernetes-client.version>4.10.3</kubernetes-client.version>
+        <freemarker.version>2.3.31</freemarker.version>
     </properties>
 
     <build>
@@ -177,6 +178,12 @@
                 <groupId>com.github.ben-manes.caffeine</groupId>
                 <artifactId>caffeine</artifactId>
                 <version>${caffeine.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>${freemarker.version}</version>
             </dependency>
 
             <dependency>

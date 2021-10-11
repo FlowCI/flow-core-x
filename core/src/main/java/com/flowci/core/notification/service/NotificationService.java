@@ -1,16 +1,22 @@
 package com.flowci.core.notification.service;
 
-import com.flowci.core.notification.domain.EmailNotificationOption;
+import com.flowci.core.notification.domain.EmailNotification;
 import com.flowci.core.notification.domain.Notification;
-import com.flowci.core.notification.domain.WebhookNotificationOption;
+import com.flowci.core.notification.domain.WebhookNotification;
 
 import java.util.List;
 
 public interface NotificationService {
 
-    void add(EmailNotificationOption option);
+    List<Notification> list();
 
-    void add(WebhookNotificationOption option);
+    Notification get(String id);
 
-    void send(List<Notification> list);
+    void save(EmailNotification e);
+
+    void save(WebhookNotification w);
+
+    void delete(String id);
+
+    void send(Notification n);
 }

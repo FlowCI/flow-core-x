@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
         "com.flowci.core.secret",
         "com.flowci.core.plugin",
         "com.flowci.core.config",
+        "com.flowci.core.notification",
         "com.flowci.core.api",
         "com.flowci.core.common.controller"
 })
