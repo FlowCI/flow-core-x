@@ -3,6 +3,7 @@ package com.flowci.core.notification.service;
 import com.flowci.core.notification.domain.EmailNotification;
 import com.flowci.core.notification.domain.Notification;
 import com.flowci.core.notification.domain.WebhookNotification;
+import com.flowci.domain.Vars;
 
 import java.util.List;
 
@@ -18,5 +19,5 @@ public interface NotificationService {
 
     void delete(String id);
 
-    void send(Notification n);
+    void send(Notification n, Vars<String> context);
 }

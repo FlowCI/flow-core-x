@@ -70,4 +70,11 @@ public abstract class Mongoable implements Serializable {
         this.createdBy = null;
         this.updatedBy = null;
     }
+
+    public void setCreatedAndUpdatedBy(String email) {
+        updatedBy = email;
+        if (!StringHelper.hasValue(id)) {
+            createdBy = email;
+        }
+    }
 }

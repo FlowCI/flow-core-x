@@ -8,6 +8,7 @@ import com.flowci.core.notification.domain.Notification;
 import com.flowci.core.notification.service.NotificationService;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.util.StringHelper;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,11 @@ public class NotificationServiceTest extends SpringScenario {
 
     @MockBean
     private SpringEventManager eventManager;
+
+    @Before
+    public void login() {
+        mockLogin();
+    }
 
     @Test
     public void should_save_email_notification() {
@@ -38,6 +44,10 @@ public class NotificationServiceTest extends SpringScenario {
         en.setHtmlTemplateInB64(StringHelper.toBase64("Hello ${user}"));
 
         notificationService.save(en);
+
         Assert.assertNotNull(en.getId());
+        Assert.assertNotNull(en.getCreatedBy());
+        Assert.assertNotNull(en.getUpdatedBy());
     }
+
 }
