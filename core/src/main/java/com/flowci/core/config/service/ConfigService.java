@@ -2,6 +2,7 @@ package com.flowci.core.config.service;
 
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.domain.SmtpOption;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.List;
 
@@ -21,4 +22,6 @@ public interface ConfigService {
     Config save(String name, String text);
 
     Config delete(String name);
+
+    JavaMailSender getEmailSender(String smtpConfig);
 }

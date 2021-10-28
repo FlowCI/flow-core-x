@@ -1,4 +1,4 @@
-package com.flowci.core.notification;
+package com.flowci.core.notification.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
