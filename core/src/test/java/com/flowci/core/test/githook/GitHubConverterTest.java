@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-package com.flowci.core.test.trigger;
+package com.flowci.core.test.githook;
 
-import static com.flowci.core.trigger.domain.Variables.GIT_BRANCH;
-import static com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID;
-import static com.flowci.core.trigger.domain.Variables.GIT_COMMIT_MESSAGE;
-import static com.flowci.core.trigger.domain.Variables.GIT_COMMIT_TIME;
-import static com.flowci.core.trigger.domain.Variables.GIT_COMMIT_URL;
-import static com.flowci.core.trigger.domain.Variables.GIT_EVENT;
-import static com.flowci.core.trigger.domain.Variables.GIT_SOURCE;
+import static com.flowci.core.githook.domain.Variables.GIT_BRANCH;
+import static com.flowci.core.githook.domain.Variables.GIT_COMMIT_ID;
+import static com.flowci.core.githook.domain.Variables.GIT_COMMIT_MESSAGE;
+import static com.flowci.core.githook.domain.Variables.GIT_COMMIT_TIME;
+import static com.flowci.core.githook.domain.Variables.GIT_COMMIT_URL;
+import static com.flowci.core.githook.domain.Variables.GIT_EVENT;
+import static com.flowci.core.githook.domain.Variables.GIT_SOURCE;
 
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.core.trigger.converter.GitHubConverter;
-import com.flowci.core.trigger.converter.TriggerConverter;
-import com.flowci.core.trigger.domain.GitPingTrigger;
-import com.flowci.core.trigger.domain.GitPrTrigger;
-import com.flowci.core.trigger.domain.GitPushTrigger;
-import com.flowci.core.trigger.domain.GitTrigger;
-import com.flowci.core.trigger.domain.GitTrigger.GitEvent;
-import com.flowci.core.trigger.domain.GitUser;
-import com.flowci.core.trigger.domain.Variables;
+import com.flowci.core.githook.converter.GitHubConverter;
+import com.flowci.core.githook.converter.TriggerConverter;
+import com.flowci.core.githook.domain.GitPingTrigger;
+import com.flowci.core.githook.domain.GitPrTrigger;
+import com.flowci.core.githook.domain.GitPushTrigger;
+import com.flowci.core.githook.domain.GitTrigger;
+import com.flowci.core.githook.domain.GitTrigger.GitEvent;
+import com.flowci.core.githook.domain.GitUser;
+import com.flowci.core.githook.domain.Variables;
 import com.flowci.domain.StringVars;
 import java.io.InputStream;
 import java.util.Optional;

@@ -22,12 +22,14 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.TypedVars;
 import com.flowci.domain.VarValue;
-import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.store.Pathable;
 import com.flowci.tree.NodePath;
 import com.flowci.util.StringHelper;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -62,11 +64,9 @@ public final class Flow extends Mongoable implements Pathable {
         CONFIRMED
     }
 
-    @NonNull
     @Indexed(name = "index_flow_name")
     private String name;
 
-    @NonNull
     private Status status = Status.PENDING;
 
     private boolean isYamlFromRepo;
@@ -80,12 +80,10 @@ public final class Flow extends Mongoable implements Pathable {
     private String cron;
 
     // variables from yml
-    @NonNull
-    private Vars<String> variables = new StringVars();
+    private StringVars variables = new StringVars();
 
     // variables for flow obj only
-    @NonNull
-    private Vars<VarValue> locally = new TypedVars();
+    private TypedVars locally = new TypedVars();
 
     private WebhookStatus webhookStatus;
 

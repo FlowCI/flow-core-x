@@ -19,12 +19,11 @@ package com.flowci.core.job.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.job.domain.Job.Status;
 import com.flowci.core.job.domain.Job.Trigger;
-import com.flowci.core.trigger.domain.Variables;
+import com.flowci.core.githook.domain.Variables;
 import com.google.common.base.Strings;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;

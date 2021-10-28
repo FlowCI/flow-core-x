@@ -14,26 +14,9 @@
  * limitations under the License.
  */
 
-package com.flowci.core.trigger.domain;
+package com.flowci.core.githook.domain;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+public interface GitTriggerable {
 
-import java.io.Serializable;
-
-@Getter
-@Setter
-@Accessors(chain = true)
-public class GitUser implements Serializable {
-
-    private String id;
-
-    private String name;
-
-    private String username;
-
-    private String email;
-
-    private String avatarLink;
+    GitTrigger toTrigger();
 }

@@ -21,8 +21,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.JsonablePage;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
-import com.flowci.core.job.domain.*;
-import com.flowci.core.plugin.dao.PluginDao;
+import com.flowci.core.job.domain.CreateJob;
+import com.flowci.core.job.domain.Job;
+import com.flowci.core.job.domain.JobItem;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.test.flow.FlowMockHelper;
@@ -63,9 +65,6 @@ public class JobControllerTest extends SpringScenario {
     private static final TypeReference<ResponseMessage<String>> JobYmlType =
             new TypeReference<ResponseMessage<String>>() {
             };
-
-    @Autowired
-    private PluginDao pluginDao;
 
     @Autowired
     private FlowMockHelper flowMockHelper;

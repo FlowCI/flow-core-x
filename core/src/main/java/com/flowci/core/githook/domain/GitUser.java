@@ -14,30 +14,26 @@
  * limitations under the License.
  */
 
-package com.flowci.core.trigger.event;
+package com.flowci.core.githook.domain;
 
-import com.flowci.core.trigger.domain.GitPingTrigger;
-import com.flowci.core.trigger.domain.GitTrigger;
 import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-/**
- * @author yang
- */
+import java.io.Serializable;
+
 @Getter
-public class GitHookEvent extends ApplicationEvent {
+@Setter
+@Accessors(chain = true)
+public class GitUser implements Serializable {
 
-    private final String flow;
+    private String id;
 
-    private final GitTrigger trigger;
+    private String name;
 
-    public GitHookEvent(Object source, String flow, GitTrigger trigger) {
-        super(source);
-        this.flow = flow;
-        this.trigger = trigger;
-    }
+    private String username;
 
-    public boolean isPingEvent() {
-        return trigger instanceof GitPingTrigger;
-    }
+    private String email;
+
+    private String avatarLink;
 }

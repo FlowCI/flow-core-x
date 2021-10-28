@@ -55,8 +55,8 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.flowci.core.trigger.domain.Variables.GIT_AUTHOR;
-import static com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID;
+import static com.flowci.core.githook.domain.Variables.GIT_AUTHOR;
+import static com.flowci.core.githook.domain.Variables.GIT_COMMIT_ID;
 
 /**
  * @author yang

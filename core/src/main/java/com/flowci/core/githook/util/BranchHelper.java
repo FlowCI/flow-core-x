@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flowci.core.trigger.util;
+package com.flowci.core.githook.util;
 
 import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;

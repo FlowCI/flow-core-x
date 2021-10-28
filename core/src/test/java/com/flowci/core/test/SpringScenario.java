@@ -48,8 +48,10 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author yang
@@ -87,12 +89,8 @@ public abstract class SpringScenario {
          * Rewrite the web mvc config to ignore jackson mxis
          */
         @Bean
-        public Class<?> httpJacksonMixin() {
-            return VarsMixinIgnore.class;
-        }
-
-        public interface VarsMixinIgnore {
-
+        public Map<Class<?>, Class<?>> mixins() {
+            return Collections.emptyMap();
         }
     }
 

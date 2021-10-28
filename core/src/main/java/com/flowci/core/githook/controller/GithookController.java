@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package com.flowci.core.trigger;
+package com.flowci.core.githook.controller;
 
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.trigger.converter.*;
-import com.flowci.core.trigger.domain.GitTrigger;
-import com.flowci.core.trigger.event.GitHookEvent;
+import com.flowci.core.githook.converter.*;
+import com.flowci.core.githook.domain.GitTrigger;
+import com.flowci.core.githook.event.GitHookEvent;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.StringHelper;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,13 +30,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 /**
+ * Controller to handle callback from git provider
+ *
  * @author yang
  */
 @Log4j2
 @RestController
 @RequestMapping("/webhooks")
-public class WebhookController {
+public class GithookController {
 
     @Autowired
     private HttpServletRequest request;

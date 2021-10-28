@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flowci.core.trigger.domain;
+package com.flowci.core.githook.domain;
 
 import java.util.Set;
 import lombok.Getter;

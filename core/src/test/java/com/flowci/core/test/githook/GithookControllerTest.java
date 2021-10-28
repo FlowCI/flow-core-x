@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flowci.core.test.trigger;
+package com.flowci.core.test.githook;
 
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.JobCreatedEvent;
@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /**
  * @author yang
  */
-public class WebhookControllerTest extends SpringScenario {
+public class GithookControllerTest extends SpringScenario {
 
     @Autowired
     private FlowMockHelper flowMockHelper;

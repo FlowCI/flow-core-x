@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package com.flowci.core.test.trigger;
+package com.flowci.core.test.githook;
 
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.core.trigger.converter.GitLabConverter;
-import com.flowci.core.trigger.converter.TriggerConverter;
-import com.flowci.core.trigger.domain.GitPrTrigger;
-import com.flowci.core.trigger.domain.GitPushTrigger;
-import com.flowci.core.trigger.domain.GitTrigger;
-import com.flowci.core.trigger.domain.GitTrigger.GitEvent;
-import com.flowci.core.trigger.domain.GitUser;
+import com.flowci.core.githook.converter.GitLabConverter;
+import com.flowci.core.githook.converter.TriggerConverter;
+import com.flowci.core.githook.domain.GitPrTrigger;
+import com.flowci.core.githook.domain.GitPushTrigger;
+import com.flowci.core.githook.domain.GitTrigger;
+import com.flowci.core.githook.domain.GitTrigger.GitEvent;
+import com.flowci.core.githook.domain.GitUser;
 import java.io.InputStream;
 import java.util.Optional;
 import org.junit.Assert;

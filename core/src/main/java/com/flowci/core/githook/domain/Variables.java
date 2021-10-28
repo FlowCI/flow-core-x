@@ -15,7 +15,7 @@
  *
  */
 
-package com.flowci.core.trigger.domain;
+package com.flowci.core.githook.domain;
 
 import com.google.common.collect.ImmutableList;
 

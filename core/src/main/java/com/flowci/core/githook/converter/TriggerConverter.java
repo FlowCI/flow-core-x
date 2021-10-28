@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.flowci.core.trigger.converter;
+package com.flowci.core.githook.converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.GitSource;
-import com.flowci.core.trigger.domain.GitTriggerable;
-import com.flowci.core.trigger.domain.GitTrigger;
+import com.flowci.core.githook.domain.GitTriggerable;
+import com.flowci.core.githook.domain.GitTrigger;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 

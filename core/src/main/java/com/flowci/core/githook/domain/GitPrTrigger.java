@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.flowci.core.trigger.domain;
+package com.flowci.core.githook.domain;
 
 import com.flowci.domain.StringVars;
 import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 
-import static com.flowci.core.trigger.domain.Variables.*;
+import static com.flowci.core.githook.domain.Variables.*;
 
 /**
  * @author yang

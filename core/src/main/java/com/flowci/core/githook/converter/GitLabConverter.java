@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.flowci.core.trigger.converter;
+package com.flowci.core.githook.converter;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flowci.core.common.domain.GitSource;
-import com.flowci.core.trigger.domain.*;
-import com.flowci.core.trigger.domain.GitTrigger.GitEvent;
-import com.flowci.core.trigger.util.BranchHelper;
+import com.flowci.core.githook.domain.*;
+import com.flowci.core.githook.domain.GitTrigger.GitEvent;
+import com.flowci.core.githook.util.BranchHelper;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;

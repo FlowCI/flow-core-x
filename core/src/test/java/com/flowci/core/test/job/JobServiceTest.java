@@ -483,7 +483,7 @@ public class JobServiceTest extends ZookeeperScenario {
     public void should_rerun_job() {
         // init: create old job wit success status
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
-        job.getContext().put(com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID, "111222333");
+        job.getContext().put(com.flowci.core.githook.domain.Variables.GIT_COMMIT_ID, "111222333");
         job.setStatus(Status.SUCCESS);
         job.setStatusToContext(Status.SUCCESS);
         jobDao.save(job);
@@ -496,7 +496,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Vars<String> context = job.getContext();
         Assert.assertEquals(Status.QUEUED.toString(), context.get(Variables.Job.Status));
         Assert.assertEquals("1", context.get(Variables.Job.BuildNumber));
-        Assert.assertEquals("111222333", context.get(com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID));
+        Assert.assertEquals("111222333", context.get(com.flowci.core.githook.domain.Variables.GIT_COMMIT_ID));
         Assert.assertNotNull(context.get(Variables.Job.Trigger));
         Assert.assertNotNull(context.get(Variables.Job.TriggerBy));
 
