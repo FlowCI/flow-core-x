@@ -6,6 +6,7 @@ import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.domain.Config;
+import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.notification.dao.NotificationDao;
@@ -16,46 +17,50 @@ import com.flowci.domain.Vars;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.util.StringHelper;
-import freemarker.cache.StringTemplateLoader;
-import freemarker.template.Configuration;
 import groovy.util.ScriptException;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.templateresolver.StringTemplateResolver;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 
 @Log4j2
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
-    private final Configuration templateCfg = new Configuration(Configuration.VERSION_2_3_29);
+    private final TemplateEngine templateEngine;
 
-    private final StringTemplateLoader templateLoader = new StringTemplateLoader();
+    private final NotificationDao notificationDao;
 
-    @Autowired
-    private NotificationDao notificationDao;
+    private final SpringEventManager eventManager;
 
-    @Autowired
-    private SpringEventManager eventManager;
+    private final ConditionManager conditionManager;
 
-    @Autowired
-    private ConditionManager conditionManager;
+    private final SessionManager sessionManager;
 
-    @Autowired
-    private SessionManager sessionManager;
+    private final ThreadPoolTaskExecutor appTaskExecutor;
 
-    @Autowired
-    private ThreadPoolTaskExecutor appTaskExecutor;
+    public NotificationServiceImpl(TemplateEngine templateEngine,
+                                   NotificationDao notificationDao,
+                                   SpringEventManager eventManager,
+                                   ConditionManager conditionManager,
+                                   SessionManager sessionManager,
+                                   ThreadPoolTaskExecutor appTaskExecutor) {
+        this.templateEngine = templateEngine;
+        this.templateEngine.setTemplateResolver(new StringTemplateResolver());
 
-    @PostConstruct
-    public void init() {
-        templateCfg.setTemplateLoader(templateLoader);
-        templateCfg.setLogTemplateExceptions(false);
+        this.notificationDao = notificationDao;
+        this.eventManager = eventManager;
+        this.conditionManager = conditionManager;
+        this.sessionManager = sessionManager;
+        this.appTaskExecutor = appTaskExecutor;
     }
 
     @Override
@@ -74,16 +79,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void save(EmailNotification e) {
-        GetConfigEvent event = eventManager.publish(new GetConfigEvent(this, e.getSmtpConfig()));
-        if (event.hasError()) {
-            throw new StatusException("Invalid config name");
-        }
-
-        Config config = event.getFetched();
-        if (config.getCategory() != Config.Category.SMTP) {
-            throw new StatusException("SMTP config is required");
-        }
-
+        getSmtpConfig(e.getSmtpConfig());
         validateCondition(e);
         validateTemplate(e);
 
@@ -161,10 +157,48 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private void doSend(EmailNotification n) {
+        SmtpConfig c = getSmtpConfig(n.getSmtpConfig());
 
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(c.getServer());
+        mailSender.setPort(c.getPort());
+        mailSender.setUsername(c.getAuth().getUsername());
+        mailSender.setPassword(c.getAuth().getPassword());
+
+        Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.debug", "true");
+
+        if (c.getSecure() == SmtpConfig.SecureType.TLS) {
+            props.put("mail.smtp.starttls.enable", "true");
+        }
+
+        String template = StringHelper.fromBase64(n.getHtmlTemplateInB64());
+        String htmlContent = templateEngine.process(template, null);
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(n.getFrom());
+        message.setTo(n.getTo());
+        message.setSubject(n.getSubject());
+        message.setText(htmlContent);
+        mailSender.send(message);
     }
 
     private void doSend(WebhookNotification n) {
+    }
 
+    private SmtpConfig getSmtpConfig(String configName) {
+        GetConfigEvent event = eventManager.publish(new GetConfigEvent(this, configName));
+        if (event.hasError()) {
+            throw new StatusException("Invalid config name");
+        }
+
+        Config config = event.getFetched();
+        if (config.getCategory() != Config.Category.SMTP) {
+            throw new StatusException("SMTP config is required");
+        }
+
+        return (SmtpConfig) config;
     }
 }

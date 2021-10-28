@@ -42,7 +42,6 @@
         <minio.version>6.0.11</minio.version>
         <log4j-core.version>2.11.2</log4j-core.version>
         <kubernetes-client.version>4.10.3</kubernetes-client.version>
-        <freemarker.version>2.3.31</freemarker.version>
     </properties>
 
     <build>
@@ -181,12 +180,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.freemarker</groupId>
-                <artifactId>freemarker</artifactId>
-                <version>${freemarker.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
                 <version>${jackson.version}</version>
@@ -227,6 +220,18 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-actuator</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-mail</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-thymeleaf</artifactId>
                 <version>${spring.version}</version>
             </dependency>
 

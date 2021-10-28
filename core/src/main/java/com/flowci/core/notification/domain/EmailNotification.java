@@ -15,6 +15,15 @@ public class EmailNotification extends Notification {
     private String smtpConfig;
 
     @NotEmpty
+    private String from;
+
+    @NotEmpty
+    private String to;
+
+    @NotEmpty
+    private String subject;
+
+    @NotEmpty
     private String htmlTemplateInB64;
 
 }
