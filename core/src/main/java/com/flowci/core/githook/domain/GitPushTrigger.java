@@ -22,6 +22,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import static com.flowci.core.common.domain.Variables.Git.*;
+
 /**
  * @author yang
  */
@@ -48,17 +50,17 @@ public final class GitPushTrigger extends GitTrigger {
     public StringVars toVariableMap() {
         StringVars map = super.toVariableMap();
 
-        map.put(Variables.GIT_BRANCH, ref);
-        map.put(Variables.GIT_AUTHOR, author.getEmail());
+        map.put(GIT_BRANCH, ref);
+        map.put(GIT_AUTHOR, author.getEmail());
 
-        map.put(Variables.GIT_COMMIT_ID, commitId);
-        map.put(Variables.GIT_COMMIT_MESSAGE, message);
-        map.put(Variables.GIT_COMMIT_TIME, time);
-        map.put(Variables.GIT_COMMIT_URL, commitUrl);
-        map.put(Variables.GIT_COMMIT_NUM, Integer.toString(numOfCommit));
+        map.put(GIT_COMMIT_ID, commitId);
+        map.put(GIT_COMMIT_MESSAGE, message);
+        map.put(GIT_COMMIT_TIME, time);
+        map.put(GIT_COMMIT_URL, commitUrl);
+        map.put(GIT_COMMIT_NUM, Integer.toString(numOfCommit));
 
         // set empty string to PR variables
-        for (String prVar : Variables.PR_VARS) {
+        for (String prVar : PR_VARS) {
             map.put(prVar, StringHelper.EMPTY);
         }
 

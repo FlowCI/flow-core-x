@@ -6,6 +6,7 @@ import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.notification.domain.EmailNotification;
 import com.flowci.core.notification.domain.Notification;
+import com.flowci.core.notification.event.EmailTemplateParsedEvent;
 import com.flowci.core.notification.service.NotificationService;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.SimpleAuthPair;
@@ -17,6 +18,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationListener;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.testng.Assert;
@@ -68,15 +70,26 @@ public class NotificationServiceTest extends SpringScenario {
         en.setName("default-email-notification");
         en.setSmtpConfig(config.getName());
         en.setTrigger(Notification.TriggerAction.OnJobStatusChange);
-        en.setHtmlTemplateInB64(StringHelper.toBase64(StringHelper.toString(load("email-template.html"))));
+        en.setHtmlTemplateInB64(StringHelper.toBase64(StringHelper.toString(load("templates/email-template.html"))));
 
         Vars<String> context = new StringVars();
         context.put(Variables.Flow.Name, "ios-flow");
         context.put(Variables.Job.BuildNumber, "10");
         context.put(Variables.Job.Status, Job.Status.SUCCESS.name());
         context.put(Variables.Job.Trigger, Job.Trigger.PUSH.name());
+        context.put(Variables.Job.TriggerBy, "tester@flow.ci");
         context.put(Variables.Job.StartAt, "2021-07-01 01:23:44.123");
         context.put(Variables.Job.FinishAt, "2021-07-01 02:23:45.456");
+
+        addEventListener((ApplicationListener<EmailTemplateParsedEvent>) event -> {
+            try {
+                String template = event.getTemplate();
+                String expected = StringHelper.toString(load("templates/email-template-expected-success.html"));
+                Assert.assertEquals(expected, template);
+            } catch (IOException e) {
+                Assert.fail();
+            }
+        });
 
         notificationService.send(en, context);
     }

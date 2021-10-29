@@ -4,6 +4,7 @@ import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SessionManager;
+import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.job.event.JobStatusChangeEvent;
@@ -11,6 +12,7 @@ import com.flowci.core.notification.dao.NotificationDao;
 import com.flowci.core.notification.domain.EmailNotification;
 import com.flowci.core.notification.domain.Notification;
 import com.flowci.core.notification.domain.WebhookNotification;
+import com.flowci.core.notification.event.EmailTemplateParsedEvent;
 import com.flowci.domain.Vars;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
@@ -44,6 +46,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final SessionManager sessionManager;
 
+    private final SpringEventManager eventManager;
+
     private final ThreadPoolTaskExecutor appTaskExecutor;
 
     private final ConfigService configService;
@@ -52,7 +56,7 @@ public class NotificationServiceImpl implements NotificationService {
                                    NotificationDao notificationDao,
                                    ConditionManager conditionManager,
                                    SessionManager sessionManager,
-                                   ThreadPoolTaskExecutor appTaskExecutor,
+                                   SpringEventManager eventManager, ThreadPoolTaskExecutor appTaskExecutor,
                                    ConfigService configService) {
         this.templateEngine = templateEngine;
         this.templateEngine.setTemplateResolver(new StringTemplateResolver());
@@ -60,6 +64,7 @@ public class NotificationServiceImpl implements NotificationService {
         this.notificationDao = notificationDao;
         this.conditionManager = conditionManager;
         this.sessionManager = sessionManager;
+        this.eventManager = eventManager;
         this.appTaskExecutor = appTaskExecutor;
         this.configService = configService;
     }
@@ -170,6 +175,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         String template = StringHelper.fromBase64(n.getHtmlTemplateInB64());
         String htmlContent = templateEngine.process(template, toThymeleafContext(context));
+        eventManager.publish(new EmailTemplateParsedEvent(this, htmlContent));
 
         MimeMessage mime = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mime, false);

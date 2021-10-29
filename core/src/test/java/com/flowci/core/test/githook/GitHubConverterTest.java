@@ -16,31 +16,21 @@
 
 package com.flowci.core.test.githook;
 
-import static com.flowci.core.githook.domain.Variables.GIT_BRANCH;
-import static com.flowci.core.githook.domain.Variables.GIT_COMMIT_ID;
-import static com.flowci.core.githook.domain.Variables.GIT_COMMIT_MESSAGE;
-import static com.flowci.core.githook.domain.Variables.GIT_COMMIT_TIME;
-import static com.flowci.core.githook.domain.Variables.GIT_COMMIT_URL;
-import static com.flowci.core.githook.domain.Variables.GIT_EVENT;
-import static com.flowci.core.githook.domain.Variables.GIT_SOURCE;
-
 import com.flowci.core.common.domain.GitSource;
-import com.flowci.core.test.SpringScenario;
 import com.flowci.core.githook.converter.GitHubConverter;
 import com.flowci.core.githook.converter.TriggerConverter;
-import com.flowci.core.githook.domain.GitPingTrigger;
-import com.flowci.core.githook.domain.GitPrTrigger;
-import com.flowci.core.githook.domain.GitPushTrigger;
-import com.flowci.core.githook.domain.GitTrigger;
+import com.flowci.core.githook.domain.*;
 import com.flowci.core.githook.domain.GitTrigger.GitEvent;
-import com.flowci.core.githook.domain.GitUser;
-import com.flowci.core.githook.domain.Variables;
+import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.StringVars;
-import java.io.InputStream;
-import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.InputStream;
+import java.util.Optional;
+
+import static com.flowci.core.common.domain.Variables.Git.*;
 
 /**
  * @author yang
@@ -105,9 +95,8 @@ public class GitHubConverterTest extends SpringScenario {
         Assert.assertEquals("2017-08-08T11:19:05+08:00", variables.get(GIT_COMMIT_TIME));
         Assert.assertEquals("https://github.com/yang-guo-2016/Test/commit/40d0dd6e8e942643d794d7ed8d27610fb8729914",
             variables.get(GIT_COMMIT_URL));
-        Assert.assertEquals("gy@fir.im", variables.get(Variables.GIT_AUTHOR));
-        Assert.assertEquals("1", variables.get(Variables.GIT_COMMIT_NUM));
-
+        Assert.assertEquals("gy@fir.im", variables.get(GIT_AUTHOR));
+        Assert.assertEquals("1", variables.get(GIT_COMMIT_NUM));
     }
 
     @Test

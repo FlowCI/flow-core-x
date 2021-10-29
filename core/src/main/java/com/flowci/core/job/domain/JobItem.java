@@ -19,7 +19,6 @@ package com.flowci.core.job.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.job.domain.Job.Status;
 import com.flowci.core.job.domain.Job.Trigger;
-import com.flowci.core.githook.domain.Variables;
 import com.google.common.base.Strings;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +27,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 import java.util.HashMap;
+
+import static com.flowci.core.common.domain.Variables.Git.*;
 
 /**
  * As job list item, remove the data which is not used in the list view
@@ -71,22 +72,22 @@ public class JobItem extends JobDesc {
         @Override
         public Context convert(org.bson.Document source) {
             Context context = new Context(source);
-            context.putIfNotEmpty(Variables.GIT_EVENT);
+            context.putIfNotEmpty(GIT_EVENT);
 
             // git push / tag
-            context.putIfNotEmpty(Variables.GIT_BRANCH);
-            context.putIfNotEmpty(Variables.GIT_COMMIT_ID);
-            context.putIfNotEmpty(Variables.GIT_COMMIT_URL);
-            context.putIfNotEmpty(Variables.GIT_COMMIT_MESSAGE);
+            context.putIfNotEmpty(GIT_BRANCH);
+            context.putIfNotEmpty(GIT_COMMIT_ID);
+            context.putIfNotEmpty(GIT_COMMIT_URL);
+            context.putIfNotEmpty(GIT_COMMIT_MESSAGE);
 
             // git pr
-            context.putIfNotEmpty(Variables.PR_TITLE);
-            context.putIfNotEmpty(Variables.PR_NUMBER);
-            context.putIfNotEmpty(Variables.PR_URL);
-            context.putIfNotEmpty(Variables.PR_HEAD_REPO_NAME);
-            context.putIfNotEmpty(Variables.PR_HEAD_REPO_BRANCH);
-            context.putIfNotEmpty(Variables.PR_BASE_REPO_NAME);
-            context.putIfNotEmpty(Variables.PR_BASE_REPO_BRANCH);
+            context.putIfNotEmpty(PR_TITLE);
+            context.putIfNotEmpty(PR_NUMBER);
+            context.putIfNotEmpty(PR_URL);
+            context.putIfNotEmpty(PR_HEAD_REPO_NAME);
+            context.putIfNotEmpty(PR_HEAD_REPO_BRANCH);
+            context.putIfNotEmpty(PR_BASE_REPO_NAME);
+            context.putIfNotEmpty(PR_BASE_REPO_BRANCH);
 
             return context;
         }

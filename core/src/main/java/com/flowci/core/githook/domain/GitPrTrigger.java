@@ -21,7 +21,7 @@ import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 
-import static com.flowci.core.githook.domain.Variables.*;
+import static com.flowci.core.common.domain.Variables.Git.*;
 
 /**
  * @author yang
@@ -55,7 +55,7 @@ public final class GitPrTrigger extends GitTrigger {
     @Override
     public StringVars toVariableMap() {
         StringVars map = super.toVariableMap();
-        map.put(Variables.GIT_AUTHOR, sender.getUsername());
+        map.put(GIT_AUTHOR, sender.getUsername());
 
         map.put(PR_TITLE, title);
         map.put(PR_MESSAGE, body);

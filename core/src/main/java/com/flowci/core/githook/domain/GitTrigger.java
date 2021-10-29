@@ -17,6 +17,7 @@
 package com.flowci.core.githook.domain;
 
 import com.flowci.core.common.domain.GitSource;
+import com.flowci.core.common.domain.Variables;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.domain.StringVars;
 import com.flowci.exception.NotFoundException;
@@ -57,8 +58,8 @@ public abstract class GitTrigger implements Serializable {
 
     public StringVars toVariableMap() {
         StringVars map = new StringVars(15);
-        map.put(Variables.GIT_SOURCE, source.name());
-        map.put(Variables.GIT_EVENT, event.name());
+        map.put(Variables.Git.GIT_SOURCE, source.name());
+        map.put(Variables.Git.GIT_EVENT, event.name());
         return map;
     }
 
