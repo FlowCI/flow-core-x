@@ -81,6 +81,11 @@ public class NotificationServiceTest extends SpringScenario {
         context.put(Variables.Job.StartAt, "2021-07-01 01:23:44.123");
         context.put(Variables.Job.FinishAt, "2021-07-01 02:23:45.456");
 
+        context.put(Variables.Git.GIT_BRANCH, "master");
+        context.put(Variables.Git.GIT_COMMIT_URL, "http://xxx/commit/id");
+        context.put(Variables.Git.GIT_COMMIT_ID, "112233");
+        context.put(Variables.Git.GIT_COMMIT_MESSAGE, "hello test");
+
         addEventListener((ApplicationListener<EmailTemplateParsedEvent>) event -> {
             try {
                 String template = event.getTemplate();

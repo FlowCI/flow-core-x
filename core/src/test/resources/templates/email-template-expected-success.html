@@ -3,63 +3,109 @@
 <head>
     <title>flow.ci</title>
     <style>
-        th,
-        td {
-            padding: 5px;
-            text-align: left;
-        }
-
-        h2 {
-            padding: 20px;
-        }
-
-        td div {
-            padding-top: 5px;
-            padding-left: 10px;
-        }
-
         .content {
             background-color: #ffffff;
-            justify-content: center;
-            align-items: center;
             max-width: 800px;
             margin: 0 auto;
         }
 
+        .left {
+            display: inline-block;
+            text-align: left;
+            height: 100%;
+        }
+
+        .right {
+            display: inline-block;
+            text-align: right;
+            height: 100%;
+        }
+
+        table tr {
+            vertical-align: top;
+        }
+
+        table tr td:nth-child(2) {
+            padding-left: 20px;
+        }
+
         .state-success-bk {
-            background-color: #4caf50 !important;
+            background-color: #66BB6A !important;
+        }
+
+        .state-success-fk {
+            color: #66BB6A !important;
         }
 
         .state-failure-bk {
-            background-color: #FFCDD2 !important;
+            background-color: #E53935 !important;
         }
 
         .state-cancelled-bk {
-            background-color: #9e9e9e !important;
+            background-color: #B0BEC5 !important;
         }
 
         .state-timeout-bk {
-            background-color: #ff9800 !important;
+            background-color: #FB8C00 !important;
+        }
+
+        .button {
+            background-color: #4c61c8;
+            border: none;
+            color: white;
+            padding: 15px 80px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
         }
     </style>
 </head>
 
-<body>
-<div class="content">
+<body class="content">
 
-    <div>
-        <h2 class="state-success-bk">flow.ci report: ios-flow 10#</h2>
+<div style="height: 10px" class="state-success-bk">
+</div>
 
+<div style="margin-left: 15px; margin-right: 15px">
 
-
+    <!--  status header  -->
+    <div class="state-success-fk" style="height: 70px;">
+        <div class="left" style="width: 50%">
+            <h1>Build Success</h1>
+        </div>
+        <div class="right" style="width: 45%">
+            <h1>
+                <svg style="width:36px;height:36px" viewBox="0 0 24 24">
+                    <path fill="currentColor"
+                          d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+                </svg>
+            </h1>
+        </div>
     </div>
 
-    <table>
-        <tbody>
+    <!-- flow info -->
+    <table style="height: 60px">
         <tr>
-            <td>State:</td>
-            <td>SUCCESS</td>
+            <td>
+                <div style="width: 7px; height: 60px" class="state-success-bk"
+                ></div>
+            </td>
+            <td>
+                <div>
+                    <div>ios-flow</div>
+                    <div>#10</div>
+                    <div>100s</div>
+                </div>
+            </td>
         </tr>
+    </table>
+
+    <div style="height: 1px; background-color: #E0E0E0; margin-top: 10px; margin-bottom: 10px"></div>
+
+    <table>
         <tr>
             <td>Trigger:</td>
             <td>PUSH</td>
@@ -76,32 +122,47 @@
             <td>Finish At:</td>
             <td>2021-07-01 02:23:45.456</td>
         </tr>
-<!--        <tr>-->
-<!--            <td>Duration:</td>-->
-<!--            <td>${job.duration} (ms)</td>-->
-<!--        </tr>-->
-
-        <!-- Git Commit Info -->
         <tr>
-            <td colspan="2">
-                <h5>Git Info:</h5>
-                <div>
-                    Branch: ${FLOWCI_GIT_BRANCH}
-                </div>
-                <div>
-                    Commit ID:
-                    <a th:href="${FLOWCI_GIT_COMMIT_URL}" target="_blank">${FLOWCI_GIT_COMMIT_ID}</a>
-                </div>
-                <div>
-                    Commit Message: ${FLOWCI_GIT_COMMIT_MESSAGE}
-                </div>
+            <td>Agent:</td>
+            <td>
+                <div>local-01</div>
+                <div>local-02</div>
             </td>
         </tr>
-
-        <!-- Git PR Info -->
-
-        </tbody>
     </table>
+
+    <div style="height: 1px; background-color: #E0E0E0; margin-top: 10px; margin-bottom: 10px"></div>
+
+    <!-- Git Push/Tag -->
+    <table>
+        <tr>
+            <td>Branch:</td>
+            <td>master</td>
+        </tr>
+        <tr>
+            <td>Commits:</td>
+            <td>
+                <table>
+                    <tr>
+                        <td><a href="http://xxx/commit/id" target="_blank">112233</a></td>
+                        <td>hello commit 1</td>
+                    </tr>
+                    <tr>
+                        <td><a href="http://xxx/commit/id" target="_blank">112233</a></td>
+                        <td>hello commit 2</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div style="height: 1px; background-color: #E0E0E0; margin-top: 10px; margin-bottom: 10px"></div>
+
+    <!-- Detail Button -->
+    <div style="text-align: center">
+        <button class="button">View Detail</button>
+    </div>
+
 </div>
 </body>
 </html>

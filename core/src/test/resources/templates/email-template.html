@@ -48,33 +48,33 @@
 <div class="content">
 
     <div th:switch="${FLOWCI_JOB_STATUS}">
-        <h2 th:case="'SUCCESS'" class="state-success-bk">flow.ci report: ${FLOWCI_FLOW_NAME} ${FLOWCI_JOB_BUILD_NUM}</h2>
-        <h2 th:case="'FAILURE'" class="state-failure-bk">flow.ci report: ${FLOWCI_FLOW_NAME} ${FLOWCI_JOB_BUILD_NUM}</h2>
-        <h2 th:case="'CANCELLED'" class="state-cancelled-bk">flow.ci report: ${FLOWCI_FLOW_NAME} ${FLOWCI_JOB_BUILD_NUM}</h2>
-        <h2 th:case="'TIMEOUT'" class="state-timeout-bk">flow.ci report: ${FLOWCI_FLOW_NAME} ${FLOWCI_JOB_BUILD_NUM}</h2>
+        <h2 th:case="'SUCCESS'" class="state-success-bk">flow.ci report: [[${FLOWCI_FLOW_NAME}]] #[[${FLOWCI_JOB_BUILD_NUM}]]</h2>
+        <h2 th:case="'FAILURE'" class="state-failure-bk">flow.ci report: [[${FLOWCI_FLOW_NAME}]] #[[${FLOWCI_JOB_BUILD_NUM}]]</h2>
+        <h2 th:case="'CANCELLED'" class="state-cancelled-bk">flow.ci report: [[${FLOWCI_FLOW_NAME}]] #[[${FLOWCI_JOB_BUILD_NUM}]]</h2>
+        <h2 th:case="'TIMEOUT'" class="state-timeout-bk">flow.ci report: [[${FLOWCI_FLOW_NAME}]] #[[${FLOWCI_JOB_BUILD_NUM}]]</h2>
     </div>
 
     <table>
         <tbody>
         <tr>
             <td>State:</td>
-            <td>${FLOWCI_JOB_STATUS}</td>
+            <td>[[${FLOWCI_JOB_STATUS}]]</td>
         </tr>
         <tr>
             <td>Trigger:</td>
-            <td>${FLOWCI_JOB_TRIGGER}</td>
+            <td>[[${FLOWCI_JOB_TRIGGER}]]</td>
         </tr>
         <tr>
             <td>Triggered By:</td>
-            <td>${FLOWCI_JOB_TRIGGER_BY}</td>
+            <td>[[${FLOWCI_JOB_TRIGGER_BY}]]</td>
         </tr>
         <tr>
             <td>Start At:</td>
-            <td>${FLOWCI_JOB_START_AT}</td>
+            <td>[[${FLOWCI_JOB_START_AT}]]</td>
         </tr>
         <tr>
             <td>Finish At:</td>
-            <td>${FLOWCI_JOB_FINISH_AT}</td>
+            <td>[[${FLOWCI_JOB_FINISH_AT}]]</td>
         </tr>
 <!--        <tr>-->
 <!--            <td>Duration:</td>-->
@@ -82,41 +82,41 @@
 <!--        </tr>-->
 
         <!-- Git Commit Info -->
-        <tr th:if="${FLOWCI_JOB_TRIGGER} == 'PUSH' and ${FLOWCI_JOB_TRIGGER} == 'TAG'">
+        <tr th:if="${FLOWCI_JOB_TRIGGER} == 'PUSH' or ${FLOWCI_JOB_TRIGGER} == 'TAG'">
             <td colspan="2">
                 <h5>Git Info:</h5>
                 <div>
-                    Branch: ${FLOWCI_GIT_BRANCH}
+                    Branch: [[${FLOWCI_GIT_BRANCH}]]
                 </div>
                 <div>
                     Commit ID:
-                    <a th:href="${FLOWCI_GIT_COMMIT_URL}" target="_blank">${FLOWCI_GIT_COMMIT_ID}</a>
+                    <a th:href="${FLOWCI_GIT_COMMIT_URL}" target="_blank">[[${FLOWCI_GIT_COMMIT_ID}]]</a>
                 </div>
                 <div>
-                    Commit Message: ${FLOWCI_GIT_COMMIT_MESSAGE}
+                    Commit Message: [[${FLOWCI_GIT_COMMIT_MESSAGE}]]
                 </div>
             </td>
         </tr>
 
         <!-- Git PR Info -->
-        <tr th:if="${FLOWCI_JOB_TRIGGER} == 'PR_OPENED' and ${FLOWCI_JOB_TRIGGER} == 'PR_MERGED'">
+        <tr th:if="${FLOWCI_JOB_TRIGGER} == 'PR_OPENED' or ${FLOWCI_JOB_TRIGGER} == 'PR_MERGED'">
             <td colspan="2">
                 <h5>Git Info:</h5>
                 <div>
                     Title:
-                    <a th:href="${FLOWCI_GIT_PR_URL}" target="_blank">${FLOWCI_GIT_PR_TITLE}</a>
+                    <a th:href="${FLOWCI_GIT_PR_URL}" target="_blank">[[${FLOWCI_GIT_PR_TITLE}]]</a>
                 </div>
                 <div>
-                    Message: ${FLOWCI_GIT_PR_MESSAGE}
+                    Message: [[${FLOWCI_GIT_PR_MESSAGE}]]
                 </div>
                 <div>
-                    Number: ${FLOWCI_GIT_PR_NUMBER}
+                    Number: [[${FLOWCI_GIT_PR_NUMBER}]]
                 </div>
                 <div>
-                    Head Repo: ${FLOWCI_GIT_PR_HEAD_REPO_NAME}, ${FLOWCI_GIT_PR_HEAD_REPO_BRANCH}
+                    Head Repo: [[${FLOWCI_GIT_PR_HEAD_REPO_NAME}]], [[${FLOWCI_GIT_PR_HEAD_REPO_BRANCH}]]
                 </div>
                 <div>
-                    Base Repo: ${FLOWCI_GIT_PR_BASE_REPO_NAME}, ${FLOWCI_GIT_PR_BASE_REPO_BRANCH}
+                    Base Repo: [[${FLOWCI_GIT_PR_BASE_REPO_NAME}]], [[${FLOWCI_GIT_PR_BASE_REPO_BRANCH}]]
                 </div>
             </td>
         </tr>
