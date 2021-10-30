@@ -42,10 +42,6 @@
             background-color: #66BB6A !important;
         }
 
-        .state-success-bk {
-            background-color: #66BB6A !important;
-        }
-
         .state-success-fk {
             color: #66BB6A !important;
         }
@@ -98,21 +94,20 @@
 
 <body class="content">
 
-<div style="height: 10px" class="state-success-bk">
+<div style="height: 10px" class="state-cancelled-bk">
 </div>
 
 <div style="margin-left: 15px; margin-right: 15px">
 
     <!--  status header  -->
-    <div class="state-success-fk" style="height: 70px;">
+    <div class="state-cancelled-fk" style="height: 70px;">
         <div class="left" style="width: 50%">
-            <h1>Build Success</h1>
+            <h1>Build Cancelled</h1>
         </div>
         <div class="right" style="width: 45%">
             <h1>
                 <svg style="width:36px;height:36px" viewBox="0 0 24 24">
-                    <path fill="currentColor"
-                          d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+                    <path fill="currentColor" d="M12 2C17.5 2 22 6.5 22 12S17.5 22 12 22 2 17.5 2 12 6.5 2 12 2M12 4C10.1 4 8.4 4.6 7.1 5.7L18.3 16.9C19.3 15.5 20 13.8 20 12C20 7.6 16.4 4 12 4M16.9 18.3L5.7 7.1C4.6 8.4 4 10.1 4 12C4 16.4 7.6 20 12 20C13.9 20 15.6 19.4 16.9 18.3Z" />
                 </svg>
             </h1>
         </div>
@@ -122,7 +117,7 @@
     <table style="height: 60px">
         <tr>
             <td style="width: 5px">
-                <div style="height: 50px" class="state-success-bk"
+                <div style="height: 50px" class="state-cancelled-bk"
                 ></div>
             </td>
             <td>
@@ -169,26 +164,27 @@
 
     <div class="div-line"></div>
 
-    <!-- Git Push/Tag -->
+    <!-- Git PR Open/Close -->
     <table>
         <tr>
-            <td>Branch:</td>
-            <td>master</td>
+            <td>Title:</td>
+            <td>Bump github.com/gin-gonic/gin from 1.6.2 to 1.7.0</td>
         </tr>
         <tr>
-            <td>Commits:</td>
-            <td>
-                <table>
-                    <tr>
-                        <td><a href="http://xxx/commit/id" target="_blank">112233</a></td>
-                        <td>hello commit 1</td>
-                    </tr>
-                    <tr>
-                        <td><a href="http://xxx/commit/id" target="_blank">112233</a></td>
-                        <td>hello commit 2</td>
-                    </tr>
-                </table>
-            </td>
+            <td>Number:</td>
+            <td>#11</td>
+        </tr>
+        <tr>
+            <td>Message:</td>
+            <td>Pr message</td>
+        </tr>
+        <tr>
+            <td>To:</td>
+            <td>flow-core-x/master</td>
+        </tr>
+        <tr>
+            <td>From:</td>
+            <td>flow-core-x/developer</td>
         </tr>
     </table>
 
