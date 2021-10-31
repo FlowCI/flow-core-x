@@ -18,4 +18,8 @@ public class WebhookNotification extends Notification {
     private Map<String, String> headers;
 
     private String payload;
+
+    public WebhookNotification() {
+        setType(Type.WebHook);
+    }
 }

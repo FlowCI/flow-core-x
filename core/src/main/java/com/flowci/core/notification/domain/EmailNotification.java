@@ -25,4 +25,8 @@ public class EmailNotification extends Notification {
 
     @NotEmpty
     private String template = "default"; // template name
+
+    public EmailNotification() {
+        setType(Type.Email);
+    }
 }

@@ -14,6 +14,7 @@ import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.util.StringHelper;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,7 @@ public class NotificationServiceTest extends SpringScenario {
         EmailNotification en = new EmailNotification();
         en.setName("default-email-notification");
         en.setSmtpConfig(config.getName());
-        en.setTrigger(Notification.TriggerAction.OnJobStatusChange);
+        en.setTrigger(Notification.TriggerAction.OnJobFinished);
         en.setTemplate("default");
 
         notificationService.save(en);
@@ -64,12 +65,13 @@ public class NotificationServiceTest extends SpringScenario {
         Assert.assertNotNull(en.getUpdatedBy());
     }
 
+    @Ignore
     @Test
     public void should_send_email_with_condition() {
         EmailNotification en = new EmailNotification();
         en.setName("default-email-notification");
         en.setSmtpConfig(config.getName());
-        en.setTrigger(Notification.TriggerAction.OnJobStatusChange);
+        en.setTrigger(Notification.TriggerAction.OnJobFinished);
         en.setTemplate("default");
         en.setFrom("tester@flow.ci");
         en.setTo("benqyang_2006@hotmail.com");

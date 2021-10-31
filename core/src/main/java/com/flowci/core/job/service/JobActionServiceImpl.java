@@ -29,6 +29,7 @@ import com.flowci.core.job.dao.JobAgentDao;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.dao.JobPriorityDao;
 import com.flowci.core.job.domain.*;
+import com.flowci.core.job.event.JobFinishedEvent;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.manager.CmdManager;
@@ -1174,6 +1175,8 @@ public class JobActionServiceImpl implements JobActionService {
 
             JobAgent agents = getJobAgent(job.getId());
             agentService.release(agents.all());
+
+            eventManager.publish(new JobFinishedEvent(this, job));
         }
     }
 

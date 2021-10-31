@@ -18,12 +18,12 @@ public class Notification extends Mongoable {
 
         Email,
 
-        Http // send http request to target url
+        WebHook // send http request to target url
     }
 
     public enum TriggerAction {
 
-        OnJobStatusChange,
+        OnJobFinished,
 
         OnAgentStatusChange
     }

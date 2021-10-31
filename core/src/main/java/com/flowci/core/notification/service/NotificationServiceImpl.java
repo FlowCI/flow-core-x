@@ -7,7 +7,7 @@ import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.service.ConfigService;
-import com.flowci.core.job.event.JobStatusChangeEvent;
+import com.flowci.core.job.event.JobFinishedEvent;
 import com.flowci.core.notification.dao.NotificationDao;
 import com.flowci.core.notification.domain.EmailNotification;
 import com.flowci.core.notification.domain.Notification;
@@ -139,9 +139,9 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @EventListener
-    public void onJobStatusChange(JobStatusChangeEvent event) {
+    public void onJobStatusChange(JobFinishedEvent event) {
         Vars<String> context = event.getJob().getContext();
-        List<Notification> list = notificationDao.findAllByTrigger(Notification.TriggerAction.OnJobStatusChange);
+        List<Notification> list = notificationDao.findAllByTrigger(Notification.TriggerAction.OnJobFinished);
         for (Notification n : list) {
             appTaskExecutor.execute(() -> send(n, context));
         }
