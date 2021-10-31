@@ -16,10 +16,11 @@ import com.flowci.core.notification.event.EmailTemplateParsedEvent;
 import com.flowci.domain.Vars;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
-import com.flowci.util.StringHelper;
 import groovy.util.ScriptException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -31,6 +32,8 @@ import org.thymeleaf.templateresolver.StringTemplateResolver;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,12 +55,14 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final ConfigService configService;
 
+    private final String emailTemplate;
+
     public NotificationServiceImpl(TemplateEngine templateEngine,
                                    NotificationDao notificationDao,
                                    ConditionManager conditionManager,
                                    SessionManager sessionManager,
                                    SpringEventManager eventManager, ThreadPoolTaskExecutor appTaskExecutor,
-                                   ConfigService configService) {
+                                   ConfigService configService) throws IOException {
         this.templateEngine = templateEngine;
         this.templateEngine.setTemplateResolver(new StringTemplateResolver());
 
@@ -67,6 +72,9 @@ public class NotificationServiceImpl implements NotificationService {
         this.eventManager = eventManager;
         this.appTaskExecutor = appTaskExecutor;
         this.configService = configService;
+
+        Resource resource = new ClassPathResource("templates/email.html");
+        this.emailTemplate = new String(Files.readAllBytes(resource.getFile().toPath()));
     }
 
     @Override
@@ -91,8 +99,6 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         validateCondition(e);
-        validateTemplate(e);
-
         e.setCreatedAndUpdatedBy(sessionManager.getUserEmail());
         notificationDao.save(e);
     }
@@ -162,19 +168,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    private void validateTemplate(EmailNotification en) {
-        try {
-            StringHelper.fromBase64(en.getHtmlTemplateInB64());
-        } catch (IllegalArgumentException ignore) {
-            throw new StatusException("Invalid b64 format");
-        }
-    }
-
     private void doSend(EmailNotification n, Vars<String> context) throws MessagingException {
         JavaMailSender sender = configService.getEmailSender(n.getSmtpConfig());
-
-        String template = StringHelper.fromBase64(n.getHtmlTemplateInB64());
-        String htmlContent = templateEngine.process(template, toThymeleafContext(context));
+        String htmlContent = templateEngine.process(emailTemplate, toThymeleafContext(context));
         eventManager.publish(new EmailTemplateParsedEvent(this, htmlContent));
 
         MimeMessage mime = sender.createMimeMessage();

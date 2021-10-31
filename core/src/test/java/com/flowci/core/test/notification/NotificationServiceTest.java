@@ -14,7 +14,6 @@ import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.util.StringHelper;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +55,7 @@ public class NotificationServiceTest extends SpringScenario {
         en.setName("default-email-notification");
         en.setSmtpConfig(config.getName());
         en.setTrigger(Notification.TriggerAction.OnJobStatusChange);
-        en.setHtmlTemplateInB64(StringHelper.toBase64("Hello ${user}"));
+        en.setTemplate("default");
 
         notificationService.save(en);
 
@@ -65,14 +64,13 @@ public class NotificationServiceTest extends SpringScenario {
         Assert.assertNotNull(en.getUpdatedBy());
     }
 
-    @Ignore
     @Test
-    public void should_send_email_with_condition() throws IOException {
+    public void should_send_email_with_condition() {
         EmailNotification en = new EmailNotification();
         en.setName("default-email-notification");
         en.setSmtpConfig(config.getName());
         en.setTrigger(Notification.TriggerAction.OnJobStatusChange);
-        en.setHtmlTemplateInB64(StringHelper.toBase64(StringHelper.toString(load("templates/email-template.html"))));
+        en.setTemplate("default");
         en.setFrom("tester@flow.ci");
         en.setTo("benqyang_2006@hotmail.com");
         en.setSubject("flow.ci ios-flow/#10 status");
@@ -80,8 +78,8 @@ public class NotificationServiceTest extends SpringScenario {
         Vars<String> context = new StringVars();
         context.put(Variables.Flow.Name, "ios-flow");
         context.put(Variables.Job.BuildNumber, "10");
-        context.put(Variables.Job.Status, Job.Status.FAILURE.name());
-        context.put(Variables.Job.Trigger, Job.Trigger.PR_MERGED.name());
+        context.put(Variables.Job.Status, Job.Status.SUCCESS.name());
+        context.put(Variables.Job.Trigger, Job.Trigger.PUSH.name());
         context.put(Variables.Job.TriggerBy, "tester@flow.ci");
         context.put(Variables.Job.StartAt, "2021-07-01 01:23:44.123");
         context.put(Variables.Job.FinishAt, "2021-07-01 02:23:45.456");
@@ -100,7 +98,6 @@ public class NotificationServiceTest extends SpringScenario {
 //        context.put(Variables.Git.PR_HEAD_REPO_NAME, "flow-ci-head");
 //        context.put(Variables.Git.PR_HEAD_REPO_BRANCH, "developer");
 //        context.put(Variables.Git.PR_TIME, "2021-08-01 02:23:45.456");
-
 
         addEventListener((ApplicationListener<EmailTemplateParsedEvent>) event -> {
             try {

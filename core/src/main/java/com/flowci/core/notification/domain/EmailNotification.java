@@ -24,6 +24,5 @@ public class EmailNotification extends Notification {
     private String subject;
 
     @NotEmpty
-    private String htmlTemplateInB64;
-
+    private String template = "default"; // template name
 }
