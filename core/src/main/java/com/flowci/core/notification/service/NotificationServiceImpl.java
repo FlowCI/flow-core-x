@@ -186,6 +186,7 @@ public class NotificationServiceImpl implements NotificationService {
         helper.setText(htmlContent, true);
 
         sender.send(mime);
+        log.debug("Email notification {} has been sent", n.getName());
     }
 
     private void doSend(WebhookNotification n, Vars<String> context) {
