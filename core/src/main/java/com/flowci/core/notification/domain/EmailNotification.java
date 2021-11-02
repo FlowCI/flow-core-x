@@ -11,6 +11,8 @@ import javax.validation.constraints.NotEmpty;
 @Document(collection = "notification")
 public class EmailNotification extends Notification {
 
+    public static final String FLOW_USERS = "FLOW_USERS";
+
     @NotEmpty
     private String smtpConfig;
 
@@ -28,5 +30,9 @@ public class EmailNotification extends Notification {
 
     public EmailNotification() {
         setType(Type.Email);
+    }
+
+    public boolean isToFlowUsers() {
+        return FLOW_USERS.equals(to);
     }
 }

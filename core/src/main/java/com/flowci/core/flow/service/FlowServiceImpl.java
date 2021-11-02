@@ -27,6 +27,9 @@ import com.flowci.core.flow.dao.FlowUserDao;
 import com.flowci.core.flow.domain.*;
 import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.event.FlowDeletedEvent;
+import com.flowci.core.githook.domain.GitPingTrigger;
+import com.flowci.core.githook.domain.GitTrigger;
+import com.flowci.core.githook.event.GitHookEvent;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.JobActionEvent;
@@ -34,9 +37,6 @@ import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.CreateAuthEvent;
 import com.flowci.core.secret.event.CreateRsaEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
-import com.flowci.core.githook.domain.GitPingTrigger;
-import com.flowci.core.githook.domain.GitTrigger;
-import com.flowci.core.githook.event.GitHookEvent;
 import com.flowci.core.user.event.UserDeletedEvent;
 import com.flowci.domain.*;
 import com.flowci.exception.ArgumentException;
@@ -318,7 +318,8 @@ public class FlowServiceImpl implements FlowService {
     }
 
     @Override
-    public List<String> listUsers(Flow flow) {
+    public List<String> listUsers(String name) {
+        Flow flow = get(name);
         return flowUserDao.findAllUsers(flow.getId());
     }
 

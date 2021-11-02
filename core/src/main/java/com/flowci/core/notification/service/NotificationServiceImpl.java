@@ -2,11 +2,13 @@ package com.flowci.core.notification.service;
 
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.common.domain.Mongoable;
+import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.service.ConfigService;
+import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.job.event.JobFinishedEvent;
 import com.flowci.core.notification.dao.NotificationDao;
 import com.flowci.core.notification.domain.EmailNotification;
@@ -16,6 +18,7 @@ import com.flowci.core.notification.event.EmailTemplateParsedEvent;
 import com.flowci.domain.Vars;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
+import com.flowci.util.StringHelper;
 import groovy.util.ScriptException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.event.EventListener;
@@ -55,14 +58,18 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final ConfigService configService;
 
+    private final FlowService flowService;
+
     private final String emailTemplate;
 
     public NotificationServiceImpl(TemplateEngine templateEngine,
                                    NotificationDao notificationDao,
                                    ConditionManager conditionManager,
                                    SessionManager sessionManager,
-                                   SpringEventManager eventManager, ThreadPoolTaskExecutor appTaskExecutor,
-                                   ConfigService configService) throws IOException {
+                                   SpringEventManager eventManager,
+                                   ThreadPoolTaskExecutor appTaskExecutor,
+                                   ConfigService configService,
+                                   FlowService flowService) throws IOException {
         this.templateEngine = templateEngine;
         this.templateEngine.setTemplateResolver(new StringTemplateResolver());
 
@@ -72,6 +79,7 @@ public class NotificationServiceImpl implements NotificationService {
         this.eventManager = eventManager;
         this.appTaskExecutor = appTaskExecutor;
         this.configService = configService;
+        this.flowService = flowService;
 
         Resource resource = new ClassPathResource("templates/email.html");
         this.emailTemplate = new String(Files.readAllBytes(resource.getFile().toPath()));
@@ -89,6 +97,15 @@ public class NotificationServiceImpl implements NotificationService {
             return optional.get();
         }
         throw new NotFoundException("Notification {0} is not found", id);
+    }
+
+    @Override
+    public Notification getByName(String name) {
+        Optional<Notification> optional = notificationDao.findByName(name);
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+        throw new NotFoundException("Notification {0} is not found", name);
     }
 
     @Override
@@ -127,7 +144,7 @@ public class NotificationServiceImpl implements NotificationService {
         if (n instanceof EmailNotification) {
             try {
                 doSend((EmailNotification) n, context);
-            } catch (MessagingException e) {
+            } catch (Exception e) {
                 log.warn("Unable to send email", e);
             }
             return;
@@ -177,6 +194,19 @@ public class NotificationServiceImpl implements NotificationService {
         MimeMessageHelper helper = new MimeMessageHelper(mime, false);
 
         helper.setFrom(n.getFrom());
+        helper.setTo(n.getTo());
+
+        // load all users from flow
+        if (n.isToFlowUsers()) {
+            String flow = context.get(Variables.Flow.Name);
+            if (!StringHelper.hasValue(flow)) {
+                throw new StatusException("flow name is missing from context");
+            }
+
+            List<String> users = flowService.listUsers(flow);
+            helper.setTo(users.toArray(new String[0]));
+        }
+
         helper.setTo(n.getTo());
         helper.setSubject(n.getSubject());
         helper.setText(htmlContent, true);

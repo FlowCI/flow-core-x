@@ -13,6 +13,8 @@ public interface NotificationService {
 
     Notification get(String id);
 
+    Notification getByName(String name);
+
     void save(EmailNotification e);
 
     void save(WebhookNotification w);
