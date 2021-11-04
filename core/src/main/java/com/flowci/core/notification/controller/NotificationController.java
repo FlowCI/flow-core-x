@@ -4,14 +4,12 @@ import com.flowci.core.notification.domain.EmailNotification;
 import com.flowci.core.notification.domain.Notification;
 import com.flowci.core.notification.domain.WebhookNotification;
 import com.flowci.core.notification.service.NotificationService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController("notifications")
+@RestController
+@RequestMapping("/notifications")
 public class NotificationController {
 
     private final NotificationService notificationService;

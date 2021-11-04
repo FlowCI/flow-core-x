@@ -14,7 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "notification")
 public class Notification extends Mongoable {
 
-    public enum Type {
+    public enum Category {
 
         Email,
 
@@ -23,15 +23,19 @@ public class Notification extends Mongoable {
 
     public enum TriggerAction {
 
+//        OnUserCreated,
+//
+//        OnUserAddedToFlow,
+
         OnJobFinished,
 
-        OnAgentStatusChange
+        OnAgentStatusChange,
     }
 
     @Indexed(name = "index_notification_name", unique = true)
     private String name;
 
-    private Type type;
+    private Category category;
 
     @Indexed(name = "index_trigger_name")
     private TriggerAction trigger;

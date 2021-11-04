@@ -39,6 +39,7 @@ public class ConfigServiceImpl implements ConfigService {
     @Autowired
     private SpringEventManager eventManager;
 
+    @Override
     @EventListener
     public void onGetConfigEvent(GetConfigEvent event) {
         try {

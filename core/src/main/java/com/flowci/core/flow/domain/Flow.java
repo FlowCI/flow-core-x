@@ -22,6 +22,7 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.TypedVars;
 import com.flowci.domain.VarValue;
+import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.store.Pathable;
 import com.flowci.tree.NodePath;
@@ -80,10 +81,10 @@ public final class Flow extends Mongoable implements Pathable {
     private String cron;
 
     // variables from yml
-    private StringVars variables = new StringVars();
+    private Vars<String> variables = new StringVars();
 
     // variables for flow obj only
-    private TypedVars locally = new TypedVars();
+    private Vars<VarValue> locally = new TypedVars();
 
     private WebhookStatus webhookStatus;
 

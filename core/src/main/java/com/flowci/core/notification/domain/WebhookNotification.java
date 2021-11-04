@@ -20,6 +20,6 @@ public class WebhookNotification extends Notification {
     private String payload;
 
     public WebhookNotification() {
-        setType(Type.WebHook);
+        setCategory(Category.WebHook);
     }
 }

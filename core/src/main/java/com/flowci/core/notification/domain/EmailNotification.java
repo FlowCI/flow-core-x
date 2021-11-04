@@ -29,7 +29,7 @@ public class EmailNotification extends Notification {
     private String template = "default"; // template name
 
     public EmailNotification() {
-        setType(Type.Email);
+        setCategory(Category.Email);
     }
 
     public boolean isToFlowUsers() {
