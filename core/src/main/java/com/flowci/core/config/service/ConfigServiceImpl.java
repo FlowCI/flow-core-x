@@ -119,9 +119,9 @@ public class ConfigServiceImpl implements ConfigService {
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.connectiontimeout", "2000");
-        props.put("mail.smtp.timeout", "2000");
-        props.put("mail.smtp.writetimeout", "2000");
+        props.put("mail.smtp.connectiontimeout", "5000");
+        props.put("mail.smtp.timeout", "5000");
+        props.put("mail.smtp.writetimeout", "5000");
         props.put("mail.smtp.auth", "true");
         props.put("mail.debug", "false");
 

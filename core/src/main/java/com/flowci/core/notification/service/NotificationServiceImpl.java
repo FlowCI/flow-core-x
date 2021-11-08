@@ -7,6 +7,7 @@ import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.domain.Config;
+import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.job.event.JobFinishedEvent;
@@ -142,10 +143,15 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         if (n instanceof EmailNotification) {
+            String error = StringHelper.EMPTY;
             try {
                 doSend((EmailNotification) n, context);
             } catch (Exception e) {
                 log.warn("Unable to send email", e);
+                error = e.getMessage();
+            } finally {
+                n.setError(error);
+                notificationDao.save(n);
             }
             return;
         }
@@ -193,8 +199,13 @@ public class NotificationServiceImpl implements NotificationService {
         MimeMessage mime = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mime, false);
 
-        helper.setFrom(n.getFrom());
-        helper.setTo(n.getTo());
+        String from = n.getFrom();
+        String[] to = {n.getTo()};
+
+        if (!n.hasFrom()) {
+            SmtpConfig config = (SmtpConfig) configService.get(n.getSmtpConfig());
+            from = config.getAuth().getUsername();
+        }
 
         // load all users from flow
         if (n.isToFlowUsers()) {
@@ -204,10 +215,11 @@ public class NotificationServiceImpl implements NotificationService {
             }
 
             List<String> users = flowService.listUsers(flow);
-            helper.setTo(users.toArray(new String[0]));
+            to = users.toArray(new String[0]);
         }
 
-        helper.setTo(n.getTo());
+        helper.setFrom(from);
+        helper.setTo(to);
         helper.setSubject(n.getSubject());
         helper.setText(htmlContent, true);
 

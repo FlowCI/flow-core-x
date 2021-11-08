@@ -42,6 +42,8 @@ public class Notification extends Mongoable {
 
     private String condition;
 
+    private String error;
+
     public boolean hasCondition() {
         return StringHelper.hasValue(condition);
     }

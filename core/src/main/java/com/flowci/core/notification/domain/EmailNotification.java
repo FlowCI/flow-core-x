@@ -1,5 +1,7 @@
 package com.flowci.core.notification.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -33,5 +35,10 @@ public class EmailNotification extends Notification {
 
     public boolean isToFlowUsers() {
         return FLOW_USERS.equals(to);
+    }
+
+    @JsonIgnore
+    public boolean hasFrom() {
+        return StringHelper.hasValue(from);
     }
 }
