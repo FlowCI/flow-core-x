@@ -1,4 +1,4 @@
-package com.flowci.core.config;
+package com.flowci.core.config.controller;
 
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.common.domain.http.RequestMessage;
@@ -6,6 +6,7 @@ import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.domain.ConfigAction;
 import com.flowci.core.config.domain.SmtpOption;
 import com.flowci.core.config.service.ConfigService;
+import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,10 @@ public class ConfigController {
 
     @GetMapping
     @Action(ConfigAction.LIST)
-    public List<Config> list() {
+    public List<Config> list(@RequestParam(required = false) String category) {
+        if (StringHelper.hasValue(category)) {
+            return configService.list(Config.Category.valueOf(category));
+        }
         return configService.list();
     }
 

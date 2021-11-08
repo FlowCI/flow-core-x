@@ -23,6 +23,7 @@ import com.flowci.core.common.domain.Settings;
 import com.flowci.core.config.domain.ConfigAction;
 import com.flowci.core.flow.domain.FlowAction;
 import com.flowci.core.job.domain.JobAction;
+import com.flowci.core.notification.domain.NotificationAction;
 import com.flowci.core.secret.domain.SecretAction;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.domain.UserAction;
@@ -47,6 +48,7 @@ public class AuthConfig {
         permissionMap.add(User.Role.Admin, AgentHostAction.ALL);
         permissionMap.add(User.Role.Admin, UserAction.ALL);
         permissionMap.add(User.Role.Admin, ConfigAction.ALL);
+        permissionMap.add(User.Role.Admin, NotificationAction.ALL);
         permissionMap.add(User.Role.Admin, Settings.Action.ALL);
 
         // developer

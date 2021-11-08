@@ -78,6 +78,7 @@ public class WebConfig {
                         .addPathPatterns("/plugins/**")
                         .addPathPatterns("/secrets/**")
                         .addPathPatterns("/configs/**")
+                        .addPathPatterns("/notifications/**")
                         .addPathPatterns("/system/**")
                         .addPathPatterns("/auth/logout");
 

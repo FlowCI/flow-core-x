@@ -16,7 +16,6 @@ public class EmailNotification extends Notification {
     @NotEmpty
     private String smtpConfig;
 
-    @NotEmpty
     private String from;
 
     @NotEmpty
