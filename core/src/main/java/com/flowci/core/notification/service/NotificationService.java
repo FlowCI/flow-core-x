@@ -19,7 +19,7 @@ public interface NotificationService {
 
     void save(WebhookNotification w);
 
-    void delete(String id);
-
     void send(Notification n, Vars<String> context);
+
+    Notification delete(String name);
 }

@@ -17,6 +17,7 @@ import com.flowci.core.notification.domain.Notification;
 import com.flowci.core.notification.domain.WebhookNotification;
 import com.flowci.core.notification.event.EmailTemplateParsedEvent;
 import com.flowci.domain.Vars;
+import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.util.StringHelper;
@@ -25,6 +26,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -116,19 +118,18 @@ public class NotificationServiceImpl implements NotificationService {
             throw new StatusException("SMTP config is required");
         }
 
-        validateCondition(e);
-        e.setCreatedAndUpdatedBy(sessionManager.getUserEmail());
-        notificationDao.save(e);
+        try {
+            validateCondition(e);
+            e.setCreatedAndUpdatedBy(sessionManager.getUserEmail());
+            notificationDao.save(e);
+        } catch (DuplicateKeyException ignore) {
+            throw new DuplicateException("Notification name {0} is already defined", e.getName());
+        }
     }
 
     @Override
     public void save(WebhookNotification w) {
         notificationDao.save(w);
-    }
-
-    @Override
-    public void delete(String id) {
-        notificationDao.deleteById(id);
     }
 
     @Override
@@ -159,6 +160,13 @@ public class NotificationServiceImpl implements NotificationService {
         if (n instanceof WebhookNotification) {
             doSend((WebhookNotification) n, context);
         }
+    }
+
+    @Override
+    public Notification delete(String name) {
+        Notification n = getByName(name);
+        notificationDao.deleteByName(name);
+        return n;
     }
 
     @EventListener

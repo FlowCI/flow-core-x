@@ -13,4 +13,6 @@ public interface NotificationDao extends MongoRepository<Notification, String> {
     Optional<Notification> findByName(String name);
 
     List<Notification> findAllByTrigger(Notification.TriggerAction trigger);
+
+    void deleteByName(String name);
 }

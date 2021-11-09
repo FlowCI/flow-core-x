@@ -44,4 +44,10 @@ public class NotificationController {
     public void save(@Validated @RequestBody WebhookNotification n) {
         notificationService.save(n);
     }
+
+    @DeleteMapping("/{name}")
+    @Action(NotificationAction.DELETE)
+    public Notification delete(@PathVariable String name) {
+        return notificationService.delete(name);
+    }
 }
