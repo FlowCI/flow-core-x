@@ -193,7 +193,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     private void doSend(EmailNotification n, Vars<String> context) throws MessagingException {
         JavaMailSender sender = configService.getEmailSender(n.getSmtpConfig());
-        String htmlContent = templateEngine.process(emailTemplate, toThymeleafContext(context));
+        IContext thymeleafContext = toThymeleafContext(context);
+        String htmlContent = templateEngine.process(emailTemplate, thymeleafContext);
         eventManager.publish(new EmailTemplateParsedEvent(this, htmlContent));
 
         MimeMessage mime = sender.createMimeMessage();
@@ -220,7 +221,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         helper.setFrom(from);
         helper.setTo(to);
-        helper.setSubject(n.getSubject());
+        helper.setSubject(templateEngine.process(n.getSubject(), thymeleafContext));
         helper.setText(htmlContent, true);
 
         sender.send(mime);

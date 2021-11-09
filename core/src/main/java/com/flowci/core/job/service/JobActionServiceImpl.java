@@ -1133,6 +1133,7 @@ public class JobActionServiceImpl implements JobActionService {
 
         context.put(Variables.Job.StartAt, job.startAtInStr());
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
+        context.put(Variables.Job.DurationInSeconds, String.valueOf(job.getDurationInSeconds()));
         context.put(Variables.Job.Steps, stepService.toVarString(job, step));
 
         // DO NOT update job status from post step

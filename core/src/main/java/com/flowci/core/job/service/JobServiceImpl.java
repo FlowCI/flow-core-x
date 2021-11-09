@@ -394,6 +394,7 @@ public class JobServiceImpl implements JobService {
         context.put(Variables.Job.BuildNumber, job.getBuildNumber().toString());
         context.put(Variables.Job.StartAt, job.startAtInStr());
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
+        context.put(Variables.Job.DurationInSeconds, "0");
 
         if (!Objects.isNull(inputs)) {
             context.merge(inputs);

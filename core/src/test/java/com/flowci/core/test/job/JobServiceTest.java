@@ -153,6 +153,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertTrue(context.containsKey(Variables.Job.TriggerBy));
         Assert.assertTrue(context.containsKey(Variables.Job.StartAt));
         Assert.assertTrue(context.containsKey(Variables.Job.FinishAt));
+        Assert.assertTrue(context.containsKey(Variables.Job.DurationInSeconds));
 
         // then: vars should be included in job context
         Assert.assertTrue(context.containsKey("LOCAL_VAR"));

@@ -34,6 +34,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -239,7 +240,7 @@ public class Job extends Mongoable implements Pathable {
     private int expire = 1800;
 
     /**
-     * Date that job will expired at
+     * Date that job will be expired at
      */
     private Date expireAt;
 
@@ -306,6 +307,14 @@ public class Job extends Mongoable implements Pathable {
             return StringHelper.EMPTY;
         }
         return DateFormat.format(this.finishAt);
+    }
+
+    @JsonIgnore
+    public Long getDurationInSeconds() {
+        if (this.startAt == null || this.finishAt == null) {
+            return 0L;
+        }
+        return Duration.between(this.startAt.toInstant(), this.finishAt.toInstant()).getSeconds();
     }
 
     @JsonIgnore
