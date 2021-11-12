@@ -1,4 +1,4 @@
-package com.flowci.core.notification.event;
+package com.flowci.core.trigger.event;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;

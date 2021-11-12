@@ -1,10 +1,10 @@
-package com.flowci.core.notification.domain;
+package com.flowci.core.trigger.domain;
 
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
-public abstract class NotificationAction {
+public abstract class TriggerOperations {
 
     public static final String LIST = "list_notify";
 

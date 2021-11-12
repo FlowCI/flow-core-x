@@ -1,4 +1,4 @@
-package com.flowci.core.notification.service;
+package com.flowci.core.trigger.service;
 
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.common.domain.Mongoable;
@@ -11,11 +11,11 @@ import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.job.event.JobFinishedEvent;
-import com.flowci.core.notification.dao.NotificationDao;
-import com.flowci.core.notification.domain.EmailNotification;
-import com.flowci.core.notification.domain.Notification;
-import com.flowci.core.notification.domain.WebhookNotification;
-import com.flowci.core.notification.event.EmailTemplateParsedEvent;
+import com.flowci.core.trigger.dao.TriggerDao;
+import com.flowci.core.trigger.domain.EmailTrigger;
+import com.flowci.core.trigger.domain.Trigger;
+import com.flowci.core.trigger.domain.WebhookTrigger;
+import com.flowci.core.trigger.event.EmailTemplateParsedEvent;
 import com.flowci.domain.Vars;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
@@ -45,11 +45,11 @@ import java.util.Optional;
 
 @Log4j2
 @Service
-public class NotificationServiceImpl implements NotificationService {
+public class TriggerServiceImpl implements TriggerService {
 
     private final TemplateEngine templateEngine;
 
-    private final NotificationDao notificationDao;
+    private final TriggerDao triggerDao;
 
     private final ConditionManager conditionManager;
 
@@ -65,18 +65,18 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final String emailTemplate;
 
-    public NotificationServiceImpl(TemplateEngine templateEngine,
-                                   NotificationDao notificationDao,
-                                   ConditionManager conditionManager,
-                                   SessionManager sessionManager,
-                                   SpringEventManager eventManager,
-                                   ThreadPoolTaskExecutor appTaskExecutor,
-                                   ConfigService configService,
-                                   FlowService flowService) throws IOException {
+    public TriggerServiceImpl(TemplateEngine templateEngine,
+                              TriggerDao triggerDao,
+                              ConditionManager conditionManager,
+                              SessionManager sessionManager,
+                              SpringEventManager eventManager,
+                              ThreadPoolTaskExecutor appTaskExecutor,
+                              ConfigService configService,
+                              FlowService flowService) throws IOException {
         this.templateEngine = templateEngine;
         this.templateEngine.setTemplateResolver(new StringTemplateResolver());
 
-        this.notificationDao = notificationDao;
+        this.triggerDao = triggerDao;
         this.conditionManager = conditionManager;
         this.sessionManager = sessionManager;
         this.eventManager = eventManager;
@@ -89,13 +89,13 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<Notification> list() {
-        return notificationDao.findAll(Mongoable.SortByCreatedAtASC);
+    public List<Trigger> list() {
+        return triggerDao.findAll(Mongoable.SortByCreatedAtASC);
     }
 
     @Override
-    public Notification get(String id) {
-        Optional<Notification> optional = notificationDao.findById(id);
+    public Trigger get(String id) {
+        Optional<Trigger> optional = triggerDao.findById(id);
         if (optional.isPresent()) {
             return optional.get();
         }
@@ -103,8 +103,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public Notification getByName(String name) {
-        Optional<Notification> optional = notificationDao.findByName(name);
+    public Trigger getByName(String name) {
+        Optional<Trigger> optional = triggerDao.findByName(name);
         if (optional.isPresent()) {
             return optional.get();
         }
@@ -112,7 +112,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void save(EmailNotification e) {
+    public void save(EmailTrigger e) {
         Config config = configService.get(e.getSmtpConfig());
         if (config.getCategory() != Config.Category.SMTP) {
             throw new StatusException("SMTP config is required");
@@ -121,19 +121,19 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             validateCondition(e);
             e.setCreatedAndUpdatedBy(sessionManager.getUserEmail());
-            notificationDao.save(e);
+            triggerDao.save(e);
         } catch (DuplicateKeyException ignore) {
             throw new DuplicateException("Notification name {0} is already defined", e.getName());
         }
     }
 
     @Override
-    public void save(WebhookNotification w) {
-        notificationDao.save(w);
+    public void save(WebhookTrigger w) {
+        triggerDao.save(w);
     }
 
     @Override
-    public void send(Notification n, Vars<String> context) {
+    public void send(Trigger n, Vars<String> context) {
         if (n.hasCondition()) {
             try {
                 conditionManager.run(n.getCondition(), context);
@@ -143,37 +143,37 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
 
-        if (n instanceof EmailNotification) {
+        if (n instanceof EmailTrigger) {
             String error = StringHelper.EMPTY;
             try {
-                doSend((EmailNotification) n, context);
+                doSend((EmailTrigger) n, context);
             } catch (Exception e) {
                 log.warn("Unable to send email", e);
                 error = e.getMessage();
             } finally {
                 n.setError(error);
-                notificationDao.save(n);
+                triggerDao.save(n);
             }
             return;
         }
 
-        if (n instanceof WebhookNotification) {
-            doSend((WebhookNotification) n, context);
+        if (n instanceof WebhookTrigger) {
+            doSend((WebhookTrigger) n, context);
         }
     }
 
     @Override
-    public Notification delete(String name) {
-        Notification n = getByName(name);
-        notificationDao.deleteByName(name);
+    public Trigger delete(String name) {
+        Trigger n = getByName(name);
+        triggerDao.deleteByName(name);
         return n;
     }
 
     @EventListener
     public void onJobStatusChange(JobFinishedEvent event) {
         Vars<String> context = event.getJob().getContext();
-        List<Notification> list = notificationDao.findAllByTrigger(Notification.TriggerAction.OnJobFinished);
-        for (Notification n : list) {
+        List<Trigger> list = triggerDao.findAllByAction(Trigger.Action.OnJobFinished);
+        for (Trigger n : list) {
             appTaskExecutor.execute(() -> send(n, context));
         }
     }
@@ -181,13 +181,13 @@ public class NotificationServiceImpl implements NotificationService {
     @EventListener
     public void onAgentStatusChange(AgentStatusEvent event) {
         Vars<String> context = event.getAgent().toContext();
-        List<Notification> list = notificationDao.findAllByTrigger(Notification.TriggerAction.OnAgentStatusChange);
-        for (Notification n : list) {
+        List<Trigger> list = triggerDao.findAllByAction(Trigger.Action.OnAgentStatusChange);
+        for (Trigger n : list) {
             appTaskExecutor.execute(() -> send(n, context));
         }
     }
 
-    private void validateCondition(Notification n) {
+    private void validateCondition(Trigger n) {
         if (!n.hasCondition()) {
             return;
         }
@@ -199,7 +199,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    private void doSend(EmailNotification n, Vars<String> context) throws MessagingException {
+    private void doSend(EmailTrigger n, Vars<String> context) throws MessagingException {
         JavaMailSender sender = configService.getEmailSender(n.getSmtpConfig());
         IContext thymeleafContext = toThymeleafContext(context);
         String htmlContent = templateEngine.process(emailTemplate, thymeleafContext);
@@ -236,7 +236,7 @@ public class NotificationServiceImpl implements NotificationService {
         log.debug("Email notification {} has been sent", n.getName());
     }
 
-    private void doSend(WebhookNotification n, Vars<String> context) {
+    private void doSend(WebhookTrigger n, Vars<String> context) {
     }
 
     private IContext toThymeleafContext(Vars<String> c) {

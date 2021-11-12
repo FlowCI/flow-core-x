@@ -4,10 +4,10 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.job.domain.Job;
-import com.flowci.core.notification.domain.EmailNotification;
-import com.flowci.core.notification.domain.Notification;
-import com.flowci.core.notification.event.EmailTemplateParsedEvent;
-import com.flowci.core.notification.service.NotificationService;
+import com.flowci.core.trigger.domain.EmailTrigger;
+import com.flowci.core.trigger.domain.Trigger;
+import com.flowci.core.trigger.event.EmailTemplateParsedEvent;
+import com.flowci.core.trigger.service.TriggerService;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.StringVars;
@@ -27,10 +27,10 @@ import org.testng.Assert;
 import java.io.IOException;
 import java.util.Properties;
 
-public class NotificationServiceTest extends SpringScenario {
+public class TriggerServiceTest extends SpringScenario {
 
     @Autowired
-    private NotificationService notificationService;
+    private TriggerService triggerService;
 
     @MockBean
     private ConfigService configService;
@@ -52,13 +52,13 @@ public class NotificationServiceTest extends SpringScenario {
 
     @Test
     public void should_save_email_notification() {
-        EmailNotification en = new EmailNotification();
+        EmailTrigger en = new EmailTrigger();
         en.setName("default-email-notification");
         en.setSmtpConfig(config.getName());
-        en.setTrigger(Notification.TriggerAction.OnJobFinished);
+        en.setAction(Trigger.Action.OnJobFinished);
         en.setTemplate("default");
 
-        notificationService.save(en);
+        triggerService.save(en);
 
         Assert.assertNotNull(en.getId());
         Assert.assertNotNull(en.getCreatedBy());
@@ -68,10 +68,10 @@ public class NotificationServiceTest extends SpringScenario {
     @Ignore
     @Test
     public void should_send_email_with_condition() {
-        EmailNotification en = new EmailNotification();
+        EmailTrigger en = new EmailTrigger();
         en.setName("default-email-notification");
         en.setSmtpConfig(config.getName());
-        en.setTrigger(Notification.TriggerAction.OnJobFinished);
+        en.setAction(Trigger.Action.OnJobFinished);
         en.setTemplate("default");
         en.setFrom("tester@flow.ci");
         en.setTo("benqyang_2006@hotmail.com");
@@ -112,7 +112,7 @@ public class NotificationServiceTest extends SpringScenario {
             }
         });
 
-        notificationService.send(en, context);
+        triggerService.send(en, context);
     }
 
     private SmtpConfig getSmtpConfig() {

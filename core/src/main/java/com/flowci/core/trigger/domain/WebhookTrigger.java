@@ -1,4 +1,4 @@
-package com.flowci.core.notification.domain;
+package com.flowci.core.trigger.domain;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,8 +8,8 @@ import java.util.Map;
 
 @Getter
 @Setter
-@Document(collection = "notification")
-public class WebhookNotification extends Notification {
+@Document(collection = "trigger")
+public class WebhookTrigger extends Trigger {
 
     private String url;
 
@@ -19,7 +19,7 @@ public class WebhookNotification extends Notification {
 
     private String payload;
 
-    public WebhookNotification() {
+    public WebhookTrigger() {
         setCategory(Category.WebHook);
     }
 }

@@ -1,4 +1,4 @@
-package com.flowci.core.notification.domain;
+package com.flowci.core.trigger.domain;
 
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.util.StringHelper;
@@ -11,8 +11,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-@Document(collection = "notification")
-public class Notification extends Mongoable {
+@Document(collection = "trigger")
+public class Trigger extends Mongoable {
 
     public enum Category {
 
@@ -21,7 +21,7 @@ public class Notification extends Mongoable {
         WebHook // send http request to target url
     }
 
-    public enum TriggerAction {
+    public enum Action {
 
 //        OnUserCreated,
 //
@@ -32,13 +32,13 @@ public class Notification extends Mongoable {
         OnAgentStatusChange,
     }
 
-    @Indexed(name = "index_notification_name", unique = true)
+    @Indexed(name = "index_trigger_name", unique = true)
     private String name;
 
     private Category category;
 
-    @Indexed(name = "index_trigger_name")
-    private TriggerAction trigger;
+    @Indexed(name = "index_trigger_action")
+    private Action action;
 
     private String condition;
 

@@ -1,4 +1,4 @@
-package com.flowci.core.notification.domain;
+package com.flowci.core.trigger.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.util.StringHelper;
@@ -10,8 +10,8 @@ import javax.validation.constraints.NotEmpty;
 
 @Getter
 @Setter
-@Document(collection = "notification")
-public class EmailNotification extends Notification {
+@Document(collection = "trigger")
+public class EmailTrigger extends Trigger {
 
     public static final String FLOW_USERS = "FLOW_USERS";
 
@@ -29,7 +29,7 @@ public class EmailNotification extends Notification {
     @NotEmpty
     private String template = "default"; // template name
 
-    public EmailNotification() {
+    public EmailTrigger() {
         setCategory(Category.Email);
     }
 
