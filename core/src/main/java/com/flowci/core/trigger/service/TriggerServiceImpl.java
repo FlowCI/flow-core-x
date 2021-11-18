@@ -99,7 +99,7 @@ public class TriggerServiceImpl implements TriggerService {
         if (optional.isPresent()) {
             return optional.get();
         }
-        throw new NotFoundException("Notification {0} is not found", id);
+        throw new NotFoundException("Trigger {0} is not found", id);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class TriggerServiceImpl implements TriggerService {
         if (optional.isPresent()) {
             return optional.get();
         }
-        throw new NotFoundException("Notification {0} is not found", name);
+        throw new NotFoundException("Trigger {0} is not found", name);
     }
 
     @Override
@@ -118,18 +118,14 @@ public class TriggerServiceImpl implements TriggerService {
             throw new StatusException("SMTP config is required");
         }
 
-        try {
-            validateCondition(e);
-            e.setCreatedAndUpdatedBy(sessionManager.getUserEmail());
-            triggerDao.save(e);
-        } catch (DuplicateKeyException ignore) {
-            throw new DuplicateException("Notification name {0} is already defined", e.getName());
-        }
+        validateCondition(e);
+        e.setCreatedAndUpdatedBy(sessionManager.getUserEmail());
+        doSave(e);
     }
 
     @Override
     public void save(WebhookTrigger w) {
-        triggerDao.save(w);
+        doSave(w);
     }
 
     @Override
@@ -138,7 +134,7 @@ public class TriggerServiceImpl implements TriggerService {
             try {
                 conditionManager.run(n.getCondition(), context);
             } catch (ScriptException e) {
-                log.warn("Cannot execute condition of notification {}", n.getName());
+                log.warn("Cannot execute condition of trigger {}", n.getName());
                 return;
             }
         }
@@ -184,6 +180,14 @@ public class TriggerServiceImpl implements TriggerService {
         List<Trigger> list = triggerDao.findAllByAction(Trigger.Action.OnAgentStatusChange);
         for (Trigger n : list) {
             appTaskExecutor.execute(() -> send(n, context));
+        }
+    }
+
+    private void doSave(Trigger t) {
+        try {
+            triggerDao.save(t);
+        } catch (DuplicateKeyException ignore) {
+            throw new DuplicateException("Trigger name {0} is already defined", t.getName());
         }
     }
 
@@ -233,10 +237,11 @@ public class TriggerServiceImpl implements TriggerService {
         helper.setText(htmlContent, true);
 
         sender.send(mime);
-        log.debug("Email notification {} has been sent", n.getName());
+        log.debug("Email trigger {} has been sent", n.getName());
     }
 
     private void doSend(WebhookTrigger n, Vars<String> context) {
+
     }
 
     private IContext toThymeleafContext(Vars<String> c) {

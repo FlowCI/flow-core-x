@@ -15,9 +15,11 @@ public class WebhookTrigger extends Trigger {
 
     private String httpMethod;
 
+    private Map<String, String> params;
+
     private Map<String, String> headers;
 
-    private String payload;
+    private String body;
 
     public WebhookTrigger() {
         setCategory(Category.WebHook);
