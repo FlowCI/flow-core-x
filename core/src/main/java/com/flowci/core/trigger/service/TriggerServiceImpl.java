@@ -241,7 +241,6 @@ public class TriggerServiceImpl implements TriggerService {
     }
 
     private void doSend(WebhookTrigger n, Vars<String> context) {
-
     }
 
     private IContext toThymeleafContext(Vars<String> c) {
