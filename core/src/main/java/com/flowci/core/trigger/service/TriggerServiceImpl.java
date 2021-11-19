@@ -23,6 +23,7 @@ import com.flowci.exception.StatusException;
 import com.flowci.util.StringHelper;
 import groovy.util.ScriptException;
 import lombok.extern.log4j.Log4j2;
+import org.apache.http.client.utils.URIBuilder;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -39,8 +40,14 @@ import org.thymeleaf.templateresolver.StringTemplateResolver;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
+import java.net.Authenticator;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Log4j2
@@ -65,6 +72,8 @@ public class TriggerServiceImpl implements TriggerService {
 
     private final String emailTemplate;
 
+    private final HttpClient httpClient;
+
     public TriggerServiceImpl(TemplateEngine templateEngine,
                               TriggerDao triggerDao,
                               ConditionManager conditionManager,
@@ -86,6 +95,13 @@ public class TriggerServiceImpl implements TriggerService {
 
         Resource resource = new ClassPathResource("templates/email.html");
         this.emailTemplate = new String(Files.readAllBytes(resource.getFile().toPath()));
+
+        this.httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .connectTimeout(Duration.ofSeconds(10))
+                .authenticator(Authenticator.getDefault())
+                .build();
     }
 
     @Override
@@ -129,32 +145,32 @@ public class TriggerServiceImpl implements TriggerService {
     }
 
     @Override
-    public void send(Trigger n, Vars<String> context) {
-        if (n.hasCondition()) {
+    public void send(Trigger t, Vars<String> context) {
+        if (t.hasCondition()) {
             try {
-                conditionManager.run(n.getCondition(), context);
+                conditionManager.run(t.getCondition(), context);
             } catch (ScriptException e) {
-                log.warn("Cannot execute condition of trigger {}", n.getName());
+                log.warn("Cannot execute condition of trigger {}", t.getName());
                 return;
             }
         }
 
-        if (n instanceof EmailTrigger) {
-            String error = StringHelper.EMPTY;
-            try {
-                doSend((EmailTrigger) n, context);
-            } catch (Exception e) {
-                log.warn("Unable to send email", e);
-                error = e.getMessage();
-            } finally {
-                n.setError(error);
-                triggerDao.save(n);
+        var error = StringHelper.EMPTY;
+        try {
+            if (t instanceof EmailTrigger) {
+                doSend((EmailTrigger) t, context);
+                return;
             }
-            return;
-        }
 
-        if (n instanceof WebhookTrigger) {
-            doSend((WebhookTrigger) n, context);
+            if (t instanceof WebhookTrigger) {
+                doSend((WebhookTrigger) t, context);
+            }
+        } catch (Exception e) {
+            log.warn("Error on trigger {}", t.getName(), e);
+            error = e.getMessage();
+        } finally {
+            t.setError(error);
+            triggerDao.save(t);
         }
     }
 
@@ -203,8 +219,8 @@ public class TriggerServiceImpl implements TriggerService {
         }
     }
 
-    private void doSend(EmailTrigger n, Vars<String> context) throws MessagingException {
-        JavaMailSender sender = configService.getEmailSender(n.getSmtpConfig());
+    private void doSend(EmailTrigger t, Vars<String> context) throws MessagingException {
+        JavaMailSender sender = configService.getEmailSender(t.getSmtpConfig());
         IContext thymeleafContext = toThymeleafContext(context);
         String htmlContent = templateEngine.process(emailTemplate, thymeleafContext);
         eventManager.publish(new EmailTemplateParsedEvent(this, htmlContent));
@@ -212,16 +228,16 @@ public class TriggerServiceImpl implements TriggerService {
         MimeMessage mime = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mime, false);
 
-        String from = n.getFrom();
-        String[] to = {n.getTo()};
+        String from = t.getFrom();
+        String[] to = {t.getTo()};
 
-        if (!n.hasFrom()) {
-            SmtpConfig config = (SmtpConfig) configService.get(n.getSmtpConfig());
+        if (!t.hasFrom()) {
+            SmtpConfig config = (SmtpConfig) configService.get(t.getSmtpConfig());
             from = config.getAuth().getUsername();
         }
 
         // load all users from flow
-        if (n.isToFlowUsers()) {
+        if (t.isToFlowUsers()) {
             String flow = context.get(Variables.Flow.Name);
             if (!StringHelper.hasValue(flow)) {
                 throw new StatusException("flow name is missing from context");
@@ -233,14 +249,33 @@ public class TriggerServiceImpl implements TriggerService {
 
         helper.setFrom(from);
         helper.setTo(to);
-        helper.setSubject(templateEngine.process(n.getSubject(), thymeleafContext));
+        helper.setSubject(templateEngine.process(t.getSubject(), thymeleafContext));
         helper.setText(htmlContent, true);
 
         sender.send(mime);
-        log.debug("Email trigger {} has been sent", n.getName());
+        log.debug("Email trigger {} has been sent", t.getName());
     }
 
-    private void doSend(WebhookTrigger n, Vars<String> context) {
+    private void doSend(WebhookTrigger t, Vars<String> context) throws Exception {
+        var uriBuilder = new URIBuilder(t.getUrl());
+        if (t.hasParams()) {
+            t.getParams().forEach(uriBuilder::addParameter);
+        }
+
+        var builder = HttpRequest.newBuilder(uriBuilder.build());
+        if (t.hasHeaders()) {
+            t.getHeaders().forEach(builder::setHeader);
+        }
+
+        var bodyPublisher = HttpRequest.BodyPublishers.noBody();
+        if (t.hasBody() && !Objects.equals(t.getHttpMethod(), "GET")) {
+            IContext thymeleafContext = toThymeleafContext(context);
+            bodyPublisher = HttpRequest.BodyPublishers.ofString(templateEngine.process(t.getBody(), thymeleafContext));
+        }
+        builder = builder.method(t.getHttpMethod(), bodyPublisher);
+
+        var response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+        log.debug("Webhook trigger {} has been sent: status code = {}, body = {}", t.getName(), response.statusCode(), response.body());
     }
 
     private IContext toThymeleafContext(Vars<String> c) {
