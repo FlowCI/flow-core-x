@@ -15,9 +15,9 @@ public interface TriggerService {
 
     Trigger getByName(String name);
 
-    void save(EmailTrigger e);
+    Trigger save(EmailTrigger e);
 
-    void save(WebhookTrigger w);
+    Trigger save(WebhookTrigger w);
 
     void send(Trigger n, Vars<String> context);
 

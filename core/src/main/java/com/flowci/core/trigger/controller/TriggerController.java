@@ -35,14 +35,14 @@ public class TriggerController {
 
     @PostMapping("/email")
     @Action(TriggerOperations.SAVE)
-    public void save(@Validated @RequestBody EmailTrigger n) {
-        triggerService.save(n);
+    public Trigger save(@Validated @RequestBody EmailTrigger n) {
+        return triggerService.save(n);
     }
 
     @PostMapping("/webhook")
     @Action(TriggerOperations.SAVE)
-    public void save(@Validated @RequestBody WebhookTrigger n) {
-        triggerService.save(n);
+    public Trigger save(@Validated @RequestBody WebhookTrigger n) {
+        return triggerService.save(n);
     }
 
     @DeleteMapping("/{name}")

@@ -40,7 +40,6 @@ import org.thymeleaf.templateresolver.StringTemplateResolver;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
-import java.net.Authenticator;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -100,7 +99,6 @@ public class TriggerServiceImpl implements TriggerService {
                 .version(HttpClient.Version.HTTP_1_1)
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(10))
-                .authenticator(Authenticator.getDefault())
                 .build();
     }
 
@@ -128,7 +126,7 @@ public class TriggerServiceImpl implements TriggerService {
     }
 
     @Override
-    public void save(EmailTrigger e) {
+    public Trigger save(EmailTrigger e) {
         Config config = configService.get(e.getSmtpConfig());
         if (config.getCategory() != Config.Category.SMTP) {
             throw new StatusException("SMTP config is required");
@@ -136,12 +134,12 @@ public class TriggerServiceImpl implements TriggerService {
 
         validateCondition(e);
         e.setCreatedAndUpdatedBy(sessionManager.getUserEmail());
-        doSave(e);
+        return doSave(e);
     }
 
     @Override
-    public void save(WebhookTrigger w) {
-        doSave(w);
+    public Trigger save(WebhookTrigger w) {
+        return doSave(w);
     }
 
     @Override
@@ -199,9 +197,9 @@ public class TriggerServiceImpl implements TriggerService {
         }
     }
 
-    private void doSave(Trigger t) {
+    private Trigger doSave(Trigger t) {
         try {
-            triggerDao.save(t);
+            return triggerDao.save(t);
         } catch (DuplicateKeyException ignore) {
             throw new DuplicateException("Trigger name {0} is already defined", t.getName());
         }
