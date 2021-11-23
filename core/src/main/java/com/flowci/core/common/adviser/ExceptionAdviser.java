@@ -49,14 +49,24 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 })
 public class ExceptionAdviser {
 
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseMessage<Object> inputArgumentException(MethodArgumentNotValidException e) {
+        String msg = e.getMessage();
+
+        var fieldError = e.getBindingResult().getFieldError();
+        if (fieldError != null && fieldError.getDefaultMessage() != null) {
+            msg = fieldError.getDefaultMessage();
+        }
+
+        return new ResponseMessage<>(ErrorCode.INVALID_ARGUMENT, msg, null);
+    }
 
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @ExceptionHandler({
-            MethodArgumentNotValidException.class,
-            MissingServletRequestParameterException.class
-    })
-    public ResponseMessage<Object> inputArgumentException(Exception e) {
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseMessage<Object> inputArgumentException(MissingServletRequestParameterException e) {
         return new ResponseMessage<>(ErrorCode.INVALID_ARGUMENT, e.getMessage(), null);
     }
 
