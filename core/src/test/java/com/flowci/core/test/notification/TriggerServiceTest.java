@@ -55,7 +55,7 @@ public class TriggerServiceTest extends SpringScenario {
         EmailTrigger en = new EmailTrigger();
         en.setName("default-email-notification");
         en.setSmtpConfig(config.getName());
-        en.setAction(Trigger.Action.OnJobFinished);
+        en.setEvent(Trigger.Event.OnJobFinished);
         en.setTemplate("default");
 
         triggerService.save(en);
@@ -71,7 +71,7 @@ public class TriggerServiceTest extends SpringScenario {
         EmailTrigger en = new EmailTrigger();
         en.setName("default-email-notification");
         en.setSmtpConfig(config.getName());
-        en.setAction(Trigger.Action.OnJobFinished);
+        en.setEvent(Trigger.Event.OnJobFinished);
         en.setTemplate("default");
         en.setFrom("tester@flow.ci");
         en.setTo("benqyang_2006@hotmail.com");

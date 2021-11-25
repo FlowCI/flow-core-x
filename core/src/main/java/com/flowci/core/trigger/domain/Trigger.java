@@ -8,6 +8,9 @@ import lombok.Setter;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
@@ -21,7 +24,7 @@ public class Trigger extends Mongoable {
         WebHook // send http request to target url
     }
 
-    public enum Action {
+    public enum Event {
 
 //        OnUserCreated,
 //
@@ -32,17 +35,18 @@ public class Trigger extends Mongoable {
         OnAgentStatusChange,
     }
 
+    @NotEmpty
     @Indexed(name = "index_trigger_name", unique = true)
     private String name;
 
+    @NotNull
     private Category category;
 
-    @Indexed(name = "index_trigger_action")
-    private Action action;
+    @NotNull
+    @Indexed(name = "index_trigger_event")
+    private Event event;
 
     private String condition;
-
-    private String error;
 
     public boolean hasCondition() {
         return StringHelper.hasValue(condition);

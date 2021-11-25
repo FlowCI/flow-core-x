@@ -153,7 +153,6 @@ public class TriggerServiceImpl implements TriggerService {
             }
         }
 
-        var error = StringHelper.EMPTY;
         try {
             if (t instanceof EmailTrigger) {
                 doSend((EmailTrigger) t, context);
@@ -165,10 +164,6 @@ public class TriggerServiceImpl implements TriggerService {
             }
         } catch (Exception e) {
             log.warn("Error on trigger {}", t.getName(), e);
-            error = e.getMessage();
-        } finally {
-            t.setError(error);
-            triggerDao.save(t);
         }
     }
 
@@ -182,7 +177,7 @@ public class TriggerServiceImpl implements TriggerService {
     @EventListener
     public void onJobStatusChange(JobFinishedEvent event) {
         Vars<String> context = event.getJob().getContext();
-        List<Trigger> list = triggerDao.findAllByAction(Trigger.Action.OnJobFinished);
+        List<Trigger> list = triggerDao.findAllByEvent(Trigger.Event.OnJobFinished);
         for (Trigger n : list) {
             appTaskExecutor.execute(() -> send(n, context));
         }
@@ -191,7 +186,7 @@ public class TriggerServiceImpl implements TriggerService {
     @EventListener
     public void onAgentStatusChange(AgentStatusEvent event) {
         Vars<String> context = event.getAgent().toContext();
-        List<Trigger> list = triggerDao.findAllByAction(Trigger.Action.OnAgentStatusChange);
+        List<Trigger> list = triggerDao.findAllByEvent(Trigger.Event.OnAgentStatusChange);
         for (Trigger n : list) {
             appTaskExecutor.execute(() -> send(n, context));
         }

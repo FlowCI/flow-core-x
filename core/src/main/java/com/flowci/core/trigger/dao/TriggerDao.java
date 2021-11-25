@@ -12,7 +12,7 @@ public interface TriggerDao extends MongoRepository<Trigger, String> {
 
     Optional<Trigger> findByName(String name);
 
-    List<Trigger> findAllByAction(Trigger.Action action);
+    List<Trigger> findAllByEvent(Trigger.Event action);
 
     void deleteByName(String name);
 }
