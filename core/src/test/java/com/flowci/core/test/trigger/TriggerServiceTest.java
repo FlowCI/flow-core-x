@@ -1,4 +1,4 @@
-package com.flowci.core.test.notification;
+package com.flowci.core.test.trigger;
 
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.config.domain.SmtpConfig;
