@@ -36,7 +36,6 @@ import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.util.StringHelper;
-import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
@@ -66,8 +65,6 @@ import static com.flowci.core.common.domain.Variables.Git.GIT_COMMIT_ID;
 public class JobServiceImpl implements JobService {
 
     private static final Sort SortByBuildNumber = Sort.by(Direction.DESC, "buildNumber");
-
-    private static final int DefaultJobLockTimeout = 20; // seconds
 
     //====================================================================
     //        %% Spring injection
@@ -116,8 +113,6 @@ public class JobServiceImpl implements JobService {
     @Autowired
     private SettingService settingService;
 
-    @Autowired
-    private ZookeeperClient zk;
 
     //====================================================================
     //        %% Public functions
@@ -297,24 +292,6 @@ public class JobServiceImpl implements JobService {
 
             eventManager.publish(new JobDeletedEvent(this, flow, numOfJobDeleted));
         });
-    }
-
-    @Override
-    public Optional<InterLock> lock(String jobId) {
-        String path = zk.makePath("/job-locks", jobId);
-        Optional<InterLock> lock = zk.lock(path, DefaultJobLockTimeout);
-        lock.ifPresent(interLock -> log.debug("Lock: {}", jobId));
-        return lock;
-    }
-
-    @Override
-    public void unlock(InterLock lock, String jobId) {
-        try {
-            zk.release(lock);
-            log.debug("Unlock: {}", jobId);
-        } catch (Exception warn) {
-            log.warn(warn);
-        }
     }
 
     //====================================================================

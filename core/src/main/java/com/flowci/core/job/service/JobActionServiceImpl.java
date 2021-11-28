@@ -33,6 +33,7 @@ import com.flowci.core.job.event.JobFinishedEvent;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.manager.CmdManager;
+import com.flowci.core.job.manager.LockManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.Errors;
 import com.flowci.core.job.util.StatusHelper;
@@ -147,7 +148,7 @@ public class JobActionServiceImpl implements JobActionService {
     private ConditionManager conditionManager;
 
     @Autowired
-    private JobService jobService;
+    private LockManager lockManager;
 
     @Autowired
     private AgentService agentService;
@@ -199,8 +200,8 @@ public class JobActionServiceImpl implements JobActionService {
                 continue;
             }
 
-            Optional<InterLock> lock = jobService.lock(job.getId());
-            if (!lock.isPresent()) {
+            Optional<InterLock> lock = lockManager.lock(job.getId());
+            if (lock.isEmpty()) {
                 toFailureStatus(job, new CIException("Fail to lock job"));
                 continue;
             }
@@ -216,7 +217,7 @@ public class JobActionServiceImpl implements JobActionService {
             } catch (Exception e) {
                 toFailureStatus(job, new CIException(e.getMessage()));
             } finally {
-                jobService.unlock(lock.get(), job.getId());
+                lockManager.unlock(lock.get(), job.getId());
             }
         }
     }
@@ -813,9 +814,8 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     private void onTransition(String jobId, Status to, Consumer<JobSmContext> onContext) {
-        Optional<InterLock> lock = jobService.lock(jobId);
-
-        if (!lock.isPresent()) {
+        Optional<InterLock> lock = lockManager.lock(jobId);
+        if (lock.isEmpty()) {
             Job job = getJob(jobId);
             toFailureStatus(job, new CIException("Fail to lock job"));
             return;
@@ -1191,7 +1191,7 @@ public class JobActionServiceImpl implements JobActionService {
             }
 
             Job job = context.getJob();
-            jobService.unlock(lock, job.getId());
+            lockManager.unlock(lock, job.getId());
             context.setLock(null);
         }
     }
