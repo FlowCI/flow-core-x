@@ -8,5 +8,8 @@ public interface CustomizedTriggerDeliveryDao {
 
     void addDelivery(String triggerId, TriggerDelivery.Item item);
 
+    /**
+     * Page Number from 1
+     */
     Page<TriggerDelivery.Item> listDeliveries(String triggerId, PageRequest pageRequest);
 }

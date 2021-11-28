@@ -36,13 +36,19 @@ public class TriggerDeliveryDaoTest extends SpringScenario {
         var loaded = optional.get();
         Assert.assertEquals(10, loaded.getDeliveries().size());
 
-        Page<TriggerDelivery.Item> items = triggerDeliveryDao.listDeliveries(delivery.getTriggerId(), PageRequest.of(1, 5));
-        Assert.assertNotNull(items);
+        Page<TriggerDelivery.Item> items1 = triggerDeliveryDao.listDeliveries(delivery.getTriggerId(), PageRequest.of(1, 2));
+        Assert.assertEquals("9", items1.getContent().get(0).getDesc());
+        Assert.assertEquals("8", items1.getContent().get(1).getDesc());
+
+        Page<TriggerDelivery.Item> items2 = triggerDeliveryDao.listDeliveries(delivery.getTriggerId(), PageRequest.of(2, 2));
+        Assert.assertEquals("7", items2.getContent().get(0).getDesc());
+        Assert.assertEquals("6", items2.getContent().get(1).getDesc());
     }
 
     private void createItems(int total) {
         for (int i = 0; i < total; i++) {
             var item = new TriggerDelivery.Item();
+            item.setDesc(String.valueOf(i));
             item.setTimestamp(new Date());
             item.setStatus("success");
             triggerDeliveryDao.addDelivery(delivery.getTriggerId(), item);

@@ -22,13 +22,16 @@ public class TriggerDelivery {
 
     private List<Item> deliveries;
 
+    // helper field for Dao
+    private long deliveriesTotal;
+
     @Getter
     @Setter
     public static class Item {
 
         private String status; // success, failure
 
-        private String error;
+        private String desc; // description or error
 
         private Date timestamp;
     }
