@@ -50,7 +50,7 @@ public class TriggerDeliveryDaoTest extends SpringScenario {
             var item = new TriggerDelivery.Item();
             item.setDesc(String.valueOf(i));
             item.setTimestamp(new Date());
-            item.setStatus("success");
+            item.setStatus(TriggerDelivery.Item.Status.Success);
             triggerDeliveryDao.addDelivery(delivery.getTriggerId(), item, 10);
         }
     }

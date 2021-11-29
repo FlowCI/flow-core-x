@@ -1,11 +1,10 @@
 package com.flowci.core.trigger.controller;
 
 import com.flowci.core.auth.annotation.Action;
-import com.flowci.core.trigger.domain.EmailTrigger;
-import com.flowci.core.trigger.domain.Trigger;
-import com.flowci.core.trigger.domain.TriggerOperations;
-import com.flowci.core.trigger.domain.WebhookTrigger;
+import com.flowci.core.trigger.domain.*;
+import com.flowci.core.trigger.service.TriggerDeliveryService;
 import com.flowci.core.trigger.service.TriggerService;
+import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,10 +14,18 @@ import java.util.List;
 @RequestMapping("/triggers")
 public class TriggerController {
 
+    private static final String DefaultPage = "0";
+
+    private static final String DefaultSize = "20";
+
     private final TriggerService triggerService;
 
-    public TriggerController(TriggerService triggerService) {
+    private final TriggerDeliveryService triggerDeliveryService;
+
+    public TriggerController(TriggerService triggerService,
+                             TriggerDeliveryService triggerDeliveryService) {
         this.triggerService = triggerService;
+        this.triggerDeliveryService = triggerDeliveryService;
     }
 
     @GetMapping
@@ -49,5 +56,14 @@ public class TriggerController {
     @Action(TriggerOperations.DELETE)
     public Trigger delete(@PathVariable String name) {
         return triggerService.delete(name);
+    }
+
+    @GetMapping("/{name}/deliveries")
+    @Action(TriggerOperations.LIST)
+    public Page<TriggerDelivery.Item> deliveries(@PathVariable String name,
+                                                 @RequestParam(required = false, defaultValue = DefaultPage) int page,
+                                                 @RequestParam(required = false, defaultValue = DefaultSize) int size) {
+        Trigger t = triggerService.getByName(name);
+        return triggerDeliveryService.list(t, page, size);
     }
 }

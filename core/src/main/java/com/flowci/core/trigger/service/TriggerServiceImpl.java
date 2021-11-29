@@ -14,6 +14,7 @@ import com.flowci.core.job.event.JobFinishedEvent;
 import com.flowci.core.trigger.dao.TriggerDao;
 import com.flowci.core.trigger.domain.EmailTrigger;
 import com.flowci.core.trigger.domain.Trigger;
+import com.flowci.core.trigger.domain.TriggerDelivery;
 import com.flowci.core.trigger.domain.WebhookTrigger;
 import com.flowci.core.trigger.event.EmailTemplateParsedEvent;
 import com.flowci.domain.Vars;
@@ -45,6 +46,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -69,6 +71,8 @@ public class TriggerServiceImpl implements TriggerService {
 
     private final FlowService flowService;
 
+    private final TriggerDeliveryService triggerDeliveryService;
+
     private final String emailTemplate;
 
     private final HttpClient httpClient;
@@ -80,7 +84,8 @@ public class TriggerServiceImpl implements TriggerService {
                               SpringEventManager eventManager,
                               ThreadPoolTaskExecutor appTaskExecutor,
                               ConfigService configService,
-                              FlowService flowService) throws IOException {
+                              FlowService flowService,
+                              TriggerDeliveryService triggerDeliveryService) throws IOException {
         this.templateEngine = templateEngine;
         this.templateEngine.setTemplateResolver(new StringTemplateResolver());
 
@@ -91,6 +96,7 @@ public class TriggerServiceImpl implements TriggerService {
         this.appTaskExecutor = appTaskExecutor;
         this.configService = configService;
         this.flowService = flowService;
+        this.triggerDeliveryService = triggerDeliveryService;
 
         Resource resource = new ClassPathResource("templates/email.html");
         this.emailTemplate = new String(Files.readAllBytes(resource.getFile().toPath()));
@@ -153,17 +159,26 @@ public class TriggerServiceImpl implements TriggerService {
             }
         }
 
+        var delivery = new TriggerDelivery.Item();
+
         try {
             if (t instanceof EmailTrigger) {
                 doSend((EmailTrigger) t, context);
-                return;
             }
 
             if (t instanceof WebhookTrigger) {
                 doSend((WebhookTrigger) t, context);
             }
+
+            delivery.setStatus(TriggerDelivery.Item.Status.Success);
         } catch (Exception e) {
             log.warn("Error on trigger {}", t.getName(), e);
+
+            delivery.setStatus(TriggerDelivery.Item.Status.Failure);
+            delivery.setDesc(e.getMessage());
+        } finally {
+            delivery.setTimestamp(new Date());
+            triggerDeliveryService.add(t, delivery);
         }
     }
 
@@ -194,7 +209,14 @@ public class TriggerServiceImpl implements TriggerService {
 
     private Trigger doSave(Trigger t) {
         try {
-            return triggerDao.save(t);
+            boolean isNew = !t.hasId();
+            Trigger saved = triggerDao.save(t);
+
+            if (isNew) {
+                triggerDeliveryService.init(saved);
+            }
+
+            return saved;
         } catch (DuplicateKeyException ignore) {
             throw new DuplicateException("Trigger name {0} is already defined", t.getName());
         }

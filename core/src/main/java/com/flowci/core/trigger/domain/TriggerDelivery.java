@@ -29,7 +29,13 @@ public class TriggerDelivery {
     @Setter
     public static class Item {
 
-        private String status; // success, failure
+        public enum Status {
+            Success,
+
+            Failure
+        }
+
+        private Status status; // success, failure
 
         private String desc; // description or error
 
