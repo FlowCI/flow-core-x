@@ -24,13 +24,13 @@ import org.springframework.context.ApplicationEvent;
  * @author yang
  */
 @Getter
-public class JobDeletedEvent extends ApplicationEvent {
+public class JobsDeletedEvent extends ApplicationEvent {
 
     private final Flow flow;
 
     private final Long numOfJobs;
 
-    public JobDeletedEvent(Object source, Flow flow, Long numOfJobs) {
+    public JobsDeletedEvent(Object source, Flow flow, Long numOfJobs) {
         super(source);
         this.flow = flow;
         this.numOfJobs = numOfJobs;

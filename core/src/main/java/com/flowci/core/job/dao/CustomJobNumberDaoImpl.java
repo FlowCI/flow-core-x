@@ -34,7 +34,7 @@ public class CustomJobNumberDaoImpl implements CustomJobNumberDao {
     @Override
     public JobNumber increaseBuildNumber(String flowId) {
         return operations.findAndModify(
-                query(where("_id").is(flowId)),
+                query(where("flowId").is(flowId)),
                 new Update().inc("number", 1),
                 options().returnNew(true).upsert(true),
                 JobNumber.class);

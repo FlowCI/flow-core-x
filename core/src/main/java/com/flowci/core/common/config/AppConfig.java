@@ -37,8 +37,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.net.http.HttpClient;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.concurrent.Executor;
 
 /**
@@ -119,5 +121,14 @@ public class AppConfig {
 
         multicaster.setTaskExecutor(appTaskExecutor);
         return multicaster;
+    }
+
+    @Bean("httpClient")
+    public HttpClient httpClient() {
+        return HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
     }
 }

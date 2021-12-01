@@ -18,9 +18,10 @@ package com.flowci.core.flow.dao;
 
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
-import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * @author yang
@@ -29,6 +30,8 @@ import org.springframework.stereotype.Repository;
 public interface FlowDao extends MongoRepository<Flow, String> {
 
     Flow findByName(String name);
+
+    List<Flow> findAllByStatus(Status status);
 
     List<Flow> findAllByStatusAndCreatedBy(Status status, String createdBy);
 

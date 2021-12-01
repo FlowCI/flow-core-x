@@ -20,11 +20,15 @@ import com.flowci.core.job.domain.JobNumber;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * @author yang
  */
 @Repository
 public interface JobNumberDao extends MongoRepository<JobNumber, String>, CustomJobNumberDao {
+
+    Optional<JobNumber> findByFlowId(String flowId);
 
     void deleteAllByFlowId(String flowId);
 }

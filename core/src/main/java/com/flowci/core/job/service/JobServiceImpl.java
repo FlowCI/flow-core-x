@@ -16,16 +16,19 @@
 
 package com.flowci.core.job.service;
 
+import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.*;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
+import com.flowci.core.job.event.JobActionEvent;
 import com.flowci.core.job.event.JobCreatedEvent;
-import com.flowci.core.job.event.JobDeletedEvent;
+import com.flowci.core.job.event.JobsDeletedEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.StringVars;
@@ -36,7 +39,6 @@ import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.util.StringHelper;
-import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +50,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Date;
@@ -69,6 +72,9 @@ public class JobServiceImpl implements JobService {
     //====================================================================
     //        %% Spring injection
     //====================================================================
+
+    @Autowired
+    private AppProperties.RabbitMQ rabbitProperties;
 
     @Autowired
     private JobDao jobDao;
@@ -100,6 +106,9 @@ public class JobServiceImpl implements JobService {
     @Autowired
     private SpringEventManager eventManager;
 
+    @Autowired
+    private RabbitOperations jobsQueueManager;
+
     @Qualifier("fileManager")
     @Autowired
     private FileManager fileManager;
@@ -113,10 +122,33 @@ public class JobServiceImpl implements JobService {
     @Autowired
     private SettingService settingService;
 
+    @PostConstruct
+    public void startJobDeadLetterConsumer() throws IOException {
+        String deadLetterQueue = rabbitProperties.getJobDlQueue();
+        jobsQueueManager.startConsumer(deadLetterQueue, true, (header, body, envelope) -> {
+            try {
+                String jobId = new String(body);
+                eventManager.publish(new JobActionEvent(this, jobId, JobActionEvent.ACTION_TO_TIMEOUT));
+            } catch (Exception e) {
+                log.warn(e);
+            }
+            return false;
+        }, null);
+    }
+
 
     //====================================================================
     //        %% Public functions
     //====================================================================
+
+    @Override
+    public void init(Flow flow) {
+        Optional<JobNumber> optional = jobNumberDao.findByFlowId(flow.getId());
+        if (optional.isEmpty()) {
+            jobNumberDao.save(new JobNumber(flow.getId()));
+        }
+        declareJobQueueAndStartConsumer(flow);
+    }
 
     @Override
     public Job get(String jobId) {
@@ -275,6 +307,8 @@ public class JobServiceImpl implements JobService {
     @Override
     public void delete(Flow flow) {
         appTaskExecutor.execute(() -> {
+            jobsQueueManager.removeConsumer(flow.getQueueName());
+
             jobNumberDao.deleteAllByFlowId(flow.getId());
             log.info("Deleted: job number of flow {}", flow.getName());
 
@@ -290,13 +324,32 @@ public class JobServiceImpl implements JobService {
             Long numOfStepDeleted = stepService.delete(flow);
             log.info("Deleted: {} steps of flow {}", numOfStepDeleted, flow.getName());
 
-            eventManager.publish(new JobDeletedEvent(this, flow, numOfJobDeleted));
+            eventManager.publish(new JobsDeletedEvent(this, flow, numOfJobDeleted));
         });
     }
 
     //====================================================================
     //        %% Utils
     //====================================================================
+
+    private void declareJobQueueAndStartConsumer(Flow flow) {
+        try {
+            final String queue = flow.getQueueName();
+            jobsQueueManager.declare(queue, true, 255, rabbitProperties.getJobDlExchange());
+
+            jobsQueueManager.startConsumer(queue, false, (header, body, envelope) -> {
+                try {
+                    String jobId = new String(body);
+                    eventManager.publish(new JobActionEvent(this, jobId, JobActionEvent.ACTION_TO_RUN));
+                } catch (Exception e) {
+                    log.warn(e);
+                }
+                return true;
+            }, appTaskExecutor);
+        } catch (IOException e) {
+            log.warn(e);
+        }
+    }
 
     private Job createJob(Flow flow, Trigger trigger, Vars<String> input) {
         // create job number

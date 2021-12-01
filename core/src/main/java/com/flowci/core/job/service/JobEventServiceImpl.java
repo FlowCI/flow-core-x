@@ -25,7 +25,9 @@ import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.OnCmdOutEvent;
 import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
+import com.flowci.core.flow.event.FlowInitEvent;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.job.event.JobActionEvent;
@@ -69,6 +71,18 @@ public class JobEventServiceImpl implements JobEventService {
 
     @Autowired
     private StepService stepService;
+
+    @EventListener
+    public void onFlowInitiated(FlowInitEvent event) {
+        for (var f : event.getFlows()) {
+            jobService.init(f);
+        }
+    }
+
+    @EventListener
+    public void onFlowCreated(FlowCreatedEvent event) {
+        jobService.init(event.getFlow());
+    }
 
     @EventListener
     public void onFlowDeleted(FlowDeletedEvent event) {

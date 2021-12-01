@@ -33,6 +33,11 @@ import javax.annotation.Nullable;
 public interface JobService {
 
     /**
+     * Init job data and queue for flow
+     */
+    void init(Flow flow);
+
+    /**
      * Get job by id
      */
     Job get(String id);

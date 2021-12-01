@@ -21,18 +21,18 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.HttpRequestManager;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowUserDao;
 import com.flowci.core.flow.domain.*;
 import com.flowci.core.flow.domain.Flow.Status;
+import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
+import com.flowci.core.flow.event.FlowInitEvent;
 import com.flowci.core.githook.domain.GitPingTrigger;
 import com.flowci.core.githook.domain.GitTrigger;
 import com.flowci.core.githook.event.GitHookEvent;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.CreateNewJobEvent;
-import com.flowci.core.job.event.JobActionEvent;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.CreateAuthEvent;
 import com.flowci.core.secret.event.CreateRsaEvent;
@@ -48,12 +48,12 @@ import com.flowci.util.ObjectsHelper;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
 
@@ -76,17 +76,12 @@ public class FlowServiceImpl implements FlowService {
     @Autowired
     private SpringEventManager eventManager;
 
+    @Qualifier("fileManager")
     @Autowired
     private FileManager fileManager;
 
     @Autowired
     private HttpRequestManager httpRequestManager;
-
-    @Autowired
-    private RabbitOperations jobsQueueManager;
-
-    @Autowired
-    private TaskExecutor appTaskExecutor;
 
     @Autowired
     private YmlService ymlService;
@@ -100,28 +95,9 @@ public class FlowServiceImpl implements FlowService {
     @Autowired
     private AppProperties appProperties;
 
-    @Autowired
-    private AppProperties.RabbitMQ rabbitProperties;
-
-    @PostConstruct
-    public void initJobQueueForFlow() {
-        for (Flow flow : flowDao.findAll()) {
-            declareJobQueueAndStartConsumer(flow);
-        }
-    }
-
-    @PostConstruct
-    public void startJobDeadLetterConsumer() throws IOException {
-        String deadLetterQueue = rabbitProperties.getJobDlQueue();
-        jobsQueueManager.startConsumer(deadLetterQueue, true, (header, body, envelope) -> {
-            try {
-                String jobId = new String(body);
-                eventManager.publish(new JobActionEvent(this, jobId, JobActionEvent.ACTION_TO_TIMEOUT));
-            } catch (Exception e) {
-                log.warn(e);
-            }
-            return false;
-        }, null);
+    @EventListener(ContextRefreshedEvent.class)
+    public void initFlows() {
+        eventManager.publish(new FlowInitEvent(this, flowDao.findAllByStatus(Status.CONFIRMED)));
     }
 
     // ====================================================================
@@ -197,9 +173,8 @@ public class FlowServiceImpl implements FlowService {
             flowDao.save(flow);
             flowUserDao.create(flow.getId());
             fileManager.create(flow);
-
             addUsers(flow, flow.getCreatedBy());
-            declareJobQueueAndStartConsumer(flow);
+            eventManager.publish(new FlowCreatedEvent(this, flow));
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Flow {0} already exists", name);
         } catch (IOException e) {
@@ -285,7 +260,6 @@ public class FlowServiceImpl implements FlowService {
         ymlService.delete(flow.getId());
         cronService.cancel(flow);
 
-        jobsQueueManager.removeConsumer(flow.getQueueName());
         eventManager.publish(new FlowDeletedEvent(this, flow));
         return flow;
     }
@@ -396,25 +370,5 @@ public class FlowServiceImpl implements FlowService {
         }
 
         throw new NotFoundException("Unable to load template {0} content", desc);
-    }
-
-
-    private void declareJobQueueAndStartConsumer(Flow flow) {
-        try {
-            final String queue = flow.getQueueName();
-            jobsQueueManager.declare(queue, true, 255, rabbitProperties.getJobDlExchange());
-
-            jobsQueueManager.startConsumer(queue, false, (header, body, envelope) -> {
-                try {
-                    String jobId = new String(body);
-                    eventManager.publish(new JobActionEvent(this, jobId, JobActionEvent.ACTION_TO_RUN));
-                } catch (Exception e) {
-                    log.warn(e);
-                }
-                return true;
-            }, appTaskExecutor);
-        } catch (IOException e) {
-            log.warn(e);
-        }
     }
 }

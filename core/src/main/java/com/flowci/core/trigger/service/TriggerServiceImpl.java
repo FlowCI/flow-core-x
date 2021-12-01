@@ -45,7 +45,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
-import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -85,8 +84,10 @@ public class TriggerServiceImpl implements TriggerService {
                               ThreadPoolTaskExecutor appTaskExecutor,
                               ConfigService configService,
                               FlowService flowService,
-                              TriggerDeliveryService triggerDeliveryService) throws IOException {
+                              TriggerDeliveryService triggerDeliveryService,
+                              HttpClient httpClient) throws IOException {
         this.templateEngine = templateEngine;
+        this.httpClient = httpClient;
         this.templateEngine.setTemplateResolver(new StringTemplateResolver());
 
         this.triggerDao = triggerDao;
@@ -100,12 +101,6 @@ public class TriggerServiceImpl implements TriggerService {
 
         Resource resource = new ClassPathResource("templates/email.html");
         this.emailTemplate = new String(Files.readAllBytes(resource.getFile().toPath()));
-
-        this.httpClient = HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_1_1)
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
     }
 
     @Override
