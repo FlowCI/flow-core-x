@@ -102,5 +102,5 @@ public interface FlowService {
     /**
      * List all users email by flow
      */
-    List<String> listUsers(Flow flow);
+    List<String> listUsers(String name);
 }

@@ -23,8 +23,6 @@ import com.flowci.util.StringHelper;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
-import sun.security.util.DerInputStream;
-import sun.security.util.DerValue;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -33,9 +31,11 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.KeyFactory;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 
@@ -73,31 +73,6 @@ public abstract class CipherHelper {
             }
         }
 
-        public static String encrypt(String source, String sshPublicKey) {
-            try {
-                Cipher cipher = Cipher.getInstance("RSA");
-                cipher.init(Cipher.ENCRYPT_MODE, toPublicKey(sshPublicKey));
-
-                byte[] raw = cipher.doFinal(toBytes(source));
-                return Base64.getEncoder().encodeToString(raw);
-            } catch (Throwable e) {
-                return StringHelper.EMPTY;
-            }
-        }
-
-        public static String decrypt(String encrypted, String privateKey) {
-            try {
-                Cipher cipher = Cipher.getInstance("RSA");
-                cipher.init(Cipher.DECRYPT_MODE, toPrivateKey(privateKey));
-
-                byte[] decoded = Base64.getDecoder().decode(encrypted);
-                byte[] raw = cipher.doFinal(decoded);
-                return new String(raw);
-            } catch (Throwable e) {
-                return StringHelper.EMPTY;
-            }
-        }
-
         public static String fingerprintMd5(String publicKey) throws NoSuchAlgorithmException {
             String derFormat = publicKey.split(" ")[1].trim();
             MessageDigest messageDigest = MessageDigest.getInstance("MD5");
@@ -117,32 +92,6 @@ public abstract class CipherHelper {
                 toRet.append(hex);
             }
             return toRet.toString();
-        }
-
-        private static PrivateKey toPrivateKey(String key)
-                throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-
-            String content = key.replaceAll("\\n", "").replace(RsaPrivateKeyStart, "").replace(RsaPrivateKeyEnd, "");
-            byte[] bytes = Base64.getDecoder().decode(content);
-
-            DerInputStream derReader = new DerInputStream(bytes);
-            DerValue[] seq = derReader.getSequence(0);
-
-            // skip version seq[0];
-            BigInteger modulus = seq[1].getBigInteger();
-            BigInteger publicExp = seq[2].getBigInteger();
-            BigInteger privateExp = seq[3].getBigInteger();
-            BigInteger prime1 = seq[4].getBigInteger();
-            BigInteger prime2 = seq[5].getBigInteger();
-            BigInteger exp1 = seq[6].getBigInteger();
-            BigInteger exp2 = seq[7].getBigInteger();
-            BigInteger crtCoef = seq[8].getBigInteger();
-
-            RSAPrivateCrtKeySpec keySpec =
-                    new RSAPrivateCrtKeySpec(modulus, publicExp, privateExp, prime1, prime2, exp1, exp2, crtCoef);
-
-            return keyFactory.generatePrivate(keySpec);
         }
 
         /**

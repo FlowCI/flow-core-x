@@ -1,10 +1,12 @@
 package com.flowci.core.config.service;
 
-import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.dao.ConfigDao;
-import com.flowci.core.config.domain.*;
+import com.flowci.core.config.domain.Config;
+import com.flowci.core.config.domain.SmtpConfig;
+import com.flowci.core.config.domain.SmtpOption;
+import com.flowci.core.config.domain.TextConfig;
 import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
@@ -15,26 +17,21 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.io.Resource;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 
 @Log4j2
 @Service
 public class ConfigServiceImpl implements ConfigService {
-
-    @Value("classpath:default/smtp-demo-config.yml")
-    private Resource defaultSmtpConfigYml;
-
-    @Autowired
-    private AppProperties appProperties;
 
     @Autowired
     private ConfigDao configDao;
@@ -42,28 +39,7 @@ public class ConfigServiceImpl implements ConfigService {
     @Autowired
     private SpringEventManager eventManager;
 
-    @PostConstruct
-    public void onInit() {
-        try {
-            Config config = ConfigParser.parse(defaultSmtpConfigYml.getInputStream());
-            Optional<Config> optional = configDao.findByName(config.getName());
-
-            // delete if default smtp config is disabled
-            if (!appProperties.isDefaultSmtpConfig()) {
-                optional.ifPresent(value -> configDao.delete(value));
-                return;
-            }
-
-            if (optional.isPresent()) {
-                return;
-            }
-            configDao.save(config);
-            log.info("Config {} has been created", config.getName());
-        } catch (IOException e) {
-            log.warn(e);
-        }
-    }
-
+    @Override
     @EventListener
     public void onGetConfigEvent(GetConfigEvent event) {
         try {
@@ -94,6 +70,7 @@ public class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
+    @CacheEvict(cacheManager = "defaultCacheManager", value = "mailSender", key = "#name")
     public Config save(String name, SmtpOption option) {
         try {
             SmtpConfig config = load(name, SmtpConfig.class);
@@ -121,6 +98,45 @@ public class ConfigServiceImpl implements ConfigService {
         } catch (ReflectiveOperationException e) {
             throw new StatusException(e.getMessage());
         }
+    }
+
+    @Override
+    @CachePut(cacheManager = "defaultCacheManager", value = "mailSender", key = "#smtpConfig")
+    public JavaMailSender getEmailSender(String smtpConfig) {
+        Config config = get(smtpConfig);
+
+        if (!(config instanceof SmtpConfig)){
+            throw new StatusException("SMTP config is required");
+        }
+
+        SmtpConfig c = (SmtpConfig) config;
+
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(c.getServer());
+        mailSender.setPort(c.getPort());
+        mailSender.setUsername(c.getAuth().getUsername());
+        mailSender.setPassword(c.getAuth().getPassword());
+
+        Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.connectiontimeout", "5000");
+        props.put("mail.smtp.timeout", "5000");
+        props.put("mail.smtp.writetimeout", "5000");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.debug", "false");
+
+        // for port 587
+        if (c.getSecure() == SmtpConfig.SecureType.TLS) {
+            props.put("mail.smtp.starttls.enable", "true");
+        }
+
+        // for port 465
+        if (c.getSecure() == SmtpConfig.SecureType.SSL) {
+            props.put("mail.smtp.socketFactory.port", "465");
+            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        }
+
+        return mailSender;
     }
 
     private <T extends Config> T load(String name, Class<T> tClass) throws ReflectiveOperationException {

@@ -83,15 +83,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
     }
 
     /**
-     * To subscribe task update for job
-     * Ex: /topic/tasks/{job id}
-     */
-    @Bean("topicForTasks")
-    public String topicForTasks() {
-        return "/topic/tasks";
-    }
-
-    /**
      * To subscribe real time logging for all jobs.
      * Ex: /topic/logs/{job id}
      */

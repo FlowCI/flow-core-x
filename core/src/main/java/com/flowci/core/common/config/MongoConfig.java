@@ -22,25 +22,31 @@ import com.flowci.core.agent.domain.LocalUnixAgentHost;
 import com.flowci.core.agent.domain.SshAgentHost;
 import com.flowci.core.common.mongo.EncryptConverter;
 import com.flowci.core.common.mongo.VariableMapConverter;
-import com.flowci.core.secret.domain.*;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.TextConfig;
 import com.flowci.core.job.domain.JobItem;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
+import com.flowci.core.secret.domain.*;
+import com.flowci.core.trigger.domain.EmailTrigger;
+import com.flowci.core.trigger.domain.WebhookTrigger;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.MongoProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.convert.CustomConversions;
-import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
+import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author yang
@@ -48,7 +54,7 @@ import java.util.List;
 @Log4j2
 @Configuration
 @EnableMongoAuditing(auditorAwareRef = "sessionManager")
-public class MongoConfig extends AbstractMongoConfiguration {
+public class MongoConfig extends AbstractMongoClientConfiguration {
 
     @Autowired
     private AppProperties appProperties;
@@ -59,26 +65,35 @@ public class MongoConfig extends AbstractMongoConfiguration {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @NonNull
     @Override
     public MongoClient mongoClient() {
         log.info("Mongo URI: {}", mongoProperties.getUri());
-        MongoClientURI uri = new MongoClientURI(mongoProperties.getUri());
-        return new MongoClient(uri);
+        ConnectionString connectionString = new ConnectionString(mongoProperties.getUri());
+        MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
+                .applyConnectionString(connectionString)
+                .build();
+
+        return MongoClients.create(mongoClientSettings);
     }
 
+    @NonNull
     @Override
     protected String getDatabaseName() {
-        return new MongoClientURI(mongoProperties.getUri()).getDatabase();
+        ConnectionString connectionString = new ConnectionString(mongoProperties.getUri());
+        return Objects.requireNonNull(connectionString.getDatabase());
     }
 
+    @NonNull
     @Override
-    public MongoMappingContext mongoMappingContext() throws ClassNotFoundException {
+    @Bean
+    public MongoMappingContext mongoMappingContext(MongoCustomConversions customConversions) throws ClassNotFoundException {
         CustomizedMappingContext context = new CustomizedMappingContext();
         context.setInitialEntitySet(getInitialEntitySet());
         context.setSimpleTypeHolder(customConversions().getSimpleTypeHolder());
         context.setFieldNamingStrategy(fieldNamingStrategy());
 
-        // add addPersistentEntity for sub types since not registered if called within same thread
+        // add addPersistentEntity for subtypes since not registered if called within same thread
         context.addEntity(SmtpConfig.class);
         context.addEntity(TextConfig.class);
 
@@ -92,11 +107,16 @@ public class MongoConfig extends AbstractMongoConfiguration {
         context.addEntity(SshAgentHost.class);
         context.addEntity(K8sAgentHost.class);
 
+        context.addEntity(EmailTrigger.class);
+        context.addEntity(WebhookTrigger.class);
+
         return context;
     }
 
+    @NonNull
     @Override
-    public CustomConversions customConversions() {
+    @Bean
+    public MongoCustomConversions customConversions() {
         List<Converter<?, ?>> converters = new ArrayList<>();
 
         VariableMapConverter variableConverter = new VariableMapConverter(objectMapper);

@@ -66,7 +66,7 @@ public class CronServiceImpl implements CronService {
     //        %% Internal events
     //====================================================================
 
-    @EventListener(FlowInitEvent.class)
+    @EventListener
     public void initFlowCron(FlowInitEvent event) {
         for (Flow flow : event.getFlows()) {
             set(flow);

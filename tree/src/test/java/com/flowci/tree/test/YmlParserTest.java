@@ -69,11 +69,6 @@ public class YmlParserTest {
         Assert.assertTrue(root.getDockers().size() > 0);
         Assert.assertEquals("helloworld:0.1", root.getDockers().get(0).getImage());
 
-        // verify notifications
-        Assert.assertEquals(1, root.getNotifications().size());
-        Assert.assertEquals("email-notify", root.getNotifications().get(0).getPlugin());
-        Assert.assertEquals("test-config", root.getNotifications().get(0).getEnvs().get("FLOWCI_SMTP_CONFIG"));
-
         // verify steps
         List<Node> steps = root.getChildren();
         Assert.assertEquals(2, steps.size());

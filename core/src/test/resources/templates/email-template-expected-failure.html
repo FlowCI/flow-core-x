@@ -1,0 +1,202 @@
+<html lang="en">
+
+<head>
+    <title>flow.ci</title>
+    <style>
+        .content {
+            background-color: #ffffff;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .left {
+            display: inline-block;
+            text-align: left;
+            height: 100%;
+        }
+
+        .right {
+            display: inline-block;
+            text-align: right;
+            height: 100%;
+        }
+
+        table tr {
+            vertical-align: top;
+            height: 30px;
+        }
+
+        table tr td:nth-child(1) {
+            color: #505a62;
+            font-size: 14px;
+            width: 80px;
+        }
+
+        table tr td:nth-child(2) {
+            padding-left: 20px;
+            color: #869096FF;
+            font-size: 14px;
+        }
+
+        .state-success-bk {
+            background-color: #66BB6A !important;
+        }
+
+        .state-success-fk {
+            color: #66BB6A !important;
+        }
+
+        .state-failure-bk {
+            background-color: #E53935 !important;
+        }
+
+        .state-failure-fk {
+            color: #E53935 !important;
+        }
+
+        .state-cancelled-bk {
+            background-color: #B0BEC5 !important;
+        }
+
+        .state-cancelled-fk {
+            color: #B0BEC5 !important;
+        }
+
+        .state-timeout-bk {
+            background-color: #FB8C00 !important;
+        }
+
+        .state-timeout-fk {
+            color: #FB8C00 !important;
+        }
+
+        .button {
+            background-color: #4c61c8;
+            border: none;
+            color: white;
+            padding: 15px 80px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+
+        .div-line {
+            height: 1px;
+            background-color: #E0E0E0;
+            margin-top: 10px;
+            margin-bottom: 10px
+        }
+    </style>
+</head>
+
+<body class="content">
+
+<div style="height: 10px" class="state-failure-bk">
+</div>
+
+<div style="margin-left: 15px; margin-right: 15px">
+
+    <!--  status header  -->
+    <div class="state-failure-fk" style="height: 70px;">
+        <div class="left" style="width: 50%">
+            <h1>Build Failed</h1>
+        </div>
+        <div class="right" style="width: 45%">
+            <h1>
+                <svg style="width:36px;height:36px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M20 6.91L17.09 4L12 9.09L6.91 4L4 6.91L9.09 12L4 17.09L6.91 20L12 14.91L17.09 20L20 17.09L14.91 12L20 6.91Z" />
+                </svg>
+            </h1>
+        </div>
+    </div>
+
+    <!-- flow info -->
+    <table style="height: 60px">
+        <tr>
+            <td style="width: 5px">
+                <div style="height: 50px" class="state-failure-bk"
+                ></div>
+            </td>
+            <td>
+                <div style="font-size: 16px; color: #505a62">
+                    <div>ios-flow #10</div>
+                    <div style="margin-top: 8px">
+                        <svg style="width:14px;height:14px" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M12,20A7,7 0 0,1 5,13A7,7 0 0,1 12,6A7,7 0 0,1 19,13A7,7 0 0,1 12,20M12,4A9,9 0 0,0 3,13A9,9 0 0,0 12,22A9,9 0 0,0 21,13A9,9 0 0,0 12,4M12.5,8H11V14L15.75,16.85L16.5,15.62L12.5,13.25V8M7.88,3.39L6.6,1.86L2,5.71L3.29,7.24L7.88,3.39M22,5.72L17.4,1.86L16.11,3.39L20.71,7.25L22,5.72Z" />
+                        </svg>
+                        100s
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="div-line"></div>
+
+    <table>
+        <tr>
+            <td>Trigger:</td>
+            <td>PUSH</td>
+        </tr>
+        <tr>
+            <td>Triggered By:</td>
+            <td>tester@flow.ci</td>
+        </tr>
+        <tr>
+            <td>Start At:</td>
+            <td>2021-07-01 01:23:44.123</td>
+        </tr>
+        <tr>
+            <td>Finish At:</td>
+            <td>2021-07-01 02:23:45.456</td>
+        </tr>
+        <tr>
+            <td>Agent:</td>
+            <td>
+                <div>local-01</div>
+                <div>local-02</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="div-line"></div>
+
+    <!-- Git PR Open/Close -->
+    <table>
+        <tr>
+            <td>Title:</td>
+            <td>Bump github.com/gin-gonic/gin from 1.6.2 to 1.7.0</td>
+        </tr>
+        <tr>
+            <td>Number:</td>
+            <td>#11</td>
+        </tr>
+        <tr>
+            <td>Message:</td>
+            <td>Pr message</td>
+        </tr>
+        <tr>
+            <td>To:</td>
+            <td>flow-core-x/master</td>
+        </tr>
+        <tr>
+            <td>From:</td>
+            <td>flow-core-x/developer</td>
+        </tr>
+    </table>
+
+    <div class="div-line"></div>
+
+    <!-- Detail Button -->
+    <div style="text-align: center">
+        <form action="https://www.google.com" target="_blank">
+            <button class="button" type="submit">View the details</button>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

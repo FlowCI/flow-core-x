@@ -43,19 +43,30 @@ import org.springframework.web.bind.annotation.ResponseStatus;
         "com.flowci.core.secret",
         "com.flowci.core.plugin",
         "com.flowci.core.config",
+        "com.flowci.core.trigger",
         "com.flowci.core.api",
         "com.flowci.core.common.controller"
 })
 public class ExceptionAdviser {
 
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseMessage<Object> inputArgumentException(MethodArgumentNotValidException e) {
+        String msg = e.getMessage();
+
+        var fieldError = e.getBindingResult().getFieldError();
+        if (fieldError != null && fieldError.getDefaultMessage() != null) {
+            msg = fieldError.getDefaultMessage();
+        }
+
+        return new ResponseMessage<>(ErrorCode.INVALID_ARGUMENT, msg, null);
+    }
 
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @ExceptionHandler({
-            MethodArgumentNotValidException.class,
-            MissingServletRequestParameterException.class
-    })
-    public ResponseMessage<Object> inputArgumentException(Exception e) {
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseMessage<Object> inputArgumentException(MissingServletRequestParameterException e) {
         return new ResponseMessage<>(ErrorCode.INVALID_ARGUMENT, e.getMessage(), null);
     }
 

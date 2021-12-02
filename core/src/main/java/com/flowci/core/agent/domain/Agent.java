@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.domain.Common.OS;
 import com.flowci.domain.SimpleKeyPair;
+import com.flowci.domain.StringVars;
+import com.flowci.domain.Vars;
 import com.flowci.tree.Selector;
 import com.google.common.base.Strings;
 import lombok.Getter;
@@ -63,6 +65,23 @@ public class Agent extends Mongoable {
         public static Status fromBytes(byte[] bytes) {
             return Status.valueOf(new String(bytes));
         }
+    }
+
+    private abstract class Variables {
+
+        private final static String NAME = "AGENT_NAME";
+
+        private final static String IS_K8S_CLUSTER = "AGENT_IS_K8S_CLUSTER";
+
+        private final static String IS_DOCKER = "AGENT_IS_DOCKER";
+
+        private final static String OS = "AGENT_OS";
+
+        private final static String STATUS = "AGENT_STATUS";
+
+        private final static String JOB_ID = "AGENT_JOB_ID";
+
+        private final static String CONTAINER_ID = "AGENT_CONTAINER_ID";
     }
 
     @Indexed(name = "index_agent_name", unique = true)
@@ -178,5 +197,16 @@ public class Agent extends Mongoable {
 
         labels.retainAll(tags);
         return !labels.isEmpty();
+    }
+
+    public Vars<String> toContext() {
+        Vars<String> context = new StringVars(8);
+        context.put(Variables.NAME, name);
+        context.put(Variables.IS_DOCKER, String.valueOf(isDocker));
+        context.put(Variables.IS_K8S_CLUSTER, String.valueOf(isK8sCluster));
+        context.put(Variables.STATUS, status.name());
+        context.put(Variables.JOB_ID, jobId);
+        context.put(Variables.CONTAINER_ID, containerId);
+        return context;
     }
 }

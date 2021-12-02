@@ -136,7 +136,7 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public List<StatsItem> list(String flowId, String type, int fromDay, int toDay) {
-        Sort sort = new Sort(Sort.Direction.ASC, "day");
+        Sort sort = Sort.by(Sort.Direction.ASC, "day");
 
         if (StringHelper.hasValue(type)) {
             return statsItemDao.findByFlowIdAndTypeDayBetween(flowId, type, fromDay, toDay, sort);
