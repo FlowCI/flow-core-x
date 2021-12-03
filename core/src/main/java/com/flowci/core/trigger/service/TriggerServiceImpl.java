@@ -25,8 +25,8 @@ import com.flowci.util.StringHelper;
 import groovy.util.ScriptException;
 import lombok.extern.log4j.Log4j2;
 import org.apache.http.client.utils.URIBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -38,13 +38,13 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.context.IContext;
 import org.thymeleaf.templateresolver.StringTemplateResolver;
 
+import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Files;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -53,6 +53,9 @@ import java.util.Optional;
 @Log4j2
 @Service
 public class TriggerServiceImpl implements TriggerService {
+
+    @Value("classpath:templates/default_job_finish_email.html")
+    private Resource defaultJobFinishEmailTemplate;
 
     private final TemplateEngine templateEngine;
 
@@ -72,9 +75,9 @@ public class TriggerServiceImpl implements TriggerService {
 
     private final TriggerDeliveryService triggerDeliveryService;
 
-    private final String emailTemplate;
-
     private final HttpClient httpClient;
+
+    private String emailTemplate;
 
     public TriggerServiceImpl(TemplateEngine templateEngine,
                               TriggerDao triggerDao,
@@ -85,11 +88,11 @@ public class TriggerServiceImpl implements TriggerService {
                               ConfigService configService,
                               FlowService flowService,
                               TriggerDeliveryService triggerDeliveryService,
-                              HttpClient httpClient) throws IOException {
+                              HttpClient httpClient) {
         this.templateEngine = templateEngine;
-        this.httpClient = httpClient;
         this.templateEngine.setTemplateResolver(new StringTemplateResolver());
 
+        this.httpClient = httpClient;
         this.triggerDao = triggerDao;
         this.conditionManager = conditionManager;
         this.sessionManager = sessionManager;
@@ -98,9 +101,11 @@ public class TriggerServiceImpl implements TriggerService {
         this.configService = configService;
         this.flowService = flowService;
         this.triggerDeliveryService = triggerDeliveryService;
+    }
 
-        Resource resource = new ClassPathResource("templates/email.html");
-        this.emailTemplate = new String(Files.readAllBytes(resource.getFile().toPath()));
+    @PostConstruct
+    public void init() throws IOException {
+        this.emailTemplate = StringHelper.toString(defaultJobFinishEmailTemplate.getInputStream());
     }
 
     @Override
