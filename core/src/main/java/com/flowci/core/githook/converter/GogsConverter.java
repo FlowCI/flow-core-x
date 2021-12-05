@@ -19,7 +19,6 @@ package com.flowci.core.githook.converter;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.githook.domain.*;
-import com.flowci.core.githook.util.BranchHelper;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableMap;
@@ -89,15 +88,15 @@ public class GogsConverter extends TriggerConverter {
 
             Commit commit = commits.get(0);
 
-            trigger.setCommitId(commit.id);
-            trigger.setMessage(commit.message);
-            trigger.setCommitUrl(commit.url);
-            trigger.setRef(BranchHelper.getBranchName(ref));
-            trigger.setTime(commit.timestamp);
-            trigger.setNumOfCommit(commits.size());
-
-            // set commit author info
-            trigger.setAuthor(pusher.toGitUser());
+//            trigger.setCommitId(commit.id);
+//            trigger.setMessage(commit.message);
+//            trigger.setCommitUrl(commit.url);
+//            trigger.setRef(BranchHelper.getBranchName(ref));
+//            trigger.setTime(commit.timestamp);
+//            trigger.setNumOfCommit(commits.size());
+//
+//            // set commit author info
+//            trigger.setAuthor(pusher.toGitUser());
 
             return trigger;
         }
@@ -117,11 +116,11 @@ public class GogsConverter extends TriggerConverter {
             tag.setSource(GitSource.GOGS);
 
             tag.setRef(release.tagName);
-            tag.setMessage(release.name);
-            tag.setCommitId(release.id);
-            tag.setTime(release.createdAt);
-            tag.setCommitUrl(StringHelper.EMPTY);
-            tag.setAuthor(release.author.toGitUser());
+//            tag.setMessage(release.name);
+//            tag.setCommitId(release.id);
+//            tag.setTime(release.createdAt);
+//            tag.setCommitUrl(StringHelper.EMPTY);
+//            tag.setAuthor(release.author.toGitUser());
             tag.setNumOfCommit(0);
 
             return tag;

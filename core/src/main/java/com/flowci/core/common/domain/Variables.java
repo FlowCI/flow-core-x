@@ -128,6 +128,11 @@ public abstract class Variables {
 
         public static final String GIT_COMMIT_NUM = "FLOWCI_GIT_COMMIT_NUM";
 
+        /**
+         * b64 json content
+         */
+        public static final String GIT_COMMIT_LIST = "FLOWCI_GIT_COMMIT_LIST";
+
         public static final Collection<String> COMMIT_VARS = ImmutableList.<String>builder()
                 .add(GIT_AUTHOR)
                 .add(GIT_BRANCH)
@@ -136,6 +141,7 @@ public abstract class Variables {
                 .add(GIT_COMMIT_TIME)
                 .add(GIT_COMMIT_URL)
                 .add(GIT_COMMIT_NUM)
+                .add(GIT_COMMIT_LIST)
                 .build();
 
         /**

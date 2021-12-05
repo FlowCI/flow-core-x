@@ -19,7 +19,6 @@ package com.flowci.core.githook.converter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.githook.domain.*;
-import com.flowci.core.githook.util.BranchHelper;
 import com.flowci.exception.ArgumentException;
 import com.google.common.collect.ImmutableMap;
 import lombok.EqualsAndHashCode;
@@ -105,18 +104,18 @@ public class GiteeConverter extends TriggerConverter {
             GitPushTrigger trigger = new GitPushTrigger();
             trigger.setSource(GitSource.GITEE);
             trigger.setEvent(getEvent());
-
-            trigger.setAuthor(pusher.toGitUser());
-            trigger.setCommitId(commit.id);
-            trigger.setMessage(commit.message);
-            trigger.setCommitUrl(commit.url);
-            trigger.setRef(BranchHelper.getBranchName(ref));
-            trigger.setTime(commit.timestamp);
-            trigger.setNumOfCommit(numOfCommit);
-
-            if (pusher.equals(sender)) {
-                trigger.getAuthor().setAvatarLink(sender.avatarUrl);
-            }
+//
+//            trigger.setAuthor(pusher.toGitUser());
+//            trigger.setCommitId(commit.id);
+//            trigger.setMessage(commit.message);
+//            trigger.setCommitUrl(commit.url);
+//            trigger.setRef(BranchHelper.getBranchName(ref));
+//            trigger.setTime(commit.timestamp);
+//            trigger.setNumOfCommit(numOfCommit);
+//
+//            if (pusher.equals(sender)) {
+//                trigger.getAuthor().setAvatarLink(sender.avatarUrl);
+//            }
 
             return trigger;
         }

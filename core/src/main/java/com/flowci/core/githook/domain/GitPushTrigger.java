@@ -16,11 +16,15 @@
 
 package com.flowci.core.githook.domain;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.domain.StringVars;
+import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
+
+import java.util.List;
 
 import static com.flowci.core.common.domain.Variables.Git.*;
 
@@ -29,35 +33,30 @@ import static com.flowci.core.common.domain.Variables.Git.*;
  */
 @Getter
 @Setter
-@ToString(callSuper = true, of = {"ref", "message"})
-public final class GitPushTrigger extends GitTrigger {
-
-    private GitUser author;
-
-    private String commitId;
-
-    private String message;
+public class GitPushTrigger extends GitTrigger {
 
     private String ref;
 
-    private String time;
-
-    private String commitUrl;
+    private String message;
 
     private int numOfCommit;
 
+    private List<GitCommit> commits;
+
     @Override
     public StringVars toVariableMap() {
-        StringVars map = super.toVariableMap();
+        var map = super.toVariableMap();
+        var commitData = StringHelper.EMPTY;
+        try {
+            var json = JacksonHelper.Default.writeValueAsString(commits);
+            commitData = StringHelper.toBase64(json);
+        } catch (JsonProcessingException e) {
+            // ignore
+        }
 
         map.put(GIT_BRANCH, ref);
-        map.put(GIT_AUTHOR, author.getEmail());
-
-        map.put(GIT_COMMIT_ID, commitId);
-        map.put(GIT_COMMIT_MESSAGE, message);
-        map.put(GIT_COMMIT_TIME, time);
-        map.put(GIT_COMMIT_URL, commitUrl);
         map.put(GIT_COMMIT_NUM, Integer.toString(numOfCommit));
+        map.put(GIT_COMMIT_LIST, commitData);
 
         // set empty string to PR variables
         for (String prVar : PR_VARS) {
@@ -69,6 +68,13 @@ public final class GitPushTrigger extends GitTrigger {
 
     @Override
     public boolean isSkip() {
+        if (!ObjectsHelper.hasCollection(commits)) {
+            return false;
+        }
+
+        GitCommit commit = commits.get(0);
+        String message = commit.getMessage();
+
         if (!StringHelper.hasValue(message)) {
             return false;
         }

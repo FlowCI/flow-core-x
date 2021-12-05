@@ -21,15 +21,14 @@ import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.githook.domain.*;
 import com.flowci.core.githook.domain.GitPrTrigger.Source;
 import com.flowci.core.githook.domain.GitTrigger.GitEvent;
-import com.flowci.core.githook.util.BranchHelper;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.ObjectsHelper;
 import com.google.common.collect.ImmutableMap;
-import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -128,11 +127,11 @@ public class GitHubConverter extends TriggerConverter {
             trigger.setSource(GitSource.GITHUB);
             trigger.setEvent(getEvent());
 
-            trigger.setCommitId(commit.id);
-            trigger.setMessage(commit.message);
-            trigger.setCommitUrl(commit.url);
-            trigger.setRef(BranchHelper.getBranchName(ref));
-            trigger.setTime(commit.timestamp);
+//            trigger.setCommitId(commit.id);
+//            trigger.setMessage(commit.message);
+//            trigger.setCommitUrl(commit.url);
+//            trigger.setRef(BranchHelper.getBranchName(ref));
+//            trigger.setTime(commit.timestamp);
             trigger.setNumOfCommit(0);
 
             ObjectsHelper.ifNotNull(commits, val -> {
@@ -140,7 +139,7 @@ public class GitHubConverter extends TriggerConverter {
             });
 
             // set commit author info
-            trigger.setAuthor(pusher.toGitUser());
+//            trigger.setAuthor(pusher.toGitUser());
             return trigger;
         }
     }

@@ -87,7 +87,7 @@ public class AppConfig {
 
     @Bean("objectMapper")
     public ObjectMapper objectMapper() {
-        return JacksonHelper.create();
+        return JacksonHelper.Default;
     }
 
     @Bean("appTaskExecutor")
