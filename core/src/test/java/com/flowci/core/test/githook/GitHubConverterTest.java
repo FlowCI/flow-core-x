@@ -57,7 +57,7 @@ public class GitHubConverterTest extends SpringScenario {
     public void should_parse_push_event() {
         InputStream stream = load("github/webhook_push.json");
 
-        Optional<GitTrigger> optional = gitHubConverter.convert(GitHubConverter.Push, stream);
+        Optional<GitTrigger> optional = gitHubConverter.convert(GitHubConverter.PushOrTag, stream);
         Assert.assertTrue(optional.isPresent());
 
         // then: object properties should be parsed
@@ -90,15 +90,15 @@ public class GitHubConverterTest extends SpringScenario {
     public void should_parse_tag_event() {
         InputStream stream = load("github/webhook_tag.json");
 
-        Optional<GitTrigger> optional = gitHubConverter.convert(GitHubConverter.Tag, stream);
+        Optional<GitTrigger> optional = gitHubConverter.convert(GitHubConverter.PushOrTag, stream);
         Assert.assertTrue(optional.isPresent());
         Assert.assertTrue(optional.get() instanceof GitTagTrigger);
 
         GitTagTrigger t = (GitTagTrigger) optional.get();
         Assert.assertEquals(GitEvent.TAG, t.getEvent());
         Assert.assertEquals(GitSource.GITHUB, t.getSource());
-        Assert.assertEquals("v2.0", t.getRef());
-        Assert.assertNull(t.getMessage());
+        Assert.assertEquals("v2.1", t.getRef());
+        Assert.assertEquals("second commit", t.getMessage());
         Assert.assertEquals("gy2006", t.getSender().getName());
     }
 

@@ -22,6 +22,7 @@ import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.githook.domain.*;
 import com.flowci.core.githook.domain.GitPrTrigger.Source;
 import com.flowci.core.githook.domain.GitTrigger.GitEvent;
+import com.flowci.core.githook.util.BranchHelper;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.ObjectsHelper;
 import com.google.common.collect.ImmutableMap;
@@ -43,17 +44,14 @@ public class GitHubConverter extends TriggerConverter {
 
     public static final String Ping = "ping";
 
-    public static final String Push = "push";
-
-    public static final String Tag = "create";
+    public static final String PushOrTag = "push";
 
     public static final String PR = "pull_request";
 
     private final Map<String, Function<InputStream, GitTrigger>> mapping =
             ImmutableMap.<String, Function<InputStream, GitTrigger>>builder()
                     .put(Ping, new EventConverter<>("Ping", PingEvent.class))
-                    .put(Push, new EventConverter<>("Push", PushEvent.class))
-                    .put(Tag, new EventConverter<>("Tag", TagEvent.class))
+                    .put(PushOrTag, new EventConverter<>("PushOrTag", PushTagEvent.class))
                     .put(PR, new EventConverter<>("PR", PrEvent.class))
                     .build();
 
@@ -101,7 +99,9 @@ public class GitHubConverter extends TriggerConverter {
 
     }
 
-    private static class PushEvent implements GitTriggerable {
+    private static class PushTagEvent implements GitTriggerable {
+
+        private static final String TagRefPrefix = "refs/tags";
 
         public String ref;
 
@@ -112,17 +112,27 @@ public class GitHubConverter extends TriggerConverter {
 
         public Author pusher;
 
+        private GitEvent getEvent() {
+            return ref.startsWith(TagRefPrefix) ? GitEvent.TAG : GitEvent.PUSH;
+        }
+
+        public GitPushTrigger createTriggerInstance(GitEvent event) {
+            return event == GitEvent.PUSH ? new GitPushTrigger() : new GitTagTrigger();
+        }
+
         @Override
         public GitPushTrigger toTrigger() {
             if (Objects.isNull(headCommit)) {
                 throw new ArgumentException("No commits data on Github push or tag event");
             }
 
-            GitPushTrigger trigger = new GitPushTrigger();
+            var event = getEvent();
+            GitPushTrigger trigger = createTriggerInstance(event);
             trigger.setSource(GitSource.GITHUB);
-            trigger.setEvent(GitEvent.PUSH);
+            trigger.setEvent(event);
             trigger.setMessage(headCommit.message);
             trigger.setSender(pusher.toGitUser());
+            trigger.setRef(BranchHelper.getBranchName(ref));
 
             ObjectsHelper.ifNotNull(commits, val -> {
                 trigger.setNumOfCommit(val.size());
@@ -135,38 +145,6 @@ public class GitHubConverter extends TriggerConverter {
             return trigger;
         }
 
-    }
-
-    private static class TagEvent implements GitTriggerable {
-
-        public String ref;
-
-        @JsonProperty("ref_type")
-        public String refType;
-
-        @JsonProperty("master_branch")
-        public String branch;
-
-        @JsonProperty("description")
-        public String desc;
-
-        public Author sender;
-
-        @Override
-        public GitTrigger toTrigger() {
-            if (!Objects.equals(refType, "tag")) {
-                throw new ArgumentException("Unsupported event from github tag: ref_type = {0}", refType);
-            }
-
-            var t = new GitTagTrigger();
-            t.setEvent(GitEvent.TAG);
-            t.setSource(GitSource.GITHUB);
-            t.setRef(ref);
-            t.setMessage(desc);
-            t.setCommits(Collections.emptyList());
-            t.setSender(sender.toGitUser());
-            return t;
-        }
     }
 
     private static class PrEvent implements GitTriggerable {
