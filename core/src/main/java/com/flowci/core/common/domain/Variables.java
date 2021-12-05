@@ -112,7 +112,7 @@ public abstract class Variables {
         public static final String GIT_EVENT = "FLOWCI_GIT_EVENT";
 
         /**
-         * Email of the git user who start an event
+         * Push / Tag variables
          */
         public static final String GIT_AUTHOR = "FLOWCI_GIT_AUTHOR";
 
@@ -145,7 +145,7 @@ public abstract class Variables {
                 .build();
 
         /**
-         * Variables for git pull request
+         * Variables for git pull(mr) request
          */
         public static final String PR_TITLE = "FLOWCI_GIT_PR_TITLE";
 

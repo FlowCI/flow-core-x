@@ -117,6 +117,12 @@ public class GitLabConverter extends TriggerConverter {
             trigger.setEvent(getEvent());
             trigger.setMessage(message);
             trigger.setRef(BranchHelper.getBranchName(ref));
+            trigger.setSender(new GitUser()
+                    .setName(nameOfUser)
+                    .setUsername(username)
+                    .setEmail(email)
+                    .setAvatarLink(avatar)
+            );
 
             ObjectsHelper.ifNotNull(commits, val -> {
                 var gitCommits = new ArrayList<GitCommit>(commits.size());

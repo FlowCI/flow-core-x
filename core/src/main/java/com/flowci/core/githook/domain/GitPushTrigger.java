@@ -43,6 +43,8 @@ public class GitPushTrigger extends GitTrigger {
 
     private List<GitCommit> commits;
 
+    private GitUser sender;
+
     @Override
     public StringVars toVariableMap() {
         var map = super.toVariableMap();
@@ -57,6 +59,7 @@ public class GitPushTrigger extends GitTrigger {
         map.put(GIT_BRANCH, ref);
         map.put(GIT_COMMIT_NUM, Integer.toString(numOfCommit));
         map.put(GIT_COMMIT_LIST, commitData);
+        map.put(GIT_COMMIT_MESSAGE, message);
 
         // set empty string to PR variables
         for (String prVar : PR_VARS) {
