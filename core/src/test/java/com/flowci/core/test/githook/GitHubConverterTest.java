@@ -101,6 +101,7 @@ public class GitHubConverterTest extends SpringScenario {
         Assert.assertEquals("v2.1", t.getRef());
         Assert.assertEquals("second commit", t.getMessage());
         Assert.assertEquals("gy2006", t.getSender().getName());
+        Assert.assertEquals("32008001@qq.com", t.getSender().getEmail());
     }
 
     @Test

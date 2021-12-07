@@ -19,13 +19,16 @@ package com.flowci.core.githook.converter;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.githook.domain.*;
+import com.flowci.core.githook.util.BranchHelper;
 import com.flowci.exception.ArgumentException;
+import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -82,23 +85,23 @@ public class GogsConverter extends TriggerConverter {
                 throw new ArgumentException("No commits data on Gogs push event");
             }
 
-            GitPushTrigger trigger = new GitPushTrigger();
-            trigger.setSource(GitSource.GOGS);
-            trigger.setEvent(GitTrigger.GitEvent.PUSH);
+            GitPushTrigger t = new GitPushTrigger();
+            t.setSource(GitSource.GOGS);
+            t.setEvent(GitTrigger.GitEvent.PUSH);
+            t.setRef(BranchHelper.getBranchName(ref));
+            t.setSender(pusher.toGitUser());
 
-            Commit commit = commits.get(0);
+            ObjectsHelper.ifNotNull(commits, vals -> {
+                Commit commit = vals.get(0);
+                t.setMessage(commit.message);
+                t.setNumOfCommit(vals.size());
+                t.setCommits(new ArrayList<>(vals.size()));
 
-//            trigger.setCommitId(commit.id);
-//            trigger.setMessage(commit.message);
-//            trigger.setCommitUrl(commit.url);
-//            trigger.setRef(BranchHelper.getBranchName(ref));
-//            trigger.setTime(commit.timestamp);
-//            trigger.setNumOfCommit(commits.size());
-//
-//            // set commit author info
-//            trigger.setAuthor(pusher.toGitUser());
-
-            return trigger;
+                for (var c : vals) {
+                    t.getCommits().add(c.toGitCommit());
+                }
+            });
+            return t;
         }
     }
 
@@ -111,18 +114,12 @@ public class GogsConverter extends TriggerConverter {
 
         @Override
         public GitTrigger toTrigger() {
-            GitPushTrigger tag = new GitPushTrigger();
+            GitPushTrigger tag = new GitTagTrigger();
             tag.setEvent(GitTrigger.GitEvent.TAG);
             tag.setSource(GitSource.GOGS);
-
             tag.setRef(release.tagName);
-//            tag.setMessage(release.name);
-//            tag.setCommitId(release.id);
-//            tag.setTime(release.createdAt);
-//            tag.setCommitUrl(StringHelper.EMPTY);
-//            tag.setAuthor(release.author.toGitUser());
-            tag.setNumOfCommit(0);
-
+            tag.setMessage(StringHelper.join(release.name, "\n", release.body).trim());
+            tag.setSender(release.author.toGitUser());
             return tag;
         }
     }
@@ -268,16 +265,19 @@ public class GogsConverter extends TriggerConverter {
 
         public User author;
 
-        public User committer;
-
-        public List<String> modified;
-
         public String timestamp;
+
+        public GitCommit toGitCommit() {
+            return GitCommit.of(id, message, timestamp, url, author.toGitUser());
+        }
     }
 
     private static class User {
 
         public String id;
+
+        @JsonAlias("login")
+        public String name;
 
         public String username;
 
@@ -289,6 +289,7 @@ public class GogsConverter extends TriggerConverter {
         GitUser toGitUser() {
             return new GitUser()
                     .setId(id)
+                    .setName(name)
                     .setEmail(email)
                     .setUsername(username)
                     .setAvatarLink(avatarUrl);
