@@ -57,8 +57,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.flowci.core.common.domain.Variables.Git.GIT_AUTHOR;
-import static com.flowci.core.common.domain.Variables.Git.GIT_COMMIT_ID;
+import static com.flowci.core.common.domain.Variables.Git.*;
 
 /**
  * @author yang
@@ -256,13 +255,19 @@ public class JobServiceImpl implements JobService {
 
         // re-init job context
         Vars<String> context = job.getContext();
-        String lastCommitId = context.get(GIT_COMMIT_ID);
-        context.clear();
+        for (String key : context.keySet()) {
+            if (PUSH_TAG_VARS.contains(key) || PR_VARS.contains(key) || Objects.equals(key, COMMIT_ID)) {
+                continue;
+            }
+            context.remove(key);
+        }
 
         initJobContext(job, flow, null);
-        context.put(GIT_COMMIT_ID, lastCommitId);
         context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         context.merge(root.getEnvironments(), false);
+
+
+
         jobDao.save(job);
 
         // reset job agent
@@ -405,7 +410,7 @@ public class JobServiceImpl implements JobService {
             return;
         }
 
-        String createdBy = context.get(GIT_AUTHOR, "Unknown");
+        String createdBy = context.get(PUSH_AUTHOR, "Unknown");
         job.setCreatedBy(createdBy);
         context.put(Variables.Job.TriggerBy, createdBy);
     }

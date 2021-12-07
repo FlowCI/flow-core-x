@@ -47,6 +47,8 @@ public class GitLabConverterTest extends SpringScenario {
         Assert.assertEquals(GitSource.GITLAB, push.getSource());
         Assert.assertEquals(3, push.getNumOfCommit());
         Assert.assertEquals("master", push.getRef());
+        Assert.assertEquals("Update .flow.yml test", push.getMessage());
+        Assert.assertEquals("yang.guo", push.getSender().getName());
 
         // check first commit
         var commit1 = push.getCommits().get(0);

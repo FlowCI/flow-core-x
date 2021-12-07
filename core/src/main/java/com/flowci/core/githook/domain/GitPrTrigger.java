@@ -55,13 +55,14 @@ public final class GitPrTrigger extends GitTrigger {
     @Override
     public StringVars toVariableMap() {
         StringVars map = super.toVariableMap();
-        map.put(GIT_AUTHOR, sender.getUsername());
+        map.put(PR_AUTHOR, sender.getEmail());
 
         map.put(PR_TITLE, title);
         map.put(PR_MESSAGE, body);
         map.put(PR_URL, url);
         map.put(PR_TIME, time);
         map.put(PR_NUMBER, number);
+        map.put(PR_IS_MERGED, String.valueOf(merged));
 
         map.put(PR_HEAD_REPO_NAME, head.repoName);
         map.put(PR_HEAD_REPO_BRANCH, head.ref);
@@ -70,11 +71,6 @@ public final class GitPrTrigger extends GitTrigger {
         map.put(PR_BASE_REPO_NAME, base.repoName);
         map.put(PR_BASE_REPO_BRANCH, base.ref);
         map.put(PR_BASE_REPO_COMMIT, base.commit);
-
-        // set empty string to COMMIT variables
-        for (String commitVar : COMMIT_VARS) {
-            map.put(commitVar, StringHelper.EMPTY);
-        }
 
         return map;
     }

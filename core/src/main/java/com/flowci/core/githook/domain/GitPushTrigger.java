@@ -49,18 +49,19 @@ public class GitPushTrigger extends GitTrigger {
     @Override
     public StringVars toVariableMap() {
         var map = super.toVariableMap();
-        var commitData = StringHelper.EMPTY;
+        var commitListB64 = StringHelper.EMPTY;
         try {
             var json = JacksonHelper.Default.writeValueAsString(commits);
-            commitData = StringHelper.toBase64(json);
+            commitListB64 = StringHelper.toBase64(json);
         } catch (JsonProcessingException e) {
             // ignore
         }
 
-        map.put(GIT_BRANCH, ref);
-        map.put(GIT_COMMIT_TOTAL, Integer.toString(numOfCommit));
-        map.put(GIT_COMMIT_LIST, commitData);
-        map.put(GIT_COMMIT_MESSAGE, message);
+        map.put(PUSH_BRANCH, ref);
+        map.put(PUSH_MESSAGE, message);
+        map.put(PUSH_AUTHOR, sender.getEmail());
+        map.put(PUSH_COMMIT_TOTAL, String.valueOf(numOfCommit));
+        map.put(PUSH_COMMIT_LIST, commitListB64);
 
         // set empty string to PR variables
         for (String prVar : PR_VARS) {
@@ -78,10 +79,6 @@ public class GitPushTrigger extends GitTrigger {
 
         GitCommit commit = commits.get(0);
         String message = commit.getMessage();
-
-        if (!StringHelper.hasValue(message)) {
-            return false;
-        }
-        return message.contains(SkipMessage);
+        return StringHelper.hasValue(message) && message.contains(SkipMessage);
     }
 }

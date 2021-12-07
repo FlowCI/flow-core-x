@@ -131,6 +131,11 @@ public class GitLabConverter extends TriggerConverter {
                 }
                 trigger.setCommits(gitCommits);
                 trigger.setNumOfCommit(commits.size());
+
+                // set commit message if message filed is empty
+                if (!StringHelper.hasValue(message)) {
+                    trigger.setMessage(gitCommits.get(0).getMessage());
+                }
             });
 
             return trigger;

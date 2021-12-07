@@ -104,44 +104,40 @@ public abstract class Variables {
         /**
          * Git event source
          */
-        public static final String GIT_SOURCE = "FLOWCI_GIT_SOURCE";
+        public static final String SOURCE = "FLOWCI_GIT_SOURCE";
 
         /**
          * Git event type
          */
-        public static final String GIT_EVENT = "FLOWCI_GIT_EVENT";
+        public static final String EVENT = "FLOWCI_GIT_EVENT";
+
+        /**
+         * Used for git clone
+         */
+        public static final String COMMIT_ID = "FLOWCI_GIT_COMMIT_ID";
 
         /**
          * Push / Tag variables
          */
-        public static final String GIT_AUTHOR = "FLOWCI_GIT_AUTHOR";
+        public static final String PUSH_AUTHOR = "FLOWCI_GIT_AUTHOR";
 
-        public static final String GIT_BRANCH = "FLOWCI_GIT_BRANCH";
+        public static final String PUSH_BRANCH = "FLOWCI_GIT_BRANCH";
 
-        public static final String GIT_COMMIT_ID = "FLOWCI_GIT_COMMIT_ID";
+        public static final String PUSH_MESSAGE = "FLOWCI_GIT_COMMIT_MESSAGE";
 
-        public static final String GIT_COMMIT_MESSAGE = "FLOWCI_GIT_COMMIT_MESSAGE";
-
-        public static final String GIT_COMMIT_TIME = "FLOWCI_GIT_COMMIT_TIME";
-
-        public static final String GIT_COMMIT_URL = "FLOWCI_GIT_COMMIT_URL";
-
-        public static final String GIT_COMMIT_TOTAL = "FLOWCI_GIT_COMMIT_TOTAL";
+        public static final String PUSH_COMMIT_TOTAL = "FLOWCI_GIT_COMMIT_TOTAL";
 
         /**
          * b64 json content
          */
-        public static final String GIT_COMMIT_LIST = "FLOWCI_GIT_COMMIT_LIST";
+        public static final String PUSH_COMMIT_LIST = "FLOWCI_GIT_COMMIT_LIST";
 
-        public static final Collection<String> COMMIT_VARS = ImmutableList.<String>builder()
-                .add(GIT_AUTHOR)
-                .add(GIT_BRANCH)
-                .add(GIT_COMMIT_ID)
-                .add(GIT_COMMIT_MESSAGE)
-                .add(GIT_COMMIT_TIME)
-                .add(GIT_COMMIT_URL)
-                .add(GIT_COMMIT_TOTAL)
-                .add(GIT_COMMIT_LIST)
+        public static final Collection<String> PUSH_TAG_VARS = ImmutableList.<String>builder()
+                .add(PUSH_AUTHOR)
+                .add(PUSH_BRANCH)
+                .add(PUSH_MESSAGE)
+                .add(PUSH_COMMIT_TOTAL)
+                .add(PUSH_COMMIT_LIST)
                 .build();
 
         /**
@@ -151,11 +147,15 @@ public abstract class Variables {
 
         public static final String PR_MESSAGE = "FLOWCI_GIT_PR_MESSAGE";
 
+        public static final String PR_AUTHOR = "FLOWCI_GIT_AUTHOR";
+
         public static final String PR_URL = "FLOWCI_GIT_PR_URL";
 
         public static final String PR_TIME = "FLOWCI_GIT_PR_TIME";
 
         public static final String PR_NUMBER = "FLOWCI_GIT_PR_NUMBER";
+
+        public static final String PR_IS_MERGED = "FLOWCI_GIT_PR_IS_MERGED";
 
         public static final String PR_HEAD_REPO_NAME = "FLOWCI_GIT_PR_HEAD_REPO_NAME";
 
@@ -172,9 +172,11 @@ public abstract class Variables {
         public static final Collection<String> PR_VARS = ImmutableList.<String>builder()
                 .add(PR_TITLE)
                 .add(PR_MESSAGE)
+                .add(PR_AUTHOR)
                 .add(PR_URL)
                 .add(PR_TIME)
                 .add(PR_NUMBER)
+                .add(PR_IS_MERGED)
                 .add(PR_HEAD_REPO_NAME)
                 .add(PR_HEAD_REPO_BRANCH)
                 .add(PR_HEAD_REPO_COMMIT)
