@@ -62,12 +62,6 @@ public class GitPushTrigger extends GitTrigger {
         map.put(PUSH_AUTHOR, sender.getEmail());
         map.put(PUSH_COMMIT_TOTAL, String.valueOf(numOfCommit));
         map.put(PUSH_COMMIT_LIST, commitListB64);
-
-        // set empty string to PR variables
-        for (String prVar : PR_VARS) {
-            map.put(prVar, StringHelper.EMPTY);
-        }
-
         return map;
     }
 
