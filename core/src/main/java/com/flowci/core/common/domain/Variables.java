@@ -126,7 +126,7 @@ public abstract class Variables {
 
         public static final String GIT_COMMIT_URL = "FLOWCI_GIT_COMMIT_URL";
 
-        public static final String GIT_COMMIT_NUM = "FLOWCI_GIT_COMMIT_NUM";
+        public static final String GIT_COMMIT_TOTAL = "FLOWCI_GIT_COMMIT_TOTAL";
 
         /**
          * b64 json content
@@ -140,7 +140,7 @@ public abstract class Variables {
                 .add(GIT_COMMIT_MESSAGE)
                 .add(GIT_COMMIT_TIME)
                 .add(GIT_COMMIT_URL)
-                .add(GIT_COMMIT_NUM)
+                .add(GIT_COMMIT_TOTAL)
                 .add(GIT_COMMIT_LIST)
                 .build();
 

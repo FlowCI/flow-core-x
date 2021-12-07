@@ -24,6 +24,7 @@ import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.flowci.core.common.domain.Variables.Git.*;
@@ -41,7 +42,7 @@ public class GitPushTrigger extends GitTrigger {
 
     private int numOfCommit;
 
-    private List<GitCommit> commits;
+    private List<GitCommit> commits = Collections.emptyList();
 
     private GitUser sender;
 
@@ -57,7 +58,7 @@ public class GitPushTrigger extends GitTrigger {
         }
 
         map.put(GIT_BRANCH, ref);
-        map.put(GIT_COMMIT_NUM, Integer.toString(numOfCommit));
+        map.put(GIT_COMMIT_TOTAL, Integer.toString(numOfCommit));
         map.put(GIT_COMMIT_LIST, commitData);
         map.put(GIT_COMMIT_MESSAGE, message);
 

@@ -61,15 +61,16 @@ public class GitHubConverterTest extends SpringScenario {
         Assert.assertTrue(optional.isPresent());
 
         // then: object properties should be parsed
-        GitPushTrigger trigger = (GitPushTrigger) optional.get();
-        Assert.assertEquals(GitEvent.PUSH, trigger.getEvent());
-        Assert.assertEquals(GitSource.GITHUB, trigger.getSource());
-        Assert.assertEquals(2, trigger.getNumOfCommit());
-        Assert.assertEquals("second commit", trigger.getMessage());
-        Assert.assertEquals("gy2006", trigger.getSender().getName());
+        GitPushTrigger t = (GitPushTrigger) optional.get();
+        Assert.assertEquals(GitEvent.PUSH, t.getEvent());
+        Assert.assertEquals(GitSource.GITHUB, t.getSource());
+        Assert.assertEquals(2, t.getNumOfCommit());
+        Assert.assertEquals("second commit", t.getMessage());
+        Assert.assertEquals("gy2006", t.getSender().getName());
+        Assert.assertEquals("master", t.getRef());
 
         // then: verify commit data
-        var commit1 = trigger.getCommits().get(0);
+        var commit1 = t.getCommits().get(0);
         Assert.assertEquals("01c3935c0e058eafb1a71da3b1da75dc35e69a9d", commit1.getId());
         Assert.assertEquals("first commit", commit1.getMessage());
         Assert.assertEquals("https://github.com/gy2006/ci-test/commit/01c3935c0e058eafb1a71da3b1da75dc35e69a9d", commit1.getUrl());
@@ -77,7 +78,7 @@ public class GitHubConverterTest extends SpringScenario {
         Assert.assertEquals("Yang Guo", commit1.getAuthor().getName());
         Assert.assertEquals("yang@Yangs-MacBook-Pro.local", commit1.getAuthor().getEmail());
 
-        var commit2 = trigger.getCommits().get(1);
+        var commit2 = t.getCommits().get(1);
         Assert.assertEquals("410a0cda5875c3a1ede806e77c07be1382e2ebf3", commit2.getId());
         Assert.assertEquals("second commit", commit2.getMessage());
         Assert.assertEquals("https://github.com/gy2006/ci-test/commit/410a0cda5875c3a1ede806e77c07be1382e2ebf3", commit2.getUrl());

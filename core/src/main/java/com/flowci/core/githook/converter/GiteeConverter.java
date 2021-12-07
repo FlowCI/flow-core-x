@@ -19,13 +19,17 @@ package com.flowci.core.githook.converter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.githook.domain.*;
+import com.flowci.core.githook.util.BranchHelper;
 import com.flowci.exception.ArgumentException;
+import com.flowci.util.ObjectsHelper;
 import com.google.common.collect.ImmutableMap;
 import lombok.EqualsAndHashCode;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -49,8 +53,8 @@ public class GiteeConverter extends TriggerConverter {
     private final Map<String, Function<InputStream, GitTrigger>> mapping =
             ImmutableMap.<String, Function<InputStream, GitTrigger>>builder()
                     .put(Ping, new EventConverter<>("Ping", GiteeConverter.PingEvent.class))
-                    .put(Push, new EventConverter<>("Push", GiteeConverter.PushOrTagEvent.class))
-                    .put(Tag, new EventConverter<>("Tag", GiteeConverter.PushOrTagEvent.class))
+                    .put(Push, new EventConverter<>("Push", PushTagEvent.class))
+                    .put(Tag, new EventConverter<>("Tag", PushTagEvent.class))
                     .put(PR, new EventConverter<>("PR", GiteeConverter.PrEvent.class))
                     .build();
 
@@ -75,14 +79,16 @@ public class GiteeConverter extends TriggerConverter {
         }
     }
 
-    private static class PushOrTagEvent implements GitTriggerable {
+    private static class PushTagEvent implements GitTriggerable {
 
         private static final String TagRefPrefix = "refs/tags";
 
         public String ref;
 
+        public List<Commit> commits;
+
         @JsonProperty("head_commit")
-        public Commit commit;
+        public Commit headCommit;
 
         @JsonProperty("total_commits_count")
         public int numOfCommit;
@@ -91,33 +97,39 @@ public class GiteeConverter extends TriggerConverter {
 
         public Author sender;
 
+        public GitPushTrigger createTriggerInstance(GitTrigger.GitEvent event) {
+            return event == GitTrigger.GitEvent.PUSH ? new GitPushTrigger() : new GitTagTrigger();
+        }
+
         private GitTrigger.GitEvent getEvent() {
             return ref.startsWith(TagRefPrefix) ? GitTrigger.GitEvent.TAG : GitTrigger.GitEvent.PUSH;
         }
 
         @Override
         public GitTrigger toTrigger() {
-            if (Objects.isNull(commit)) {
+            if (Objects.isNull(headCommit)) {
                 throw new ArgumentException("No commits data on Gitee push or tag event");
             }
 
-            GitPushTrigger trigger = new GitPushTrigger();
-            trigger.setSource(GitSource.GITEE);
-            trigger.setEvent(getEvent());
-//
-//            trigger.setAuthor(pusher.toGitUser());
-//            trigger.setCommitId(commit.id);
-//            trigger.setMessage(commit.message);
-//            trigger.setCommitUrl(commit.url);
-//            trigger.setRef(BranchHelper.getBranchName(ref));
-//            trigger.setTime(commit.timestamp);
-//            trigger.setNumOfCommit(numOfCommit);
-//
-//            if (pusher.equals(sender)) {
-//                trigger.getAuthor().setAvatarLink(sender.avatarUrl);
-//            }
+            GitTrigger.GitEvent event = getEvent();
 
-            return trigger;
+            GitPushTrigger t = createTriggerInstance(event);
+            t.setSource(GitSource.GITEE);
+            t.setEvent(event);
+            t.setNumOfCommit(numOfCommit);
+            t.setSender(pusher.toGitUser());
+            t.setMessage(headCommit.message);
+            t.setRef(BranchHelper.getBranchName(ref));
+
+            ObjectsHelper.ifNotNull(commits, val -> {
+                var list = new ArrayList<GitCommit>(val.size());
+                for (var c : val) {
+                    list.add(c.toGitCommit());
+                }
+                t.setCommits(list);
+            });
+
+            return t;
         }
     }
 
@@ -242,6 +254,10 @@ public class GiteeConverter extends TriggerConverter {
         public String url;
 
         public Author author;
+
+        public GitCommit toGitCommit() {
+            return GitCommit.of(id, message, timestamp, url, author.toGitUser());
+        }
     }
 
     @EqualsAndHashCode(of = {"id"})
