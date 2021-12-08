@@ -186,7 +186,7 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Job getLatest(String flowId) {
-        Optional<JobNumber> optional = jobNumberDao.findById(flowId);
+        Optional<JobNumber> optional = jobNumberDao.findByFlowId(flowId);
 
         if (optional.isPresent()) {
             JobNumber latest = optional.get();

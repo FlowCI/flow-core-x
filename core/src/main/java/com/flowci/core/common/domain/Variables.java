@@ -117,6 +117,11 @@ public abstract class Variables {
         public static final String COMMIT_ID = "FLOWCI_GIT_COMMIT_ID";
 
         /**
+         * For manual selection
+         */
+        public static final String BRANCH = "FLOWCI_GIT_BRANCH";
+
+        /**
          * Push / Tag variables
          */
         public static final String PUSH_AUTHOR = "FLOWCI_GIT_AUTHOR";
