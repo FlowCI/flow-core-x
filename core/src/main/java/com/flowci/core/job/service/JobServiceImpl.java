@@ -17,6 +17,7 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.common.config.AppProperties;
+import com.flowci.core.common.domain.Settings;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -419,7 +420,8 @@ public class JobServiceImpl implements JobService {
         StringVars context = new StringVars();
         context.mergeFromTypedVars(flow.getLocally());
 
-        context.put(Variables.App.ServerUrl, settingService.get().getServerUrl());
+        Settings settings = settingService.get();
+        context.put(Variables.App.ServerUrl, settings.getServerUrl());
 
         context.put(Variables.Flow.Name, flow.getName());
         context.put(Variables.Flow.GitRepo, flow.getName());
@@ -430,6 +432,7 @@ public class JobServiceImpl implements JobService {
         context.put(Variables.Job.StartAt, job.startAtInStr());
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
         context.put(Variables.Job.DurationInSeconds, "0");
+        context.put(Variables.Job.Url, String.format("%s/#/flows/%s/jobs/%s", settings.getWebUrl(), flow.getName(), job.getBuildNumber()));
 
         if (!Objects.isNull(inputs)) {
             context.merge(inputs);

@@ -31,6 +31,8 @@ public abstract class Variables {
 
         public static final String ServerUrl = "FLOWCI_SERVER_URL";
 
+        public static final String WebUrl = "FLOWCI_WEB_URL";
+
         public static final String Host = "FLOWCI_SERVER_HOST";
 
         public static final String ResourceDomain = "FLOWCI_RESOURCE_DOMAIN";
@@ -42,8 +44,6 @@ public abstract class Variables {
 
         public static final String GitUrl = "FLOWCI_GIT_URL"; // set
 
-        public static final String GitBranch = "FLOWCI_GIT_BRANCH"; // set
-
         public static final String GitRepo = "FLOWCI_GIT_REPO"; // set
 
         public static final String GitCredential = "FLOWCI_GIT_CREDENTIAL"; // set
@@ -52,6 +52,8 @@ public abstract class Variables {
     public abstract static class Job {
 
         public static final String BuildNumber = "FLOWCI_JOB_BUILD_NUM";
+
+        public static final String Url = "FLOWCI_JOB_URL";
 
         public static final String Trigger = "FLOWCI_JOB_TRIGGER";
 
