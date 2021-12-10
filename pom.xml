@@ -40,7 +40,7 @@
         <amqp-client.version>5.9.0</amqp-client.version>
         <java-jwt.version>3.8.1</java-jwt.version>
         <minio.version>6.0.11</minio.version>
-        <log4j-core.version>2.11.2</log4j-core.version>
+        <log4j-core.version>2.15.0</log4j-core.version>
         <kubernetes-client.version>4.10.3</kubernetes-client.version>
     </properties>
 
