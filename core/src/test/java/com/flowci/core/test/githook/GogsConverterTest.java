@@ -17,13 +17,10 @@
 package com.flowci.core.test.githook;
 
 import com.flowci.core.common.domain.GitSource;
-import com.flowci.core.test.SpringScenario;
 import com.flowci.core.githook.converter.GogsConverter;
 import com.flowci.core.githook.converter.TriggerConverter;
-import com.flowci.core.githook.domain.GitPrTrigger;
-import com.flowci.core.githook.domain.GitPushTrigger;
-import com.flowci.core.githook.domain.GitTrigger;
-import com.flowci.core.githook.domain.GitUser;
+import com.flowci.core.githook.domain.*;
+import com.flowci.core.test.SpringScenario;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,21 +42,20 @@ public class GogsConverterTest extends SpringScenario {
         Assert.assertTrue(optional.get() instanceof GitPushTrigger);
 
         GitPushTrigger trigger = (GitPushTrigger) optional.get();
+        Assert.assertEquals(GitTrigger.GitEvent.PUSH, trigger.getEvent());
+        Assert.assertEquals(GitSource.GOGS, trigger.getSource());
         Assert.assertEquals("master", trigger.getRef());
-        Assert.assertEquals("62f02963619d8fa1a03afb65ad3ed6b8d3c0fd69", trigger.getCommitId());
         Assert.assertEquals("Update 'README.md'\n\nhello\n", trigger.getMessage());
-        Assert.assertEquals(
-                "http://localhost:3000/test/my-first-repo/commit/62f02963619d8fa1a03afb65ad3ed6b8d3c0fd69",
-                trigger.getCommitUrl());
-        Assert.assertEquals("2019-10-03T10:44:15Z", trigger.getTime());
         Assert.assertEquals(1, trigger.getNumOfCommit());
+        Assert.assertEquals("test", trigger.getSender().getName());
+        Assert.assertEquals("benqyang_2006@gogs.test", trigger.getSender().getEmail());
 
-        GitUser pusher = trigger.getAuthor();
-        Assert.assertEquals("benqyang_2006@gogs.test", pusher.getEmail());
-        Assert.assertEquals("test", pusher.getUsername());
-        Assert.assertEquals(
-                "https://secure.gravatar.com/avatar/0dce14d99e8295e36aca078f195fa0c3?d=identicon",
-                pusher.getAvatarLink());
+        var commit = trigger.getCommits().get(0);
+        Assert.assertEquals("Update 'README.md'\n\nhello\n", commit.getMessage());
+        Assert.assertEquals("2019-10-03T10:44:15Z", commit.getTime());
+        Assert.assertEquals("http://localhost:3000/test/my-first-repo/commit/62f02963619d8fa1a03afb65ad3ed6b8d3c0fd69", commit.getUrl());
+        Assert.assertEquals("test", commit.getAuthor().getName());
+        Assert.assertEquals("benqyang_2006@gogs.test", commit.getAuthor().getEmail());
     }
 
     @Test
@@ -68,25 +64,15 @@ public class GogsConverterTest extends SpringScenario {
 
         Optional<GitTrigger> optional = gogsConverter.convert(GogsConverter.Tag, stream);
         Assert.assertTrue(optional.isPresent());
-        Assert.assertTrue(optional.get() instanceof GitPushTrigger);
+        Assert.assertTrue(optional.get() instanceof GitTagTrigger);
 
-        GitPushTrigger tag = (GitPushTrigger) optional.get();
+        GitTagTrigger tag = (GitTagTrigger) optional.get();
         Assert.assertEquals(GitSource.GOGS, tag.getSource());
         Assert.assertEquals(GitTrigger.GitEvent.TAG, tag.getEvent());
-
         Assert.assertEquals("v4.0", tag.getRef());
-        Assert.assertEquals("4", tag.getCommitId());
-        Assert.assertEquals("2019-10-03T12:46:57Z", tag.getTime());
-        Assert.assertEquals("title for v4.0", tag.getMessage());
-        Assert.assertEquals("", tag.getCommitUrl());
-        Assert.assertEquals(0, tag.getNumOfCommit());
-
-        GitUser author = tag.getAuthor();
-        Assert.assertEquals("test", author.getUsername());
-        Assert.assertEquals("benqyang_2006@gogs.com", author.getEmail());
-        Assert.assertEquals(
-                "https://secure.gravatar.com/avatar/0dce14d99e8295e36aca078f195fa0c3?d=identicon",
-                author.getAvatarLink());
+        Assert.assertEquals("title for v4.0\n4.0 content", tag.getMessage());
+        Assert.assertEquals("test", tag.getSender().getName());
+        Assert.assertEquals("benqyang_2006@gogs.com", tag.getSender().getEmail());
     }
 
     @Test

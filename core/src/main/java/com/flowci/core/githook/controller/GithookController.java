@@ -80,7 +80,7 @@ public class GithookController {
         GitSourceWithEvent data = findGitSourceByHeader(request);
         Optional<GitTrigger> trigger = converterMap.get(data.source).convert(data.event, request.getInputStream());
 
-        if (!trigger.isPresent()) {
+        if (trigger.isEmpty()) {
             throw new ArgumentException("Unsupported git event {0}", data.event);
         }
 

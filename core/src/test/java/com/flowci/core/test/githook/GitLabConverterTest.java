@@ -17,19 +17,17 @@
 package com.flowci.core.test.githook;
 
 import com.flowci.core.common.domain.GitSource;
-import com.flowci.core.test.SpringScenario;
 import com.flowci.core.githook.converter.GitLabConverter;
 import com.flowci.core.githook.converter.TriggerConverter;
-import com.flowci.core.githook.domain.GitPrTrigger;
-import com.flowci.core.githook.domain.GitPushTrigger;
-import com.flowci.core.githook.domain.GitTrigger;
+import com.flowci.core.githook.domain.*;
 import com.flowci.core.githook.domain.GitTrigger.GitEvent;
-import com.flowci.core.githook.domain.GitUser;
-import java.io.InputStream;
-import java.util.Optional;
+import com.flowci.core.test.SpringScenario;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.InputStream;
+import java.util.Optional;
 
 public class GitLabConverterTest extends SpringScenario {
 
@@ -47,22 +45,37 @@ public class GitLabConverterTest extends SpringScenario {
         GitPushTrigger push = (GitPushTrigger) optional.get();
         Assert.assertEquals(GitTrigger.GitEvent.PUSH, push.getEvent());
         Assert.assertEquals(GitSource.GITLAB, push.getSource());
-
-        Assert.assertEquals("d8e7334543d437c1a889a9187e66d1968280d7d4", push.getCommitId());
+        Assert.assertEquals(3, push.getNumOfCommit());
         Assert.assertEquals("master", push.getRef());
         Assert.assertEquals("Update .flow.yml test", push.getMessage());
-        Assert.assertEquals("2017-10-17T08:23:36Z", push.getTime());
-        Assert.assertEquals(
-            "https://gitlab.com/yang-guo-2016/kai-web/commit/d8e7334543d437c1a889a9187e66d1968280d7d4",
-            push.getCommitUrl());
-        Assert.assertEquals(3, push.getNumOfCommit());
+        Assert.assertEquals("yang.guo", push.getSender().getName());
 
-        GitUser author = push.getAuthor();
-        Assert.assertEquals("yang-guo-2016", author.getUsername());
-        Assert.assertEquals("benqyang_2006@hotmail.com", author.getEmail());
-        Assert.assertEquals(
-            "https://secure.gravatar.com/avatar/25fc63da4f632d2a2c10724cba3b9efc?s=80\u0026d=identicon",
-            author.getAvatarLink());
+        // check first commit
+        var commit1 = push.getCommits().get(0);
+        Assert.assertEquals("d8e7334543d437c1a889a9187e66d1968280d7d4", commit1.getId());
+        Assert.assertEquals("Update .flow.yml test", commit1.getMessage());
+        Assert.assertEquals("2017-10-17T08:23:36Z", commit1.getTime());
+        Assert.assertEquals("https://gitlab.com/yang-guo-2016/kai-web/commit/d8e7334543d437c1a889a9187e66d1968280d7d4", commit1.getUrl());
+        Assert.assertEquals("yang.guo", commit1.getAuthor().getName());
+        Assert.assertEquals("benqyang_2006@hotmail.com", commit1.getAuthor().getEmail());
+
+        // check second commit
+        var commit2 = push.getCommits().get(1);
+        Assert.assertEquals("0c0726be026a9fec991d7c3f64c2c3fc6babed8c", commit2.getId());
+        Assert.assertEquals("Update .flow.yml", commit2.getMessage());
+        Assert.assertEquals("2017-10-17T08:16:21Z", commit2.getTime());
+        Assert.assertEquals("https://gitlab.com/yang-guo-2016/kai-web/commit/0c0726be026a9fec991d7c3f64c2c3fc6babed8c", commit2.getUrl());
+        Assert.assertEquals("yang.guo", commit2.getAuthor().getName());
+        Assert.assertEquals("benqyang_2006@hotmail.com", commit2.getAuthor().getEmail());
+
+        // check third commit
+        var commit3 = push.getCommits().get(2);
+        Assert.assertEquals("55ef9a6330eecd15132f9ff35e4f8664eb254e88", commit3.getId());
+        Assert.assertEquals("Update .flow.yml add", commit3.getMessage());
+        Assert.assertEquals("2017-10-17T07:57:44Z", commit3.getTime());
+        Assert.assertEquals("https://gitlab.com/yang-guo-2016/kai-web/commit/55ef9a6330eecd15132f9ff35e4f8664eb254e88", commit3.getUrl());
+        Assert.assertEquals("yang.guo", commit3.getAuthor().getName());
+        Assert.assertEquals("benqyang_2006@hotmail.com", commit3.getAuthor().getEmail());
     }
 
     @Test
@@ -71,23 +84,20 @@ public class GitLabConverterTest extends SpringScenario {
 
         Optional<GitTrigger> optional = gitLabConverter.convert(GitLabConverter.Tag, stream);
         Assert.assertTrue(optional.isPresent());
-        Assert.assertTrue(optional.get() instanceof GitPushTrigger);
+        Assert.assertTrue(optional.get() instanceof GitTagTrigger);
 
-        GitPushTrigger tag = (GitPushTrigger) optional.get();
+        GitTagTrigger tag = (GitTagTrigger) optional.get();
         Assert.assertEquals(GitEvent.TAG, tag.getEvent());
         Assert.assertEquals(GitSource.GITLAB, tag.getSource());
-
-        Assert.assertEquals("ee31197fd0fab68d1e5ab56dabcfae150ab5d057", tag.getCommitId());
+        Assert.assertEquals(1, tag.getNumOfCommit());
         Assert.assertEquals("v2.0", tag.getRef());
         Assert.assertEquals("test tag push", tag.getMessage());
-        Assert.assertEquals(1, tag.getNumOfCommit());
 
-        GitUser author = tag.getAuthor();
-        Assert.assertEquals("yang-guo-2016", author.getUsername());
-        Assert.assertEquals("gy@fir.im", author.getEmail());
-        Assert.assertEquals(
-            "https://secure.gravatar.com/avatar/25fc63da4f632d2a2c10724cba3b9efc?s=80\u0026d=identicon",
-            author.getAvatarLink());
+        var commit = tag.getCommits().get(0);
+        Assert.assertEquals("1b4d99d54c29a31a92e990e6bac301eea0c1fc94", commit.getId());
+        Assert.assertEquals("Merge branch 'developer' into 'master'\n\nUpdate package.json title\n\nSee merge request yang-guo-2016/kai-web!1", commit.getMessage());
+        Assert.assertEquals("yang.guo", commit.getAuthor().getName());
+        Assert.assertEquals("gy@fir.im", commit.getAuthor().getEmail());
     }
 
     @Test

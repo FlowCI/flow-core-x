@@ -16,6 +16,7 @@
 
 package com.flowci.core.githook.domain;
 
+import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -27,13 +28,13 @@ import java.io.Serializable;
 @Accessors(chain = true)
 public class GitUser implements Serializable {
 
-    private String id;
+    private String id = StringHelper.EMPTY;
 
-    private String name;
+    private String name = StringHelper.EMPTY;
 
-    private String username;
+    private String username = StringHelper.EMPTY;
 
-    private String email;
+    private String email = StringHelper.EMPTY;
 
-    private String avatarLink;
+    private String avatarLink = StringHelper.EMPTY;
 }

@@ -1,5 +1,7 @@
 package com.flowci.core.trigger.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.domain.Variables;
@@ -10,6 +12,7 @@ import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.flow.service.FlowService;
+import com.flowci.core.githook.domain.GitCommit;
 import com.flowci.core.job.event.JobFinishedEvent;
 import com.flowci.core.trigger.dao.TriggerDao;
 import com.flowci.core.trigger.domain.EmailTrigger;
@@ -45,19 +48,23 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+
+import static com.flowci.core.common.domain.Variables.Git.PUSH_COMMIT_LIST;
 
 @Log4j2
 @Service
 public class TriggerServiceImpl implements TriggerService {
 
+    private static final TypeReference<List<GitCommit>> GitCommitListType = new TypeReference<>() {
+    };
+
     @Value("classpath:templates/default_job_finish_email.html")
     private Resource defaultJobFinishEmailTemplate;
 
     private final TemplateEngine templateEngine;
+
+    private final ObjectMapper objectMapper;
 
     private final TriggerDao triggerDao;
 
@@ -80,6 +87,7 @@ public class TriggerServiceImpl implements TriggerService {
     private String emailTemplate;
 
     public TriggerServiceImpl(TemplateEngine templateEngine,
+                              ObjectMapper objectMapper,
                               TriggerDao triggerDao,
                               ConditionManager conditionManager,
                               SessionManager sessionManager,
@@ -90,6 +98,7 @@ public class TriggerServiceImpl implements TriggerService {
                               TriggerDeliveryService triggerDeliveryService,
                               HttpClient httpClient) {
         this.templateEngine = templateEngine;
+        this.objectMapper = objectMapper;
         this.templateEngine.setTemplateResolver(new StringTemplateResolver());
 
         this.httpClient = httpClient;
@@ -296,6 +305,16 @@ public class TriggerServiceImpl implements TriggerService {
     private IContext toThymeleafContext(Vars<String> c) {
         Context context = new Context();
         c.forEach(context::setVariable);
+
+        if (c.containsKey(PUSH_COMMIT_LIST)) {
+            try {
+                String json = StringHelper.fromBase64(c.get(PUSH_COMMIT_LIST));
+                context.setVariable(PUSH_COMMIT_LIST, objectMapper.readValue(json, GitCommitListType));
+            } catch (Exception e) {
+                context.setVariable(PUSH_COMMIT_LIST, Collections.emptyList());
+            }
+        }
+
         return context;
     }
 }

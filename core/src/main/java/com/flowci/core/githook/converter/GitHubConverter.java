@@ -16,6 +16,7 @@
 
 package com.flowci.core.githook.converter;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.githook.domain.*;
@@ -25,14 +26,11 @@ import com.flowci.core.githook.util.BranchHelper;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.ObjectsHelper;
 import com.google.common.collect.ImmutableMap;
-import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -53,7 +51,7 @@ public class GitHubConverter extends TriggerConverter {
     private final Map<String, Function<InputStream, GitTrigger>> mapping =
             ImmutableMap.<String, Function<InputStream, GitTrigger>>builder()
                     .put(Ping, new EventConverter<>("Ping", PingEvent.class))
-                    .put(PushOrTag, new EventConverter<>("PushOrTag", PushOrTagEvent.class))
+                    .put(PushOrTag, new EventConverter<>("PushOrTag", PushTagEvent.class))
                     .put(PR, new EventConverter<>("PR", PrEvent.class))
                     .build();
 
@@ -101,7 +99,7 @@ public class GitHubConverter extends TriggerConverter {
 
     }
 
-    private static class PushOrTagEvent implements GitTriggerable {
+    private static class PushTagEvent implements GitTriggerable {
 
         private static final String TagRefPrefix = "refs/tags";
 
@@ -110,7 +108,7 @@ public class GitHubConverter extends TriggerConverter {
         public List<Commit> commits;
 
         @JsonProperty("head_commit")
-        public Commit commit;
+        public Commit headCommit;
 
         public Author pusher;
 
@@ -118,31 +116,35 @@ public class GitHubConverter extends TriggerConverter {
             return ref.startsWith(TagRefPrefix) ? GitEvent.TAG : GitEvent.PUSH;
         }
 
+        public GitPushTrigger createTriggerInstance(GitEvent event) {
+            return event == GitEvent.PUSH ? new GitPushTrigger() : new GitTagTrigger();
+        }
+
         @Override
         public GitPushTrigger toTrigger() {
-            if (Objects.isNull(commit)) {
+            if (Objects.isNull(headCommit)) {
                 throw new ArgumentException("No commits data on Github push or tag event");
             }
 
-            GitPushTrigger trigger = new GitPushTrigger();
+            var event = getEvent();
+            GitPushTrigger trigger = createTriggerInstance(event);
             trigger.setSource(GitSource.GITHUB);
-            trigger.setEvent(getEvent());
-
-            trigger.setCommitId(commit.id);
-            trigger.setMessage(commit.message);
-            trigger.setCommitUrl(commit.url);
+            trigger.setEvent(event);
+            trigger.setMessage(headCommit.message);
+            trigger.setSender(pusher.toGitUser());
             trigger.setRef(BranchHelper.getBranchName(ref));
-            trigger.setTime(commit.timestamp);
-            trigger.setNumOfCommit(0);
 
             ObjectsHelper.ifNotNull(commits, val -> {
                 trigger.setNumOfCommit(val.size());
+                trigger.setCommits(new ArrayList<>(val.size()));
+                for (var c : val) {
+                    trigger.getCommits().add(c.toGitCommit());
+                }
             });
 
-            // set commit author info
-            trigger.setAuthor(pusher.toGitUser());
             return trigger;
         }
+
     }
 
     private static class PrEvent implements GitTriggerable {
@@ -273,20 +275,31 @@ public class GitHubConverter extends TriggerConverter {
         public String timestamp;
 
         public String url;
+
+        public Author author;
+
+        public GitCommit toGitCommit() {
+            return GitCommit.of(id, message, timestamp, url, author.toGitUser());
+        }
     }
 
     private static class Author {
 
+        @JsonAlias("login")
         public String name;
 
         public String email;
 
         public String username;
 
+        @JsonProperty("avatar_url")
+        public String avatarUrl;
+
         public GitUser toGitUser() {
             return new GitUser()
                     .setEmail(email)
                     .setName(name)
+                    .setAvatarLink(avatarUrl)
                     .setUsername(username);
         }
 

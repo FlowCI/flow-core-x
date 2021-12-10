@@ -1,6 +1,6 @@
 package com.flowci.core.common.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,19 +30,29 @@ public class Settings extends Mongoable {
 
     public final static String DefaultId = "system_settings";
 
+    private String uniqueId = DefaultId;
+
     private String serverUrl;
+
+    private String webUrl;
 
     /**
      * Indicate load resource(cn) from where
      */
     private String source;
 
-    public Settings() {
-        setId(DefaultId);
+    public String getServerUrl() {
+        return trimEndSlash(serverUrl);
     }
 
-    @JsonIgnore
-    public String getId() {
-        return this.id;
+    public String getWebUrl() {
+        return trimEndSlash(webUrl);
+    }
+
+    private static String trimEndSlash(String url) {
+        if (StringHelper.hasValue(url) && url.endsWith("/")) {
+            url = url.substring(0, url.length() - 2);
+        }
+        return url;
     }
 }

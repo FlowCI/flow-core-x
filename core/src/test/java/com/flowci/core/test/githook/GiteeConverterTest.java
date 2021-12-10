@@ -17,13 +17,10 @@
 package com.flowci.core.test.githook;
 
 import com.flowci.core.common.domain.GitSource;
+import com.flowci.core.githook.domain.*;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.githook.converter.GiteeConverter;
 import com.flowci.core.githook.converter.TriggerConverter;
-import com.flowci.core.githook.domain.GitPingTrigger;
-import com.flowci.core.githook.domain.GitPrTrigger;
-import com.flowci.core.githook.domain.GitPushTrigger;
-import com.flowci.core.githook.domain.GitTrigger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,23 +50,27 @@ public class GiteeConverterTest extends SpringScenario {
 
         Optional<GitTrigger> optional = giteeConverter.convert(GiteeConverter.Push, stream);
         Assert.assertTrue(optional.isPresent());
+        Assert.assertTrue(optional.get() instanceof GitPushTrigger);
 
-        GitPushTrigger trigger = (GitPushTrigger) optional.get();
-        Assert.assertNotNull(trigger);
-        Assert.assertEquals(GitSource.GITEE, trigger.getSource());
-        Assert.assertEquals(GitTrigger.GitEvent.PUSH, trigger.getEvent());
+        GitPushTrigger t = (GitPushTrigger) optional.get();
+        Assert.assertEquals(GitSource.GITEE, t.getSource());
+        Assert.assertEquals(GitTrigger.GitEvent.PUSH, t.getEvent());
+        Assert.assertEquals(1, t.getNumOfCommit());
+        Assert.assertEquals("update README.md.\ntest pr message..", t.getMessage());
+        Assert.assertEquals("feature/222", t.getRef());
+        Assert.assertEquals("yang.guo", t.getSender().getName());
+        Assert.assertEquals("benqyang_2006@hotmail.com", t.getSender().getEmail());
+        Assert.assertEquals("gy2006", t.getSender().getUsername());
 
-        Assert.assertEquals("feature/222", trigger.getRef());
-        Assert.assertEquals("ea926aebbe8738e903345534a9b158716b904816", trigger.getCommitId());
-        Assert.assertEquals("update README.md.\ntest pr message..", trigger.getMessage());
-        Assert.assertEquals("https://gitee.com/gy2006/flow-test/commit/ea926aebbe8738e903345534a9b158716b904816", trigger.getCommitUrl());
-        Assert.assertEquals("2020-02-25T22:52:24+08:00", trigger.getTime());
-        Assert.assertEquals(1, trigger.getNumOfCommit());
+        var commit = t.getCommits().get(0);
+        Assert.assertEquals("ea926aebbe8738e903345534a9b158716b904816", commit.getId());
+        Assert.assertEquals("update README.md.\ntest pr message..", commit.getMessage());
+        Assert.assertEquals("https://gitee.com/gy2006/flow-test/commit/ea926aebbe8738e903345534a9b158716b904816", commit.getUrl());
+        Assert.assertEquals("2020-02-25T22:52:24+08:00", commit.getTime());
 
-        Assert.assertEquals("gy2006", trigger.getAuthor().getUsername());
-        Assert.assertEquals("benqyang_2006@hotmail.com", trigger.getAuthor().getEmail());
-        Assert.assertEquals("yang.guo", trigger.getAuthor().getName());
-        Assert.assertEquals("https://gitee.com/assets/no_portrait.png", trigger.getAuthor().getAvatarLink());
+        Assert.assertEquals("gy2006", commit.getAuthor().getUsername());
+        Assert.assertEquals("benqyang_2006@hotmail.com", commit.getAuthor().getEmail());
+        Assert.assertEquals("yang.guo", commit.getAuthor().getName());
     }
 
     @Test
@@ -78,23 +79,15 @@ public class GiteeConverterTest extends SpringScenario {
 
         Optional<GitTrigger> optional = giteeConverter.convert(GiteeConverter.Tag, stream);
         Assert.assertTrue(optional.isPresent());
+        Assert.assertTrue(optional.get() instanceof GitTagTrigger);
 
-        GitPushTrigger trigger = (GitPushTrigger) optional.get();
-        Assert.assertNotNull(trigger);
-        Assert.assertEquals(GitSource.GITEE, trigger.getSource());
-        Assert.assertEquals(GitTrigger.GitEvent.TAG, trigger.getEvent());
-
-        Assert.assertEquals("v0.1", trigger.getRef());
-        Assert.assertEquals("2e6e071da3f8c718d0969f3d96cedc848dab605e", trigger.getCommitId());
-        Assert.assertEquals("Initial commit", trigger.getMessage());
-        Assert.assertEquals("https://gitee.com/gy2006/flow-test/commit/2e6e071da3f8c718d0969f3d96cedc848dab605e", trigger.getCommitUrl());
-        Assert.assertEquals("2017-12-04T09:52:25+08:00", trigger.getTime());
-        Assert.assertEquals(0, trigger.getNumOfCommit());
-
-        Assert.assertEquals("gy2006", trigger.getAuthor().getUsername());
-        Assert.assertEquals("benqyang_2006@hotmail.com", trigger.getAuthor().getEmail());
-        Assert.assertEquals("yang.guo", trigger.getAuthor().getName());
-        Assert.assertEquals("https://gitee.com/assets/no_portrait.png", trigger.getAuthor().getAvatarLink());
+        GitPushTrigger t = (GitPushTrigger) optional.get();
+        Assert.assertNotNull(t);
+        Assert.assertEquals(GitSource.GITEE, t.getSource());
+        Assert.assertEquals(GitTrigger.GitEvent.TAG, t.getEvent());
+        Assert.assertEquals("v0.1", t.getRef());
+        Assert.assertEquals("Initial commit", t.getMessage());
+        Assert.assertEquals("yang.guo", t.getSender().getName());
     }
 
     @Test

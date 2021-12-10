@@ -64,7 +64,6 @@ public class JobItem extends JobDesc {
 
             this.put(key, value);
         }
-
     }
 
     public static class ContextReader implements Converter<org.bson.Document, Context> {
@@ -72,13 +71,14 @@ public class JobItem extends JobDesc {
         @Override
         public Context convert(org.bson.Document source) {
             Context context = new Context(source);
-            context.putIfNotEmpty(GIT_EVENT);
+            context.putIfNotEmpty(EVENT);
 
             // git push / tag
-            context.putIfNotEmpty(GIT_BRANCH);
-            context.putIfNotEmpty(GIT_COMMIT_ID);
-            context.putIfNotEmpty(GIT_COMMIT_URL);
-            context.putIfNotEmpty(GIT_COMMIT_MESSAGE);
+            context.putIfNotEmpty(PUSH_BRANCH);
+            context.putIfNotEmpty(PUSH_MESSAGE);
+            context.putIfNotEmpty(PUSH_AUTHOR);
+            context.putIfNotEmpty(PUSH_COMMIT_LIST);
+            context.putIfNotEmpty(PUSH_COMMIT_TOTAL);
 
             // git pr
             context.putIfNotEmpty(PR_TITLE);

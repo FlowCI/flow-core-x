@@ -17,6 +17,7 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.common.config.AppProperties;
+import com.flowci.core.common.domain.Settings;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -57,8 +58,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.flowci.core.common.domain.Variables.Git.GIT_AUTHOR;
-import static com.flowci.core.common.domain.Variables.Git.GIT_COMMIT_ID;
+import static com.flowci.core.common.domain.Variables.Git.*;
 
 /**
  * @author yang
@@ -187,7 +187,7 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Job getLatest(String flowId) {
-        Optional<JobNumber> optional = jobNumberDao.findById(flowId);
+        Optional<JobNumber> optional = jobNumberDao.findByFlowId(flowId);
 
         if (optional.isPresent()) {
             JobNumber latest = optional.get();
@@ -256,13 +256,19 @@ public class JobServiceImpl implements JobService {
 
         // re-init job context
         Vars<String> context = job.getContext();
-        String lastCommitId = context.get(GIT_COMMIT_ID);
-        context.clear();
+        for (String key : context.keySet()) {
+            if (PUSH_TAG_VARS.contains(key) || PR_VARS.contains(key) || Objects.equals(key, COMMIT_ID)) {
+                continue;
+            }
+            context.remove(key);
+        }
 
         initJobContext(job, flow, null);
-        context.put(GIT_COMMIT_ID, lastCommitId);
         context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         context.merge(root.getEnvironments(), false);
+
+
+
         jobDao.save(job);
 
         // reset job agent
@@ -405,7 +411,7 @@ public class JobServiceImpl implements JobService {
             return;
         }
 
-        String createdBy = context.get(GIT_AUTHOR, "Unknown");
+        String createdBy = context.get(PUSH_AUTHOR, "Unknown");
         job.setCreatedBy(createdBy);
         context.put(Variables.Job.TriggerBy, createdBy);
     }
@@ -414,7 +420,8 @@ public class JobServiceImpl implements JobService {
         StringVars context = new StringVars();
         context.mergeFromTypedVars(flow.getLocally());
 
-        context.put(Variables.App.ServerUrl, settingService.get().getServerUrl());
+        Settings settings = settingService.get();
+        context.put(Variables.App.ServerUrl, settings.getServerUrl());
 
         context.put(Variables.Flow.Name, flow.getName());
         context.put(Variables.Flow.GitRepo, flow.getName());
@@ -425,6 +432,7 @@ public class JobServiceImpl implements JobService {
         context.put(Variables.Job.StartAt, job.startAtInStr());
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
         context.put(Variables.Job.DurationInSeconds, "0");
+        context.put(Variables.Job.Url, String.format("%s/#/flows/%s/jobs/%s", settings.getWebUrl(), flow.getName(), job.getBuildNumber()));
 
         if (!Objects.isNull(inputs)) {
             context.merge(inputs);

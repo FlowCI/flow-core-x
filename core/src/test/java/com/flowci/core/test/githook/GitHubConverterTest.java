@@ -22,15 +22,12 @@ import com.flowci.core.githook.converter.TriggerConverter;
 import com.flowci.core.githook.domain.*;
 import com.flowci.core.githook.domain.GitTrigger.GitEvent;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.domain.StringVars;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
 import java.util.Optional;
-
-import static com.flowci.core.common.domain.Variables.Git.*;
 
 /**
  * @author yang
@@ -61,42 +58,33 @@ public class GitHubConverterTest extends SpringScenario {
         InputStream stream = load("github/webhook_push.json");
 
         Optional<GitTrigger> optional = gitHubConverter.convert(GitHubConverter.PushOrTag, stream);
-        GitPushTrigger trigger = (GitPushTrigger) optional.get();
+        Assert.assertTrue(optional.isPresent());
 
         // then: object properties should be parsed
-        Assert.assertNotNull(trigger);
-        Assert.assertEquals(GitEvent.PUSH, trigger.getEvent());
-        Assert.assertEquals(GitSource.GITHUB, trigger.getSource());
+        GitPushTrigger t = (GitPushTrigger) optional.get();
+        Assert.assertEquals(GitEvent.PUSH, t.getEvent());
+        Assert.assertEquals(GitSource.GITHUB, t.getSource());
+        Assert.assertEquals(2, t.getNumOfCommit());
+        Assert.assertEquals("second commit", t.getMessage());
+        Assert.assertEquals("gy2006", t.getSender().getName());
+        Assert.assertEquals("master", t.getRef());
 
-        Assert.assertEquals("40d0dd6e8e942643d794d7ed8d27610fb8729914", trigger.getCommitId());
-        Assert.assertEquals("fdafadsf\n\ndfsdafad", trigger.getMessage());
-        Assert.assertEquals("https://github.com/yang-guo-2016/Test/commit/40d0dd6e8e942643d794d7ed8d27610fb8729914",
-            trigger.getCommitUrl());
-        Assert.assertEquals("master", trigger.getRef());
-        Assert.assertEquals("2017-08-08T11:19:05+08:00", trigger.getTime());
+        // then: verify commit data
+        var commit1 = t.getCommits().get(0);
+        Assert.assertEquals("01c3935c0e058eafb1a71da3b1da75dc35e69a9d", commit1.getId());
+        Assert.assertEquals("first commit", commit1.getMessage());
+        Assert.assertEquals("https://github.com/gy2006/ci-test/commit/01c3935c0e058eafb1a71da3b1da75dc35e69a9d", commit1.getUrl());
+        Assert.assertEquals("2021-12-05T20:58:28+01:00", commit1.getTime());
+        Assert.assertEquals("Yang Guo", commit1.getAuthor().getName());
+        Assert.assertEquals("yang@Yangs-MacBook-Pro.local", commit1.getAuthor().getEmail());
 
-        GitUser author = trigger.getAuthor();
-        Assert.assertEquals("yang-guo-2016", author.getName());
-        Assert.assertEquals("gy@fir.im", author.getEmail());
-        Assert.assertNull(author.getUsername());
-
-        Assert.assertEquals(1, trigger.getNumOfCommit());
-
-        // then: variables should be created
-        StringVars variables = trigger.toVariableMap();
-        Assert.assertNotNull(variables);
-
-        Assert.assertEquals("PUSH", variables.get(GIT_EVENT));
-        Assert.assertEquals("GITHUB", variables.get(GIT_SOURCE));
-
-        Assert.assertEquals("master", variables.get(GIT_BRANCH));
-        Assert.assertEquals("40d0dd6e8e942643d794d7ed8d27610fb8729914", variables.get(GIT_COMMIT_ID));
-        Assert.assertEquals("fdafadsf\n\ndfsdafad", variables.get(GIT_COMMIT_MESSAGE));
-        Assert.assertEquals("2017-08-08T11:19:05+08:00", variables.get(GIT_COMMIT_TIME));
-        Assert.assertEquals("https://github.com/yang-guo-2016/Test/commit/40d0dd6e8e942643d794d7ed8d27610fb8729914",
-            variables.get(GIT_COMMIT_URL));
-        Assert.assertEquals("gy@fir.im", variables.get(GIT_AUTHOR));
-        Assert.assertEquals("1", variables.get(GIT_COMMIT_NUM));
+        var commit2 = t.getCommits().get(1);
+        Assert.assertEquals("410a0cda5875c3a1ede806e77c07be1382e2ebf3", commit2.getId());
+        Assert.assertEquals("second commit", commit2.getMessage());
+        Assert.assertEquals("https://github.com/gy2006/ci-test/commit/410a0cda5875c3a1ede806e77c07be1382e2ebf3", commit2.getUrl());
+        Assert.assertEquals("2021-12-05T20:59:26+01:00", commit2.getTime());
+        Assert.assertEquals("gy2006", commit2.getAuthor().getName());
+        Assert.assertEquals("32008001@qq.com", commit2.getAuthor().getEmail());
     }
 
     @Test
@@ -104,24 +92,16 @@ public class GitHubConverterTest extends SpringScenario {
         InputStream stream = load("github/webhook_tag.json");
 
         Optional<GitTrigger> optional = gitHubConverter.convert(GitHubConverter.PushOrTag, stream);
-        GitPushTrigger trigger = (GitPushTrigger) optional.get();
-        Assert.assertNotNull(trigger);
+        Assert.assertTrue(optional.isPresent());
+        Assert.assertTrue(optional.get() instanceof GitTagTrigger);
 
-        Assert.assertEquals(GitEvent.TAG, trigger.getEvent());
-        Assert.assertEquals(GitSource.GITHUB, trigger.getSource());
-
-        Assert.assertEquals("26d1d0fa6ee44a8f4e02250d13e84bf02722f5e7", trigger.getCommitId());
-        Assert.assertEquals("Update settings.gradle", trigger.getMessage());
-        Assert.assertEquals("https://github.com/yang-guo-2016/Test/commit/26d1d0fa6ee44a8f4e02250d13e84bf02722f5e7",
-            trigger.getCommitUrl());
-        Assert.assertEquals("v1.6", trigger.getRef());
-        Assert.assertEquals("2017-08-08T13:19:55+08:00", trigger.getTime());
-        Assert.assertEquals(0, trigger.getNumOfCommit());
-
-        GitUser author = trigger.getAuthor();
-        Assert.assertEquals("yang-guo-2016", author.getName());
-        Assert.assertEquals("gy@fir.im", author.getEmail());
-        Assert.assertNull(author.getUsername());
+        GitTagTrigger t = (GitTagTrigger) optional.get();
+        Assert.assertEquals(GitEvent.TAG, t.getEvent());
+        Assert.assertEquals(GitSource.GITHUB, t.getSource());
+        Assert.assertEquals("v2.1", t.getRef());
+        Assert.assertEquals("second commit", t.getMessage());
+        Assert.assertEquals("gy2006", t.getSender().getName());
+        Assert.assertEquals("32008001@qq.com", t.getSender().getEmail());
     }
 
     @Test

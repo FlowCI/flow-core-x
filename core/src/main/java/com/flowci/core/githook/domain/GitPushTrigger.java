@@ -16,11 +16,16 @@
 
 package com.flowci.core.githook.domain;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.domain.StringVars;
+import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
+
+import java.util.Collections;
+import java.util.List;
 
 import static com.flowci.core.common.domain.Variables.Git.*;
 
@@ -29,49 +34,45 @@ import static com.flowci.core.common.domain.Variables.Git.*;
  */
 @Getter
 @Setter
-@ToString(callSuper = true, of = {"ref", "message"})
-public final class GitPushTrigger extends GitTrigger {
-
-    private GitUser author;
-
-    private String commitId;
-
-    private String message;
+public class GitPushTrigger extends GitTrigger {
 
     private String ref;
 
-    private String time;
-
-    private String commitUrl;
+    private String message;
 
     private int numOfCommit;
 
+    private List<GitCommit> commits = Collections.emptyList();
+
+    private GitUser sender;
+
     @Override
     public StringVars toVariableMap() {
-        StringVars map = super.toVariableMap();
-
-        map.put(GIT_BRANCH, ref);
-        map.put(GIT_AUTHOR, author.getEmail());
-
-        map.put(GIT_COMMIT_ID, commitId);
-        map.put(GIT_COMMIT_MESSAGE, message);
-        map.put(GIT_COMMIT_TIME, time);
-        map.put(GIT_COMMIT_URL, commitUrl);
-        map.put(GIT_COMMIT_NUM, Integer.toString(numOfCommit));
-
-        // set empty string to PR variables
-        for (String prVar : PR_VARS) {
-            map.put(prVar, StringHelper.EMPTY);
+        var map = super.toVariableMap();
+        var commitListB64 = StringHelper.EMPTY;
+        try {
+            var json = JacksonHelper.Default.writeValueAsString(commits);
+            commitListB64 = StringHelper.toBase64(json);
+        } catch (JsonProcessingException e) {
+            // ignore
         }
 
+        map.put(PUSH_BRANCH, ref);
+        map.put(PUSH_MESSAGE, message);
+        map.put(PUSH_AUTHOR, sender.getEmail());
+        map.put(PUSH_COMMIT_TOTAL, String.valueOf(numOfCommit));
+        map.put(PUSH_COMMIT_LIST, commitListB64);
         return map;
     }
 
     @Override
     public boolean isSkip() {
-        if (!StringHelper.hasValue(message)) {
+        if (!ObjectsHelper.hasCollection(commits)) {
             return false;
         }
-        return message.contains(SkipMessage);
+
+        GitCommit commit = commits.get(0);
+        String message = commit.getMessage();
+        return StringHelper.hasValue(message) && message.contains(SkipMessage);
     }
 }

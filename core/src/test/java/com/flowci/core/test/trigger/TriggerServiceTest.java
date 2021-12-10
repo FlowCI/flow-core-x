@@ -1,8 +1,12 @@
 package com.flowci.core.test.trigger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.service.ConfigService;
+import com.flowci.core.githook.domain.GitCommit;
+import com.flowci.core.githook.domain.GitUser;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.trigger.domain.EmailTrigger;
 import com.flowci.core.trigger.domain.Trigger;
@@ -25,12 +29,16 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.testng.Assert;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Properties;
 
 public class TriggerServiceTest extends SpringScenario {
 
     @Autowired
     private TriggerService triggerService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockBean
     private ConfigService configService;
@@ -67,7 +75,7 @@ public class TriggerServiceTest extends SpringScenario {
 
     @Ignore
     @Test
-    public void should_send_email_with_condition() {
+    public void should_send_email_with_condition() throws JsonProcessingException {
         EmailTrigger en = new EmailTrigger();
         en.setName("default-email-notification");
         en.setSmtpConfig(config.getName());
@@ -87,10 +95,14 @@ public class TriggerServiceTest extends SpringScenario {
         context.put(Variables.Job.FinishAt, "2021-07-01 02:23:45.456");
         context.put(Variables.Job.DurationInSeconds, "100");
 
-        context.put(Variables.Git.GIT_BRANCH, "master");
-        context.put(Variables.Git.GIT_COMMIT_URL, "http://xxx/commit/id");
-        context.put(Variables.Git.GIT_COMMIT_ID, "112233");
-        context.put(Variables.Git.GIT_COMMIT_MESSAGE, "hello test");
+        var commits = new ArrayList<GitCommit>(2);
+        commits.add(GitCommit.of("1", "first message", "2021-01-01", "https://xxx.xxx/xx/1", new GitUser().setEmail("test1@flow.ci")));
+        commits.add(GitCommit.of("2", "second message", "2021-01-02", "https://xxx.xxx/xx/2", new GitUser().setEmail("test2@flow.ci")));
+
+        context.put(Variables.Git.PUSH_BRANCH, "master");
+        context.put(Variables.Git.PUSH_MESSAGE, "hello test");
+        context.put(Variables.Git.PUSH_COMMIT_LIST, StringHelper.toBase64(objectMapper.writeValueAsString(commits)));
+        context.put(Variables.Git.PUSH_COMMIT_TOTAL, String.valueOf(2));
 
 //        context.put(Variables.Git.PR_URL, "http://xxx/pr/id");
 //        context.put(Variables.Git.PR_TITLE, "Pull request test");

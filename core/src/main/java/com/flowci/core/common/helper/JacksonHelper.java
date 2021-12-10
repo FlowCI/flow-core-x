@@ -30,6 +30,8 @@ import java.time.Instant;
  */
 public abstract class JacksonHelper {
 
+    public final static ObjectMapper Default = create();
+
     public static ObjectMapper create() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.setSerializationInclusion(Include.NON_NULL);

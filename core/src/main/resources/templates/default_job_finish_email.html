@@ -213,9 +213,10 @@
             <td>Commits:</td>
             <td>
                 <table>
-                    <tr>
-                        <td><a th:href="${FLOWCI_GIT_COMMIT_URL}" target="_blank">[[${FLOWCI_GIT_COMMIT_ID}]]</a></td>
-                        <td>[[${FLOWCI_GIT_COMMIT_MESSAGE}]]</td>
+                    <tr th:each="commit : ${FLOWCI_GIT_COMMIT_LIST}">
+                        <td><a th:href="${commit.url}" target="_blank">[[${commit.id}]]</a></td>
+                        <td>[[${commit.message}]]</td>
+                        <td>[[${commit.author.email}]]</td>
                     </tr>
                 </table>
             </td>
@@ -254,7 +255,7 @@
 
     <!-- Detail Button -->
     <div style="text-align: center">
-        <form action="https://www.google.com" target="_blank">
+        <form th:action="${FLOWCI_JOB_URL}" target="_blank">
             <button class="button" type="submit">View the details</button>
         </form>
     </div>
