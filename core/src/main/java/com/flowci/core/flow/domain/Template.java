@@ -8,6 +8,8 @@ import lombok.Setter;
 @Setter
 public final class Template extends SourceWithDomain {
 
+    private String title;
+
     private String desc;
 
     private boolean isDefault;

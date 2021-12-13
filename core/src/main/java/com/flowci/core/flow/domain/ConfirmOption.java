@@ -28,7 +28,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class ConfirmOption {
 
-    private static final String DESC_BLANK = "blank";
+    private static final String BlankTitle = "_blank_";
 
     private String gitUrl;
 
@@ -42,8 +42,8 @@ public class ConfirmOption {
     /**
      * Template name (desc), yaml property will be ignored if it is defined
      */
-    @JsonProperty("desc")
-    private String templateDesc;
+    @JsonProperty("title")
+    private String templateTitle;
 
     public boolean hasGitUrl() {
         return StringHelper.hasValue(gitUrl);
@@ -57,11 +57,11 @@ public class ConfirmOption {
         return StringHelper.hasValue(yaml);
     }
 
-    public boolean hasTemplateDesc() {
-        return StringHelper.hasValue(templateDesc);
+    public boolean hasTemplateTitle() {
+        return StringHelper.hasValue(templateTitle);
     }
 
     public boolean hasBlankTemplate() {
-        return DESC_BLANK.equalsIgnoreCase(templateDesc);
+        return BlankTitle.equalsIgnoreCase(templateTitle);
     }
 }
