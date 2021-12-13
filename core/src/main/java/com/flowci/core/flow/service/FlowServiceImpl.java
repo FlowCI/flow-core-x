@@ -212,13 +212,13 @@ public class FlowServiceImpl implements FlowService {
         }
 
         // load YAML from template
-        if (option.hasTemplateDesc()) {
+        if (option.hasTemplateTitle()) {
             try {
-                String template = loadYmlFromTemplate(option.getTemplateDesc());
+                String template = loadYmlFromTemplate(option.getTemplateTitle());
                 ymlService.saveYml(flow, Yml.DEFAULT_NAME, template);
                 return flow;
             } catch (IOException e) {
-                throw new NotFoundException("Unable to load template {0} content", option.getTemplateDesc());
+                throw new NotFoundException("Unable to load template {0} content", option.getTemplateTitle());
             }
         }
 
@@ -361,14 +361,13 @@ public class FlowServiceImpl implements FlowService {
         localVars.put(Variables.Flow.Name, VarValue.of(flow.getName(), VarType.STRING, false));
     }
 
-    private String loadYmlFromTemplate(String desc) throws IOException {
+    private String loadYmlFromTemplate(String title) throws IOException {
         for (Template t : templates) {
-            if (t.getDesc().equals(desc)) {
+            if (Objects.equals(t.getTitle(), title)) {
                 String source = t.getSourceWithDomain(appProperties.getResourceDomain());
                 return httpRequestManager.get(source);
             }
         }
-
-        throw new NotFoundException("Unable to load template {0} content", desc);
+        throw new NotFoundException("Unable to load template {0} content", title);
     }
 }

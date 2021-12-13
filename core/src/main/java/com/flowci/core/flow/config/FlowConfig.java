@@ -23,6 +23,7 @@ import com.flowci.core.common.helper.CacheHelper;
 import com.flowci.core.common.manager.ResourceManager;
 import com.flowci.core.flow.domain.Template;
 import com.flowci.exception.StatusException;
+import com.flowci.exception.UnsupportedException;
 import com.flowci.tree.NodeTree;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.log4j.Log4j2;
@@ -32,7 +33,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author yang
@@ -68,6 +71,15 @@ public class FlowConfig {
             };
 
             List<Template> list = objectMapper.readValue(resourceManager.getResource(r), typeRef);
+
+            Set<String> titles = new HashSet<>(list.size());
+            for (var t : list) {
+                if (titles.contains(t.getTitle())) {
+                    throw new UnsupportedException("Duplicated template title {0}", t.getTitle());
+                }
+                titles.add(t.getTitle());
+            }
+
             log.info("Templates is loaded from {}", flowProperties.getTemplatesUrl());
             return list;
         } catch (Exception e) {
