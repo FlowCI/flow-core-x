@@ -44,6 +44,7 @@ public class GogsConverterTest extends SpringScenario {
         GitPushTrigger trigger = (GitPushTrigger) optional.get();
         Assert.assertEquals(GitTrigger.GitEvent.PUSH, trigger.getEvent());
         Assert.assertEquals(GitSource.GOGS, trigger.getSource());
+        Assert.assertEquals("1", trigger.getRepoId());
         Assert.assertEquals("master", trigger.getRef());
         Assert.assertEquals("Update 'README.md'\n\nhello\n", trigger.getMessage());
         Assert.assertEquals(1, trigger.getNumOfCommit());
@@ -69,6 +70,7 @@ public class GogsConverterTest extends SpringScenario {
         GitTagTrigger tag = (GitTagTrigger) optional.get();
         Assert.assertEquals(GitSource.GOGS, tag.getSource());
         Assert.assertEquals(GitTrigger.GitEvent.TAG, tag.getEvent());
+        Assert.assertEquals("1", tag.getRepoId());
         Assert.assertEquals("v4.0", tag.getRef());
         Assert.assertEquals("title for v4.0\n4.0 content", tag.getMessage());
         Assert.assertEquals("test", tag.getSender().getName());

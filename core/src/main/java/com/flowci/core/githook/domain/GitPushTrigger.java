@@ -36,6 +36,8 @@ import static com.flowci.core.common.domain.Variables.Git.*;
 @Setter
 public class GitPushTrigger extends GitTrigger {
 
+    private String repoId;
+
     private String ref;
 
     private String message;

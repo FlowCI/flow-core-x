@@ -103,6 +103,8 @@ public class GitHubConverter extends TriggerConverter {
 
         private static final String TagRefPrefix = "refs/tags";
 
+        public Repository repository;
+
         public String ref;
 
         public List<Commit> commits;
@@ -128,6 +130,7 @@ public class GitHubConverter extends TriggerConverter {
 
             var event = getEvent();
             GitPushTrigger trigger = createTriggerInstance(event);
+            trigger.setRepoId(repository.id);
             trigger.setSource(GitSource.GITHUB);
             trigger.setEvent(event);
             trigger.setMessage(headCommit.message);
@@ -211,6 +214,11 @@ public class GitHubConverter extends TriggerConverter {
 
             throw new ArgumentException("Cannot handle action {0} from pull request", action);
         }
+    }
+
+    private static class Repository {
+
+        public String id;
     }
 
     private static class PrBody {

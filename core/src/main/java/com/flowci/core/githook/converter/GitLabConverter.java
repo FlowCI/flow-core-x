@@ -81,6 +81,8 @@ public class GitLabConverter extends TriggerConverter {
 
         static final String PushEvent = "push";
 
+        public Project project;
+
         public String before;
 
         public String after;
@@ -115,6 +117,7 @@ public class GitLabConverter extends TriggerConverter {
             GitPushTrigger trigger = createTriggerInstance();
             trigger.setSource(GitSource.GITLAB);
             trigger.setEvent(getEvent());
+            trigger.setRepoId(project.id);
             trigger.setMessage(message);
             trigger.setRef(BranchHelper.getBranchName(ref));
             trigger.setSender(new GitUser()

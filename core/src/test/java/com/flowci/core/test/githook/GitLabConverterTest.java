@@ -45,6 +45,7 @@ public class GitLabConverterTest extends SpringScenario {
         GitPushTrigger push = (GitPushTrigger) optional.get();
         Assert.assertEquals(GitTrigger.GitEvent.PUSH, push.getEvent());
         Assert.assertEquals(GitSource.GITLAB, push.getSource());
+        Assert.assertEquals("2048650", push.getRepoId());
         Assert.assertEquals(3, push.getNumOfCommit());
         Assert.assertEquals("master", push.getRef());
         Assert.assertEquals("Update .flow.yml test", push.getMessage());
@@ -89,6 +90,7 @@ public class GitLabConverterTest extends SpringScenario {
         GitTagTrigger tag = (GitTagTrigger) optional.get();
         Assert.assertEquals(GitEvent.TAG, tag.getEvent());
         Assert.assertEquals(GitSource.GITLAB, tag.getSource());
+        Assert.assertEquals("2048650", tag.getRepoId());
         Assert.assertEquals(1, tag.getNumOfCommit());
         Assert.assertEquals("v2.0", tag.getRef());
         Assert.assertEquals("test tag push", tag.getMessage());
