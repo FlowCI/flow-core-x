@@ -21,6 +21,7 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.domain.StringVars;
 import com.flowci.exception.NotFoundException;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -33,6 +34,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString(of = {"source", "event"})
+@EqualsAndHashCode(of = {"source", "event"})
 public abstract class GitTrigger implements Serializable {
 
     protected final static String SkipMessage = "[ci skip]";

@@ -1,14 +1,12 @@
 package com.flowci.core.githook.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor(staticName = "of")
+@EqualsAndHashCode(of = "id")
 public final class GitCommit {
 
     private String id;

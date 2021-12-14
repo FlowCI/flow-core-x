@@ -26,6 +26,7 @@ import lombok.Setter;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static com.flowci.core.common.domain.Variables.Git.*;
 
@@ -76,5 +77,23 @@ public class GitPushTrigger extends GitTrigger {
         GitCommit commit = commits.get(0);
         String message = commit.getMessage();
         return StringHelper.hasValue(message) && message.contains(SkipMessage);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        GitPushTrigger t = (GitPushTrigger) o;
+        return Objects.equals(getSource(), t.getSource())
+                && Objects.equals(getEvent(), t.getEvent())
+                && Objects.equals(repoId, t.getRepoId())
+                && Objects.equals(ref, t.getRef())
+                && Objects.equals(commits.get(0), t.getCommits().get(0));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getSource(), getEvent(), repoId, ref, commits.get(0).hashCode());
     }
 }

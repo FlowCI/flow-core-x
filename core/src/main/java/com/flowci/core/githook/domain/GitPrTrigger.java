@@ -21,6 +21,8 @@ import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
+
 import static com.flowci.core.common.domain.Variables.Git.*;
 
 /**
@@ -81,6 +83,22 @@ public final class GitPrTrigger extends GitTrigger {
             return false;
         }
         return title.contains(SkipMessage);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        GitPrTrigger t = (GitPrTrigger) o;
+        return Objects.equals(getSource(), t.getSource())
+                && Objects.equals(getEvent(), t.getEvent())
+                && Objects.equals(getNumber(), t.getNumber());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getSource(), getEvent(), getNumber());
     }
 
     @Getter
