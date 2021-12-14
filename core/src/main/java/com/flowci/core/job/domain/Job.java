@@ -42,9 +42,9 @@ import java.util.*;
 /**
  * @author yang
  */
+@Document(collection = "job")
 @Getter
 @Setter
-@Document(collection = "job")
 @EqualsAndHashCode(callSuper = true)
 @CompoundIndex(
         name = "index_job_flowid_and_buildnum",
@@ -200,8 +200,11 @@ public class Job extends Mongoable implements Pathable {
     @Indexed(name = "index_job_key", unique = true)
     private String key;
 
-    @Indexed(name = "index_flow_id", sparse = true)
+    @Indexed(name = "index_flow_id", partialFilter = "{ flowId: {$exists: true} }")
     private String flowId;
+
+    @Indexed(name = "index_git_trigger", partialFilter = "{ gitTriggerKey: {$exists: true} }")
+    private String gitTriggerKey;
 
     private String flowName;
 
@@ -255,6 +258,11 @@ public class Job extends Mongoable implements Pathable {
     private Date finishAt;
 
     private int numOfArtifact = 0;
+
+    /**
+     * Related job id list from the same git event
+     */
+    public List<String> related;
 
     public void setExpire(int expire) {
         this.expire = expire;
