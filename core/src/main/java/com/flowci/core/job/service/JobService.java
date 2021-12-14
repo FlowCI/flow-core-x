@@ -26,6 +26,7 @@ import com.flowci.domain.StringVars;
 import org.springframework.data.domain.Page;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * @author yang
@@ -65,9 +66,14 @@ public interface JobService {
     Job getLatest(String flowId);
 
     /**
-     * List job with fields only shown on the list
+     * List jobs with fields only shown on the list
      */
     Page<JobItem> list(Flow flow, int page, int size);
+
+    /**
+     * List git event id related jobs
+     */
+    List<JobDesc> listRelated(String gitEventId);
 
     /**
      * Create a job by flow and yml, job status will be PENDING -> LOADING -> CREATED,

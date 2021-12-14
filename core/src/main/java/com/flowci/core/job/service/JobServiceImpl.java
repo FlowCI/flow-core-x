@@ -54,9 +54,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static com.flowci.core.common.domain.Variables.Git.*;
 
@@ -93,6 +91,9 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private JobNumberDao jobNumberDao;
+
+    @Autowired
+    private RelatedJobsDao relatedJobsDao;
 
     @Autowired
     private TaskExecutor appTaskExecutor;
@@ -204,6 +205,15 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    public List<JobDesc> listRelated(String gitEventId) {
+        Optional<RelatedJobs> optional = relatedJobsDao.findByGitEventId(gitEventId);
+        if (optional.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return optional.get().getJobs();
+    }
+
+    @Override
     public Job create(Flow flow, String yml, Trigger trigger, StringVars input) {
         Job job = createJob(flow, trigger, input);
         eventManager.publish(new JobCreatedEvent(this, job));
@@ -266,7 +276,6 @@ public class JobServiceImpl implements JobService {
         initJobContext(job, flow, null);
         context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         context.merge(root.getEnvironments(), false);
-
 
 
         jobDao.save(job);
@@ -395,6 +404,13 @@ public class JobServiceImpl implements JobService {
 
         jobDao.insert(job);
         jobAgentDao.save(new JobAgent(job.getId(), flow.getId()));
+
+        // update git event related jobs
+        String gitEventId = job.getContext().get(EVENT_ID);
+        if (StringHelper.hasValue(gitEventId)) {
+            relatedJobsDao.addRelatedInfo(gitEventId, JobDesc.create(job));
+        }
+
         return job;
     }
 

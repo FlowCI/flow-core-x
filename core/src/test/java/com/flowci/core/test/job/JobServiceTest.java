@@ -33,6 +33,7 @@ import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Job.Status;
 import com.flowci.core.job.domain.Job.Trigger;
+import com.flowci.core.job.domain.JobDesc;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
@@ -135,11 +136,17 @@ public class JobServiceTest extends ZookeeperScenario {
 
         StringVars input = new StringVars();
         input.put("INPUT_VAR", "input");
+        input.put(Variables.Git.EVENT_ID, "dummy_git_event_id");
 
         // when: create job
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, input);
         Vars<String> context = job.getContext();
         Assert.assertNotNull(context);
+
+        // then: related job should be added
+        List<JobDesc> relatedList = jobService.listRelated("dummy_git_event_id");
+        Assert.assertEquals(1, relatedList.size());
+        Assert.assertEquals(job.getId(), relatedList.get(0).getId());
 
         // then: default vars
         Assert.assertTrue(context.containsKey(Variables.Flow.Name));
