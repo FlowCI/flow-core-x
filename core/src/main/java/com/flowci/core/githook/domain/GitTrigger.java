@@ -21,6 +21,7 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.domain.StringVars;
 import com.flowci.exception.NotFoundException;
+import com.flowci.util.StringHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -62,6 +63,7 @@ public abstract class GitTrigger implements Serializable {
         StringVars map = new StringVars(15);
         map.put(Variables.Git.SOURCE, source.name());
         map.put(Variables.Git.EVENT, event.name());
+        map.put(Variables.Git.EVENT_ID, getId());
         return map;
     }
 
@@ -89,4 +91,13 @@ public abstract class GitTrigger implements Serializable {
     }
 
     public abstract boolean isSkip();
+
+    /**
+     * Get unique git trigger identifier
+     */
+    public abstract String getId();
+
+    protected static String buildId(String ...props) {
+        return StringHelper.toBase64(StringHelper.join(props));
+    }
 }

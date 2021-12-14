@@ -103,6 +103,8 @@ public abstract class Variables {
 
     public abstract static class Git {
 
+        public static final String EVENT_ID = "FLOWCI_GIT_EVENT_ID";
+
         /**
          * Git event source
          */

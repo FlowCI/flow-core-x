@@ -20,6 +20,11 @@ public class GitTagTrigger extends GitPushTrigger {
     }
 
     @Override
+    public String getId() {
+        return buildId(getSource().name(), getEvent().name(), getRepoId(), getRef());
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

@@ -80,6 +80,11 @@ public class GitPushTrigger extends GitTrigger {
     }
 
     @Override
+    public String getId() {
+        return buildId(getSource().name(), getEvent().name(), repoId, ref, commits.get(0).getId());
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

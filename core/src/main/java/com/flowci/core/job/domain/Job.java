@@ -203,8 +203,8 @@ public class Job extends Mongoable implements Pathable {
     @Indexed(name = "index_flow_id", partialFilter = "{ flowId: {$exists: true} }")
     private String flowId;
 
-    @Indexed(name = "index_git_trigger", partialFilter = "{ gitTriggerKey: {$exists: true} }")
-    private String gitTriggerKey;
+    @Indexed(name = "index_git_event_id", partialFilter = "{ gitEventId: {$exists: true} }")
+    private String gitEventId;
 
     private String flowName;
 

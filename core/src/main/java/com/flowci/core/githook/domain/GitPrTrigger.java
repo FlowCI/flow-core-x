@@ -86,6 +86,11 @@ public final class GitPrTrigger extends GitTrigger {
     }
 
     @Override
+    public String getId() {
+        return buildId(getSource().name(), getEvent().name(), getNumber());
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

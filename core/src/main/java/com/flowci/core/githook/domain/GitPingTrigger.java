@@ -16,9 +16,10 @@
 
 package com.flowci.core.githook.domain;
 
-import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Set;
 
 /**
  * @author yang
@@ -36,5 +37,10 @@ public final class GitPingTrigger extends GitTrigger {
     @Override
     public boolean isSkip() {
         return false;
+    }
+
+    @Override
+    public String getId() {
+        return buildId("no_id");
     }
 }
