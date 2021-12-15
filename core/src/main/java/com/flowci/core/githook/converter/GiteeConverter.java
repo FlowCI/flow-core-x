@@ -83,6 +83,8 @@ public class GiteeConverter extends TriggerConverter {
 
         private static final String TagRefPrefix = "refs/tags";
 
+        public Repository repository;
+
         public String ref;
 
         public List<Commit> commits;
@@ -116,6 +118,7 @@ public class GiteeConverter extends TriggerConverter {
             GitPushTrigger t = createTriggerInstance(event);
             t.setSource(GitSource.GITEE);
             t.setEvent(event);
+            t.setRepoId(repository.id);
             t.setNumOfCommit(numOfCommit);
             t.setSender(pusher.toGitUser());
             t.setMessage(headCommit.message);
@@ -229,10 +232,10 @@ public class GiteeConverter extends TriggerConverter {
 
         public String sha;
 
-        public PrRepo repo;
+        public Repository repo;
     }
 
-    private static class PrRepo {
+    private static class Repository {
 
         public String id;
 

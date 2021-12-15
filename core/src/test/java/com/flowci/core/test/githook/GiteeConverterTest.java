@@ -56,6 +56,7 @@ public class GiteeConverterTest extends SpringScenario {
         Assert.assertEquals(GitSource.GITEE, t.getSource());
         Assert.assertEquals(GitTrigger.GitEvent.PUSH, t.getEvent());
         Assert.assertEquals(1, t.getNumOfCommit());
+        Assert.assertEquals("2775902", t.getRepoId());
         Assert.assertEquals("update README.md.\ntest pr message..", t.getMessage());
         Assert.assertEquals("feature/222", t.getRef());
         Assert.assertEquals("yang.guo", t.getSender().getName());
@@ -85,6 +86,7 @@ public class GiteeConverterTest extends SpringScenario {
         Assert.assertNotNull(t);
         Assert.assertEquals(GitSource.GITEE, t.getSource());
         Assert.assertEquals(GitTrigger.GitEvent.TAG, t.getEvent());
+        Assert.assertEquals("2775902", t.getRepoId());
         Assert.assertEquals("v0.1", t.getRef());
         Assert.assertEquals("Initial commit", t.getMessage());
         Assert.assertEquals("yang.guo", t.getSender().getName());

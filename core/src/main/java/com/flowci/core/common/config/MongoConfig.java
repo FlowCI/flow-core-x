@@ -92,6 +92,7 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
         context.setInitialEntitySet(getInitialEntitySet());
         context.setSimpleTypeHolder(customConversions().getSimpleTypeHolder());
         context.setFieldNamingStrategy(fieldNamingStrategy());
+        context.setAutoIndexCreation(true);
 
         // add addPersistentEntity for subtypes since not registered if called within same thread
         context.addEntity(SmtpConfig.class);

@@ -64,6 +64,7 @@ public class GitHubConverterTest extends SpringScenario {
         GitPushTrigger t = (GitPushTrigger) optional.get();
         Assert.assertEquals(GitEvent.PUSH, t.getEvent());
         Assert.assertEquals(GitSource.GITHUB, t.getSource());
+        Assert.assertEquals("86284448", t.getRepoId());
         Assert.assertEquals(2, t.getNumOfCommit());
         Assert.assertEquals("second commit", t.getMessage());
         Assert.assertEquals("gy2006", t.getSender().getName());
@@ -98,6 +99,7 @@ public class GitHubConverterTest extends SpringScenario {
         GitTagTrigger t = (GitTagTrigger) optional.get();
         Assert.assertEquals(GitEvent.TAG, t.getEvent());
         Assert.assertEquals(GitSource.GITHUB, t.getSource());
+        Assert.assertEquals("86284448", t.getRepoId());
         Assert.assertEquals("v2.1", t.getRef());
         Assert.assertEquals("second commit", t.getMessage());
         Assert.assertEquals("gy2006", t.getSender().getName());

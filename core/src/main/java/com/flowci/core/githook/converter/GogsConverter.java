@@ -69,6 +69,8 @@ public class GogsConverter extends TriggerConverter {
 
     private static class PushEvent implements GitTriggerable {
 
+        public Repo repository;
+
         public String before;
 
         public String after;
@@ -90,6 +92,7 @@ public class GogsConverter extends TriggerConverter {
             t.setEvent(GitTrigger.GitEvent.PUSH);
             t.setRef(BranchHelper.getBranchName(ref));
             t.setSender(pusher.toGitUser());
+            t.setRepoId(repository.id);
 
             ObjectsHelper.ifNotNull(commits, vals -> {
                 Commit commit = vals.get(0);
@@ -112,11 +115,14 @@ public class GogsConverter extends TriggerConverter {
 
         public Release release;
 
+        public Repo repository;
+
         @Override
         public GitTrigger toTrigger() {
             GitPushTrigger tag = new GitTagTrigger();
             tag.setEvent(GitTrigger.GitEvent.TAG);
             tag.setSource(GitSource.GOGS);
+            tag.setRepoId(repository.id);
             tag.setRef(release.tagName);
             tag.setMessage(StringHelper.join(release.name, "\n", release.body).trim());
             tag.setSender(release.author.toGitUser());
@@ -224,6 +230,8 @@ public class GogsConverter extends TriggerConverter {
     }
 
     private static class Repo {
+
+        public String id;
 
         public String name;
 

@@ -42,9 +42,9 @@ import java.util.*;
 /**
  * @author yang
  */
+@Document(collection = "job")
 @Getter
 @Setter
-@Document(collection = "job")
 @EqualsAndHashCode(callSuper = true)
 @CompoundIndex(
         name = "index_job_flowid_and_buildnum",
@@ -200,7 +200,7 @@ public class Job extends Mongoable implements Pathable {
     @Indexed(name = "index_job_key", unique = true)
     private String key;
 
-    @Indexed(name = "index_flow_id", sparse = true)
+    @Indexed(name = "index_flow_id", partialFilter = "{ flowId: {$exists: true} }")
     private String flowId;
 
     private String flowName;
