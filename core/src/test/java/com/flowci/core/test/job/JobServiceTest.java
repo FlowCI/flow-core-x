@@ -144,7 +144,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertNotNull(context);
 
         // then: related job should be added
-        List<JobDesc> relatedList = jobService.listRelated("dummy_git_event_id");
+        List<JobDesc> relatedList = jobService.listRelated(job);
         Assert.assertEquals(1, relatedList.size());
         Assert.assertEquals(job.getId(), relatedList.get(0).getId());
 

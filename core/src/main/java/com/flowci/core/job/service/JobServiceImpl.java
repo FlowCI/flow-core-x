@@ -205,11 +205,17 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<JobDesc> listRelated(String gitEventId) {
+    public List<JobDesc> listRelated(Job job) {
+        String gitEventId = job.getContext().get(EVENT_ID);
+        if (!StringHelper.hasValue(gitEventId)) {
+            return Collections.emptyList();
+        }
+
         Optional<RelatedJobs> optional = relatedJobsDao.findByGitEventId(gitEventId);
         if (optional.isEmpty()) {
             return Collections.emptyList();
         }
+
         return optional.get().getJobs();
     }
 

@@ -71,9 +71,9 @@ public interface JobService {
     Page<JobItem> list(Flow flow, int page, int size);
 
     /**
-     * List git event id related jobs
+     * List related jobs
      */
-    List<JobDesc> listRelated(String gitEventId);
+    List<JobDesc> listRelated(Job job);
 
     /**
      * Create a job by flow and yml, job status will be PENDING -> LOADING -> CREATED,

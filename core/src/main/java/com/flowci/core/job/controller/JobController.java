@@ -94,6 +94,14 @@ public class JobController extends BaseController {
         return stepService.list(job);
     }
 
+    @GetMapping("/{flow}/{buildNumberOrLatest}/related")
+    @Action(JobAction.LIST)
+    public List<JobDesc> listRelated(@PathVariable String flow,
+                                     @PathVariable String buildNumberOrLatest) {
+        Job job = get(flow, buildNumberOrLatest);
+        return jobService.listRelated(job);
+    }
+
     @PostMapping
     @Action(JobAction.CREATE)
     public Job create(@Validated @RequestBody CreateJob data) {
