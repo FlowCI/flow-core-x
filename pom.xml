@@ -22,7 +22,7 @@
     </modules>
 
     <properties>
-        <revision>1.21.40</revision>
+        <revision>1.21.50</revision>
         <lombok.version>1.18.22</lombok.version>
         <guava.version>31.0.1-jre</guava.version>
         <junit.version>4.13.1</junit.version>
@@ -111,49 +111,49 @@
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>domain</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>docker</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>sm</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>util</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>tree</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>store</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>exception</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>zookeeper</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
