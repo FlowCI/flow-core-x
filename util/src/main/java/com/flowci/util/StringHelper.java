@@ -51,6 +51,16 @@ public abstract class StringHelper {
         return value.startsWith("http://") || value.startsWith("https://");
     }
 
+    public static String join(String ...values) {
+        var builder = new StringBuilder();
+        for (var val : values) {
+            if (val != null) {
+                builder.append(val);
+            }
+        }
+        return builder.toString();
+    }
+
     public static String toString(InputStream is) throws IOException {
         try (ByteArrayOutputStream result = new ByteArrayOutputStream()) {
             int length;

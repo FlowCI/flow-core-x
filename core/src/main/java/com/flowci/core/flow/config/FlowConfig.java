@@ -20,19 +20,22 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.helper.CacheHelper;
+import com.flowci.core.common.manager.ResourceManager;
 import com.flowci.core.flow.domain.Template;
+import com.flowci.exception.StatusException;
+import com.flowci.exception.UnsupportedException;
 import com.flowci.tree.NodeTree;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
-import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author yang
@@ -57,16 +60,31 @@ public class FlowConfig {
         return CacheHelper.createLocalCache(50, 300);
     }
 
+    /**
+     * Support two types resource file://xxxx and http[s]://
+     */
     @Bean("templates")
-    public List<Template> getTemplates() throws IOException {
-        Resource r = flowProperties.getTemplatesUrl();
+    public List<Template> getTemplates(ResourceManager resourceManager) {
+        var r = flowProperties.getTemplatesUrl();
+        try {
+            var typeRef = new TypeReference<List<Template>>() {
+            };
 
-        TypeReference<List<Template>> typeRef = new TypeReference<List<Template>>() {
-        };
+            List<Template> list = objectMapper.readValue(resourceManager.getResource(r), typeRef);
 
-        List<Template> list = objectMapper.readValue(r.getInputStream(), typeRef);
-        log.info("Templates is loaded from {}", flowProperties.getTemplatesUrl());
-        return list;
+            Set<String> titles = new HashSet<>(list.size());
+            for (var t : list) {
+                if (titles.contains(t.getTitle())) {
+                    throw new UnsupportedException("Duplicated template title {0}", t.getTitle());
+                }
+                titles.add(t.getTitle());
+            }
+
+            log.info("Templates is loaded from {}", flowProperties.getTemplatesUrl());
+            return list;
+        } catch (Exception e) {
+            throw new StatusException("Unable to load template from {0}", r.toString());
+        }
     }
 
     @Bean("cronScheduler")

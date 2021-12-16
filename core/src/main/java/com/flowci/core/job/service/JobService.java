@@ -23,16 +23,20 @@ import com.flowci.core.job.domain.JobDesc;
 import com.flowci.core.job.domain.JobItem;
 import com.flowci.core.job.domain.JobYml;
 import com.flowci.domain.StringVars;
-import com.flowci.zookeeper.InterLock;
 import org.springframework.data.domain.Page;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
+import java.util.List;
 
 /**
  * @author yang
  */
 public interface JobService {
+
+    /**
+     * Init job data and queue for flow
+     */
+    void init(Flow flow);
 
     /**
      * Get job by id
@@ -62,9 +66,14 @@ public interface JobService {
     Job getLatest(String flowId);
 
     /**
-     * List job with fields only shown on the list
+     * List jobs with fields only shown on the list
      */
     Page<JobItem> list(Flow flow, int page, int size);
+
+    /**
+     * List related jobs
+     */
+    List<JobDesc> listRelated(Job job);
 
     /**
      * Create a job by flow and yml, job status will be PENDING -> LOADING -> CREATED,
@@ -99,14 +108,5 @@ public interface JobService {
      * Delete all jobs of the flow within an executor
      */
     void delete(Flow flow);
-
-    /**
-     * Lock job by id
-     *
-     * @param jobId
-     */
-    Optional<InterLock> lock(String jobId);
-
-    void unlock(InterLock lock, String jobId);
 }
 

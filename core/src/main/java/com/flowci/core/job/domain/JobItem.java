@@ -19,16 +19,16 @@ package com.flowci.core.job.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.job.domain.Job.Status;
 import com.flowci.core.job.domain.Job.Trigger;
-import com.flowci.core.trigger.domain.Variables;
 import com.google.common.base.Strings;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 import java.util.HashMap;
+
+import static com.flowci.core.common.domain.Variables.Git.*;
 
 /**
  * As job list item, remove the data which is not used in the list view
@@ -64,7 +64,6 @@ public class JobItem extends JobDesc {
 
             this.put(key, value);
         }
-
     }
 
     public static class ContextReader implements Converter<org.bson.Document, Context> {
@@ -72,22 +71,23 @@ public class JobItem extends JobDesc {
         @Override
         public Context convert(org.bson.Document source) {
             Context context = new Context(source);
-            context.putIfNotEmpty(Variables.GIT_EVENT);
+            context.putIfNotEmpty(EVENT);
 
             // git push / tag
-            context.putIfNotEmpty(Variables.GIT_BRANCH);
-            context.putIfNotEmpty(Variables.GIT_COMMIT_ID);
-            context.putIfNotEmpty(Variables.GIT_COMMIT_URL);
-            context.putIfNotEmpty(Variables.GIT_COMMIT_MESSAGE);
+            context.putIfNotEmpty(PUSH_BRANCH);
+            context.putIfNotEmpty(PUSH_MESSAGE);
+            context.putIfNotEmpty(PUSH_AUTHOR);
+            context.putIfNotEmpty(PUSH_COMMIT_LIST);
+            context.putIfNotEmpty(PUSH_COMMIT_TOTAL);
 
             // git pr
-            context.putIfNotEmpty(Variables.PR_TITLE);
-            context.putIfNotEmpty(Variables.PR_NUMBER);
-            context.putIfNotEmpty(Variables.PR_URL);
-            context.putIfNotEmpty(Variables.PR_HEAD_REPO_NAME);
-            context.putIfNotEmpty(Variables.PR_HEAD_REPO_BRANCH);
-            context.putIfNotEmpty(Variables.PR_BASE_REPO_NAME);
-            context.putIfNotEmpty(Variables.PR_BASE_REPO_BRANCH);
+            context.putIfNotEmpty(PR_TITLE);
+            context.putIfNotEmpty(PR_NUMBER);
+            context.putIfNotEmpty(PR_URL);
+            context.putIfNotEmpty(PR_HEAD_REPO_NAME);
+            context.putIfNotEmpty(PR_HEAD_REPO_BRANCH);
+            context.putIfNotEmpty(PR_BASE_REPO_NAME);
+            context.putIfNotEmpty(PR_BASE_REPO_BRANCH);
 
             return context;
         }

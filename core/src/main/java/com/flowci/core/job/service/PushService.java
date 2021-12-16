@@ -29,7 +29,5 @@ public interface PushService {
 
     void onStepStatusChange(StepUpdateEvent event);
 
-    void onTaskStatusChange(TaskUpdateEvent event);
-
     void onTtyStatusChange(TtyStatusUpdateEvent event);
 }

@@ -20,25 +20,25 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 /**
  * @author yang
  */
+@Getter
+@Setter
 @Document(collection = "job_number")
 @NoArgsConstructor
 public class JobNumber {
 
     @Id
-    @Getter
-    @Setter
-    @Field("flow_id")
+    private String id;
+
+    @Indexed(unique = true)
     private String flowId;
 
-    @Getter
-    @Setter
-    private Long number = 1L;
+    private Long number = 0L;
 
     public JobNumber(String flowId) {
         this.flowId = flowId;

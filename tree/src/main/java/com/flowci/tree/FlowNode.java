@@ -1,7 +1,6 @@
 package com.flowci.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.flowci.domain.LocalTask;
 import com.flowci.domain.ObjectWrapper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -21,11 +20,6 @@ public final class FlowNode extends Node {
      * Agent tags to set node running on which agent
      */
     private Selector selector = Selector.EMPTY;
-
-    /**
-     * Notification list that run locally
-     */
-    private List<LocalTask> notifications = new LinkedList<>();
 
     private List<Node> children = new LinkedList<>();
 

@@ -33,12 +33,15 @@ import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Job.Status;
 import com.flowci.core.job.domain.Job.Trigger;
+import com.flowci.core.job.domain.JobDesc;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.JobReceivedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
-import com.flowci.core.job.event.StartAsyncLocalTaskEvent;
 import com.flowci.core.job.manager.YmlManager;
-import com.flowci.core.job.service.*;
+import com.flowci.core.job.service.JobActionService;
+import com.flowci.core.job.service.JobEventService;
+import com.flowci.core.job.service.JobService;
+import com.flowci.core.job.service.StepService;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.test.ZookeeperScenario;
@@ -54,10 +57,7 @@ import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.mockito.Mockito;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationListener;
 
 import java.io.IOException;
@@ -115,9 +115,6 @@ public class JobServiceTest extends ZookeeperScenario {
     @Autowired
     private YmlManager ymlManager;
 
-    @MockBean
-    private LocalTaskService localTaskManager;
-
     private Flow flow;
 
     private Yml yml;
@@ -139,11 +136,17 @@ public class JobServiceTest extends ZookeeperScenario {
 
         StringVars input = new StringVars();
         input.put("INPUT_VAR", "input");
+        input.put(Variables.Git.EVENT_ID, "dummy_git_event_id");
 
         // when: create job
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, input);
         Vars<String> context = job.getContext();
         Assert.assertNotNull(context);
+
+        // then: related job should be added
+        List<JobDesc> relatedList = jobService.listRelated(job);
+        Assert.assertEquals(1, relatedList.size());
+        Assert.assertEquals(job.getId(), relatedList.get(0).getId());
 
         // then: default vars
         Assert.assertTrue(context.containsKey(Variables.Flow.Name));
@@ -155,6 +158,7 @@ public class JobServiceTest extends ZookeeperScenario {
         Assert.assertTrue(context.containsKey(Variables.Job.TriggerBy));
         Assert.assertTrue(context.containsKey(Variables.Job.StartAt));
         Assert.assertTrue(context.containsKey(Variables.Job.FinishAt));
+        Assert.assertTrue(context.containsKey(Variables.Job.DurationInSeconds));
 
         // then: vars should be included in job context
         Assert.assertTrue(context.containsKey("LOCAL_VAR"));
@@ -231,14 +235,6 @@ public class JobServiceTest extends ZookeeperScenario {
         mockAgentOnline(agent.getToken());
 
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
-
-        CountDownLatch localTaskCountDown = new CountDownLatch(1);
-        Mockito.doAnswer((Answer<Void>) invocation -> {
-            localTaskCountDown.countDown();
-            return null;
-        }).when(localTaskManager).executeAsync(Mockito.any());
-
-        addEventListener((ApplicationListener<StartAsyncLocalTaskEvent>) event -> localTaskCountDown.countDown());
 
         FlowNode root = YmlParser.load(yml.getRaw());
         NodeTree tree = NodeTree.create(root);
@@ -338,7 +334,6 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // // then: should job with SUCCESS status and sent notification task
         Assert.assertEquals(Status.SUCCESS, jobService.get(job.getId()).getStatus());
-        Assert.assertTrue(localTaskCountDown.await(60, TimeUnit.SECONDS));
     }
 
     @Test
@@ -496,7 +491,6 @@ public class JobServiceTest extends ZookeeperScenario {
     public void should_rerun_job() {
         // init: create old job wit success status
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
-        job.getContext().put(com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID, "111222333");
         job.setStatus(Status.SUCCESS);
         job.setStatusToContext(Status.SUCCESS);
         jobDao.save(job);
@@ -509,7 +503,6 @@ public class JobServiceTest extends ZookeeperScenario {
         Vars<String> context = job.getContext();
         Assert.assertEquals(Status.QUEUED.toString(), context.get(Variables.Job.Status));
         Assert.assertEquals("1", context.get(Variables.Job.BuildNumber));
-        Assert.assertEquals("111222333", context.get(com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID));
         Assert.assertNotNull(context.get(Variables.Job.Trigger));
         Assert.assertNotNull(context.get(Variables.Job.TriggerBy));
 

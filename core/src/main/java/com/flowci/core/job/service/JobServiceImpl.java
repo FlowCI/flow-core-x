@@ -16,16 +16,20 @@
 
 package com.flowci.core.job.service;
 
+import com.flowci.core.common.config.AppProperties;
+import com.flowci.core.common.domain.Settings;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.*;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
+import com.flowci.core.job.event.JobActionEvent;
 import com.flowci.core.job.event.JobCreatedEvent;
-import com.flowci.core.job.event.JobDeletedEvent;
+import com.flowci.core.job.event.JobsDeletedEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.StringVars;
@@ -36,8 +40,6 @@ import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.util.StringHelper;
-import com.flowci.zookeeper.InterLock;
-import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,14 +51,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
-import static com.flowci.core.trigger.domain.Variables.GIT_AUTHOR;
-import static com.flowci.core.trigger.domain.Variables.GIT_COMMIT_ID;
+import static com.flowci.core.common.domain.Variables.Git.*;
 
 /**
  * @author yang
@@ -67,11 +67,12 @@ public class JobServiceImpl implements JobService {
 
     private static final Sort SortByBuildNumber = Sort.by(Direction.DESC, "buildNumber");
 
-    private static final int DefaultJobLockTimeout = 20; // seconds
-
     //====================================================================
     //        %% Spring injection
     //====================================================================
+
+    @Autowired
+    private AppProperties.RabbitMQ rabbitProperties;
 
     @Autowired
     private JobDao jobDao;
@@ -92,6 +93,9 @@ public class JobServiceImpl implements JobService {
     private JobNumberDao jobNumberDao;
 
     @Autowired
+    private RelatedJobsDao relatedJobsDao;
+
+    @Autowired
     private TaskExecutor appTaskExecutor;
 
     @Autowired
@@ -102,6 +106,9 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private SpringEventManager eventManager;
+
+    @Autowired
+    private RabbitOperations jobsQueueManager;
 
     @Qualifier("fileManager")
     @Autowired
@@ -114,17 +121,35 @@ public class JobServiceImpl implements JobService {
     private StepService stepService;
 
     @Autowired
-    private LocalTaskService localTaskService;
-
-    @Autowired
     private SettingService settingService;
 
-    @Autowired
-    private ZookeeperClient zk;
+    @PostConstruct
+    public void startJobDeadLetterConsumer() throws IOException {
+        String deadLetterQueue = rabbitProperties.getJobDlQueue();
+        jobsQueueManager.startConsumer(deadLetterQueue, true, (header, body, envelope) -> {
+            try {
+                String jobId = new String(body);
+                eventManager.publish(new JobActionEvent(this, jobId, JobActionEvent.ACTION_TO_TIMEOUT));
+            } catch (Exception e) {
+                log.warn(e);
+            }
+            return false;
+        }, null);
+    }
+
 
     //====================================================================
     //        %% Public functions
     //====================================================================
+
+    @Override
+    public void init(Flow flow) {
+        Optional<JobNumber> optional = jobNumberDao.findByFlowId(flow.getId());
+        if (optional.isEmpty()) {
+            jobNumberDao.save(new JobNumber(flow.getId()));
+        }
+        declareJobQueueAndStartConsumer(flow);
+    }
 
     @Override
     public Job get(String jobId) {
@@ -163,7 +188,7 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Job getLatest(String flowId) {
-        Optional<JobNumber> optional = jobNumberDao.findById(flowId);
+        Optional<JobNumber> optional = jobNumberDao.findByFlowId(flowId);
 
         if (optional.isPresent()) {
             JobNumber latest = optional.get();
@@ -177,6 +202,21 @@ public class JobServiceImpl implements JobService {
     public Page<JobItem> list(Flow flow, int page, int size) {
         PageRequest pageable = PageRequest.of(page, size, SortByBuildNumber);
         return jobItemDao.findAllByFlowId(flow.getId(), pageable);
+    }
+
+    @Override
+    public List<JobDesc> listRelated(Job job) {
+        String gitEventId = job.getContext().get(EVENT_ID);
+        if (!StringHelper.hasValue(gitEventId)) {
+            return Collections.emptyList();
+        }
+
+        Optional<RelatedJobs> optional = relatedJobsDao.findByGitEventId(gitEventId);
+        if (optional.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return optional.get().getJobs();
     }
 
     @Override
@@ -232,13 +272,18 @@ public class JobServiceImpl implements JobService {
 
         // re-init job context
         Vars<String> context = job.getContext();
-        String lastCommitId = context.get(GIT_COMMIT_ID);
-        context.clear();
+        for (String key : context.keySet()) {
+            if (PUSH_TAG_VARS.contains(key) || PR_VARS.contains(key) || Objects.equals(key, COMMIT_ID)) {
+                continue;
+            }
+            context.remove(key);
+        }
 
         initJobContext(job, flow, null);
-        context.put(GIT_COMMIT_ID, lastCommitId);
         context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         context.merge(root.getEnvironments(), false);
+
+
         jobDao.save(job);
 
         // reset job agent
@@ -246,7 +291,6 @@ public class JobServiceImpl implements JobService {
 
         // cleanup
         stepService.delete(job);
-        localTaskService.delete(job);
         ymlManager.delete(job);
 
         jobActionService.toCreated(job.getId(), yml.getRaw());
@@ -284,6 +328,8 @@ public class JobServiceImpl implements JobService {
     @Override
     public void delete(Flow flow) {
         appTaskExecutor.execute(() -> {
+            jobsQueueManager.removeConsumer(flow.getQueueName());
+
             jobNumberDao.deleteAllByFlowId(flow.getId());
             log.info("Deleted: job number of flow {}", flow.getName());
 
@@ -299,34 +345,32 @@ public class JobServiceImpl implements JobService {
             Long numOfStepDeleted = stepService.delete(flow);
             log.info("Deleted: {} steps of flow {}", numOfStepDeleted, flow.getName());
 
-            Long numOfTaskDeleted = localTaskService.delete(flow);
-            log.info("Deleted: {} tasks of flow {}", numOfTaskDeleted, flow.getName());
-
-            eventManager.publish(new JobDeletedEvent(this, flow, numOfJobDeleted));
+            eventManager.publish(new JobsDeletedEvent(this, flow, numOfJobDeleted));
         });
-    }
-
-    @Override
-    public Optional<InterLock> lock(String jobId) {
-        String path = zk.makePath("/job-locks", jobId);
-        Optional<InterLock> lock = zk.lock(path, DefaultJobLockTimeout);
-        lock.ifPresent(interLock -> log.debug("Lock: {}", jobId));
-        return lock;
-    }
-
-    @Override
-    public void unlock(InterLock lock, String jobId) {
-        try {
-            zk.release(lock);
-            log.debug("Unlock: {}", jobId);
-        } catch (Exception warn) {
-            log.warn(warn);
-        }
     }
 
     //====================================================================
     //        %% Utils
     //====================================================================
+
+    private void declareJobQueueAndStartConsumer(Flow flow) {
+        try {
+            final String queue = flow.getQueueName();
+            jobsQueueManager.declare(queue, true, 255, rabbitProperties.getJobDlExchange());
+
+            jobsQueueManager.startConsumer(queue, false, (header, body, envelope) -> {
+                try {
+                    String jobId = new String(body);
+                    eventManager.publish(new JobActionEvent(this, jobId, JobActionEvent.ACTION_TO_RUN));
+                } catch (Exception e) {
+                    log.warn(e);
+                }
+                return true;
+            }, appTaskExecutor);
+        } catch (IOException e) {
+            log.warn(e);
+        }
+    }
 
     private Job createJob(Flow flow, Trigger trigger, Vars<String> input) {
         // create job number
@@ -366,6 +410,13 @@ public class JobServiceImpl implements JobService {
 
         jobDao.insert(job);
         jobAgentDao.save(new JobAgent(job.getId(), flow.getId()));
+
+        // update git event related jobs
+        String gitEventId = job.getContext().get(EVENT_ID);
+        if (StringHelper.hasValue(gitEventId)) {
+            relatedJobsDao.addRelatedInfo(gitEventId, JobDesc.create(job));
+        }
+
         return job;
     }
 
@@ -382,7 +433,7 @@ public class JobServiceImpl implements JobService {
             return;
         }
 
-        String createdBy = context.get(GIT_AUTHOR, "Unknown");
+        String createdBy = context.get(PUSH_AUTHOR, "Unknown");
         job.setCreatedBy(createdBy);
         context.put(Variables.Job.TriggerBy, createdBy);
     }
@@ -391,7 +442,8 @@ public class JobServiceImpl implements JobService {
         StringVars context = new StringVars();
         context.mergeFromTypedVars(flow.getLocally());
 
-        context.put(Variables.App.ServerUrl, settingService.get().getServerUrl());
+        Settings settings = settingService.get();
+        context.put(Variables.App.ServerUrl, settings.getServerUrl());
 
         context.put(Variables.Flow.Name, flow.getName());
         context.put(Variables.Flow.GitRepo, flow.getName());
@@ -401,6 +453,8 @@ public class JobServiceImpl implements JobService {
         context.put(Variables.Job.BuildNumber, job.getBuildNumber().toString());
         context.put(Variables.Job.StartAt, job.startAtInStr());
         context.put(Variables.Job.FinishAt, job.finishAtInStr());
+        context.put(Variables.Job.DurationInSeconds, "0");
+        context.put(Variables.Job.Url, String.format("%s/#/flows/%s/jobs/%s", settings.getWebUrl(), flow.getName(), job.getBuildNumber()));
 
         if (!Objects.isNull(inputs)) {
             context.merge(inputs);

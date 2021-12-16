@@ -49,19 +49,6 @@ public class CipherHelperTest {
     }
 
     @Test
-    public void should_encrypt_decrypt_by_rsa() {
-        SimpleKeyPair pair = RSA.gen("hello@flow.ci");
-
-        String encrypted = RSA.encrypt(source, pair.getPublicKey());
-        Assert.assertFalse(Strings.isNullOrEmpty(encrypted));
-
-        String decrypted = CipherHelper.RSA.decrypt(encrypted, pair.getPrivateKey());
-        Assert.assertFalse(Strings.isNullOrEmpty(decrypted));
-
-        Assert.assertEquals(source, decrypted);
-    }
-
-    @Test
     public void should_create_public_key_fingerprint() throws IOException, NoSuchAlgorithmException {
         InputStream in = CipherHelper.class.getClassLoader().getResourceAsStream("pk_fingerprint");
         String publicKey = StringHelper.toString(in);

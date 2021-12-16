@@ -17,10 +17,10 @@
 package com.flowci.core.flow.controller;
 
 import com.flowci.core.auth.annotation.Action;
+import com.flowci.core.flow.domain.ConfirmOption;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.domain.FlowAction;
-import com.flowci.core.flow.domain.ConfirmOption;
 import com.flowci.core.flow.domain.Template;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.user.domain.User;
@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author yang
@@ -126,8 +125,7 @@ public class FlowController {
     @GetMapping("/{name}/users")
     @Action(FlowAction.LIST_USER)
     public List<User> listUsers(@PathVariable String name) {
-        Flow flow = flowService.get(name);
-        List<String> emails = flowService.listUsers(flow);
+        List<String> emails = flowService.listUsers(name);
         return userService.list(emails);
     }
 

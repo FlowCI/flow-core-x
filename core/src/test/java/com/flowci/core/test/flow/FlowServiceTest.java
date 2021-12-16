@@ -27,14 +27,13 @@ import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.event.GitTestEvent;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.GitService;
+import com.flowci.core.githook.domain.GitPushTrigger;
+import com.flowci.core.githook.domain.GitTrigger;
+import com.flowci.core.githook.event.GitHookEvent;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.core.trigger.domain.GitPushTrigger;
-import com.flowci.core.trigger.domain.GitTrigger;
-import com.flowci.core.trigger.domain.GitUser;
-import com.flowci.core.trigger.event.GitHookEvent;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
 import com.flowci.domain.VarValue;
@@ -174,7 +173,7 @@ public class FlowServiceTest extends SpringScenario {
         GitPushTrigger trigger = new GitPushTrigger();
         trigger.setEvent(GitTrigger.GitEvent.PUSH);
         trigger.setSource(GitSource.GITEE);
-        trigger.setAuthor(new GitUser().setEmail("xx").setId("xx").setName("xx").setUsername("xx"));
+//        trigger.setAuthor(new GitUser().setEmail("xx").setId("xx").setName("xx").setUsername("xx"));
         trigger.setRef("master");
 
         CountDownLatch c = new CountDownLatch(1);

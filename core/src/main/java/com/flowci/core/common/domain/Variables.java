@@ -16,6 +16,10 @@
 
 package com.flowci.core.common.domain;
 
+import com.google.common.collect.ImmutableList;
+
+import java.util.Collection;
+
 /**
  * @author yang
  */
@@ -26,6 +30,8 @@ public abstract class Variables {
         public static final String LogLevel = "FLOWCI_LOG_LEVEL";
 
         public static final String ServerUrl = "FLOWCI_SERVER_URL";
+
+        public static final String WebUrl = "FLOWCI_WEB_URL";
 
         public static final String Host = "FLOWCI_SERVER_HOST";
 
@@ -38,8 +44,6 @@ public abstract class Variables {
 
         public static final String GitUrl = "FLOWCI_GIT_URL"; // set
 
-        public static final String GitBranch = "FLOWCI_GIT_BRANCH"; // set
-
         public static final String GitRepo = "FLOWCI_GIT_REPO"; // set
 
         public static final String GitCredential = "FLOWCI_GIT_CREDENTIAL"; // set
@@ -49,6 +53,8 @@ public abstract class Variables {
 
         public static final String BuildNumber = "FLOWCI_JOB_BUILD_NUM";
 
+        public static final String Url = "FLOWCI_JOB_URL";
+
         public static final String Trigger = "FLOWCI_JOB_TRIGGER";
 
         public static final String TriggerBy = "FLOWCI_JOB_TRIGGER_BY"; // == user email of job.createdBy
@@ -56,6 +62,8 @@ public abstract class Variables {
         public static final String StartAt = "FLOWCI_JOB_START_AT";
 
         public static final String FinishAt = "FLOWCI_JOB_FINISH_AT";
+
+        public static final String DurationInSeconds = "FLOWCI_JOB_DURATION";
 
         // {step name}={status};{step name}={status}
         public static final String Steps = "FLOWCI_JOB_STEPS";
@@ -91,5 +99,100 @@ public abstract class Variables {
         public static final String LogLevel = "FLOWCI_AGENT_LOG_LEVEL";
 
         public static final String Volumes = "FLOWCI_AGENT_VOLUMES";
+    }
+
+    public abstract static class Git {
+
+        public static final String EVENT_ID = "FLOWCI_GIT_EVENT_ID";
+
+        /**
+         * Git event source
+         */
+        public static final String SOURCE = "FLOWCI_GIT_SOURCE";
+
+        /**
+         * Git event type
+         */
+        public static final String EVENT = "FLOWCI_GIT_EVENT";
+
+        /**
+         * Used for git clone
+         */
+        public static final String COMMIT_ID = "FLOWCI_GIT_COMMIT_ID";
+
+        /**
+         * For manual selection
+         */
+        public static final String BRANCH = "FLOWCI_GIT_BRANCH";
+
+        /**
+         * Push / Tag variables
+         */
+        public static final String PUSH_AUTHOR = "FLOWCI_GIT_AUTHOR";
+
+        public static final String PUSH_BRANCH = "FLOWCI_GIT_BRANCH";
+
+        public static final String PUSH_MESSAGE = "FLOWCI_GIT_COMMIT_MESSAGE";
+
+        public static final String PUSH_COMMIT_TOTAL = "FLOWCI_GIT_COMMIT_TOTAL";
+
+        /**
+         * b64 json content
+         */
+        public static final String PUSH_COMMIT_LIST = "FLOWCI_GIT_COMMIT_LIST";
+
+        public static final Collection<String> PUSH_TAG_VARS = ImmutableList.<String>builder()
+                .add(PUSH_AUTHOR)
+                .add(PUSH_BRANCH)
+                .add(PUSH_MESSAGE)
+                .add(PUSH_COMMIT_TOTAL)
+                .add(PUSH_COMMIT_LIST)
+                .build();
+
+        /**
+         * Variables for git pull(mr) request
+         */
+        public static final String PR_TITLE = "FLOWCI_GIT_PR_TITLE";
+
+        public static final String PR_MESSAGE = "FLOWCI_GIT_PR_MESSAGE";
+
+        public static final String PR_AUTHOR = "FLOWCI_GIT_AUTHOR";
+
+        public static final String PR_URL = "FLOWCI_GIT_PR_URL";
+
+        public static final String PR_TIME = "FLOWCI_GIT_PR_TIME";
+
+        public static final String PR_NUMBER = "FLOWCI_GIT_PR_NUMBER";
+
+        public static final String PR_IS_MERGED = "FLOWCI_GIT_PR_IS_MERGED";
+
+        public static final String PR_HEAD_REPO_NAME = "FLOWCI_GIT_PR_HEAD_REPO_NAME";
+
+        public static final String PR_HEAD_REPO_BRANCH = "FLOWCI_GIT_PR_HEAD_REPO_BRANCH";
+
+        public static final String PR_HEAD_REPO_COMMIT = "FLOWCI_GIT_PR_HEAD_REPO_COMMIT";
+
+        public static final String PR_BASE_REPO_NAME = "FLOWCI_GIT_PR_BASE_REPO_NAME";
+
+        public static final String PR_BASE_REPO_BRANCH = "FLOWCI_GIT_PR_BASE_REPO_BRANCH";
+
+        public static final String PR_BASE_REPO_COMMIT = "FLOWCI_GIT_PR_BASE_REPO_COMMIT";
+
+        public static final Collection<String> PR_VARS = ImmutableList.<String>builder()
+                .add(PR_TITLE)
+                .add(PR_MESSAGE)
+                .add(PR_AUTHOR)
+                .add(PR_URL)
+                .add(PR_TIME)
+                .add(PR_NUMBER)
+                .add(PR_IS_MERGED)
+                .add(PR_HEAD_REPO_NAME)
+                .add(PR_HEAD_REPO_BRANCH)
+                .add(PR_HEAD_REPO_COMMIT)
+                .add(PR_BASE_REPO_NAME)
+                .add(PR_BASE_REPO_BRANCH)
+                .add(PR_BASE_REPO_COMMIT)
+                .build();
+
     }
 }

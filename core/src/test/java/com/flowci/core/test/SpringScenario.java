@@ -23,6 +23,7 @@ import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.Template;
 import com.flowci.core.test.SpringScenario.Config;
 import com.flowci.core.test.auth.AuthHelper;
 import com.flowci.core.test.flow.FlowMockHelper;
@@ -30,6 +31,7 @@ import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
 import com.flowci.exception.NotFoundException;
 import lombok.extern.log4j.Log4j2;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,8 +50,10 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author yang
@@ -87,12 +91,13 @@ public abstract class SpringScenario {
          * Rewrite the web mvc config to ignore jackson mxis
          */
         @Bean
-        public Class<?> httpJacksonMixin() {
-            return VarsMixinIgnore.class;
+        public Map<Class<?>, Class<?>> mixins() {
+            return Collections.emptyMap();
         }
 
-        public interface VarsMixinIgnore {
-
+        @Bean("templates")
+        public List<Template> getTemplates() {
+            return Lists.emptyList();
         }
     }
 

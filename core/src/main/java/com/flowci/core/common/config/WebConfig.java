@@ -38,7 +38,9 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @EnableWebMvc
 @Configuration
@@ -76,6 +78,7 @@ public class WebConfig {
                         .addPathPatterns("/plugins/**")
                         .addPathPatterns("/secrets/**")
                         .addPathPatterns("/configs/**")
+                        .addPathPatterns("/triggers/**")
                         .addPathPatterns("/system/**")
                         .addPathPatterns("/auth/logout");
 
@@ -88,8 +91,7 @@ public class WebConfig {
                 converters.clear();
 
                 ObjectMapper mapperForHttp = JacksonHelper.create();
-                mapperForHttp.addMixIn(Vars.class, Vars.Mixin.class);
-                mapperForHttp.addMixIn(Plugin.Meta.class, Plugin.Meta.RestResponse.class);
+                mapperForHttp.setMixIns(mixins());
 
                 final List<HttpMessageConverter<?>> DefaultConverters = ImmutableList.of(
                         new ByteArrayHttpMessageConverter(),
@@ -109,5 +111,13 @@ public class WebConfig {
                         .addResourceLocations(dir.toFile().toURI().toString());
             }
         };
+    }
+
+    @Bean
+    public Map<Class<?>, Class<?>> mixins() {
+        Map<Class<?>, Class<?>> mixins = new HashMap<>(2);
+        mixins.put(Vars.class, Vars.Mixin.class);
+        mixins.put(Plugin.Meta.class, Plugin.Meta.RestResponse.class);
+        return mixins;
     }
 }

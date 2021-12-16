@@ -35,8 +35,9 @@ public abstract class ErrorCode {
 
     public static final Integer DUPLICATE = 406;
 
+    public static final Integer UNSUPPORTED = 407;
+
     public static final Integer ILLEGAL_STATUS = 421;
 
     public static final Integer PARSE_YML_OR_JSON = 430;
-
 }

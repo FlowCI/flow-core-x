@@ -1,4 +1,4 @@
-FROM openjdk:8
+FROM openjdk:11-jre-slim
 
 ENV WORKER=/flow.ci
 ENV JAR=flow-ci-core.jar
@@ -11,4 +11,4 @@ COPY wait_for_it.sh $WORKER
 RUN mkdir -p $HOME/.ssh
 RUN echo "StrictHostKeyChecking=no" >> $HOME/.ssh/config
 
-CMD java -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap $JVM_OPS -jar $JAR
+CMD java $JVM_OPS -jar $JAR

@@ -19,6 +19,7 @@ package com.flowci.core.common.manager;
 
 import com.flowci.core.user.domain.User;
 import com.flowci.exception.AuthenticationException;
+import lombok.NonNull;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +32,7 @@ public class SessionManager implements AuditorAware<String> {
 
     private static final String DefaultCreator = "System";
 
+    @NonNull
     @Override
     public Optional<String> getCurrentAuditor() {
         if (exist()) {

@@ -22,7 +22,6 @@ import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.util.FileHelper;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.MultipartProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationEvent;
@@ -38,8 +37,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.net.http.HttpClient;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.concurrent.Executor;
 
 /**
@@ -51,17 +52,24 @@ import java.util.concurrent.Executor;
 @EnableCaching
 public class AppConfig {
 
-    @Autowired
-    private MultipartProperties multipartProperties;
+    private final MultipartProperties multipartProperties;
 
-    @Autowired
-    private AppProperties appProperties;
+    private final AppProperties appProperties;
+
+    private final Path tmpDir;
+
+    public AppConfig(MultipartProperties multipartProperties, AppProperties appProperties) {
+        this.multipartProperties = multipartProperties;
+        this.appProperties = appProperties;
+
+        this.tmpDir = Paths.get(appProperties.getWorkspace().toString(), "tmp");
+    }
 
     @PostConstruct
     private void initDirs() throws IOException {
         Path ws = appProperties.getWorkspace();
         FileHelper.createDirectory(ws);
-        FileHelper.createDirectory(tmpDir());
+        FileHelper.createDirectory(tmpDir);
         FileHelper.createDirectory(appProperties.getFlowDir());
         FileHelper.createDirectory(appProperties.getSiteDir());
     }
@@ -74,12 +82,12 @@ public class AppConfig {
 
     @Bean("tmpDir")
     public Path tmpDir() {
-        return Paths.get(appProperties.getWorkspace().toString(), "tmp");
+        return tmpDir;
     }
 
     @Bean("objectMapper")
     public ObjectMapper objectMapper() {
-        return JacksonHelper.create();
+        return JacksonHelper.Default;
     }
 
     @Bean("appTaskExecutor")
@@ -113,5 +121,14 @@ public class AppConfig {
 
         multicaster.setTaskExecutor(appTaskExecutor);
         return multicaster;
+    }
+
+    @Bean("httpClient")
+    public HttpClient httpClient() {
+        return HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
     }
 }

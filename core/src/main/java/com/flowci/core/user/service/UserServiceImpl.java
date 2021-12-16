@@ -51,7 +51,7 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
 
-    private final static String UserCacheName = "user";
+    private final static String UserCacheName = "users";
 
     @Autowired
     private UserDao userDao;
@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
     private SpringEventManager eventManager;
 
     @Autowired
-    private CacheManager userCacheManager;
+    private CacheManager defaultCacheManager;
 
     @Override
     public Page<User> list(Pageable pageable) {
@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @CachePut(cacheManager = "userCacheManager", value = UserCacheName, key = "#email")
+    @CachePut(cacheManager = "defaultCacheManager", value = UserCacheName, key = "#email")
     public User createDefaultAdmin(String email, String passwordOnMd5) {
         if (defaultAdmin().isPresent()) {
             throw new StatusException("Default admin has been created");
@@ -92,13 +92,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @CachePut(cacheManager = "userCacheManager", value = UserCacheName, key = "#email")
+    @CachePut(cacheManager = "defaultCacheManager", value = UserCacheName, key = "#email")
     public User create(String email, String passwordOnMd5, User.Role role) {
         return create(email, passwordOnMd5, role, null);
     }
 
     @Override
-    @Cacheable(cacheManager = "userCacheManager", value = UserCacheName, key = "#email")
+    @Cacheable(cacheManager = "defaultCacheManager", value = UserCacheName, key = "#email")
     public User getByEmail(String email) {
         User user = userDao.findByEmail(email);
         if (Objects.isNull(user)) {
@@ -114,7 +114,7 @@ public class UserServiceImpl implements UserService {
         if (Objects.equals(user.getPasswordOnMd5(), oldOnMd5)) {
             user.setPasswordOnMd5(newOnMd5);
             userDao.save(user);
-            Cache cache = userCacheManager.getCache(UserCacheName);
+            Cache cache = defaultCacheManager.getCache(UserCacheName);
             if (cache != null) {
                 cache.evict(user.getEmail());
             }
@@ -125,7 +125,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @CacheEvict(cacheManager = "userCacheManager", value = UserCacheName, key = "#email")
+    @CacheEvict(cacheManager = "defaultCacheManager", value = UserCacheName, key = "#email")
     public void changeRole(String email, Role newRole) {
         User user = getByEmail(email);
         if (user.isDefaultAdmin()) {
@@ -141,7 +141,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @CacheEvict(cacheManager = "userCacheManager", value = UserCacheName, key = "#email")
+    @CacheEvict(cacheManager = "defaultCacheManager", value = UserCacheName, key = "#email")
     public User delete(String email) {
         User user = getByEmail(email);
         if (user.isDefaultAdmin()) {

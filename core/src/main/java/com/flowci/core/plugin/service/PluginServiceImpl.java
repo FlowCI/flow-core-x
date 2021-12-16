@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.git.GitClient;
+import com.flowci.core.common.manager.ResourceManager;
 import com.flowci.core.common.manager.VarManager;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
@@ -92,6 +93,9 @@ public class PluginServiceImpl implements PluginService {
 
     @Autowired
     private VarManager varManager;
+
+    @Autowired
+    private ResourceManager resourceManager;
 
     private final Object reloadLock = new Object();
 
@@ -200,7 +204,8 @@ public class PluginServiceImpl implements PluginService {
         try {
             pluginDao.deleteAll();
 
-            List<Plugin> plugins = objectMapper.readValue(repoUri.getInputStream(), RepoListType);
+            var is = resourceManager.getResource(repoUri);
+            List<Plugin> plugins = objectMapper.readValue(is, RepoListType);
             pluginDao.insert(plugins);
 
             for (Plugin plugin : plugins) {

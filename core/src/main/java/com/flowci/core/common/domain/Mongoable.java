@@ -36,7 +36,7 @@ import java.util.Date;
 @Setter
 public abstract class Mongoable implements Serializable {
 
-    public static final Sort SortByCreatedAtASC = new Sort(Sort.Direction.ASC, "createdAt");
+    public static final Sort SortByCreatedAtASC = Sort.by(Sort.Direction.ASC, "createdAt");
 
     @Id
     protected String id;
@@ -69,5 +69,12 @@ public abstract class Mongoable implements Serializable {
         this.updatedAt = null;
         this.createdBy = null;
         this.updatedBy = null;
+    }
+
+    public void setCreatedAndUpdatedBy(String email) {
+        updatedBy = email;
+        if (!StringHelper.hasValue(id)) {
+            createdBy = email;
+        }
     }
 }

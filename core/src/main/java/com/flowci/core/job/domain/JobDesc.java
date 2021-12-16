@@ -16,4 +16,15 @@ public class JobDesc {
     protected Long buildNumber;
 
     protected String flowId;
+
+    protected String flowName;
+
+    public static JobDesc create(Job job) {
+        var desc = new JobDesc();
+        desc.setId(job.getId());
+        desc.setBuildNumber(job.getBuildNumber());
+        desc.setFlowId(job.getFlowId());
+        desc.setFlowName(job.getFlowName());
+        return desc;
+    }
 }

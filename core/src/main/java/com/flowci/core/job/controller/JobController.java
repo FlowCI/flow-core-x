@@ -23,7 +23,6 @@ import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
-import com.flowci.core.job.service.LocalTaskService;
 import com.flowci.core.job.service.ReportService;
 import com.flowci.core.user.domain.User;
 import com.flowci.exception.NotFoundException;
@@ -50,9 +49,6 @@ public class JobController extends BaseController {
 
     @Autowired
     private YmlService ymlService;
-
-    @Autowired
-    private LocalTaskService localTaskService;
 
     @Autowired
     private ReportService reportService;
@@ -98,12 +94,12 @@ public class JobController extends BaseController {
         return stepService.list(job);
     }
 
-    @GetMapping("/{flow}/{buildNumberOrLatest}/tasks")
-    @Action(JobAction.LIST_STEPS)
-    public List<ExecutedLocalTask> listTasks(@PathVariable String flow,
-                                             @PathVariable String buildNumberOrLatest) {
+    @GetMapping("/{flow}/{buildNumberOrLatest}/related")
+    @Action(JobAction.LIST)
+    public List<JobDesc> listRelated(@PathVariable String flow,
+                                     @PathVariable String buildNumberOrLatest) {
         Job job = get(flow, buildNumberOrLatest);
-        return localTaskService.list(job);
+        return jobService.listRelated(job);
     }
 
     @PostMapping

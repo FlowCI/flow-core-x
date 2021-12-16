@@ -7,7 +7,7 @@
     <groupId>com.flowci</groupId>
     <artifactId>flow-platform-x</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>${revision}</version>
 
     <modules>
         <module>domain</module>
@@ -22,25 +22,25 @@
     </modules>
 
     <properties>
-        <lombok.version>1.18.0</lombok.version>
-        <guava.version>30.0-jre</guava.version>
+        <revision>1.21.50</revision>
+        <lombok.version>1.18.22</lombok.version>
+        <guava.version>31.0.1-jre</guava.version>
         <junit.version>4.13.1</junit.version>
-        <spring.version>2.1.9.RELEASE</spring.version>
+        <spring.version>2.6.0</spring.version>
         <snakeyaml.version>1.26</snakeyaml.version>
         <jackson.version>2.12.1</jackson.version>
         <curator.version>4.3.0</curator.version>
         <caffeine.version>2.6.2</caffeine.version>
         <h2.version>1.4.197</h2.version>
         <wiremock.version>2.18.0</wiremock.version>
-        <swagger2.version>2.7.0</swagger2.version>
         <jgit.version>5.0.3.201809091024-r</jgit.version>
         <jsch.version>0.1.55</jsch.version>
         <docker-java.version>3.2.1</docker-java.version>
-        <cron-utils.version>9.1.3</cron-utils.version>
+        <cron-utils.version>9.1.6</cron-utils.version>
         <amqp-client.version>5.9.0</amqp-client.version>
         <java-jwt.version>3.8.1</java-jwt.version>
         <minio.version>6.0.11</minio.version>
-        <log4j-core.version>2.11.2</log4j-core.version>
+        <log4j.version>2.15.0</log4j.version>
         <kubernetes-client.version>4.10.3</kubernetes-client.version>
     </properties>
 
@@ -59,10 +59,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.1</version>
+                <version>3.8.0</version>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>11</source>
+                    <target>11</target>
+                    <release>11</release>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
@@ -110,49 +111,49 @@
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>domain</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>docker</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>sm</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>util</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>tree</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>store</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>exception</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.flowci</groupId>
                 <artifactId>zookeeper</artifactId>
-                <version>${project.version}</version>
+                <version>${version}</version>
             </dependency>
 
             <dependency>
@@ -206,55 +207,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-web</artifactId>
-                <version>${spring.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-logging</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-actuator</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-websocket</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-data-mongodb</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-log4j2</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-cache</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-test</artifactId>
-                <version>${spring.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
                 <groupId>io.minio</groupId>
                 <artifactId>minio</artifactId>
                 <version>${minio.version}</version>
@@ -291,21 +243,27 @@
             </dependency>
 
             <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger2</artifactId>
-                <version>${swagger2.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger-ui</artifactId>
-                <version>${swagger2.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
                 <version>${curator.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-jul</artifactId>
+                <version>${log4j.version}</version>
             </dependency>
 
             <dependency>
@@ -363,7 +321,6 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>${log4j-core.version}</version>
         </dependency>
     </dependencies>
 
