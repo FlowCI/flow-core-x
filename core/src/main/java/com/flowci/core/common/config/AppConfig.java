@@ -110,10 +110,16 @@ public class AppConfig {
                 ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
                 Executor executor = getTaskExecutor();
                 for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+                    if (executor == null) {
+                        invokeListener(listener, event);
+                        continue;
+                    }
+
                     if (listener instanceof AsyncEvent) {
                         executor.execute(() -> invokeListener(listener, event));
                         continue;
                     }
+
                     invokeListener(listener, event);
                 }
             }
