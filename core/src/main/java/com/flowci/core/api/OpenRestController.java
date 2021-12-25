@@ -26,7 +26,6 @@ import com.flowci.core.flow.domain.StatsCounter;
 import com.flowci.core.job.domain.JobCache;
 import com.flowci.core.job.service.CacheService;
 import com.flowci.core.job.service.LoggingService;
-import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.user.domain.User;
 import com.flowci.exception.ArgumentException;
@@ -65,14 +64,7 @@ public class OpenRestController {
 
     @GetMapping("/secret/{name}")
     public Secret getSecret(@PathVariable String name) {
-        Secret secret = openRestService.getSecret(name);
-
-        if (secret instanceof RSASecret) {
-            RSASecret rsa = (RSASecret) secret;
-            rsa.setPrivateKey(null);
-        }
-
-        return secret;
+        return openRestService.getSecret(name);
     }
 
     @GetMapping("/secret/{name}/download/{file:.+}")
