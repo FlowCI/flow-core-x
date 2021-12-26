@@ -64,7 +64,7 @@ public class K8sManager implements DockerManager {
     }
 
     public void createNamespace() {
-        Resource<Namespace, DoneableNamespace> resource = client.namespaces().withName(option.getNamespace());
+        Resource<Namespace> resource = client.namespaces().withName(option.getNamespace());
         Namespace namespace = resource.get();
         if (Objects.isNull(namespace)) {
             Namespace built = new NamespaceBuilder()
@@ -264,8 +264,7 @@ public class K8sManager implements DockerManager {
     }
 
     private List<Pod> listPods(String name, String status) {
-        NonNamespaceOperation<Pod, PodList, DoneablePod, PodResource<Pod, DoneablePod>> operation = client.pods()
-                .inNamespace(option.getNamespace());
+        NonNamespaceOperation<Pod, PodList, PodResource<Pod>> operation = client.pods().inNamespace(option.getNamespace());
 
         if (StringHelper.hasValue(name)) {
             if (name.endsWith("*")) {
@@ -282,7 +281,7 @@ public class K8sManager implements DockerManager {
         return operation.list().getItems();
     }
 
-    private PodResource<Pod, DoneablePod> podResource(String name) {
+    private PodResource<Pod> podResource(String name) {
         return client.pods()
                 .inNamespace(option.getNamespace())
                 .withName(name);
