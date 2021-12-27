@@ -272,11 +272,14 @@ public class JobServiceImpl implements JobService {
 
         // re-init job context
         Vars<String> context = job.getContext();
-        for (String key : context.keySet()) {
+        Iterator<Map.Entry<String, String>> iterator = context.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+            var key = iterator.next().getKey();
             if (PUSH_TAG_VARS.contains(key) || PR_VARS.contains(key) || Objects.equals(key, COMMIT_ID)) {
                 continue;
             }
-            context.remove(key);
+            iterator.remove();
         }
 
         initJobContext(job, flow, null);

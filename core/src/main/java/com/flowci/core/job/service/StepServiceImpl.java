@@ -57,6 +57,8 @@ public class StepServiceImpl implements StepService {
 
     @Override
     public void init(Job job) {
+        jobStepCache.invalidate(job.getId());
+
         NodeTree tree = ymlManager.getTree(job);
         List<Step> steps = new LinkedList<>();
 
