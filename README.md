@@ -1,6 +1,6 @@
 <h3 align="center">
   <a href="https://flowci.github.io">
-    <img src="https://github.com/FlowCI/docs/raw/master/src/logo.png" alt="Logo" width="100">
+    <img src="https://github.com/FlowCI/docs/raw/master/_images/logo.png" alt="Logo" width="100">
   </a>
 </h3>
 
@@ -9,11 +9,11 @@
 <p align="center">
     <a href="https://github.com/FlowCI/docs/blob/master/LICENSE"><img src="https://img.shields.io/github/license/flowci/flow-core-x"></a>
     <a href="https://github.com/FlowCI/flow-core-x/releases/"><img src="https://img.shields.io/github/v/release/flowci/flow-core-x"></a>
+    <a href="https://github.com/FlowCI"><img alt="GitHub Org's stars" src="https://img.shields.io/github/stars/flowci"></a>
+    <a href="https://hub.docker.com/u/flowci"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/flowci/core"></a>
 </p>
 
 <div align="center">
-
-**English | [简体中文](https://github.com/FlowCI/docs/blob/master/README-cn.md)**
 
 </div>
 
@@ -59,7 +59,8 @@ cd flow-docker
 
 ## Documentation
 
-+ [English](https://github.com/FlowCI/docs/tree/master/en/index.md)
++ [English](https://flowci.github.io/#/en/)
++ [中文文档](https://flowci.github.io/#/cn/)
 
 Need Help? submit issue from [here](https://github.com/FlowCI/docs/issues) or send email to `flowci@foxmail.com`
 
@@ -71,8 +72,8 @@ Need Help? submit issue from [here](https://github.com/FlowCI/docs/issues) or se
 
 ## Architecture
 
-![architecture](https://github.com/FlowCI/docs/raw/master/src/architecture.png)
+![architecture](https://github.com/FlowCI/docs/raw/master/_images/architecture.png)
 
 ## Preview
 
-![demo](https://github.com/FlowCI/docs/raw/master/src/demo.gif)
+![demo](https://github.com/FlowCI/docs/raw/master/_images/demo.gif)
