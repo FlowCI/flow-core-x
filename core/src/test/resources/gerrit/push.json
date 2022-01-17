@@ -1,0 +1,15 @@
+{
+  "submitter": {
+    "name": "Administrator",
+    "email": "admin@example.com",
+    "username": "admin"
+  },
+  "refUpdate": {
+    "oldRev": "1d7d374810507ab8ce697002dd88d9806a1d9d0e",
+    "newRev": "da626b97f4ed4d58be4b4e862b5b9aadfd8305a7",
+    "refName": "refs/heads/master",
+    "project": "gerrit_demo"
+  },
+  "type": "ref-updated",
+  "eventCreatedOn": 1642345678
+}
