@@ -75,6 +75,12 @@ public class GithookController {
         converterMap.put(GitSource.GITEE, giteeConverter);
     }
 
+    /**
+     * Gerrit:
+     *   - patch-created - wall be called for each patch push
+     * @param name
+     * @throws IOException
+     */
     @PostMapping("/{name}")
     public void onGitTrigger(@PathVariable String name) throws IOException {
         GitSourceWithEvent data = findGitSourceByHeader(request);

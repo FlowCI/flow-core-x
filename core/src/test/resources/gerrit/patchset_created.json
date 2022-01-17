@@ -1,0 +1,54 @@
+{
+  "uploader": {
+    "name": "Administrator",
+    "email": "admin@example.com",
+    "username": "admin"
+  },
+  "patchSet": {
+    "number": 1,
+    "revision": "a7b0b01e48d72cf9979ee59b482563d944c5d2ce",
+    "parents": [
+      "a3ec654afcaae6fb244a71d5dbed02a0c1f97a20"
+    ],
+    "ref": "refs/changes/02/2/1",
+    "uploader": {
+      "name": "Administrator",
+      "email": "admin@example.com",
+      "username": "admin"
+    },
+    "createdOn": 1642367160,
+    "author": {
+      "name": "Administrator",
+      "email": "admin@example.com",
+      "username": "admin"
+    },
+    "kind": "REWORK",
+    "sizeInsertions": 4,
+    "sizeDeletions": 1
+  },
+  "change": {
+    "project": "gerrit_demo",
+    "branch": "master",
+    "id": "I2d775fdc3e284f90a204f25ce46c9c1ddc2cba40",
+    "number": 2,
+    "subject": "new patchset",
+    "owner": {
+      "name": "Administrator",
+      "email": "admin@example.com",
+      "username": "admin"
+    },
+    "url": "http://d7fadbe75334/c/gerrit_demo/+/2",
+    "commitMessage": "new patchset\n\nChange-Id: I2d775fdc3e284f90a204f25ce46c9c1ddc2cba40\n",
+    "createdOn": 1642367160,
+    "status": "NEW"
+  },
+  "project": {
+    "name": "gerrit_demo"
+  },
+  "refName": "refs/heads/master",
+  "changeKey": {
+    "key": "I2d775fdc3e284f90a204f25ce46c9c1ddc2cba40"
+  },
+  "type": "patchset-created",
+  "eventCreatedOn": 1642367160
+}
