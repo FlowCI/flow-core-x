@@ -1,54 +1,54 @@
 {
   "uploader": {
-    "name": "Administrator",
+    "name": "admin",
     "email": "admin@example.com",
     "username": "admin"
   },
   "patchSet": {
-    "number": 1,
-    "revision": "a7b0b01e48d72cf9979ee59b482563d944c5d2ce",
+    "number": 2,
+    "revision": "34ebc1c63ef2173b3704663c32bcd14471b68a9b",
     "parents": [
-      "a3ec654afcaae6fb244a71d5dbed02a0c1f97a20"
+      "ca53a79dfad47123180a3c37892e6548889b4883"
     ],
-    "ref": "refs/changes/02/2/1",
+    "ref": "refs/changes/01/1/2",
     "uploader": {
-      "name": "Administrator",
+      "name": "admin",
       "email": "admin@example.com",
       "username": "admin"
     },
-    "createdOn": 1642367160,
+    "createdOn": 1642965660,
     "author": {
-      "name": "Administrator",
+      "name": "admin",
       "email": "admin@example.com",
       "username": "admin"
     },
     "kind": "REWORK",
-    "sizeInsertions": 4,
-    "sizeDeletions": 1
+    "sizeInsertions": 3,
+    "sizeDeletions": 0
   },
   "change": {
-    "project": "gerrit_demo",
+    "project": "gerrit_test",
     "branch": "master",
-    "id": "I2d775fdc3e284f90a204f25ce46c9c1ddc2cba40",
-    "number": 2,
-    "subject": "new patchset",
+    "id": "I508fde11a59c36f9ab8b086d13d41b5d9c597db6",
+    "number": 1,
+    "subject": "task 1 try",
     "owner": {
-      "name": "Administrator",
+      "name": "admin",
       "email": "admin@example.com",
       "username": "admin"
     },
-    "url": "http://d7fadbe75334/c/gerrit_demo/+/2",
-    "commitMessage": "new patchset\n\nChange-Id: I2d775fdc3e284f90a204f25ce46c9c1ddc2cba40\n",
-    "createdOn": 1642367160,
+    "url": "http://192.168.31.173:8088/c/gerrit_test/+/1",
+    "commitMessage": "task 1 try\n\nChange-Id: I508fde11a59c36f9ab8b086d13d41b5d9c597db6\n",
+    "createdOn": 1642965568,
     "status": "NEW"
   },
   "project": {
-    "name": "gerrit_demo"
+    "name": "gerrit_test"
   },
   "refName": "refs/heads/master",
   "changeKey": {
-    "key": "I2d775fdc3e284f90a204f25ce46c9c1ddc2cba40"
+    "key": "I508fde11a59c36f9ab8b086d13d41b5d9c597db6"
   },
   "type": "patchset-created",
-  "eventCreatedOn": 1642367160
+  "eventCreatedOn": 1642965660
 }

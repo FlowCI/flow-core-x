@@ -90,22 +90,6 @@ public final class GitPrTrigger extends GitTrigger {
         return buildId(getSource().name(), getEvent().name(), getNumber());
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        GitPrTrigger t = (GitPrTrigger) o;
-        return Objects.equals(getSource(), t.getSource())
-                && Objects.equals(getEvent(), t.getEvent())
-                && Objects.equals(getNumber(), t.getNumber());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getSource(), getEvent(), getNumber());
-    }
-
     @Getter
     @Setter
     public static class Source {

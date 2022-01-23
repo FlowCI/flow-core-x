@@ -63,9 +63,12 @@ public class GithookController {
     private TriggerConverter giteeConverter;
 
     @Autowired
+    private TriggerConverter gerritConverter;
+
+    @Autowired
     private SpringEventManager eventManager;
 
-    private final Map<GitSource, TriggerConverter> converterMap = new HashMap<>(3);
+    private final Map<GitSource, TriggerConverter> converterMap = new HashMap<>(5);
 
     @PostConstruct
     public void createMapping() {
@@ -73,6 +76,7 @@ public class GithookController {
         converterMap.put(GitSource.GITLAB, gitLabConverter);
         converterMap.put(GitSource.GOGS, gogsConverter);
         converterMap.put(GitSource.GITEE, giteeConverter);
+        converterMap.put(GitSource.GERRIT, gerritConverter);
     }
 
     /**
@@ -131,6 +135,15 @@ public class GithookController {
             if (Boolean.parseBoolean(pingInd)) {
                 obj.event = GiteeConverter.Ping;
             }
+            return obj;
+        }
+
+        // gerrit
+        String gerritUrl = request.getHeader(GerritConverter.Header);
+        // TODO: verify gerrit url
+        if (StringHelper.hasValue(gerritUrl)) {
+            obj.source = GitSource.GERRIT;
+            obj.event =  GerritConverter.AllEvent;
             return obj;
         }
 

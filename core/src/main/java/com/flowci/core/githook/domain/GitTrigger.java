@@ -28,6 +28,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author yang
@@ -56,7 +57,9 @@ public abstract class GitTrigger implements Serializable {
 
         PR_MERGED, // pr merged
 
-        TAG
+        TAG,
+
+        PATCHSET_UPDATE
     }
 
     public StringVars toVariableMap() {
@@ -99,5 +102,18 @@ public abstract class GitTrigger implements Serializable {
 
     protected static String buildId(String ...props) {
         return StringHelper.toBase64(StringHelper.join(props));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GitTrigger that = (GitTrigger) o;
+        return getId().equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getId());
     }
 }
