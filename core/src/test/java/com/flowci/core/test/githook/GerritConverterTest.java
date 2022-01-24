@@ -1,0 +1,44 @@
+package com.flowci.core.test.githook;
+
+import com.flowci.core.githook.converter.GerritConverter;
+import com.flowci.core.githook.domain.GitPatchSetTrigger;
+import com.flowci.core.githook.domain.GitTrigger;
+import com.flowci.core.test.SpringScenario;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.InputStream;
+import java.util.Optional;
+
+public class GerritConverterTest extends SpringScenario {
+
+    @Autowired
+    private GerritConverter gerritConverter;
+
+    @Test
+    public void should_parse_patchset_create_event() {
+        InputStream stream = load("gerrit/patchset_created.json");
+
+        Optional<GitTrigger> optional = gerritConverter.convert(GerritConverter.AllEvent, stream);
+        Assert.assertTrue(optional.isPresent());
+        Assert.assertTrue(optional.get() instanceof GitPatchSetTrigger);
+
+        GitPatchSetTrigger t = (GitPatchSetTrigger) optional.get();
+        Assert.assertEquals("task 1 try", t.getSubject());
+        Assert.assertEquals("task 1 try\n\nChange-Id: I508fde11a59c36f9ab8b086d13d41b5d9c597db6\n", t.getMessage());
+        Assert.assertEquals("gerrit_test", t.getProject());
+        Assert.assertEquals("master", t.getBranch());
+        Assert.assertEquals("I508fde11a59c36f9ab8b086d13d41b5d9c597db6", t.getChangeId());
+        Assert.assertEquals(1, t.getChangeNumber().intValue());
+        Assert.assertEquals("http://192.168.31.173:8088/c/gerrit_test/+/1", t.getChangeUrl());
+
+        Assert.assertEquals(2, t.getPatchNumber().intValue());
+        Assert.assertEquals("http://192.168.31.173:8088/c/gerrit_test/+/1/2", t.getPatchUrl());
+        Assert.assertEquals("34ebc1c63ef2173b3704663c32bcd14471b68a9b", t.getRevision());
+        Assert.assertEquals("refs/changes/01/1/2", t.getRef());
+        Assert.assertEquals("1642965660", t.getCreatedOn());
+        Assert.assertEquals(3, t.getSizeInsertions().intValue());
+        Assert.assertEquals(0, t.getSizeDeletions().intValue());
+    }
+}

@@ -76,7 +76,7 @@ public class GerritConverter extends TriggerConverter {
 
     private static class PatchSetCreateEvent implements GitTriggerable {
 
-        public PathSet pathSet;
+        public PatchSet patchSet;
 
         public Change change;
 
@@ -94,20 +94,20 @@ public class GerritConverter extends TriggerConverter {
             t.setChangeNumber(change.number);
             t.setChangeUrl(change.url);
 
-            t.setPatchNumber(pathSet.number);
-            t.setPatchUrl(change.url + "/" + pathSet.number);
-            t.setRevision(pathSet.revision);
-            t.setRef(pathSet.ref);
-            t.setCreatedOn(pathSet.createdOn);
-            t.setAuthor(pathSet.author.toGitUser());
-            t.setSizeInsertions(pathSet.sizeInsertions);
-            t.setSizeDeletions(pathSet.sizeDeletions);
+            t.setPatchNumber(patchSet.number);
+            t.setPatchUrl(change.url + "/" + patchSet.number);
+            t.setRevision(patchSet.revision);
+            t.setRef(patchSet.ref);
+            t.setCreatedOn(patchSet.createdOn);
+            t.setAuthor(patchSet.author.toGitUser());
+            t.setSizeInsertions(patchSet.sizeInsertions);
+            t.setSizeDeletions(patchSet.sizeDeletions);
 
             return t;
         }
     }
 
-    private static class PathSet {
+    private static class PatchSet {
 
         public Integer number;
 

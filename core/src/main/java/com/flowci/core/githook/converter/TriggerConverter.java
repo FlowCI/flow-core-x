@@ -46,6 +46,7 @@ public abstract class TriggerConverter {
             GitTrigger trigger = mapping.get(event).apply(body);
             return Optional.ofNullable(trigger);
         } catch (Exception e) {
+            log.warn(e.getMessage());
             return Optional.empty();
         }
     }
