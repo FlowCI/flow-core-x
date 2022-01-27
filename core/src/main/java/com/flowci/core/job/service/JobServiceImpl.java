@@ -436,7 +436,7 @@ public class JobServiceImpl implements JobService {
             return;
         }
 
-        String createdBy = context.get(PUSH_AUTHOR, "Unknown");
+        String createdBy = context.get(new String[]{PUSH_AUTHOR, PR_AUTHOR, PATCHSET_AUTHOR}, "Unknown");
         job.setCreatedBy(createdBy);
         context.put(Variables.Job.TriggerBy, createdBy);
     }

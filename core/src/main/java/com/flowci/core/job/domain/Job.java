@@ -88,7 +88,12 @@ public class Job extends Mongoable implements Pathable {
         /**
          * Git tag event
          */
-        TAG
+        TAG,
+
+        /**
+         * Git patchset trigger
+         */
+        PATCHSET
     }
 
     public enum Status {
