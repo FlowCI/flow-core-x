@@ -96,7 +96,7 @@ public class JobItem extends JobDesc {
             context.putIfNotEmpty(PATCHSET_PATCH_NUM);
             context.putIfNotEmpty(PATCHSET_PATCH_URL);
             context.putIfNotEmpty(PATCHSET_AUTHOR);
-            context.putIfNotEmpty(PATCHSET_REF);
+            context.putIfNotEmpty(PATCHSET_PATCH_REF);
 
             return context;
         }

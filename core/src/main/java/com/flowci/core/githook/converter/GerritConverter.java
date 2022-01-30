@@ -1,10 +1,12 @@
 package com.flowci.core.githook.converter;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.githook.domain.GitPatchSetTrigger;
 import com.flowci.core.githook.domain.GitTrigger;
 import com.flowci.core.githook.domain.GitTriggerable;
 import com.flowci.core.githook.domain.GitUser;
+import com.flowci.core.githook.util.BranchHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.log4j.Log4j2;
@@ -24,7 +26,6 @@ public class GerritConverter extends TriggerConverter {
     public static final String AllEvent = "all";
 
     private static final String EventPathsetCreated = "patchset-created";
-    private static final String EventRefUpdated = "ref-updated";
     private static final String EventChangeMerged = "change-merged";
 
     private final Map<String, Function<InputStream, GitTrigger>> mapping =
@@ -50,8 +51,8 @@ public class GerritConverter extends TriggerConverter {
                 String payload = StringHelper.toString(inputStream);
                 Event event = objectMapper.readValue(payload, Event.class);
 
-                if (Objects.equals(EventPathsetCreated, event.type)) {
-                    PatchSetCreateEvent pce = objectMapper.readValue(payload, PatchSetCreateEvent.class);
+                if (Objects.equals(EventPathsetCreated, event.type) || Objects.equals(EventChangeMerged, event.type)) {
+                    PatchSetEvent pce = objectMapper.readValue(payload, PatchSetEvent.class);
                     return pce.toTrigger();
                 }
 
@@ -74,11 +75,17 @@ public class GerritConverter extends TriggerConverter {
         public String type;
     }
 
-    private static class PatchSetCreateEvent implements GitTriggerable {
+
+    private static class PatchSetEvent implements GitTriggerable {
+
+        @JsonAlias({"uploader", "submitter"})
+        public Author author;
 
         public PatchSet patchSet;
 
         public Change change;
+
+        public String refName;
 
         @Override
         public GitTrigger toTrigger() {
@@ -89,17 +96,19 @@ public class GerritConverter extends TriggerConverter {
             t.setSubject(change.subject);
             t.setMessage(change.commitMessage);
             t.setProject(change.project);
-            t.setBranch(change.branch);
             t.setChangeId(change.id);
             t.setChangeNumber(change.number);
             t.setChangeUrl(change.url);
+            t.setStatus(GitPatchSetTrigger.Status.valueOf(change.status));
 
             t.setPatchNumber(patchSet.number);
             t.setPatchUrl(change.url + "/" + patchSet.number);
-            t.setRevision(patchSet.revision);
-            t.setRef(patchSet.ref);
+            t.setPatchRevision(patchSet.revision);
+            t.setPatchRef(patchSet.ref);
+
+            t.setBranch(BranchHelper.getBranchName(refName));
             t.setCreatedOn(patchSet.createdOn);
-            t.setAuthor(patchSet.author.toGitUser());
+            t.setAuthor(author.toGitUser());
             t.setSizeInsertions(patchSet.sizeInsertions);
             t.setSizeDeletions(patchSet.sizeDeletions);
 
@@ -114,10 +123,6 @@ public class GerritConverter extends TriggerConverter {
         public String revision;
 
         public String ref;
-
-        public Author uploader;
-
-        public Author author;
 
         public String createdOn;
 
@@ -141,6 +146,8 @@ public class GerritConverter extends TriggerConverter {
         public String url;
 
         public String commitMessage;
+
+        public String status;
     }
 
     private static class Author {

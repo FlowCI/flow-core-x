@@ -1,55 +1,55 @@
 {
   "submitter": {
-    "name": "Administrator",
+    "name": "admin",
     "email": "admin@example.com",
     "username": "admin"
   },
-  "newRev": "a3ec654afcaae6fb244a71d5dbed02a0c1f97a20",
+  "newRev": "bd4082009476bd39837e18ce987c27931f59d2ed",
   "patchSet": {
     "number": 2,
-    "revision": "a3ec654afcaae6fb244a71d5dbed02a0c1f97a20",
+    "revision": "34ebc1c63ef2173b3704663c32bcd14471b68a9b",
     "parents": [
-      "f906c056351154c1ca511b7a3d2f2fe1658b7c8d"
+      "ca53a79dfad47123180a3c37892e6548889b4883"
     ],
     "ref": "refs/changes/01/1/2",
     "uploader": {
-      "name": "Administrator",
+      "name": "admin",
       "email": "admin@example.com",
       "username": "admin"
     },
-    "createdOn": 1642361836,
+    "createdOn": 1642965660,
     "author": {
-      "name": "Administrator",
+      "name": "admin",
       "email": "admin@example.com",
       "username": "admin"
     },
     "kind": "REWORK",
-    "sizeInsertions": 2,
-    "sizeDeletions": 1
+    "sizeInsertions": 3,
+    "sizeDeletions": 0
   },
   "change": {
-    "project": "gerrit_demo",
+    "project": "gerrit_test",
     "branch": "master",
-    "id": "Iba9125f6902ba137825bab84c42be575ff2df86a",
+    "id": "I508fde11a59c36f9ab8b086d13d41b5d9c597db6",
     "number": 1,
-    "subject": "from test 1",
+    "subject": "task 1 try",
     "owner": {
-      "name": "Administrator",
+      "name": "admin",
       "email": "admin@example.com",
       "username": "admin"
     },
-    "url": "http://d7fadbe75334/c/gerrit_demo/+/1",
-    "commitMessage": "from test 1\n\nChange-Id: Iba9125f6902ba137825bab84c42be575ff2df86a\n",
-    "createdOn": 1642361597,
+    "url": "http://192.168.31.173:8088/c/gerrit_test/+/1",
+    "commitMessage": "task 1 try\n\nChange-Id: I508fde11a59c36f9ab8b086d13d41b5d9c597db6\n",
+    "createdOn": 1642965568,
     "status": "MERGED"
   },
   "project": {
-    "name": "gerrit_demo"
+    "name": "gerrit_test"
   },
   "refName": "refs/heads/master",
   "changeKey": {
-    "key": "Iba9125f6902ba137825bab84c42be575ff2df86a"
+    "key": "I508fde11a59c36f9ab8b086d13d41b5d9c597db6"
   },
   "type": "change-merged",
-  "eventCreatedOn": 1642363860
+  "eventCreatedOn": 1643490542
 }

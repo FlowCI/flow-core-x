@@ -183,10 +183,11 @@ public abstract class Variables {
         public static final String PATCHSET_CHANGE_ID = "FLOWCI_GIT_PATCHSET_CHANGE_ID";
         public static final String PATCHSET_CHANGE_NUM = "FLOWCI_GIT_PATCHSET_CHANGE_NUM";
         public static final String PATCHSET_CHANGE_URL = "FLOWCI_GIT_PATCHSET_CHANGE_URL";
+        public static final String PATCHSET_CHANGE_STATUS = "FLOWCI_GIT_PATCHSET_CHANGE_STATUS";
         public static final String PATCHSET_PATCH_NUM = "FLOWCI_GIT_PATCHSET_PATCH_NUM";
         public static final String PATCHSET_PATCH_URL = "FLOWCI_GIT_PATCHSET_PATCH_URL";
-        public static final String PATCHSET_REVISION = "FLOWCI_GIT_PATCHSET_REVISION";
-        public static final String PATCHSET_REF = "FLOWCI_GIT_PATCHSET_REF";
+        public static final String PATCHSET_PATCH_REVISION = "FLOWCI_GIT_PATCHSET_REVISION";
+        public static final String PATCHSET_PATCH_REF = "FLOWCI_GIT_PATCHSET_REF";
         public static final String PATCHSET_CREATE_TIME = "FLOWCI_GIT_PATCHSET_CREATE_TIME";
         public static final String PATCHSET_INSERT_SIZE = "FLOWCI_GIT_PATCHSET_INSERT_SIZE";
         public static final String PATCHSET_DELETE_SIZE = "FLOWCI_GIT_PATCHSET_DELETE_SIZE";
@@ -199,10 +200,11 @@ public abstract class Variables {
                 .add(PATCHSET_CHANGE_ID)
                 .add(PATCHSET_CHANGE_NUM)
                 .add(PATCHSET_CHANGE_URL)
+                .add(PATCHSET_CHANGE_STATUS)
                 .add(PATCHSET_PATCH_NUM)
                 .add(PATCHSET_PATCH_URL)
-                .add(PATCHSET_REVISION)
-                .add(PATCHSET_REF)
+                .add(PATCHSET_PATCH_REVISION)
+                .add(PATCHSET_PATCH_REF)
                 .add(PATCHSET_CREATE_TIME)
                 .add(PATCHSET_INSERT_SIZE)
                 .add(PATCHSET_DELETE_SIZE)

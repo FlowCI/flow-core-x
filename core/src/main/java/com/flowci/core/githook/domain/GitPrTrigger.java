@@ -74,6 +74,7 @@ public final class GitPrTrigger extends GitTrigger {
         map.put(PR_BASE_REPO_BRANCH, base.ref);
         map.put(PR_BASE_REPO_COMMIT, base.commit);
 
+        map.put(BRANCH, merged ? base.ref : head.ref);
         return map;
     }
 

@@ -14,6 +14,14 @@ import static com.flowci.core.common.domain.Variables.Git.*;
 @Setter
 public class GitPatchSetTrigger extends GitTrigger {
 
+    public enum Status {
+        NEW,
+
+        MERGED
+    }
+
+    private Status status;
+
     private String subject;
 
     private String message; // commit message
@@ -32,9 +40,9 @@ public class GitPatchSetTrigger extends GitTrigger {
 
     private String patchUrl;
 
-    private String revision;
+    private String patchRef;
 
-    private String ref;
+    private String patchRevision;
 
     private String createdOn;
 
@@ -54,14 +62,24 @@ public class GitPatchSetTrigger extends GitTrigger {
         map.put(PATCHSET_CHANGE_ID, changeId);
         map.put(PATCHSET_CHANGE_NUM, String.valueOf(changeNumber));
         map.put(PATCHSET_CHANGE_URL, changeUrl);
+        map.put(PATCHSET_CHANGE_STATUS, status.name());
         map.put(PATCHSET_PATCH_NUM, String.valueOf(patchNumber));
         map.put(PATCHSET_PATCH_URL, patchUrl);
-        map.put(PATCHSET_REVISION, revision);
-        map.put(PATCHSET_REF, ref);
+        map.put(PATCHSET_PATCH_REF, patchRef);
+        map.put(PATCHSET_PATCH_REVISION, patchRevision);
         map.put(PATCHSET_CREATE_TIME, createdOn);
         map.put(PATCHSET_INSERT_SIZE, String.valueOf(sizeInsertions));
         map.put(PATCHSET_DELETE_SIZE, String.valueOf(sizeDeletions));
         map.put(PATCHSET_AUTHOR, author.getEmail());
+
+        if (status == Status.MERGED) {
+            map.put(BRANCH, branch);
+        }
+
+        if (status == Status.NEW) {
+            map.put(BRANCH, patchRef);
+        }
+
         return map;
     }
 
