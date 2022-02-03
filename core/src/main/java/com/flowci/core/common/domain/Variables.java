@@ -192,7 +192,7 @@ public abstract class Variables {
         public static final String PATCHSET_INSERT_SIZE = "FLOWCI_GIT_PATCHSET_INSERT_SIZE";
         public static final String PATCHSET_DELETE_SIZE = "FLOWCI_GIT_PATCHSET_DELETE_SIZE";
         public static final String PATCHSET_AUTHOR = "FLOWCI_GIT_PATCHSET_AUTHOR";
-        public static final Collection<String> PATCH_VARS = ImmutableList.<String>builder()
+        public static final Collection<String> PATCHSET_VARS = ImmutableList.<String>builder()
                 .add(PATCHSET_SUBJECT)
                 .add(PATCHSET_MESSAGE)
                 .add(PATCHSET_PROJECT)
