@@ -186,8 +186,8 @@ public abstract class Variables {
         public static final String PATCHSET_CHANGE_STATUS = "FLOWCI_GIT_PATCHSET_CHANGE_STATUS";
         public static final String PATCHSET_PATCH_NUM = "FLOWCI_GIT_PATCHSET_PATCH_NUM";
         public static final String PATCHSET_PATCH_URL = "FLOWCI_GIT_PATCHSET_PATCH_URL";
-        public static final String PATCHSET_PATCH_REVISION = "FLOWCI_GIT_PATCHSET_REVISION";
-        public static final String PATCHSET_PATCH_REF = "FLOWCI_GIT_PATCHSET_REF";
+        public static final String PATCHSET_PATCH_REVISION = "FLOWCI_GIT_PATCHSET_PATCH_REVISION";
+        public static final String PATCHSET_PATCH_REF = "FLOWCI_GIT_PATCHSET_PATCH_REF";
         public static final String PATCHSET_CREATE_TIME = "FLOWCI_GIT_PATCHSET_CREATE_TIME";
         public static final String PATCHSET_INSERT_SIZE = "FLOWCI_GIT_PATCHSET_INSERT_SIZE";
         public static final String PATCHSET_DELETE_SIZE = "FLOWCI_GIT_PATCHSET_DELETE_SIZE";
