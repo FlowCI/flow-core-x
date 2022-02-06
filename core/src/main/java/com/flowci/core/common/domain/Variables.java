@@ -129,18 +129,10 @@ public abstract class Variables {
          * Push / Tag variables
          */
         public static final String PUSH_AUTHOR = "FLOWCI_GIT_AUTHOR";
-
         public static final String PUSH_BRANCH = "FLOWCI_GIT_BRANCH";
-
         public static final String PUSH_MESSAGE = "FLOWCI_GIT_COMMIT_MESSAGE";
-
         public static final String PUSH_COMMIT_TOTAL = "FLOWCI_GIT_COMMIT_TOTAL";
-
-        /**
-         * b64 json content
-         */
-        public static final String PUSH_COMMIT_LIST = "FLOWCI_GIT_COMMIT_LIST";
-
+        public static final String PUSH_COMMIT_LIST = "FLOWCI_GIT_COMMIT_LIST"; // b64 json
         public static final Collection<String> PUSH_TAG_VARS = ImmutableList.<String>builder()
                 .add(PUSH_AUTHOR)
                 .add(PUSH_BRANCH)
@@ -153,31 +145,18 @@ public abstract class Variables {
          * Variables for git pull(mr) request
          */
         public static final String PR_TITLE = "FLOWCI_GIT_PR_TITLE";
-
         public static final String PR_MESSAGE = "FLOWCI_GIT_PR_MESSAGE";
-
         public static final String PR_AUTHOR = "FLOWCI_GIT_AUTHOR";
-
         public static final String PR_URL = "FLOWCI_GIT_PR_URL";
-
         public static final String PR_TIME = "FLOWCI_GIT_PR_TIME";
-
         public static final String PR_NUMBER = "FLOWCI_GIT_PR_NUMBER";
-
         public static final String PR_IS_MERGED = "FLOWCI_GIT_PR_IS_MERGED";
-
         public static final String PR_HEAD_REPO_NAME = "FLOWCI_GIT_PR_HEAD_REPO_NAME";
-
         public static final String PR_HEAD_REPO_BRANCH = "FLOWCI_GIT_PR_HEAD_REPO_BRANCH";
-
         public static final String PR_HEAD_REPO_COMMIT = "FLOWCI_GIT_PR_HEAD_REPO_COMMIT";
-
         public static final String PR_BASE_REPO_NAME = "FLOWCI_GIT_PR_BASE_REPO_NAME";
-
         public static final String PR_BASE_REPO_BRANCH = "FLOWCI_GIT_PR_BASE_REPO_BRANCH";
-
         public static final String PR_BASE_REPO_COMMIT = "FLOWCI_GIT_PR_BASE_REPO_COMMIT";
-
         public static final Collection<String> PR_VARS = ImmutableList.<String>builder()
                 .add(PR_TITLE)
                 .add(PR_MESSAGE)
@@ -194,5 +173,42 @@ public abstract class Variables {
                 .add(PR_BASE_REPO_COMMIT)
                 .build();
 
+        /**
+         * Variables for gerrit patchset
+         */
+        public static final String PATCHSET_SUBJECT = "FLOWCI_GIT_PATCHSET_SUBJECT";
+        public static final String PATCHSET_MESSAGE = "FLOWCI_GIT_PATCHSET_MESSAGE";
+        public static final String PATCHSET_PROJECT = "FLOWCI_GIT_PATCHSET_PROJECT";
+        public static final String PATCHSET_BRANCH = "FLOWCI_GIT_PATCHSET_BRANCH";
+        public static final String PATCHSET_CHANGE_ID = "FLOWCI_GIT_PATCHSET_CHANGE_ID";
+        public static final String PATCHSET_CHANGE_NUM = "FLOWCI_GIT_PATCHSET_CHANGE_NUM";
+        public static final String PATCHSET_CHANGE_URL = "FLOWCI_GIT_PATCHSET_CHANGE_URL";
+        public static final String PATCHSET_CHANGE_STATUS = "FLOWCI_GIT_PATCHSET_CHANGE_STATUS";
+        public static final String PATCHSET_PATCH_NUM = "FLOWCI_GIT_PATCHSET_PATCH_NUM";
+        public static final String PATCHSET_PATCH_URL = "FLOWCI_GIT_PATCHSET_PATCH_URL";
+        public static final String PATCHSET_PATCH_REVISION = "FLOWCI_GIT_PATCHSET_PATCH_REVISION";
+        public static final String PATCHSET_PATCH_REF = "FLOWCI_GIT_PATCHSET_PATCH_REF";
+        public static final String PATCHSET_CREATE_TIME = "FLOWCI_GIT_PATCHSET_CREATE_TIME";
+        public static final String PATCHSET_INSERT_SIZE = "FLOWCI_GIT_PATCHSET_INSERT_SIZE";
+        public static final String PATCHSET_DELETE_SIZE = "FLOWCI_GIT_PATCHSET_DELETE_SIZE";
+        public static final String PATCHSET_AUTHOR = "FLOWCI_GIT_PATCHSET_AUTHOR";
+        public static final Collection<String> PATCHSET_VARS = ImmutableList.<String>builder()
+                .add(PATCHSET_SUBJECT)
+                .add(PATCHSET_MESSAGE)
+                .add(PATCHSET_PROJECT)
+                .add(PATCHSET_BRANCH)
+                .add(PATCHSET_CHANGE_ID)
+                .add(PATCHSET_CHANGE_NUM)
+                .add(PATCHSET_CHANGE_URL)
+                .add(PATCHSET_CHANGE_STATUS)
+                .add(PATCHSET_PATCH_NUM)
+                .add(PATCHSET_PATCH_URL)
+                .add(PATCHSET_PATCH_REVISION)
+                .add(PATCHSET_PATCH_REF)
+                .add(PATCHSET_CREATE_TIME)
+                .add(PATCHSET_INSERT_SIZE)
+                .add(PATCHSET_DELETE_SIZE)
+                .add(PATCHSET_AUTHOR)
+                .build();
     }
 }

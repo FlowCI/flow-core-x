@@ -83,22 +83,4 @@ public class GitPushTrigger extends GitTrigger {
     public String getId() {
         return buildId(getSource().name(), getEvent().name(), repoId, ref, commits.get(0).getId());
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        GitPushTrigger t = (GitPushTrigger) o;
-        return Objects.equals(getSource(), t.getSource())
-                && Objects.equals(getEvent(), t.getEvent())
-                && Objects.equals(repoId, t.getRepoId())
-                && Objects.equals(ref, t.getRef())
-                && Objects.equals(commits.get(0), t.getCommits().get(0));
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getSource(), getEvent(), repoId, ref, commits.get(0).hashCode());
-    }
 }

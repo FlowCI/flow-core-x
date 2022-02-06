@@ -265,7 +265,6 @@ public class JobServiceImpl implements JobService {
         job.setStartAt(null);
         job.setSnapshots(Maps.newHashMap());
         job.setStatus(Job.Status.PENDING);
-        job.setTrigger(Trigger.MANUAL);
         job.resetCurrentPath();
         job.setPriority(Job.MaxPriority);
         job.setCreatedBy(sessionManager.getUserEmail());
@@ -276,9 +275,23 @@ public class JobServiceImpl implements JobService {
 
         while (iterator.hasNext()) {
             var key = iterator.next().getKey();
-            if (PUSH_TAG_VARS.contains(key) || PR_VARS.contains(key) || Objects.equals(key, COMMIT_ID)) {
+
+            if (PUSH_TAG_VARS.contains(key)) {
                 continue;
             }
+
+            if (PR_VARS.contains(key)) {
+                continue;
+            }
+
+            if (PATCHSET_VARS.contains(key)) {
+                continue;
+            }
+
+            if (Objects.equals(key, COMMIT_ID)) {
+                continue;
+            }
+
             iterator.remove();
         }
 
@@ -436,7 +449,7 @@ public class JobServiceImpl implements JobService {
             return;
         }
 
-        String createdBy = context.get(PUSH_AUTHOR, "Unknown");
+        String createdBy = context.get(new String[]{PUSH_AUTHOR, PR_AUTHOR, PATCHSET_AUTHOR}, "Unknown");
         job.setCreatedBy(createdBy);
         context.put(Variables.Job.TriggerBy, createdBy);
     }

@@ -22,12 +22,12 @@ import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.domain.StringVars;
 import com.flowci.exception.NotFoundException;
 import com.flowci.util.StringHelper;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author yang
@@ -35,7 +35,6 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString(of = {"source", "event"})
-@EqualsAndHashCode(of = {"source", "event"})
 public abstract class GitTrigger implements Serializable {
 
     protected final static String SkipMessage = "[ci skip]";
@@ -56,7 +55,9 @@ public abstract class GitTrigger implements Serializable {
 
         PR_MERGED, // pr merged
 
-        TAG
+        TAG,
+
+        PATCHSET_UPDATE
     }
 
     public StringVars toVariableMap() {
@@ -87,6 +88,10 @@ public abstract class GitTrigger implements Serializable {
             return Trigger.PR_MERGED;
         }
 
+        if (event == GitEvent.PATCHSET_UPDATE) {
+            return Trigger.PATCHSET;
+        }
+
         throw new NotFoundException("Cannot found related job trigger for {0}", event.name());
     }
 
@@ -97,7 +102,20 @@ public abstract class GitTrigger implements Serializable {
      */
     public abstract String getId();
 
-    protected static String buildId(String ...props) {
+    protected static String buildId(String... props) {
         return StringHelper.toBase64(StringHelper.join(props));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GitTrigger that = (GitTrigger) o;
+        return getId().equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getId());
     }
 }

@@ -38,7 +38,7 @@ import java.util.function.Function;
 public abstract class TriggerConverter {
 
     @Autowired
-    private ObjectMapper objectMapper;
+    protected ObjectMapper objectMapper;
 
     public Optional<GitTrigger> convert(String event, InputStream body) {
         try {
@@ -46,6 +46,7 @@ public abstract class TriggerConverter {
             GitTrigger trigger = mapping.get(event).apply(body);
             return Optional.ofNullable(trigger);
         } catch (Exception e) {
+            log.warn(e.getMessage());
             return Optional.empty();
         }
     }

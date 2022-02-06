@@ -17,6 +17,7 @@
 package com.flowci.core.test.githook;
 
 import com.flowci.core.common.domain.GitSource;
+import com.flowci.core.common.domain.Variables;
 import com.flowci.core.githook.converter.GitHubConverter;
 import com.flowci.core.githook.converter.TriggerConverter;
 import com.flowci.core.githook.domain.*;
@@ -86,6 +87,9 @@ public class GitHubConverterTest extends SpringScenario {
         Assert.assertEquals("2021-12-05T20:59:26+01:00", commit2.getTime());
         Assert.assertEquals("gy2006", commit2.getAuthor().getName());
         Assert.assertEquals("32008001@qq.com", commit2.getAuthor().getEmail());
+
+        var vars = t.toVariableMap();
+        Assert.assertEquals("master", vars.get(Variables.Git.BRANCH));
     }
 
     @Test
@@ -104,6 +108,9 @@ public class GitHubConverterTest extends SpringScenario {
         Assert.assertEquals("second commit", t.getMessage());
         Assert.assertEquals("gy2006", t.getSender().getName());
         Assert.assertEquals("32008001@qq.com", t.getSender().getEmail());
+
+        var vars = t.toVariableMap();
+        Assert.assertEquals("v2.1", vars.get(Variables.Git.BRANCH));
     }
 
     @Test
@@ -111,33 +118,36 @@ public class GitHubConverterTest extends SpringScenario {
         InputStream stream = load("github/webhook_pr_open.json");
 
         Optional<GitTrigger> optional = gitHubConverter.convert(GitHubConverter.PR, stream);
-        GitPrTrigger trigger = (GitPrTrigger) optional.get();
-        Assert.assertNotNull(trigger);
+        GitPrTrigger t = (GitPrTrigger) optional.get();
+        Assert.assertNotNull(t);
 
-        Assert.assertEquals(GitEvent.PR_OPENED, trigger.getEvent());
-        Assert.assertEquals(GitSource.GITHUB, trigger.getSource());
+        Assert.assertEquals(GitEvent.PR_OPENED, t.getEvent());
+        Assert.assertEquals(GitSource.GITHUB, t.getSource());
 
-        Assert.assertEquals("2", trigger.getNumber());
-        Assert.assertEquals("Update settings.gradle", trigger.getTitle());
-        Assert.assertEquals("pr...", trigger.getBody());
-        Assert.assertEquals("2017-08-08T03:07:15Z", trigger.getTime());
-        Assert.assertEquals("https://github.com/yang-guo-2016/Test/pull/2", trigger.getUrl());
-        Assert.assertEquals("1", trigger.getNumOfCommits());
-        Assert.assertEquals("1", trigger.getNumOfFileChanges());
-        Assert.assertEquals(Boolean.FALSE, trigger.getMerged());
+        Assert.assertEquals("2", t.getNumber());
+        Assert.assertEquals("Update settings.gradle", t.getTitle());
+        Assert.assertEquals("pr...", t.getBody());
+        Assert.assertEquals("2017-08-08T03:07:15Z", t.getTime());
+        Assert.assertEquals("https://github.com/yang-guo-2016/Test/pull/2", t.getUrl());
+        Assert.assertEquals("1", t.getNumOfCommits());
+        Assert.assertEquals("1", t.getNumOfFileChanges());
+        Assert.assertEquals(Boolean.FALSE, t.getMerged());
 
-        Assert.assertEquals("8e7b8fb631ffcae6ae68338d0d16b381fdea4f31", trigger.getHead().getCommit());
-        Assert.assertEquals("developer", trigger.getHead().getRef());
-        Assert.assertEquals("yang-guo-2016/Test", trigger.getHead().getRepoName());
-        Assert.assertEquals("https://github.com/yang-guo-2016/Test", trigger.getHead().getRepoUrl());
+        Assert.assertEquals("8e7b8fb631ffcae6ae68338d0d16b381fdea4f31", t.getHead().getCommit());
+        Assert.assertEquals("developer", t.getHead().getRef());
+        Assert.assertEquals("yang-guo-2016/Test", t.getHead().getRepoName());
+        Assert.assertEquals("https://github.com/yang-guo-2016/Test", t.getHead().getRepoUrl());
 
-        Assert.assertEquals("ed6003bb96bd06cc75e38beb1176c5e9123ec607", trigger.getBase().getCommit());
-        Assert.assertEquals("master", trigger.getBase().getRef());
-        Assert.assertEquals("yang-guo-2016/Test", trigger.getBase().getRepoName());
-        Assert.assertEquals("https://github.com/yang-guo-2016/Test", trigger.getBase().getRepoUrl());
+        Assert.assertEquals("ed6003bb96bd06cc75e38beb1176c5e9123ec607", t.getBase().getCommit());
+        Assert.assertEquals("master", t.getBase().getRef());
+        Assert.assertEquals("yang-guo-2016/Test", t.getBase().getRepoName());
+        Assert.assertEquals("https://github.com/yang-guo-2016/Test", t.getBase().getRepoUrl());
 
-        Assert.assertEquals("23307997", trigger.getSender().getId());
-        Assert.assertEquals("yang-guo-2016", trigger.getSender().getUsername());
+        Assert.assertEquals("23307997", t.getSender().getId());
+        Assert.assertEquals("yang-guo-2016", t.getSender().getUsername());
+
+        var vars = t.toVariableMap();
+        Assert.assertEquals("developer", vars.get(Variables.Git.BRANCH));
     }
 
     @Test
@@ -145,33 +155,37 @@ public class GitHubConverterTest extends SpringScenario {
         InputStream stream = load("github/webhook_pr_close.json");
 
         Optional<GitTrigger> optional = gitHubConverter.convert(GitHubConverter.PR, stream);
-        GitPrTrigger trigger = (GitPrTrigger) optional.get();
-        Assert.assertNotNull(trigger);
+        GitPrTrigger t = (GitPrTrigger) optional.get();
+        Assert.assertNotNull(t);
 
-        Assert.assertNotNull(trigger);
-        Assert.assertEquals(GitEvent.PR_MERGED, trigger.getEvent());
-        Assert.assertEquals(GitSource.GITHUB, trigger.getSource());
+        Assert.assertNotNull(t);
+        Assert.assertEquals(GitEvent.PR_MERGED, t.getEvent());
+        Assert.assertEquals(GitSource.GITHUB, t.getSource());
 
-        Assert.assertEquals("7", trigger.getNumber());
-        Assert.assertEquals("Update settings.gradle title", trigger.getTitle());
-        Assert.assertEquals("hello desc", trigger.getBody());
-        Assert.assertEquals("2017-08-08T06:26:35Z", trigger.getTime());
-        Assert.assertEquals("https://github.com/yang-guo-2016/Test/pull/7", trigger.getUrl());
-        Assert.assertEquals("1", trigger.getNumOfCommits());
-        Assert.assertEquals("1", trigger.getNumOfFileChanges());
-        Assert.assertEquals(Boolean.TRUE, trigger.getMerged());
+        Assert.assertEquals("7", t.getNumber());
+        Assert.assertEquals("Update settings.gradle title", t.getTitle());
+        Assert.assertEquals("hello desc", t.getBody());
+        Assert.assertEquals("2017-08-08T06:26:35Z", t.getTime());
+        Assert.assertEquals("https://github.com/yang-guo-2016/Test/pull/7", t.getUrl());
+        Assert.assertEquals("1", t.getNumOfCommits());
+        Assert.assertEquals("1", t.getNumOfFileChanges());
+        Assert.assertEquals(Boolean.TRUE, t.getMerged());
 
-        Assert.assertEquals("1d1de876084ef656e522f360b88c1e96acf6b806", trigger.getHead().getCommit());
-        Assert.assertEquals("developer", trigger.getHead().getRef());
-        Assert.assertEquals("yang-guo-2016/Test", trigger.getHead().getRepoName());
-        Assert.assertEquals("https://github.com/yang-guo-2016/Test", trigger.getHead().getRepoUrl());
+        Assert.assertEquals("1d1de876084ef656e522f360b88c1e96acf6b806", t.getHead().getCommit());
+        Assert.assertEquals("developer", t.getHead().getRef());
+        Assert.assertEquals("yang-guo-2016/Test", t.getHead().getRepoName());
+        Assert.assertEquals("https://github.com/yang-guo-2016/Test", t.getHead().getRepoUrl());
 
-        Assert.assertEquals("4e4e3750cd468f245bd9f0f938c4b5f76e1bc5b0", trigger.getBase().getCommit());
-        Assert.assertEquals("master", trigger.getBase().getRef());
-        Assert.assertEquals("yang-guo-2016/Test", trigger.getBase().getRepoName());
-        Assert.assertEquals("https://github.com/yang-guo-2016/Test", trigger.getBase().getRepoUrl());
+        Assert.assertEquals("4e4e3750cd468f245bd9f0f938c4b5f76e1bc5b0", t.getBase().getCommit());
+        Assert.assertEquals("master", t.getBase().getRef());
+        Assert.assertEquals("yang-guo-2016/Test", t.getBase().getRepoName());
+        Assert.assertEquals("https://github.com/yang-guo-2016/Test", t.getBase().getRepoUrl());
 
-        Assert.assertEquals("23307997", trigger.getSender().getId());
-        Assert.assertEquals("yang-guo-2016", trigger.getSender().getUsername());
+        Assert.assertEquals("23307997", t.getSender().getId());
+        Assert.assertEquals("yang-guo-2016", t.getSender().getUsername());
+
+
+        var vars = t.toVariableMap();
+        Assert.assertEquals("master", vars.get(Variables.Git.BRANCH));
     }
 }

@@ -74,6 +74,7 @@ public final class GitPrTrigger extends GitTrigger {
         map.put(PR_BASE_REPO_BRANCH, base.ref);
         map.put(PR_BASE_REPO_COMMIT, base.commit);
 
+        map.put(BRANCH, merged ? base.ref : head.ref);
         return map;
     }
 
@@ -88,22 +89,6 @@ public final class GitPrTrigger extends GitTrigger {
     @Override
     public String getId() {
         return buildId(getSource().name(), getEvent().name(), getNumber());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        GitPrTrigger t = (GitPrTrigger) o;
-        return Objects.equals(getSource(), t.getSource())
-                && Objects.equals(getEvent(), t.getEvent())
-                && Objects.equals(getNumber(), t.getNumber());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getSource(), getEvent(), getNumber());
     }
 
     @Getter

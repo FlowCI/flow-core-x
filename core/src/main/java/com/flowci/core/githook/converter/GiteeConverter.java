@@ -52,10 +52,10 @@ public class GiteeConverter extends TriggerConverter {
 
     private final Map<String, Function<InputStream, GitTrigger>> mapping =
             ImmutableMap.<String, Function<InputStream, GitTrigger>>builder()
-                    .put(Ping, new EventConverter<>("Ping", GiteeConverter.PingEvent.class))
+                    .put(Ping, new EventConverter<>("Ping", PingEvent.class))
                     .put(Push, new EventConverter<>("Push", PushTagEvent.class))
                     .put(Tag, new EventConverter<>("Tag", PushTagEvent.class))
-                    .put(PR, new EventConverter<>("PR", GiteeConverter.PrEvent.class))
+                    .put(PR, new EventConverter<>("PR", PrEvent.class))
                     .build();
 
     @Override
