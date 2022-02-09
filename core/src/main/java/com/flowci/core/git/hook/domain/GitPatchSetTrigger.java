@@ -1,4 +1,4 @@
-package com.flowci.core.githook.domain;
+package com.flowci.core.git.hook.domain;
 
 import com.flowci.domain.StringVars;
 import com.flowci.util.StringHelper;

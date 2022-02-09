@@ -1,12 +1,12 @@
-package com.flowci.core.githook.converter;
+package com.flowci.core.git.hook.converter;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.flowci.core.common.domain.GitSource;
-import com.flowci.core.githook.domain.GitPatchSetTrigger;
-import com.flowci.core.githook.domain.GitTrigger;
-import com.flowci.core.githook.domain.GitTriggerable;
-import com.flowci.core.githook.domain.GitUser;
-import com.flowci.core.githook.util.BranchHelper;
+import com.flowci.core.git.hook.domain.GitPatchSetTrigger;
+import com.flowci.core.git.hook.domain.GitTrigger;
+import com.flowci.core.git.hook.domain.GitTriggerable;
+import com.flowci.core.git.hook.domain.GitUser;
+import com.flowci.core.git.hook.util.BranchHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.log4j.Log4j2;

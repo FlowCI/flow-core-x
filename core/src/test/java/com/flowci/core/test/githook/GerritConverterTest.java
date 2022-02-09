@@ -1,9 +1,9 @@
 package com.flowci.core.test.githook;
 
 import com.flowci.core.common.domain.Variables;
-import com.flowci.core.githook.converter.GerritConverter;
-import com.flowci.core.githook.domain.GitPatchSetTrigger;
-import com.flowci.core.githook.domain.GitTrigger;
+import com.flowci.core.git.hook.converter.GerritConverter;
+import com.flowci.core.git.hook.domain.GitPatchSetTrigger;
+import com.flowci.core.git.hook.domain.GitTrigger;
 import com.flowci.core.test.SpringScenario;
 import org.junit.Assert;
 import org.junit.Test;

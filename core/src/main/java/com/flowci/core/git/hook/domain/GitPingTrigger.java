@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 flow.ci
+ * Copyright 2019 fir.im
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,33 @@
  * limitations under the License.
  */
 
-package com.flowci.core.githook.event;
+package com.flowci.core.git.hook.domain;
 
-import com.flowci.core.githook.domain.GitPingTrigger;
-import com.flowci.core.githook.domain.GitTrigger;
 import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
+import lombok.Setter;
+
+import java.util.Set;
 
 /**
  * @author yang
  */
 @Getter
-public class GitHookEvent extends ApplicationEvent {
+@Setter
+public final class GitPingTrigger extends GitTrigger {
 
-    private final String flow;
+    private Boolean active;
 
-    private final GitTrigger trigger;
+    private Set<String> events;
 
-    public GitHookEvent(Object source, String flow, GitTrigger trigger) {
-        super(source);
-        this.flow = flow;
-        this.trigger = trigger;
+    private String createdAt;
+
+    @Override
+    public boolean isSkip() {
+        return false;
     }
 
-    public boolean isPingEvent() {
-        return trigger instanceof GitPingTrigger;
+    @Override
+    public String getId() {
+        return buildId("no_id");
     }
 }

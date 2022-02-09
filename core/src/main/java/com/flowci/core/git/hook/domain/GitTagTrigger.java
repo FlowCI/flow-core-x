@@ -1,10 +1,8 @@
-package com.flowci.core.githook.domain;
+package com.flowci.core.git.hook.domain;
 
 import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Objects;
 
 @Getter
 @Setter

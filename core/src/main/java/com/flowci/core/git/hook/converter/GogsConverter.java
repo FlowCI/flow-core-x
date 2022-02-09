@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.flowci.core.githook.converter;
+package com.flowci.core.git.hook.converter;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.flowci.core.common.domain.GitSource;
-import com.flowci.core.githook.domain.*;
-import com.flowci.core.githook.util.BranchHelper;
+import com.flowci.core.git.hook.domain.*;
+import com.flowci.core.git.hook.util.BranchHelper;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;

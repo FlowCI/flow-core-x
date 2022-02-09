@@ -18,11 +18,10 @@ package com.flowci.core.test.githook;
 
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.domain.Variables;
-import com.flowci.core.githook.domain.*;
+import com.flowci.core.git.hook.domain.*;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.core.githook.converter.GiteeConverter;
-import com.flowci.core.githook.converter.TriggerConverter;
-import com.flowci.domain.StringVars;
+import com.flowci.core.git.hook.converter.GiteeConverter;
+import com.flowci.core.git.hook.converter.TriggerConverter;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

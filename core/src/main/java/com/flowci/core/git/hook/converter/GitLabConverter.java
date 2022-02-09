@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.flowci.core.githook.converter;
+package com.flowci.core.git.hook.converter;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flowci.core.common.domain.GitSource;
-import com.flowci.core.githook.domain.*;
-import com.flowci.core.githook.domain.GitTrigger.GitEvent;
-import com.flowci.core.githook.util.BranchHelper;
+import com.flowci.core.git.hook.domain.*;
+import com.flowci.core.git.hook.util.BranchHelper;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
@@ -51,11 +50,11 @@ public class GitLabConverter extends TriggerConverter {
     public static final String PR = "Merge Request Hook";
 
     private final Map<String, Function<InputStream, GitTrigger>> mapping =
-        ImmutableMap.<String, Function<InputStream, GitTrigger>>builder()
-            .put(Push, new EventConverter<>("Push", PushEvent.class))
-            .put(Tag, new EventConverter<>("Tag", TagEvent.class))
-            .put(PR, new EventConverter<>("PR", PrEvent.class))
-            .build();
+            ImmutableMap.<String, Function<InputStream, GitTrigger>>builder()
+                    .put(Push, new EventConverter<>("Push", PushEvent.class))
+                    .put(Tag, new EventConverter<>("Tag", TagEvent.class))
+                    .put(PR, new EventConverter<>("PR", PrEvent.class))
+                    .build();
 
     @Override
     GitSource getGitSource() {
@@ -148,9 +147,9 @@ public class GitLabConverter extends TriggerConverter {
             return new GitPushTrigger();
         }
 
-        public GitEvent getEvent() {
+        public GitTrigger.GitEvent getEvent() {
             if (name.equals(PushEvent)) {
-                return GitEvent.PUSH;
+                return GitTrigger.GitEvent.PUSH;
             }
 
             throw new ArgumentException("Unsupported event '{0}' from gitlab", name);
@@ -167,9 +166,9 @@ public class GitLabConverter extends TriggerConverter {
         }
 
         @Override
-        public GitEvent getEvent() {
+        public GitTrigger.GitEvent getEvent() {
             if (name.equals(TagEvent)) {
-                return GitEvent.TAG;
+                return GitTrigger.GitEvent.TAG;
             }
 
             throw new ArgumentException("Unsupported event '{0}' from gitlab", name);
@@ -217,8 +216,8 @@ public class GitLabConverter extends TriggerConverter {
             trigger.setBase(base);
 
             GitUser sender = new GitUser()
-                .setUsername(user.username)
-                .setAvatarLink(user.avatar);
+                    .setUsername(user.username)
+                    .setAvatarLink(user.avatar);
             trigger.setSender(sender);
 
             return trigger;

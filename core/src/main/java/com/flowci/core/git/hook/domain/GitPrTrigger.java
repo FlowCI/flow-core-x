@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package com.flowci.core.githook.domain;
+package com.flowci.core.git.hook.domain;
 
 import com.flowci.domain.StringVars;
 import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Objects;
 
 import static com.flowci.core.common.domain.Variables.Git.*;
 

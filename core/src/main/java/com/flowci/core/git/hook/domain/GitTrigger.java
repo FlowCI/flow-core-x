@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flowci.core.githook.domain;
+package com.flowci.core.git.hook.domain;
 
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.domain.Variables;

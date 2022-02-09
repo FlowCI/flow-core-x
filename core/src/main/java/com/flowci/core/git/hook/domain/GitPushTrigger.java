@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flowci.core.githook.domain;
+package com.flowci.core.git.hook.domain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.flowci.core.common.helper.JacksonHelper;
@@ -26,7 +26,6 @@ import lombok.Setter;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import static com.flowci.core.common.domain.Variables.Git.*;
 

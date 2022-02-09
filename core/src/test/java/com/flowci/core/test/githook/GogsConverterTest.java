@@ -18,9 +18,9 @@ package com.flowci.core.test.githook;
 
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.domain.Variables;
-import com.flowci.core.githook.converter.GogsConverter;
-import com.flowci.core.githook.converter.TriggerConverter;
-import com.flowci.core.githook.domain.*;
+import com.flowci.core.git.hook.converter.GogsConverter;
+import com.flowci.core.git.hook.converter.TriggerConverter;
+import com.flowci.core.git.hook.domain.*;
 import com.flowci.core.test.SpringScenario;
 import org.junit.Assert;
 import org.junit.Test;

@@ -12,7 +12,7 @@ import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.flow.service.FlowService;
-import com.flowci.core.githook.domain.GitCommit;
+import com.flowci.core.git.hook.domain.GitCommit;
 import com.flowci.core.job.event.JobFinishedEvent;
 import com.flowci.core.trigger.dao.TriggerDao;
 import com.flowci.core.trigger.domain.EmailTrigger;

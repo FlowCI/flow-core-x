@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.flowci.core.githook.controller;
+package com.flowci.core.git.hook.controller;
 
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.githook.converter.*;
-import com.flowci.core.githook.domain.GitTrigger;
-import com.flowci.core.githook.event.GitHookEvent;
+import com.flowci.core.git.hook.converter.*;
+import com.flowci.core.git.hook.domain.GitTrigger;
+import com.flowci.core.git.hook.event.GitHookEvent;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
