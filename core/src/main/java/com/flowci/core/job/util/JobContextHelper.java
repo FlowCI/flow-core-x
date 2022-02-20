@@ -70,4 +70,12 @@ public abstract class JobContextHelper {
     public static String getJobUrl(Job job) {
         return job.getContext().get(Variables.Job.Url);
     }
+
+    public static String getCommitId(Job job) {
+        return job.getContext().get(Variables.Git.COMMIT_ID);
+    }
+
+    public static String getGitSource(Job job) {
+        return job.getContext().get(Variables.Git.SOURCE);
+    }
 }

@@ -23,8 +23,8 @@ import java.util.Map;
 import java.util.Objects;
 
 @Log4j2
-@Component
-public class GithubClient implements GitClient {
+@Component("githubClient")
+public class GithubAPIClient implements GitAPIClient {
 
     private final static UriTemplate HttpTemplate = new UriTemplate("https://github.com/{owner}/{repo}.git");
 
@@ -40,7 +40,7 @@ public class GithubClient implements GitClient {
 
     private final ObjectMapper objectMapper;
 
-    public GithubClient(GitSettingsDao gitSettingsDao, HttpClient httpClient, ObjectMapper objectMapper) {
+    public GithubAPIClient(GitSettingsDao gitSettingsDao, HttpClient httpClient, ObjectMapper objectMapper) {
         this.gitSettingsDao = gitSettingsDao;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;

@@ -117,7 +117,7 @@ public abstract class Variables {
         public static final String EVENT = "FLOWCI_GIT_EVENT";
 
         /**
-         * Used for git clone
+         * Used for git clone, will be put to job context from gitclone plugin
          */
         public static final String COMMIT_ID = "FLOWCI_GIT_COMMIT_ID";
 
