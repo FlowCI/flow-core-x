@@ -42,6 +42,7 @@ import com.flowci.core.job.service.JobActionService;
 import com.flowci.core.job.service.JobEventService;
 import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
+import com.flowci.core.job.util.JobContextHelper;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.test.ZookeeperScenario;
@@ -492,7 +493,7 @@ public class JobServiceTest extends ZookeeperScenario {
         // init: create old job wit success status
         Job job = jobService.create(flow, yml.getRaw(), Trigger.MANUAL, StringVars.EMPTY);
         job.setStatus(Status.SUCCESS);
-        job.setStatusToContext(Status.SUCCESS);
+        JobContextHelper.setStatus(job, Status.SUCCESS);
         jobDao.save(job);
 
         // when: rerun
@@ -529,10 +530,10 @@ public class JobServiceTest extends ZookeeperScenario {
 
         job.resetCurrentPath().getCurrentPath().add(firstNode.getPathAsString());
         job.setStatus(Status.RUNNING);
-        job.setStatusToContext(Status.RUNNING);
+        JobContextHelper.setStatus(job, Status.RUNNING);
 
         Assert.assertEquals(Status.RUNNING, job.getStatus());
-        Assert.assertEquals(Status.RUNNING, job.getStatusFromContext());
+        Assert.assertEquals(Status.RUNNING, JobContextHelper.getStatus(job));
 
         return jobDao.save(job);
     }

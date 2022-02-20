@@ -1,8 +1,8 @@
 package com.flowci.core.git.client;
 
-import com.flowci.core.git.domain.GitCommitWithJobStatus;
+import com.flowci.core.git.domain.GitCommitStatus;
 
 public interface GitClient {
 
-    void writeCommitStatus(GitCommitWithJobStatus commit);
+    void writeCommitStatus(GitCommitStatus commit);
 }

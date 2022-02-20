@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.git.dao.GitSettingsDao;
 import com.flowci.core.git.domain.GitCommit;
-import com.flowci.core.git.domain.GitCommitWithJobStatus;
+import com.flowci.core.git.domain.GitCommitStatus;
 import com.flowci.core.git.domain.GitRepo;
 import com.flowci.core.git.domain.GitSettings;
 import com.flowci.exception.CIException;
@@ -47,7 +47,7 @@ public class GithubClient implements GitClient {
     }
 
     @Override
-    public void writeCommitStatus(GitCommitWithJobStatus commit) {
+    public void writeCommitStatus(GitCommitStatus commit) {
         GitRepo repo = getRepo(commit);
 
         var body = new GitCommitPostBody();

@@ -322,28 +322,6 @@ public class Job extends Mongoable implements Pathable {
         return Duration.between(this.startAt.toInstant(), this.finishAt.toInstant()).getSeconds();
     }
 
-    @JsonIgnore
-    public Status getStatusFromContext() {
-        return Job.Status.valueOf(context.get(Variables.Job.Status));
-    }
-
-    public void setStatusToContext(Status status) {
-        context.put(Variables.Job.Status, status.name());
-    }
-
-    @JsonIgnore
-    public String getErrorFromContext() {
-        return context.get(Variables.Job.Error);
-    }
-
-    public String getCredentialName() {
-        return context.get(Variables.Flow.GitCredential);
-    }
-
-    public String getGitUrl() {
-        return context.get(Variables.Flow.GitUrl);
-    }
-
     public boolean isExpired() {
         Instant expireAt = getExpireAt().toInstant();
         return Instant.now().compareTo(expireAt) > 0;
@@ -361,10 +339,6 @@ public class Job extends Mongoable implements Pathable {
         s.freeDisk = profile.getFreeDisk();
 
         this.snapshots.put(agent.getId(), s);
-    }
-
-    public void setErrorToContext(String err) {
-        context.put(Variables.Job.Error, err);
     }
 
     public Job resetCurrentPath() {

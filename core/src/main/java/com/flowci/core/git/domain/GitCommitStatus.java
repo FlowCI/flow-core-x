@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class GitCommitWithJobStatus extends GitCommit {
+public class GitCommitStatus extends GitCommit {
 
     private String status;
 
