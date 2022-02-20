@@ -198,11 +198,11 @@ public class FlowServiceImpl implements FlowService {
         Vars<VarValue> localVars = flow.getLocally();
 
         if (option.hasGitUrl()) {
-            localVars.put(Variables.Flow.GitUrl, VarValue.of(option.getGitUrl(), VarType.GIT_URL, true));
+            localVars.put(Variables.Git.URL, VarValue.of(option.getGitUrl(), VarType.GIT_URL, true));
         }
 
         if (option.hasSecret()) {
-            localVars.put(Variables.Flow.GitCredential, VarValue.of(option.getSecret(), VarType.STRING, true));
+            localVars.put(Variables.Git.SECRET, VarValue.of(option.getSecret(), VarType.STRING, true));
         }
 
         flow.setStatus(Status.CONFIRMED);

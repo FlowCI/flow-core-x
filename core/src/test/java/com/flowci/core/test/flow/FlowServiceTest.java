@@ -146,7 +146,7 @@ public class FlowServiceTest extends SpringScenario {
                 .setSecret(secretName));
 
         Vars<VarValue> variables = flowService.get(flow.getName()).getLocally();
-        Assert.assertEquals(secretName, variables.get(Variables.Flow.GitCredential).getData());
+        Assert.assertEquals(secretName, variables.get(Variables.Git.SECRET).getData());
 
         // when:
         List<Flow> flows = flowService.listByCredential(secretName);

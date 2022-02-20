@@ -6,6 +6,7 @@ import com.flowci.core.git.domain.GitCommit;
 import com.flowci.core.git.domain.GitCommitStatus;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.JobFinishedEvent;
+import com.flowci.core.job.util.JobContextHelper;
 import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.jvnet.hk2.annotations.Service;
@@ -31,9 +32,9 @@ public class GitServiceImpl implements GitService {
         }
 
         var commit = new GitCommitStatus();
-//        commit.setId();
-//        commit.setTargetUrl(job.getGitUrl());
-//        commit.setStatus(job.getStatus().name().toLowerCase());
+        commit.setUrl(JobContextHelper.getGitUrl(job));
+        commit.setTargetUrl(JobContextHelper.getJobUrl(job));
+        commit.setStatus(JobContextHelper.getStatus(job).name().toLowerCase());
 
     }
 }
