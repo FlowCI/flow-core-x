@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * @author yang
  */
-public interface GitService {
+public interface GitConnService {
 
     /**
      * Test git connection for http or ssh with credential

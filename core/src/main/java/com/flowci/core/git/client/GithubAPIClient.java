@@ -3,16 +3,15 @@ package com.flowci.core.git.client;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flowci.core.git.dao.GitSettingsDao;
 import com.flowci.core.git.domain.GitCommit;
 import com.flowci.core.git.domain.GitCommitStatus;
 import com.flowci.core.git.domain.GitRepo;
-import com.flowci.core.git.domain.GitSettings;
+import com.flowci.core.secret.domain.Secret;
+import com.flowci.core.secret.domain.TokenSecret;
+import com.flowci.exception.ArgumentException;
 import com.flowci.exception.CIException;
-import com.flowci.exception.NotFoundException;
 import com.flowci.exception.UnsupportedException;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriTemplate;
 
 import java.net.URI;
@@ -23,7 +22,6 @@ import java.util.Map;
 import java.util.Objects;
 
 @Log4j2
-@Component("githubClient")
 public class GithubAPIClient implements GitAPIClient {
 
     private final static UriTemplate HttpTemplate = new UriTemplate("https://github.com/{owner}/{repo}.git");
@@ -34,21 +32,23 @@ public class GithubAPIClient implements GitAPIClient {
 
     private final static String CommitStatusAPI = "https://api.github.com/repos/%s/%s/statuses/%s";
 
-    private final GitSettingsDao gitSettingsDao;
-
     private final HttpClient httpClient;
 
     private final ObjectMapper objectMapper;
 
-    public GithubAPIClient(GitSettingsDao gitSettingsDao, HttpClient httpClient, ObjectMapper objectMapper) {
-        this.gitSettingsDao = gitSettingsDao;
+    public GithubAPIClient(HttpClient httpClient, ObjectMapper objectMapper) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
     }
 
     @Override
-    public void writeCommitStatus(GitCommitStatus commit) {
-        GitRepo repo = getRepo(commit);
+    public void writeCommitStatus(GitCommitStatus commit, Secret secret) {
+        if (!(secret instanceof TokenSecret)) {
+            throw new ArgumentException("Token secret is required");
+        }
+
+        var tokenSecret = (TokenSecret) secret;
+        var repo = getRepo(commit);
 
         var body = new GitCommitPostBody();
         body.state = commit.getStatus();
@@ -57,7 +57,7 @@ public class GithubAPIClient implements GitAPIClient {
 
         try {
             var api = String.format(CommitStatusAPI, repo.getOwner(), repo.getOwner(), commit.getId());
-            var request = getRequestBuilder(api)
+            var request = getRequestBuilder(api, tokenSecret.getTokenData())
                     .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
                     .build();
 
@@ -69,18 +69,10 @@ public class GithubAPIClient implements GitAPIClient {
         }
     }
 
-    private HttpRequest.Builder getRequestBuilder(String url) {
-        var optional = gitSettingsDao.findByKey(GitSettings.Key);
-        if (optional.isEmpty()) {
-            throw new NotFoundException("Git settings is missing");
-        }
-
-        var tokenSecret = optional.get().getGitHubTokenSecret();
-        Objects.requireNonNull(tokenSecret, "Github token secret is missing");
-
+    private HttpRequest.Builder getRequestBuilder(String url, String token) {
         return HttpRequest.newBuilder(URI.create(url))
                 .setHeader("Accept", "application/vnd.github.v3+json")
-                .setHeader("Authorization", "token " + tokenSecret);
+                .setHeader("Authorization", "token " + token);
     }
 
     private static class GitCommitPostBody {

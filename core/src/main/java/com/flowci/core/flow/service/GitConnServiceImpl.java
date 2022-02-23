@@ -45,8 +45,8 @@ import java.util.List;
  * @author yang
  */
 @Log4j2
-@Service
-public class GitServiceImpl implements GitService {
+@Service("gitConnService")
+public class GitConnServiceImpl implements GitConnService {
 
     @Autowired
     private TaskExecutor appTaskExecutor;

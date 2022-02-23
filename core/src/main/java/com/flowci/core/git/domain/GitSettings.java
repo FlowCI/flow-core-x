@@ -15,7 +15,7 @@ public class GitSettings {
     private String id;
 
     @Indexed(unique = true)
-    private String key;
+    private String key = Key;
 
     private String gitHubTokenSecret;
 }
