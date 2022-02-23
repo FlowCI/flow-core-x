@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.flowci.core.secret;
+package com.flowci.core.secret.controller;
 
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.secret.domain.AndroidSignOption;
 import com.flowci.core.secret.domain.Request;
 import com.flowci.core.secret.domain.Secret;
-import com.flowci.core.secret.domain.SecretAction;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.domain.SimpleKeyPair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,25 +42,25 @@ public class SecretController {
     private SecretService secretService;
 
     @GetMapping("/{name}")
-    @Action(SecretAction.GET)
+    @Action(SecretActions.GET)
     public Secret getByName(@PathVariable String name) {
         return secretService.get(name);
     }
 
     @GetMapping
-    @Action(SecretAction.LIST)
+    @Action(SecretActions.LIST)
     public List<Secret> list() {
         return secretService.list();
     }
 
     @GetMapping("/list/name")
-    @Action(SecretAction.LIST_NAME)
+    @Action(SecretActions.LIST_NAME)
     public List<Secret> listName(@RequestParam String category) {
         return secretService.listName(category);
     }
 
     @PostMapping("/rsa")
-    @Action(SecretAction.CREATE)
+    @Action(SecretActions.CREATE)
     public Secret create(@Validated @RequestBody Request.CreateRSA body) {
         if (body.hasKeyPair()) {
             return secretService.createRSA(body.getName(), body.getKeyPair());
@@ -71,19 +70,19 @@ public class SecretController {
     }
 
     @PostMapping("/auth")
-    @Action(SecretAction.CREATE)
+    @Action(SecretActions.CREATE)
     public Secret create(@Validated @RequestBody Request.CreateAuth body) {
         return secretService.createAuth(body.getName(), body.getAuthPair());
     }
 
     @PostMapping("/token")
-    @Action(SecretAction.CREATE)
+    @Action(SecretActions.CREATE)
     public Secret create(@Validated @RequestBody Request.CreateToken body) {
         return secretService.createToken(body.getName(), body.getToken());
     }
 
     @PostMapping("/android/sign")
-    @Action(SecretAction.CREATE)
+    @Action(SecretActions.CREATE)
     public Secret create(@Validated @NotEmpty @RequestPart String name,
                          @Validated @RequestPart AndroidSignOption option,
                          @Validated @NotBlank @RequestPart MultipartFile keyStore) {
@@ -92,19 +91,19 @@ public class SecretController {
     }
 
     @PostMapping("/kubeconfig")
-    @Action(SecretAction.CREATE)
+    @Action(SecretActions.CREATE)
     public Secret create(@Validated @RequestBody Request.CreateKubeConfig body) {
         return secretService.createKubeConfig(body.getName(), body.getContent());
     }
 
     @PostMapping("/rsa/gen")
-    @Action(SecretAction.GENERATE_RSA)
+    @Action(SecretActions.GENERATE_RSA)
     public SimpleKeyPair genByEmail() {
         return secretService.genRSA();
     }
 
     @DeleteMapping("/{name}")
-    @Action(SecretAction.DELETE)
+    @Action(SecretActions.DELETE)
     public Secret delete(@PathVariable String name) {
         return secretService.delete(name);
     }

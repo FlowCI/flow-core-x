@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface GitConfigDao extends MongoRepository<GitConfig, String> {
 
     Optional<GitConfig> findBySource(GitSource source);
+
+    void deleteBySource(GitSource source);
 }

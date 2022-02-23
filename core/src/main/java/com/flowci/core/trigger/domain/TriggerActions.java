@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
-public abstract class TriggerOperations {
+public abstract class TriggerActions {
 
     public static final String LIST = "list_notify";
 

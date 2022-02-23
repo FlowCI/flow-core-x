@@ -15,13 +15,13 @@
  *
  */
 
-package com.flowci.core.secret.domain;
+package com.flowci.core.secret.controller;
 
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
-public abstract class SecretAction {
+public abstract class SecretActions {
 
     public static final String LIST = "list_credential";
 
