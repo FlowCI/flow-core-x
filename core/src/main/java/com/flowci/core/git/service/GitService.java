@@ -1,8 +1,8 @@
 package com.flowci.core.git.service;
 
-import com.flowci.core.git.domain.GitSettings;
+import com.flowci.core.git.domain.GitConfig;
 
 public interface GitService {
 
-    GitSettings saveGithubSecret(String secret);
+    GitConfig saveGithubSecret(String secret);
 }

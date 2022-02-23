@@ -1,7 +1,7 @@
 package com.flowci.core.git.controller;
 
 import com.flowci.core.common.domain.GitSource;
-import com.flowci.core.git.domain.GitSettings;
+import com.flowci.core.git.domain.GitConfig;
 import com.flowci.core.git.service.GitService;
 import com.flowci.exception.UnsupportedException;
 import lombok.extern.log4j.Log4j2;
@@ -20,7 +20,7 @@ public class GitSettingsController {
     private GitService gitService;
 
     @PostMapping("/save")
-    public GitSettings save(@RequestBody Request.SaveOptions options) {
+    public GitConfig save(@RequestBody Request.SaveOptions options) {
         if (options.getSource() == GitSource.GITHUB) {
             return gitService.saveGithubSecret(options.getSecret());
         }

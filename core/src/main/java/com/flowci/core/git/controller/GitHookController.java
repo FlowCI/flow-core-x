@@ -45,7 +45,7 @@ import java.util.Optional;
 @Log4j2
 @RestController
 @RequestMapping("/webhooks")
-public class GithookController {
+public class GitHookController {
 
     @Autowired
     private HttpServletRequest request;

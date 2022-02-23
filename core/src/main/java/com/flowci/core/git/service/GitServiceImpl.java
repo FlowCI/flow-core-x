@@ -2,12 +2,13 @@ package com.flowci.core.git.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.GitSource;
+import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.git.client.GitAPIClient;
 import com.flowci.core.git.client.GithubAPIClient;
-import com.flowci.core.git.dao.GitSettingsDao;
+import com.flowci.core.git.dao.GitConfigDao;
 import com.flowci.core.git.domain.GitCommitStatus;
-import com.flowci.core.git.domain.GitSettings;
+import com.flowci.core.git.domain.GitConfig;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.JobFinishedEvent;
 import com.flowci.core.job.util.JobContextHelper;
@@ -15,17 +16,18 @@ import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.domain.TokenSecret;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.exception.ArgumentException;
+import com.flowci.exception.NotFoundException;
 import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.net.http.HttpClient;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Log4j2
 @Service("gitService")
@@ -38,40 +40,41 @@ public class GitServiceImpl implements GitService {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private GitSettingsDao gitSettingsDao;
+    private GitConfigDao gitConfigDao;
 
     @Autowired
     private SpringEventManager eventManager;
+
+    @Autowired
+    private SessionManager sessionManager;
 
     private final Map<GitSource, ActionHandler> actions = new HashMap<>(5);
 
     @PostConstruct
     public void init() {
         actions.put(GitSource.GITHUB, new GitHubActionHandler());
-
-        var optional = gitSettingsDao.findByKey(GitSettings.Key);
-        if (optional.isEmpty()) {
-            try {
-                gitSettingsDao.save(new GitSettings());
-            } catch (DuplicateKeyException ignore) {
-                // ignore the duplicate git settings key
-            }
-        }
     }
 
     @Override
-    public GitSettings saveGithubSecret(String secretName) {
+    public GitConfig saveGithubSecret(String secretName) {
         var event = eventManager.publish(new GetSecretEvent(this, secretName));
-        var event1 = eventManager.publish(new GetSecretEvent(this, secretName));
-        Secret secret = event1.getFetched();
+        Secret secret = event.getFetched();
 
         if (!(secret instanceof TokenSecret)) {
             throw new ArgumentException("Token secret is required");
         }
 
-        var settings = loadGitSettings();
-        settings.setGitHubTokenSecret(secretName);
-        return gitSettingsDao.save(settings);
+        var optional = gitConfigDao.findBySource(GitSource.GITHUB);
+        if (optional.isEmpty()) {
+            GitConfig c = new GitConfig(GitSource.GITHUB, secretName);
+            c.setCreatedBy(sessionManager.getUserEmail());
+            return gitConfigDao.save(c);
+        }
+
+        GitConfig c = optional.get();
+        c.setSecret(secretName);
+        c.setUpdatedBy(sessionManager.getUserEmail());
+        return gitConfigDao.save(c);
     }
 
     @EventListener
@@ -105,10 +108,6 @@ public class GitServiceImpl implements GitService {
         }
     }
 
-    private GitSettings loadGitSettings() {
-        return gitSettingsDao.findByKey(GitSettings.Key).get();
-    }
-
     private interface ActionHandler {
         void write(GitCommitStatus commit);
     }
@@ -119,10 +118,12 @@ public class GitServiceImpl implements GitService {
 
         @Override
         public void write(GitCommitStatus commit) {
-            var settings = loadGitSettings();
-            String secretName = settings.getGitHubTokenSecret();
+            Optional<GitConfig> optional = gitConfigDao.findBySource(GitSource.GITHUB);
+            if (optional.isEmpty()) {
+                throw new NotFoundException("Github secret not found");
+            }
 
-            var event = eventManager.publish(new GetSecretEvent(GitServiceImpl.this, secretName));
+            var event = eventManager.publish(new GetSecretEvent(GitServiceImpl.this, optional.get().getSecret()));
             Secret secret = event.getFetched();
 
             if (!(secret instanceof TokenSecret)) {
@@ -133,5 +134,4 @@ public class GitServiceImpl implements GitService {
             client.writeCommitStatus(commit, tokenSecret);
         }
     }
-
 }

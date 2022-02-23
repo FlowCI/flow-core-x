@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /**
  * @author yang
  */
-public class GithookControllerTest extends SpringScenario {
+public class GitHookControllerTest extends SpringScenario {
 
     @Autowired
     private FlowMockHelper flowMockHelper;
