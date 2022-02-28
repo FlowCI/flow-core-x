@@ -44,9 +44,6 @@ public class GitServiceImpl implements GitService {
     @Autowired
     private SpringEventManager eventManager;
 
-    @Autowired
-    private SessionManager sessionManager;
-
     private final Map<GitSource, OperationHandler> handlers = new HashMap<>(5);
 
     @PostConstruct
@@ -136,13 +133,11 @@ public class GitServiceImpl implements GitService {
             var optional = gitConfigDao.findBySource(GitSource.GITHUB);
             if (optional.isEmpty()) {
                 GitConfig c = new GitConfig(GitSource.GITHUB, secret.getName());
-                c.setCreatedBy(sessionManager.getUserEmail());
                 return gitConfigDao.save(c);
             }
 
             GitConfig c = optional.get();
             c.setSecret(secret.getName());
-            c.setUpdatedBy(sessionManager.getUserEmail());
             return gitConfigDao.save(c);
         }
 

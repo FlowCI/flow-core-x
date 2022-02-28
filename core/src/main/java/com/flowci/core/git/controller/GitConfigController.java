@@ -12,7 +12,7 @@ import java.util.List;
 
 @Log4j2
 @RestController
-@RequestMapping("/gitsettings")
+@RequestMapping("/gitconfig")
 public class GitConfigController {
 
     @Autowired
