@@ -12,6 +12,7 @@ import com.flowci.exception.ArgumentException;
 import com.flowci.exception.CIException;
 import com.flowci.exception.UnsupportedException;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.util.UriTemplate;
 
 import java.net.URI;
@@ -56,13 +57,18 @@ public class GithubAPIClient implements GitAPIClient {
         body.description = commit.getDesc();
 
         try {
-            var api = String.format(CommitStatusAPI, repo.getOwner(), repo.getOwner(), commit.getId());
+            var api = String.format(CommitStatusAPI, repo.getOwner(), repo.getName(), commit.getId());
             var request = getRequestBuilder(api, tokenSecret.getTokenData())
                     .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
                     .build();
 
             httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenAccept(r -> log.info("Update commit status on {} is {}", commit.getUrl(), r.statusCode()));
+                    .thenAccept(r -> {
+                        log.info("Update commit status on {} is {}", commit.getUrl(), r.statusCode());
+                        if (r.statusCode() != HttpStatus.OK.value()) {
+                            log.debug(r.body());
+                        }
+                    });
 
         } catch (JsonProcessingException e) {
             throw new CIException("Unable to convert github commit body to json: " + e.getMessage());

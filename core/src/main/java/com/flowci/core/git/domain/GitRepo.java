@@ -13,5 +13,5 @@ public class GitRepo {
 
     private String owner;
 
-    private String repo;
+    private String name;
 }

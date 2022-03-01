@@ -15,16 +15,16 @@ public class GitHubClientTest {
 
         GitRepo repo = GithubAPIClient.getRepo(commit);
         Assert.assertEquals("gy2006", repo.getOwner());
-        Assert.assertEquals("ci-test", repo.getRepo());
+        Assert.assertEquals("ci-test", repo.getName());
 
         commit.setUrl("git@github.com:gy2006/ci-test.git");
         repo = GithubAPIClient.getRepo(commit);
         Assert.assertEquals("gy2006", repo.getOwner());
-        Assert.assertEquals("ci-test", repo.getRepo());
+        Assert.assertEquals("ci-test", repo.getName());
 
         commit.setUrl("ssh://git@github.com:gy2006/ci-test.git");
         repo = GithubAPIClient.getRepo(commit);
         Assert.assertEquals("gy2006", repo.getOwner());
-        Assert.assertEquals("ci-test", repo.getRepo());
+        Assert.assertEquals("ci-test", repo.getName());
     }
 }

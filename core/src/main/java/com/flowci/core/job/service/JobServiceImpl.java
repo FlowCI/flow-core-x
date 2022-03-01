@@ -289,7 +289,7 @@ public class JobServiceImpl implements JobService {
                 continue;
             }
 
-            if (Objects.equals(key, COMMIT_ID)) {
+            if (Objects.equals(key, COMMIT_ID) || Objects.equals(key, SOURCE) || Objects.equals(key, EVENT)) {
                 continue;
             }
 
