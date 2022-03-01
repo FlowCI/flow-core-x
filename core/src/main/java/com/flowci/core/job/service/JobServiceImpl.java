@@ -31,6 +31,7 @@ import com.flowci.core.job.event.JobActionEvent;
 import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.job.event.JobsDeletedEvent;
 import com.flowci.core.job.manager.YmlManager;
+import com.flowci.core.job.util.JobContextHelper;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
@@ -288,7 +289,7 @@ public class JobServiceImpl implements JobService {
                 continue;
             }
 
-            if (Objects.equals(key, COMMIT_ID)) {
+            if (Objects.equals(key, COMMIT_ID) || Objects.equals(key, SOURCE) || Objects.equals(key, EVENT)) {
                 continue;
             }
 
@@ -459,18 +460,16 @@ public class JobServiceImpl implements JobService {
         context.mergeFromTypedVars(flow.getLocally());
 
         Settings settings = settingService.get();
-        context.put(Variables.App.ServerUrl, settings.getServerUrl());
+        JobContextHelper.setServerUrl(job, settings.getServerUrl());
 
-        context.put(Variables.Flow.Name, flow.getName());
-        context.put(Variables.Flow.GitRepo, flow.getName());
-
-        context.put(Variables.Job.Status, Job.Status.PENDING.name());
-        context.put(Variables.Job.Trigger, job.getTrigger().toString());
-        context.put(Variables.Job.BuildNumber, job.getBuildNumber().toString());
-        context.put(Variables.Job.StartAt, job.startAtInStr());
-        context.put(Variables.Job.FinishAt, job.finishAtInStr());
-        context.put(Variables.Job.DurationInSeconds, "0");
-        context.put(Variables.Job.Url, String.format("%s/#/flows/%s/jobs/%s", settings.getWebUrl(), flow.getName(), job.getBuildNumber()));
+        JobContextHelper.setFlowName(job, flow);
+        JobContextHelper.setStatus(job, Job.Status.PENDING);
+        JobContextHelper.setTrigger(job, job.getTrigger());
+        JobContextHelper.setBuildNumber(job, job.getBuildNumber());
+        JobContextHelper.setStartAt(job, job.startAtInStr());
+        JobContextHelper.setFinishAt(job, job.finishAtInStr());
+        JobContextHelper.setDurationInSecond(job, "0");
+        JobContextHelper.setJobUrl(job, String.format("%s/#/flows/%s/jobs/%s", settings.getWebUrl(), flow.getName(), job.getBuildNumber()));
 
         if (!Objects.isNull(inputs)) {
             context.merge(inputs);

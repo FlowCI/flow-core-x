@@ -42,11 +42,6 @@ public abstract class Variables {
 
         public static final String Name = "FLOWCI_FLOW_NAME";
 
-        public static final String GitUrl = "FLOWCI_GIT_URL"; // set
-
-        public static final String GitRepo = "FLOWCI_GIT_REPO"; // set
-
-        public static final String GitCredential = "FLOWCI_GIT_CREDENTIAL"; // set
     }
 
     public abstract static class Job {
@@ -103,6 +98,12 @@ public abstract class Variables {
 
     public abstract static class Git {
 
+        public static final String URL = "FLOWCI_GIT_URL"; // set
+
+        public static final String REPO_NAME = "FLOWCI_GIT_REPO"; // set
+
+        public static final String SECRET = "FLOWCI_GIT_CREDENTIAL"; // set
+
         public static final String EVENT_ID = "FLOWCI_GIT_EVENT_ID";
 
         /**
@@ -116,7 +117,7 @@ public abstract class Variables {
         public static final String EVENT = "FLOWCI_GIT_EVENT";
 
         /**
-         * Used for git clone
+         * Used for git clone, will be put to job context from gitclone plugin
          */
         public static final String COMMIT_ID = "FLOWCI_GIT_COMMIT_ID";
 

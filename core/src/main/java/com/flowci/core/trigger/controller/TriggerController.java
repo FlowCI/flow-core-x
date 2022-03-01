@@ -29,37 +29,37 @@ public class TriggerController {
     }
 
     @GetMapping
-    @Action(TriggerOperations.LIST)
+    @Action(TriggerActions.LIST)
     public List<Trigger> list() {
         return triggerService.list();
     }
 
     @GetMapping("/{name}")
-    @Action(TriggerOperations.GET)
+    @Action(TriggerActions.GET)
     public Trigger get(@PathVariable String name) {
         return triggerService.getByName(name);
     }
 
     @PostMapping("/email")
-    @Action(TriggerOperations.SAVE)
+    @Action(TriggerActions.SAVE)
     public Trigger save(@Validated @RequestBody EmailTrigger n) {
         return triggerService.save(n);
     }
 
     @PostMapping("/webhook")
-    @Action(TriggerOperations.SAVE)
+    @Action(TriggerActions.SAVE)
     public Trigger save(@Validated @RequestBody WebhookTrigger n) {
         return triggerService.save(n);
     }
 
     @DeleteMapping("/{name}")
-    @Action(TriggerOperations.DELETE)
+    @Action(TriggerActions.DELETE)
     public Trigger delete(@PathVariable String name) {
         return triggerService.delete(name);
     }
 
     @GetMapping("/{name}/deliveries")
-    @Action(TriggerOperations.LIST)
+    @Action(TriggerActions.LIST)
     public Page<TriggerDelivery.Item> deliveries(@PathVariable String name,
                                                  @RequestParam(required = false, defaultValue = DefaultPage) int page,
                                                  @RequestParam(required = false, defaultValue = DefaultSize) int size) {

@@ -28,9 +28,9 @@ import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
-import com.flowci.core.githook.domain.GitPingTrigger;
-import com.flowci.core.githook.domain.GitTrigger;
-import com.flowci.core.githook.event.GitHookEvent;
+import com.flowci.core.git.domain.GitPingTrigger;
+import com.flowci.core.git.domain.GitTrigger;
+import com.flowci.core.git.event.GitHookEvent;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.secret.domain.Secret;
@@ -198,11 +198,11 @@ public class FlowServiceImpl implements FlowService {
         Vars<VarValue> localVars = flow.getLocally();
 
         if (option.hasGitUrl()) {
-            localVars.put(Variables.Flow.GitUrl, VarValue.of(option.getGitUrl(), VarType.GIT_URL, true));
+            localVars.put(Variables.Git.URL, VarValue.of(option.getGitUrl(), VarType.GIT_URL, true));
         }
 
         if (option.hasSecret()) {
-            localVars.put(Variables.Flow.GitCredential, VarValue.of(option.getSecret(), VarType.STRING, true));
+            localVars.put(Variables.Git.SECRET, VarValue.of(option.getSecret(), VarType.STRING, true));
         }
 
         flow.setStatus(Status.CONFIRMED);

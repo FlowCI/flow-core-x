@@ -80,6 +80,7 @@ public class WebConfig {
                         .addPathPatterns("/configs/**")
                         .addPathPatterns("/triggers/**")
                         .addPathPatterns("/system/**")
+                        .addPathPatterns("/gitconfig/**")
                         .addPathPatterns("/auth/logout");
 
                 registry.addInterceptor(apiAuth)

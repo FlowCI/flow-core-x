@@ -22,9 +22,10 @@ import com.flowci.core.auth.domain.PermissionMap;
 import com.flowci.core.common.domain.Settings;
 import com.flowci.core.config.domain.ConfigAction;
 import com.flowci.core.flow.domain.FlowAction;
+import com.flowci.core.git.controller.GitActions;
 import com.flowci.core.job.domain.JobAction;
-import com.flowci.core.trigger.domain.TriggerOperations;
-import com.flowci.core.secret.domain.SecretAction;
+import com.flowci.core.trigger.domain.TriggerActions;
+import com.flowci.core.secret.controller.SecretActions;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.domain.UserAction;
 import org.springframework.context.annotation.Bean;
@@ -43,19 +44,20 @@ public class AuthConfig {
         // admin
         permissionMap.add(User.Role.Admin, FlowAction.ALL);
         permissionMap.add(User.Role.Admin, JobAction.ALL);
-        permissionMap.add(User.Role.Admin, SecretAction.ALL);
+        permissionMap.add(User.Role.Admin, SecretActions.ALL);
         permissionMap.add(User.Role.Admin, AgentAction.ALL);
         permissionMap.add(User.Role.Admin, AgentHostAction.ALL);
         permissionMap.add(User.Role.Admin, UserAction.ALL);
         permissionMap.add(User.Role.Admin, ConfigAction.ALL);
-        permissionMap.add(User.Role.Admin, TriggerOperations.ALL);
+        permissionMap.add(User.Role.Admin, TriggerActions.ALL);
+        permissionMap.add(User.Role.Admin, GitActions.ALL);
         permissionMap.add(User.Role.Admin, Settings.Action.ALL);
 
         // developer
         permissionMap.add(User.Role.Developer,
                 FlowAction.GET, FlowAction.LIST, FlowAction.LIST_BRANCH, FlowAction.GET, FlowAction.GET_YML);
         permissionMap.add(User.Role.Developer, JobAction.ALL);
-        permissionMap.add(User.Role.Developer, SecretAction.LIST_NAME);
+        permissionMap.add(User.Role.Developer, SecretActions.LIST_NAME);
         permissionMap.add(User.Role.Developer, AgentAction.GET, AgentAction.LIST);
         permissionMap.add(User.Role.Developer, AgentHostAction.GET, AgentHostAction.LIST);
         permissionMap.add(User.Role.Developer, UserAction.CHANGE_PASSWORD, UserAction.UPDATE_AVATAR);
