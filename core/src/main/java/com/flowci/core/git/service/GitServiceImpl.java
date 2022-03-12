@@ -2,16 +2,18 @@ package com.flowci.core.git.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.GitSource;
-import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.git.client.GerritAPIClient;
 import com.flowci.core.git.client.GitAPIClient;
 import com.flowci.core.git.client.GithubAPIClient;
 import com.flowci.core.git.dao.GitConfigDao;
 import com.flowci.core.git.domain.GitCommitStatus;
 import com.flowci.core.git.domain.GitConfig;
+import com.flowci.core.git.domain.GitConfigWithHost;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.JobFinishedEvent;
 import com.flowci.core.job.util.JobContextHelper;
+import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.domain.TokenSecret;
 import com.flowci.core.secret.event.GetSecretEvent;
@@ -49,6 +51,7 @@ public class GitServiceImpl implements GitService {
     @PostConstruct
     public void init() {
         handlers.put(GitSource.GITHUB, new GitHubOperationHandler());
+        handlers.put(GitSource.GERRIT, new GerritOperationHandler());
     }
 
     @Override
@@ -111,30 +114,35 @@ public class GitServiceImpl implements GitService {
         return handler;
     }
 
-    private interface OperationHandler {
+    private abstract class OperationHandler {
 
-        GitConfig save(GitConfig config);
+        abstract GitConfig save(GitConfig config);
 
-        void writeCommit(GitCommitStatus commit, GitConfig config);
+        abstract void writeCommit(GitCommitStatus commit, GitConfig config);
+
+        Secret fetch(String name, Class<?> expected) {
+            var event = eventManager.publish(new GetSecretEvent(GitServiceImpl.this, name));
+            Secret secret = event.getFetched();
+
+            if (!expected.isInstance(secret)) {
+                throw new ArgumentException("Secret type is not matched");
+            }
+
+            return secret;
+        }
     }
 
-    private class GitHubOperationHandler implements OperationHandler {
+    private class GitHubOperationHandler extends OperationHandler {
 
         private final GitAPIClient client = new GithubAPIClient(httpClient, objectMapper);
 
         @Override
         public GitConfig save(GitConfig config) {
-            var event = eventManager.publish(new GetSecretEvent(this, config.getSecret()));
-            Secret secret = event.getFetched();
-
-            if (!(secret instanceof TokenSecret)) {
-                throw new ArgumentException("Token secret is required");
-            }
+            Secret secret = fetch(config.getSecret(), TokenSecret.class);
 
             var optional = gitConfigDao.findBySource(GitSource.GITHUB);
             if (optional.isEmpty()) {
-                GitConfig c = new GitConfig(GitSource.GITHUB, secret.getName());
-                return gitConfigDao.save(c);
+                return gitConfigDao.save(config);
             }
 
             GitConfig c = optional.get();
@@ -144,14 +152,39 @@ public class GitServiceImpl implements GitService {
 
         @Override
         public void writeCommit(GitCommitStatus commit, GitConfig config) {
-            var c = get(GitSource.GITHUB);
-            var event = eventManager.publish(new GetSecretEvent(GitServiceImpl.this, c.getSecret()));
-            Secret secret = event.getFetched();
+            Secret secret = fetch(config.getSecret(), TokenSecret.class);
+            config.setSecretObj(secret);
+            client.writeCommitStatus(commit, config);
+        }
+    }
 
-            if (!(secret instanceof TokenSecret)) {
-                throw new ArgumentException("Token secret is required");
+    private class GerritOperationHandler extends OperationHandler {
+
+        private final GitAPIClient client = new GerritAPIClient(httpClient, objectMapper);
+
+        @Override
+        public GitConfig save(GitConfig config) {
+            if (!(config instanceof GitConfigWithHost)) {
+                throw new ArgumentException("GitConfigWithHost is required");
             }
 
+            var c = (GitConfigWithHost) config;
+            Secret secret = fetch(config.getSecret(), AuthSecret.class);
+
+            var optional = gitConfigDao.findBySource(GitSource.GERRIT);
+            if (optional.isEmpty()) {
+                return gitConfigDao.save(c);
+            }
+
+            var exist = (GitConfigWithHost) optional.get();
+            exist.setSecret(secret.getName());
+            exist.setHost(c.getHost());
+            return gitConfigDao.save(exist);
+        }
+
+        @Override
+        public void writeCommit(GitCommitStatus commit, GitConfig config) {
+            Secret secret = fetch(config.getSecret(), AuthSecret.class);
             config.setSecretObj(secret);
             client.writeCommitStatus(commit, config);
         }

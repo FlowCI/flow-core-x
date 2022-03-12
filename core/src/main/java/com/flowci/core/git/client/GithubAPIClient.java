@@ -7,7 +7,6 @@ import com.flowci.core.git.domain.GitCommit;
 import com.flowci.core.git.domain.GitCommitStatus;
 import com.flowci.core.git.domain.GitConfig;
 import com.flowci.core.git.domain.GitRepo;
-import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.domain.TokenSecret;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.CIException;
