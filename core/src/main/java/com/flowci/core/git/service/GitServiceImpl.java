@@ -87,7 +87,8 @@ public class GitServiceImpl implements GitService {
         }
 
         try {
-            var handler = getHandler(GitSource.valueOf(gitSourceStr));
+            GitSource source = GitSource.valueOf(gitSourceStr);
+            var handler = getHandler(source);
 
             var commit = new GitCommitStatus();
             commit.setId(JobContextHelper.getCommitId(job));
@@ -96,7 +97,7 @@ public class GitServiceImpl implements GitService {
             commit.setStatus(JobContextHelper.getStatus(job).name().toLowerCase());
             commit.setDesc(String.format("build %s from flow.ci", commit.getStatus()));
 
-            handler.writeCommit(commit);
+            handler.writeCommit(commit, get(source));
         } catch (Throwable e) {
             log.warn(e.getMessage());
         }
@@ -114,7 +115,7 @@ public class GitServiceImpl implements GitService {
 
         GitConfig save(GitConfig config);
 
-        void writeCommit(GitCommitStatus commit);
+        void writeCommit(GitCommitStatus commit, GitConfig config);
     }
 
     private class GitHubOperationHandler implements OperationHandler {
@@ -142,7 +143,7 @@ public class GitServiceImpl implements GitService {
         }
 
         @Override
-        public void writeCommit(GitCommitStatus commit) {
+        public void writeCommit(GitCommitStatus commit, GitConfig config) {
             var c = get(GitSource.GITHUB);
             var event = eventManager.publish(new GetSecretEvent(GitServiceImpl.this, c.getSecret()));
             Secret secret = event.getFetched();
@@ -151,8 +152,8 @@ public class GitServiceImpl implements GitService {
                 throw new ArgumentException("Token secret is required");
             }
 
-            TokenSecret tokenSecret = (TokenSecret) secret;
-            client.writeCommitStatus(commit, tokenSecret);
+            config.setSecretObj(secret);
+            client.writeCommitStatus(commit, config);
         }
     }
 }
