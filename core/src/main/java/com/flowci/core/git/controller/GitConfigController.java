@@ -4,6 +4,7 @@ import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.git.domain.GitConfig;
 import com.flowci.core.git.service.GitService;
+import com.flowci.exception.ArgumentException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,10 @@ public class GitConfigController {
     @Action(GitActions.SAVE)
     @PostMapping()
     public GitConfig save(@RequestBody Request.SaveOptions options) {
+        if (options.getSource() == GitSource.GERRIT && options.getHost() == null) {
+            throw new ArgumentException("Host address is required for Gerrit");
+        }
+
         return gitService.save(options.toGitConfig());
     }
 
