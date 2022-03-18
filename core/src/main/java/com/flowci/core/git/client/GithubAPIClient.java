@@ -5,8 +5,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.git.domain.GitCommit;
 import com.flowci.core.git.domain.GitCommitStatus;
+import com.flowci.core.git.domain.GitConfig;
 import com.flowci.core.git.domain.GitRepo;
-import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.domain.TokenSecret;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.CIException;
@@ -43,9 +43,11 @@ public class GithubAPIClient implements GitAPIClient {
     }
 
     @Override
-    public void writeCommitStatus(GitCommitStatus commit, Secret secret) {
+    public void writeCommitStatus(GitCommitStatus commit, GitConfig config) {
+        var secret = config.getSecretObj();
+
         if (!(secret instanceof TokenSecret)) {
-            throw new ArgumentException("Token secret is required");
+            throw new ArgumentException("Token secret is required Github");
         }
 
         var tokenSecret = (TokenSecret) secret;

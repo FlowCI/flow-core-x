@@ -5,7 +5,7 @@ import com.flowci.core.git.domain.GitConfig;
 
 import java.util.List;
 
-public interface GitService {
+public interface GitConfigService {
 
     List<GitConfig> list();
 

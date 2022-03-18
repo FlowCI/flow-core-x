@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 public class GitCommitStatus extends GitCommit {
 
-    private String status;
+    private String status; // lower case from job status
 
     private String targetUrl;
 
