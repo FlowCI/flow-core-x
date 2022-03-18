@@ -3,6 +3,9 @@ package com.flowci.core.job.util;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Job;
+import com.flowci.util.StringHelper;
+
+import static com.flowci.core.job.domain.Job.Trigger.PUSH;
 
 public abstract class JobContextHelper {
 
@@ -77,5 +80,20 @@ public abstract class JobContextHelper {
 
     public static String getGitSource(Job job) {
         return job.getContext().get(Variables.Git.SOURCE);
+    }
+
+    public static String getGitMessage(Job job) {
+        String variable = Variables.Git.PUSH_MESSAGE;
+
+        switch (job.getTrigger()) {
+            case PR_MERGED:
+            case PR_OPENED:
+                variable = Variables.Git.PR_MESSAGE;
+                break;
+            case PATCHSET:
+                variable = Variables.Git.PATCHSET_MESSAGE;
+        }
+
+        return job.getContext().get(variable, StringHelper.EMPTY);
     }
 }

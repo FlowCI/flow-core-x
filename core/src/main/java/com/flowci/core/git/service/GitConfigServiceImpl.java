@@ -31,8 +31,8 @@ import java.net.http.HttpClient;
 import java.util.*;
 
 @Log4j2
-@Service("gitService")
-public class GitServiceImpl implements GitService {
+@Service("gitConfigService")
+public class GitConfigServiceImpl implements GitConfigService {
 
     @Autowired
     private HttpClient httpClient;
@@ -95,6 +95,7 @@ public class GitServiceImpl implements GitService {
 
             var commit = new GitCommitStatus();
             commit.setId(JobContextHelper.getCommitId(job));
+            commit.setMessage(JobContextHelper.getGitMessage(job));
             commit.setUrl(JobContextHelper.getGitUrl(job));
             commit.setTargetUrl(JobContextHelper.getJobUrl(job));
             commit.setStatus(JobContextHelper.getStatus(job).name().toLowerCase());
@@ -121,7 +122,7 @@ public class GitServiceImpl implements GitService {
         abstract void writeCommit(GitCommitStatus commit, GitConfig config);
 
         Secret fetch(String name, Class<?> expected) {
-            var event = eventManager.publish(new GetSecretEvent(GitServiceImpl.this, name));
+            var event = eventManager.publish(new GetSecretEvent(this, name));
             Secret secret = event.getFetched();
 
             if (!expected.isInstance(secret)) {

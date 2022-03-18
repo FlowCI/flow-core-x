@@ -15,7 +15,10 @@ import com.flowci.util.StringHelper;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -24,8 +27,6 @@ import java.net.http.HttpResponse;
 
 @Log4j2
 public class GerritAPIClient implements GitAPIClient {
-
-    private final static String SetReviewAPI = "%s/repos/a/changes/%s/revisions/%s/review";
 
     private final HttpClient httpClient;
 
@@ -57,7 +58,16 @@ public class GerritAPIClient implements GitAPIClient {
 
         try {
             var gitConfig = (GitConfigWithHost) config;
-            var url = String.format(SetReviewAPI, gitConfig.getHost(), changeId.get(), commit.getId());
+
+            var url = UriComponentsBuilder.fromHttpUrl(gitConfig.getHost())
+                    .path("/a/changes/")
+                    .path(changeId.get())
+                    .path("/revisions/")
+                    .path(commit.getId())
+                    .path("/review")
+                    .build()
+                    .toUriString();
+
             var request = getRequestBuilder(url, (AuthSecret) secret)
                     .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(getBodyObj(commit))))
                     .build();
@@ -78,7 +88,8 @@ public class GerritAPIClient implements GitAPIClient {
     private HttpRequest.Builder getRequestBuilder(String url, AuthSecret secret) {
         var str = secret.getUsername() + ":" + secret.getPassword();
         return HttpRequest.newBuilder(URI.create(url))
-                .setHeader("Authorization", "Basic " + StringHelper.toBase64(str));
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setHeader(HttpHeaders.AUTHORIZATION, "Basic " + StringHelper.toBase64(str));
     }
 
     private SetReviewBody getBodyObj(GitCommitStatus c) {

@@ -3,7 +3,7 @@ package com.flowci.core.test.git;
 import com.flowci.core.git.domain.GitCommit;
 import com.flowci.core.git.util.CommitHelper;
 import org.junit.Test;
-import org.junit.Assert;;
+import org.junit.Assert;
 
 public class CommitHelperTest {
 
