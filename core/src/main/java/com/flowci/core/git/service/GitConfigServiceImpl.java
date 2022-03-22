@@ -3,9 +3,9 @@ package com.flowci.core.git.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.git.client.GerritAPIClient;
-import com.flowci.core.git.client.GitAPIClient;
-import com.flowci.core.git.client.GithubAPIClient;
+import com.flowci.core.git.client.GerritApiClient;
+import com.flowci.core.git.client.GitApiClient;
+import com.flowci.core.git.client.GitHubApiClient;
 import com.flowci.core.git.dao.GitConfigDao;
 import com.flowci.core.git.domain.GitCommitStatus;
 import com.flowci.core.git.domain.GitConfig;
@@ -135,7 +135,7 @@ public class GitConfigServiceImpl implements GitConfigService {
 
     private class GitHubOperationHandler extends OperationHandler {
 
-        private final GitAPIClient client = new GithubAPIClient(httpClient, objectMapper);
+        private final GitApiClient<GitConfig> client = new GitHubApiClient(httpClient, objectMapper);
 
         @Override
         public GitConfig save(GitConfig config) {
@@ -161,15 +161,11 @@ public class GitConfigServiceImpl implements GitConfigService {
 
     private class GerritOperationHandler extends OperationHandler {
 
-        private final GitAPIClient client = new GerritAPIClient(httpClient, objectMapper);
+        private final GitApiClient<GitConfigWithHost> client = new GerritApiClient(httpClient, objectMapper);
 
         @Override
         public GitConfig save(GitConfig config) {
-            if (!(config instanceof GitConfigWithHost)) {
-                throw new ArgumentException("GitConfigWithHost is required");
-            }
-
-            var c = (GitConfigWithHost) config;
+            var c = castConfig(config);
             Secret secret = fetch(config.getSecret(), AuthSecret.class);
 
             var optional = gitConfigDao.findBySource(GitSource.GERRIT);
@@ -187,7 +183,15 @@ public class GitConfigServiceImpl implements GitConfigService {
         public void writeCommit(GitCommitStatus commit, GitConfig config) {
             Secret secret = fetch(config.getSecret(), AuthSecret.class);
             config.setSecretObj(secret);
-            client.writeCommitStatus(commit, config);
+            client.writeCommitStatus(commit, castConfig(config));
+        }
+
+        private GitConfigWithHost castConfig(GitConfig config) {
+            if (!(config instanceof GitConfigWithHost)) {
+                throw new ArgumentException("GitConfigWithHost is required");
+            }
+
+            return (GitConfigWithHost) config;
         }
     }
 }

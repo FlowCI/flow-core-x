@@ -17,6 +17,7 @@
 package com.flowci.core.common.domain;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.Collection;
 
@@ -127,6 +128,23 @@ public abstract class Variables {
         public static final String BRANCH = "FLOWCI_GIT_BRANCH";
 
         /**
+         * For some git sources, they need repo id for write back commit status
+         */
+        public static final String REPO_ID = "FLOWCI_GIT_REPO_ID";
+
+        public static final Collection<String> GENERIC_VARS = ImmutableSet.<String>builder()
+                .add(SOURCE)
+                .add(COMMIT_ID)
+                .add(EVENT)
+                .add(EVENT_ID)
+                .add(REPO_ID)
+                .add(BRANCH)
+                .add(SECRET)
+                .add(REPO_NAME)
+                .add(URL)
+                .build();
+
+        /**
          * Push / Tag variables
          */
         public static final String PUSH_AUTHOR = "FLOWCI_GIT_AUTHOR";
@@ -134,7 +152,7 @@ public abstract class Variables {
         public static final String PUSH_MESSAGE = "FLOWCI_GIT_COMMIT_MESSAGE";
         public static final String PUSH_COMMIT_TOTAL = "FLOWCI_GIT_COMMIT_TOTAL";
         public static final String PUSH_COMMIT_LIST = "FLOWCI_GIT_COMMIT_LIST"; // b64 json
-        public static final Collection<String> PUSH_TAG_VARS = ImmutableList.<String>builder()
+        public static final Collection<String> PUSH_TAG_VARS = ImmutableSet.<String>builder()
                 .add(PUSH_AUTHOR)
                 .add(PUSH_BRANCH)
                 .add(PUSH_MESSAGE)
@@ -158,7 +176,7 @@ public abstract class Variables {
         public static final String PR_BASE_REPO_NAME = "FLOWCI_GIT_PR_BASE_REPO_NAME";
         public static final String PR_BASE_REPO_BRANCH = "FLOWCI_GIT_PR_BASE_REPO_BRANCH";
         public static final String PR_BASE_REPO_COMMIT = "FLOWCI_GIT_PR_BASE_REPO_COMMIT";
-        public static final Collection<String> PR_VARS = ImmutableList.<String>builder()
+        public static final Collection<String> PR_VARS = ImmutableSet.<String>builder()
                 .add(PR_TITLE)
                 .add(PR_MESSAGE)
                 .add(PR_AUTHOR)
@@ -193,7 +211,7 @@ public abstract class Variables {
         public static final String PATCHSET_INSERT_SIZE = "FLOWCI_GIT_PATCHSET_INSERT_SIZE";
         public static final String PATCHSET_DELETE_SIZE = "FLOWCI_GIT_PATCHSET_DELETE_SIZE";
         public static final String PATCHSET_AUTHOR = "FLOWCI_GIT_PATCHSET_AUTHOR";
-        public static final Collection<String> PATCHSET_VARS = ImmutableList.<String>builder()
+        public static final Collection<String> PATCHSET_VARS = ImmutableSet.<String>builder()
                 .add(PATCHSET_SUBJECT)
                 .add(PATCHSET_MESSAGE)
                 .add(PATCHSET_PROJECT)

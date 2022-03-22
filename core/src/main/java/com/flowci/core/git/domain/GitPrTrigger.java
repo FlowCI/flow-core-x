@@ -73,6 +73,7 @@ public final class GitPrTrigger extends GitTrigger {
         map.put(PR_BASE_REPO_COMMIT, base.commit);
 
         map.put(BRANCH, merged ? base.ref : head.ref);
+        map.put(REPO_ID, merged ? base.repoId : head.repoId);
         return map;
     }
 
@@ -98,6 +99,8 @@ public final class GitPrTrigger extends GitTrigger {
         private String commit;
 
         private String repoName;
+
+        private String repoId;
 
         private String repoUrl;
     }
