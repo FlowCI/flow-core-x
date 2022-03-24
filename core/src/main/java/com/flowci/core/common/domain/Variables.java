@@ -148,13 +148,11 @@ public abstract class Variables {
          * Push / Tag variables
          */
         public static final String PUSH_AUTHOR = "FLOWCI_GIT_AUTHOR";
-        public static final String PUSH_BRANCH = "FLOWCI_GIT_BRANCH";
         public static final String PUSH_MESSAGE = "FLOWCI_GIT_COMMIT_MESSAGE";
         public static final String PUSH_COMMIT_TOTAL = "FLOWCI_GIT_COMMIT_TOTAL";
         public static final String PUSH_COMMIT_LIST = "FLOWCI_GIT_COMMIT_LIST"; // b64 json
         public static final Collection<String> PUSH_TAG_VARS = ImmutableSet.<String>builder()
                 .add(PUSH_AUTHOR)
-                .add(PUSH_BRANCH)
                 .add(PUSH_MESSAGE)
                 .add(PUSH_COMMIT_TOTAL)
                 .add(PUSH_COMMIT_LIST)

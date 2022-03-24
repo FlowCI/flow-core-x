@@ -45,11 +45,6 @@ public class GitHubApiClient implements GitApiClient<GitConfig> {
     @Override
     public void writeCommitStatus(GitCommitStatus commit, GitConfig config) {
         var secret = config.getSecretObj();
-
-        if (!(secret instanceof TokenSecret)) {
-            throw new ArgumentException("Token secret is required Github");
-        }
-
         var tokenSecret = (TokenSecret) secret;
         var repo = getRepo(commit);
 

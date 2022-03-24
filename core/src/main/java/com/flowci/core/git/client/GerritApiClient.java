@@ -42,10 +42,6 @@ public class GerritApiClient implements GitApiClient<GitConfigWithHost> {
     @Override
     public void writeCommitStatus(GitCommitStatus commit, GitConfigWithHost config) {
         var secret = config.getSecretObj();
-        if (!(secret instanceof AuthSecret)) {
-            throw new ArgumentException("AuthSecret is required for Gerrit");
-        }
-
         var changeId = CommitHelper.getChangeId(commit);
         if (changeId.isEmpty()) {
             throw new NotFoundException("Change-Id not found from commit message");
