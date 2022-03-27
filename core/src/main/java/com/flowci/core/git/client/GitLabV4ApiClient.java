@@ -1,9 +1,7 @@
 package com.flowci.core.git.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.git.domain.GitCommitStatus;
 import com.flowci.core.git.domain.GitConfigWithHost;
-import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.domain.TokenSecret;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.StringHelper;

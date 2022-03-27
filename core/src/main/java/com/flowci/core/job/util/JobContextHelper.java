@@ -6,7 +6,6 @@ import com.flowci.core.job.domain.Job;
 import com.flowci.util.StringHelper;
 
 import static com.flowci.core.common.domain.Variables.Git.BRANCH;
-import static com.flowci.core.job.domain.Job.Trigger.PUSH;
 
 public abstract class JobContextHelper {
 
