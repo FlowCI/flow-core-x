@@ -5,7 +5,7 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Job;
 import com.flowci.util.StringHelper;
 
-import static com.flowci.core.job.domain.Job.Trigger.PUSH;
+import static com.flowci.core.common.domain.Variables.Git.BRANCH;
 
 public abstract class JobContextHelper {
 
@@ -95,5 +95,13 @@ public abstract class JobContextHelper {
         }
 
         return job.getContext().get(variable, StringHelper.EMPTY);
+    }
+
+    public static String getGitBranch(Job job) {
+        return job.getContext().get(BRANCH);
+    }
+
+    public static String getRepoId(Job job)  {
+        return job.getContext().get(Variables.Git.REPO_ID, StringHelper.EMPTY);
     }
 }

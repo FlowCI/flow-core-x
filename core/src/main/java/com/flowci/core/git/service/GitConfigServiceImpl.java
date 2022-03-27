@@ -3,9 +3,10 @@ package com.flowci.core.git.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.manager.SpringEventManager;
-import com.flowci.core.git.client.GerritAPIClient;
-import com.flowci.core.git.client.GitAPIClient;
-import com.flowci.core.git.client.GithubAPIClient;
+import com.flowci.core.git.client.GerritApiClient;
+import com.flowci.core.git.client.GitApiClient;
+import com.flowci.core.git.client.GitHubApiClient;
+import com.flowci.core.git.client.GitLabV4ApiClient;
 import com.flowci.core.git.dao.GitConfigDao;
 import com.flowci.core.git.domain.GitCommitStatus;
 import com.flowci.core.git.domain.GitConfig;
@@ -52,6 +53,7 @@ public class GitConfigServiceImpl implements GitConfigService {
     public void init() {
         handlers.put(GitSource.GITHUB, new GitHubOperationHandler());
         handlers.put(GitSource.GERRIT, new GerritOperationHandler());
+        handlers.put(GitSource.GITLAB, new GitLabOperationHandler());
     }
 
     @Override
@@ -95,6 +97,8 @@ public class GitConfigServiceImpl implements GitConfigService {
 
             var commit = new GitCommitStatus();
             commit.setId(JobContextHelper.getCommitId(job));
+            commit.setRepoId(JobContextHelper.getRepoId(job));
+            commit.setBranch(JobContextHelper.getGitBranch(job));
             commit.setMessage(JobContextHelper.getGitMessage(job));
             commit.setUrl(JobContextHelper.getGitUrl(job));
             commit.setTargetUrl(JobContextHelper.getJobUrl(job));
@@ -135,10 +139,10 @@ public class GitConfigServiceImpl implements GitConfigService {
 
     private class GitHubOperationHandler extends OperationHandler {
 
-        private final GitAPIClient client = new GithubAPIClient(httpClient, objectMapper);
+        private final GitApiClient<GitConfig> client = new GitHubApiClient(httpClient, objectMapper);
 
         @Override
-        public GitConfig save(GitConfig config) {
+        GitConfig save(GitConfig config) {
             Secret secret = fetch(config.getSecret(), TokenSecret.class);
 
             var optional = gitConfigDao.findBySource(GitSource.GITHUB);
@@ -152,7 +156,7 @@ public class GitConfigServiceImpl implements GitConfigService {
         }
 
         @Override
-        public void writeCommit(GitCommitStatus commit, GitConfig config) {
+        void writeCommit(GitCommitStatus commit, GitConfig config) {
             Secret secret = fetch(config.getSecret(), TokenSecret.class);
             config.setSecretObj(secret);
             client.writeCommitStatus(commit, config);
@@ -161,15 +165,11 @@ public class GitConfigServiceImpl implements GitConfigService {
 
     private class GerritOperationHandler extends OperationHandler {
 
-        private final GitAPIClient client = new GerritAPIClient(httpClient, objectMapper);
+        private final GitApiClient<GitConfigWithHost> client = new GerritApiClient(httpClient, objectMapper);
 
         @Override
-        public GitConfig save(GitConfig config) {
-            if (!(config instanceof GitConfigWithHost)) {
-                throw new ArgumentException("GitConfigWithHost is required");
-            }
-
-            var c = (GitConfigWithHost) config;
+        GitConfig save(GitConfig config) {
+            var c = castConfig(config);
             Secret secret = fetch(config.getSecret(), AuthSecret.class);
 
             var optional = gitConfigDao.findBySource(GitSource.GERRIT);
@@ -184,10 +184,46 @@ public class GitConfigServiceImpl implements GitConfigService {
         }
 
         @Override
-        public void writeCommit(GitCommitStatus commit, GitConfig config) {
+        void writeCommit(GitCommitStatus commit, GitConfig config) {
             Secret secret = fetch(config.getSecret(), AuthSecret.class);
             config.setSecretObj(secret);
-            client.writeCommitStatus(commit, config);
+            client.writeCommitStatus(commit, castConfig(config));
         }
+    }
+
+    private class GitLabOperationHandler extends OperationHandler {
+
+        private final GitApiClient<GitConfigWithHost> client = new GitLabV4ApiClient(httpClient);
+
+        @Override
+        GitConfig save(GitConfig config) {
+            var c = castConfig(config);
+            Secret secret = fetch(config.getSecret(), TokenSecret.class);
+
+            var optional = gitConfigDao.findBySource(GitSource.GITLAB);
+            if (optional.isEmpty()) {
+                return gitConfigDao.save(c);
+            }
+
+            var exist = (GitConfigWithHost) optional.get();
+            exist.setSecret(secret.getName());
+            exist.setHost(c.getHost());
+            return gitConfigDao.save(exist);
+        }
+
+        @Override
+        void writeCommit(GitCommitStatus commit, GitConfig config) {
+            Secret secret = fetch(config.getSecret(), TokenSecret.class);
+            config.setSecretObj(secret);
+            client.writeCommitStatus(commit, castConfig(config));
+        }
+    }
+
+    private static GitConfigWithHost castConfig(GitConfig config) {
+        if (!(config instanceof GitConfigWithHost)) {
+            throw new ArgumentException("GitConfigWithHost is required");
+        }
+
+        return (GitConfigWithHost) config;
     }
 }

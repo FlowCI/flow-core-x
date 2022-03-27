@@ -59,7 +59,8 @@ public class GitPushTrigger extends GitTrigger {
             // ignore
         }
 
-        map.put(PUSH_BRANCH, ref);
+        map.put(BRANCH, ref);
+        map.put(REPO_ID, repoId);
         map.put(PUSH_MESSAGE, message);
         map.put(PUSH_AUTHOR, sender.getEmail());
         map.put(PUSH_COMMIT_TOTAL, String.valueOf(numOfCommit));

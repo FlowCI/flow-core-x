@@ -12,4 +12,8 @@ public class GitCommitStatus extends GitCommit {
     private String targetUrl;
 
     private String desc;
+
+    private String repoId;
+
+    private String branch;
 }

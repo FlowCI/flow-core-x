@@ -74,7 +74,7 @@ public class JobItem extends JobDesc {
             context.putIfNotEmpty(EVENT);
 
             // git push / tag
-            context.putIfNotEmpty(PUSH_BRANCH);
+            context.putIfNotEmpty(BRANCH);
             context.putIfNotEmpty(PUSH_MESSAGE);
             context.putIfNotEmpty(PUSH_AUTHOR);
             context.putIfNotEmpty(PUSH_COMMIT_LIST);

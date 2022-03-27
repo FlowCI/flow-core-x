@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.git.domain.GitCommitStatus;
-import com.flowci.core.git.domain.GitConfig;
 import com.flowci.core.git.domain.GitConfigWithHost;
 import com.flowci.core.git.util.CommitHelper;
 import com.flowci.core.secret.domain.AuthSecret;
@@ -26,13 +25,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 @Log4j2
-public class GerritAPIClient implements GitAPIClient {
+public class GerritApiClient implements GitApiClient<GitConfigWithHost> {
 
     private final HttpClient httpClient;
 
     private final ObjectMapper objectMapper;
 
-    public GerritAPIClient(HttpClient httpClient, ObjectMapper objectMapper) {
+    public GerritApiClient(HttpClient httpClient, ObjectMapper objectMapper) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
     }
@@ -41,25 +40,15 @@ public class GerritAPIClient implements GitAPIClient {
      * Write commit status on change only
      */
     @Override
-    public void writeCommitStatus(GitCommitStatus commit, GitConfig config) {
-        if (!(config instanceof GitConfigWithHost)) {
-            throw new ArgumentException("GitConfigWithHost is required for Gerrit");
-        }
-
+    public void writeCommitStatus(GitCommitStatus commit, GitConfigWithHost config) {
         var secret = config.getSecretObj();
-        if (!(secret instanceof AuthSecret)) {
-            throw new ArgumentException("AuthSecret is required for Gerrit");
-        }
-
         var changeId = CommitHelper.getChangeId(commit);
         if (changeId.isEmpty()) {
             throw new NotFoundException("Change-Id not found from commit message");
         }
 
         try {
-            var gitConfig = (GitConfigWithHost) config;
-
-            var url = UriComponentsBuilder.fromHttpUrl(gitConfig.getHost())
+            var url = UriComponentsBuilder.fromHttpUrl(config.getHost())
                     .path("/a/changes/")
                     .path(changeId.get())
                     .path("/revisions/")

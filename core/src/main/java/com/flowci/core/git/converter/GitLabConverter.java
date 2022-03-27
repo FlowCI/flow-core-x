@@ -204,6 +204,7 @@ public class GitLabConverter extends TriggerConverter {
             GitPrTrigger.Source head = new GitPrTrigger.Source();
             head.setCommit(attributes.lastCommit.id);
             head.setRef(attributes.sourceBranch);
+            head.setRepoId(attributes.source.id);
             head.setRepoName(attributes.source.name);
             head.setRepoUrl(attributes.source.webUrl);
             trigger.setHead(head);
@@ -211,6 +212,7 @@ public class GitLabConverter extends TriggerConverter {
             GitPrTrigger.Source base = new GitPrTrigger.Source();
             base.setCommit(StringHelper.EMPTY);
             base.setRef(attributes.targetBranch);
+            base.setRepoId(attributes.target.id);
             base.setRepoName(attributes.target.name);
             base.setRepoUrl(attributes.target.webUrl);
             trigger.setBase(base);
