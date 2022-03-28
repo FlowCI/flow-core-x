@@ -74,7 +74,7 @@ public class JobItem extends JobDesc {
             context.putIfNotEmpty(EVENT);
 
             // git push / tag
-            context.putIfNotEmpty(PUSH_BRANCH);
+            context.putIfNotEmpty(BRANCH);
             context.putIfNotEmpty(PUSH_MESSAGE);
             context.putIfNotEmpty(PUSH_AUTHOR);
             context.putIfNotEmpty(PUSH_COMMIT_LIST);
@@ -88,6 +88,16 @@ public class JobItem extends JobDesc {
             context.putIfNotEmpty(PR_HEAD_REPO_BRANCH);
             context.putIfNotEmpty(PR_BASE_REPO_NAME);
             context.putIfNotEmpty(PR_BASE_REPO_BRANCH);
+
+            // git patchset
+            context.putIfNotEmpty(PATCHSET_SUBJECT);
+            context.putIfNotEmpty(PATCHSET_BRANCH);
+            context.putIfNotEmpty(PATCHSET_CHANGE_ID);
+            context.putIfNotEmpty(PATCHSET_PATCH_NUM);
+            context.putIfNotEmpty(PATCHSET_PATCH_URL);
+            context.putIfNotEmpty(PATCHSET_AUTHOR);
+            context.putIfNotEmpty(PATCHSET_PATCH_REF);
+            context.putIfNotEmpty(PATCHSET_CHANGE_STATUS);
 
             return context;
         }

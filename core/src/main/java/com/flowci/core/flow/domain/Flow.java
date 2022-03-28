@@ -109,11 +109,11 @@ public final class Flow extends Mongoable implements Pathable {
     }
 
     public String getCredentialName() {
-        return findVar(Variables.Flow.GitCredential);
+        return findVar(Variables.Git.SECRET);
     }
 
     public String getGitUrl() {
-        return findVar(Variables.Flow.GitUrl);
+        return findVar(Variables.Git.URL);
     }
 
     /**

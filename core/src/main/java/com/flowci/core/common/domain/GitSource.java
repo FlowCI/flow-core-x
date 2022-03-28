@@ -27,4 +27,6 @@ public enum GitSource {
     GOGS,
 
     GITEE,
+
+    GERRIT
 }

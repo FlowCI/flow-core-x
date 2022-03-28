@@ -23,11 +23,12 @@ import com.flowci.core.flow.domain.StatsType;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.StatsService;
 import com.flowci.exception.ArgumentException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * @author yang
@@ -36,7 +37,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/flows")
 public class StatsController {
 
-    private static final int MaxDays = 30;
+    private static final int MaxDays = 31;
 
     @Autowired
     private FlowService flowService;

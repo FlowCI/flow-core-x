@@ -24,6 +24,8 @@ import com.flowci.core.common.mongo.EncryptConverter;
 import com.flowci.core.common.mongo.VariableMapConverter;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.TextConfig;
+import com.flowci.core.git.domain.GitConfig;
+import com.flowci.core.git.domain.GitConfigWithHost;
 import com.flowci.core.job.domain.JobItem;
 import com.flowci.core.secret.domain.*;
 import com.flowci.core.trigger.domain.EmailTrigger;
@@ -110,6 +112,8 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
 
         context.addEntity(EmailTrigger.class);
         context.addEntity(WebhookTrigger.class);
+
+        context.addEntity(GitConfigWithHost.class);
 
         return context;
     }

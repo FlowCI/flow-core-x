@@ -130,11 +130,12 @@ public class AppConfig {
     }
 
     @Bean("httpClient")
-    public HttpClient httpClient() {
+    public HttpClient httpClient(TaskExecutor appTaskExecutor) {
         return HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_1_1)
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(10))
+                .executor(appTaskExecutor)
                 .build();
     }
 }

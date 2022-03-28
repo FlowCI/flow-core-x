@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.service.ConfigService;
-import com.flowci.core.githook.domain.GitCommit;
-import com.flowci.core.githook.domain.GitUser;
+import com.flowci.core.git.domain.GitCommit;
+import com.flowci.core.git.domain.GitUser;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.trigger.domain.EmailTrigger;
 import com.flowci.core.trigger.domain.Trigger;
@@ -99,7 +99,7 @@ public class TriggerServiceTest extends SpringScenario {
         commits.add(GitCommit.of("1", "first message", "2021-01-01", "https://xxx.xxx/xx/1", new GitUser().setEmail("test1@flow.ci")));
         commits.add(GitCommit.of("2", "second message", "2021-01-02", "https://xxx.xxx/xx/2", new GitUser().setEmail("test2@flow.ci")));
 
-        context.put(Variables.Git.PUSH_BRANCH, "master");
+        context.put(Variables.Git.BRANCH, "master");
         context.put(Variables.Git.PUSH_MESSAGE, "hello test");
         context.put(Variables.Git.PUSH_COMMIT_LIST, StringHelper.toBase64(objectMapper.writeValueAsString(commits)));
         context.put(Variables.Git.PUSH_COMMIT_TOTAL, String.valueOf(2));

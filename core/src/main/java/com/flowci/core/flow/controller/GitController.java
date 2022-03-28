@@ -21,7 +21,7 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.FlowAction;
 import com.flowci.core.flow.domain.FlowGitTest;
 import com.flowci.core.flow.service.FlowService;
-import com.flowci.core.flow.service.GitService;
+import com.flowci.core.flow.service.GitConnService;
 import com.flowci.util.StringHelper;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,7 @@ public class GitController {
     private FlowService flowService;
 
     @Autowired
-    private GitService gitService;
+    private GitConnService gitConnService;
 
     @PostMapping(value = "/{name}/git/test")
     @Action(FlowAction.GIT_TEST)
@@ -53,26 +53,26 @@ public class GitController {
         String gitUrl = body.getGitUrl();
 
         if (body.hasCredential()) {
-            gitService.testConn(flow, gitUrl, body.getSecret());
+            gitConnService.testConn(flow, gitUrl, body.getSecret());
             return;
         }
 
         if (body.hasPrivateKey()) {
-            gitService.testConn(flow, gitUrl, body.getRsa());
+            gitConnService.testConn(flow, gitUrl, body.getRsa());
             return;
         }
 
         if (body.hasUsernamePassword()) {
-            gitService.testConn(flow, gitUrl, body.getAuth());
+            gitConnService.testConn(flow, gitUrl, body.getAuth());
         }
 
-        gitService.testConn(flow, gitUrl, StringHelper.EMPTY);
+        gitConnService.testConn(flow, gitUrl, StringHelper.EMPTY);
     }
 
     @GetMapping(value = "/{name}/git/branches")
     @Action(FlowAction.LIST_BRANCH)
     public List<String> listGitBranches(@PathVariable String name) {
         Flow flow = flowService.get(name);
-        return gitService.listGitBranch(flow);
+        return gitConnService.listGitBranch(flow);
     }
 }

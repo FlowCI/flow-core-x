@@ -41,6 +41,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
         "com.flowci.core.config",
         "com.flowci.core.trigger",
         "com.flowci.core.api",
+        "com.flowci.core.git",
         "com.flowci.core.common.controller"
 })
 public class ResponseMessageAdviser implements ResponseBodyAdvice {

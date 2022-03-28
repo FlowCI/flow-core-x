@@ -36,6 +36,7 @@ import com.flowci.core.job.manager.CmdManager;
 import com.flowci.core.job.manager.LockManager;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.Errors;
+import com.flowci.core.job.util.JobContextHelper;
 import com.flowci.core.job.util.StatusHelper;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
@@ -254,7 +255,12 @@ public class JobActionServiceImpl implements JobActionService {
 
             c.setStep(step);
             Job job = c.getJob();
-            log.debug("---- Job Status {} {} {} {}", job.isOnPostSteps(), step.getNodePath(), job.getStatus(), job.getStatusFromContext());
+            log.debug("---- Job Status {} {} {} {}",
+                    job.isOnPostSteps(),
+                    step.getNodePath(),
+                    job.getStatus(),
+                    JobContextHelper.getStatus(job)
+            );
 
             if (job.isCancelling()) {
                 c.setTo(Cancelled);
@@ -838,7 +844,7 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     private String fetchYamlFromGit(Job job) {
-        final String gitUrl = job.getGitUrl();
+        final String gitUrl = JobContextHelper.getGitUrl(job);
 
         if (!StringHelper.hasValue(gitUrl)) {
             throw new NotAvailableException("Git url is missing");
@@ -847,7 +853,8 @@ public class JobActionServiceImpl implements JobActionService {
         final Path dir = getFlowRepoDir(gitUrl, job.getYamlRepoBranch());
 
         try {
-            GitClient client = new GitClient(gitUrl, tmpDir, getSimpleSecret(job.getCredentialName()));
+            var secret = JobContextHelper.getSecretName(job);
+            GitClient client = new GitClient(gitUrl, tmpDir, getSimpleSecret(secret));
             client.klone(dir, job.getYamlRepoBranch());
         } catch (Exception e) {
             throw new NotAvailableException("Unable to fetch yaml config for flow");
@@ -1035,8 +1042,8 @@ public class JobActionServiceImpl implements JobActionService {
     private void toFinishStatus(JobSmContext context) {
         Job job = context.getJob();
 
-        Job.Status statusFromContext = job.getStatusFromContext();
-        String error = job.getErrorFromContext();
+        Job.Status statusFromContext = JobContextHelper.getStatus(job);
+        String error = JobContextHelper.getError(job);
         ObjectsHelper.ifNotNull(error, s -> context.setError(new CIException(s)));
 
         sm.execute(context.getCurrent(), new Status(statusFromContext.name()), context);
@@ -1067,7 +1074,7 @@ public class JobActionServiceImpl implements JobActionService {
 
         // remove running or finished post steps
         Iterator<Node> iterator = nextPostSteps.iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             Node postNode = iterator.next();
             Step postStep = stepService.get(job.getId(), postNode.getPathAsString());
             if (postStep.isOngoing() || postStep.isKilling() || postStep.isFinished()) {
@@ -1093,10 +1100,10 @@ public class JobActionServiceImpl implements JobActionService {
         job.setOnPostSteps(true);
         job.resetCurrentPath();
         job.setStatus(Job.Status.RUNNING);
-        job.setStatusToContext(Job.Status.valueOf(context.getTo().getName()));
+        JobContextHelper.setStatus(job, context.getTo().getName());
 
         log.debug("Run post steps: {}", nextPostSteps);
-        log.debug("---- Job Status Before Post {} {}", job.getStatus(), job.getStatusFromContext());
+        log.debug("---- Job Status Before Post {} {}", job.getStatus(), JobContextHelper.getStatus(job));
         executeJob(job, nextPostSteps);
         return true;
     }
@@ -1112,7 +1119,7 @@ public class JobActionServiceImpl implements JobActionService {
 
         job.setStatus(newStatus);
         job.setMessage(message);
-        job.setStatusToContext(newStatus);
+        JobContextHelper.setStatus(job, newStatus);
 
         jobDao.save(job);
         eventManager.publish(new JobStatusChangeEvent(this, job));
@@ -1142,8 +1149,8 @@ public class JobActionServiceImpl implements JobActionService {
         }
 
         // DO NOT update job status from context
-        job.setStatusToContext(StatusHelper.convert(step));
-        job.setErrorToContext(step.getError());
+        JobContextHelper.setStatus(job, StatusHelper.convert(step));
+        JobContextHelper.setError(job, step.getError());
     }
 
     private JobAgent getJobAgent(String jobId) {

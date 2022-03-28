@@ -26,10 +26,10 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.event.GitTestEvent;
 import com.flowci.core.flow.service.FlowService;
-import com.flowci.core.flow.service.GitService;
-import com.flowci.core.githook.domain.GitPushTrigger;
-import com.flowci.core.githook.domain.GitTrigger;
-import com.flowci.core.githook.event.GitHookEvent;
+import com.flowci.core.flow.service.GitConnService;
+import com.flowci.core.git.domain.GitPushTrigger;
+import com.flowci.core.git.domain.GitTrigger;
+import com.flowci.core.git.event.GitHookEvent;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.service.SecretService;
@@ -64,7 +64,7 @@ public class FlowServiceTest extends SpringScenario {
     private FlowService flowService;
 
     @Autowired
-    private GitService gitService;
+    private GitConnService gitConnService;
 
     @Autowired
     private SecretService secretService;
@@ -146,7 +146,7 @@ public class FlowServiceTest extends SpringScenario {
                 .setSecret(secretName));
 
         Vars<VarValue> variables = flowService.get(flow.getName()).getLocally();
-        Assert.assertEquals(secretName, variables.get(Variables.Flow.GitCredential).getData());
+        Assert.assertEquals(secretName, variables.get(Variables.Git.SECRET).getData());
 
         // when:
         List<Flow> flows = flowService.listByCredential(secretName);
@@ -221,7 +221,7 @@ public class FlowServiceTest extends SpringScenario {
         // when:
         String gitUrl = "git@github.com:FlowCI/docs.git";
         String privateKey = r.getData().getPrivateKey();
-        gitService.testConn(flow, gitUrl, privateKey);
+        gitConnService.testConn(flow, gitUrl, privateKey);
 
         // then:
         countDown.await(30, TimeUnit.SECONDS);
@@ -255,7 +255,7 @@ public class FlowServiceTest extends SpringScenario {
         });
 
         String gitUrl = "https://xxxx";
-        gitService.testConn(flow, gitUrl, mocked.getName());
+        gitConnService.testConn(flow, gitUrl, mocked.getName());
 
         countDown.await(30, TimeUnit.SECONDS);
         Assert.assertTrue(branches.size() >= 1);
