@@ -18,9 +18,12 @@ package com.flowci.core.user;
 
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.auth.service.AuthService;
+import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.user.domain.*;
 import com.flowci.core.user.service.UserService;
 import com.flowci.exception.ArgumentException;
+
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -42,6 +45,9 @@ public class UserController {
     private static final String DefaultSize = "20";
 
     @Autowired
+    private SessionManager sessionManager;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
@@ -56,6 +62,12 @@ public class UserController {
     @PostMapping("/default")
     public void createDefaultAdmin(@Validated @RequestBody CreateUser body) {
         userService.createDefaultAdmin(body.getEmail(), body.getPasswordOnMd5());
+    }
+
+    @GetMapping("/actions")
+    public Collection<String> actions() {
+        User user = sessionManager.get();
+        return authService.getActions(user.getRole());
     }
 
     @GetMapping
@@ -75,7 +87,8 @@ public class UserController {
     @Action(UserAction.CHANGE_PASSWORD)
     public void changePassword(@Validated @RequestBody ChangePassword body) {
         if (Objects.equals(body.getNewOne(), body.getConfirm())) {
-            userService.changePassword(body.getOld(), body.getNewOne());
+            User user = sessionManager.get();
+            userService.changePassword(user, body.getOld(), body.getNewOne());
             authService.logout();
             return;
         }

@@ -57,9 +57,6 @@ public class UserServiceImpl implements UserService {
     private UserDao userDao;
 
     @Autowired
-    private SessionManager sessionManager;
-
-    @Autowired
     private SpringEventManager eventManager;
 
     @Autowired
@@ -108,9 +105,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword(String oldOnMd5, String newOnMd5) {
-        User user = sessionManager.get();
-
+    public void changePassword(User user, String oldOnMd5, String newOnMd5) {
         if (Objects.equals(user.getPasswordOnMd5(), oldOnMd5)) {
             user.setPasswordOnMd5(newOnMd5);
             userDao.save(user);

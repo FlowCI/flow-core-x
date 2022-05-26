@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 @Log4j2
 @Service
@@ -157,6 +158,11 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public Set<String> getActions(User.Role role) {
+        return permissionMap.get(role);
     }
 
     private User getUser(String email) {
