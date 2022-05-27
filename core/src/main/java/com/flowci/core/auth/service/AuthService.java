@@ -22,6 +22,7 @@ import com.flowci.core.auth.domain.Tokens;
 import com.flowci.core.user.domain.User;
 
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * 'login' ->
@@ -65,4 +66,8 @@ public interface AuthService {
      */
     Optional<User> get(String token);
 
+    /**
+     * Get action list by role
+     */
+    Set<String> getActions(User.Role role);
 }

@@ -62,7 +62,7 @@ public interface UserService {
     /**
      * Change password for current user
      */
-    void changePassword(String old, String newOne);
+    void changePassword(User user, String old, String newOne);
 
     /**
      * Change role for target user

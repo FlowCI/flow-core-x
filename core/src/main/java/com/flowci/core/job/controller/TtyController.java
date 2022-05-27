@@ -1,7 +1,7 @@
 package com.flowci.core.job.controller;
 
 import com.flowci.core.agent.domain.TtyCmd;
-import com.flowci.core.auth.WebAuth;
+import com.flowci.core.auth.controller.WebAuth;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.core.job.service.TtyService;
