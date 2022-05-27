@@ -64,12 +64,6 @@ public class UserController {
         userService.createDefaultAdmin(body.getEmail(), body.getPasswordOnMd5());
     }
 
-    @GetMapping("/actions")
-    public Collection<String> actions() {
-        User user = sessionManager.get();
-        return authService.getActions(user.getRole());
-    }
-
     @GetMapping
     @Action(UserAction.LIST_ALL)
     public Page<User> listAll(@RequestParam(required = false, defaultValue = DefaultPage) int page,
