@@ -141,12 +141,11 @@ public class FlowServiceImpl implements FlowService {
 
     @Override
     public Boolean exist(String name) {
-        try {
-            Flow flow = get(name);
-            return flow.getStatus() != Status.PENDING;
-        } catch (NotFoundException e) {
+        Optional<Flow> optional = flowDao.findByName(name);
+        if (optional.isEmpty()) {
             return false;
         }
+        return optional.get().getStatus() == Status.CONFIRMED;
     }
 
     @Override
@@ -154,14 +153,13 @@ public class FlowServiceImpl implements FlowService {
         Flow.validateName(name);
         String email = sessionManager.getUserEmail();
 
-        Flow flow = flowDao.findByName(name);
-        if (flow != null && flow.getStatus() == Status.CONFIRMED) {
+        if (exist(name)) {
             throw new DuplicateException("Flow {0} already exists", name);
         }
 
         // reuse from pending list
         List<Flow> pending = flowDao.findAllByStatusAndCreatedBy(Status.PENDING, email);
-        flow = pending.size() > 0 ? pending.get(0) : new Flow();
+        var flow = pending.size() > 0 ? pending.get(0) : new Flow();
 
         // set properties
         flow.setName(name);
@@ -231,11 +229,12 @@ public class FlowServiceImpl implements FlowService {
 
     @Override
     public Flow get(String name) {
-        Flow flow = flowDao.findByName(name);
-        if (Objects.isNull(flow)) {
+        Optional<Flow> optional = flowDao.findByName(name);
+
+        if (optional.isEmpty()) {
             throw new NotFoundException("Flow {0} is not found", name);
         }
-        return flow;
+        return optional.get();
     }
 
     @Override
@@ -322,8 +321,13 @@ public class FlowServiceImpl implements FlowService {
     @EventListener
     public void onGitHookEvent(GitHookEvent event) {
         GitTrigger trigger = event.getTrigger();
-        Flow flow = flowDao.findByName(event.getFlow());
+        Optional<Flow> optional = flowDao.findByName(event.getFlow());
+        if (optional.isEmpty()) {
+            log.warn("The flow {} doesn't exist", event.getFlow());
+            return;
+        }
 
+        var flow = optional.get();
         if (event.isPingEvent()) {
             GitPingTrigger ping = (GitPingTrigger) trigger;
 
