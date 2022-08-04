@@ -195,7 +195,7 @@ public class FlowServiceImpl implements FlowService {
             throw new DuplicateException("Flow {0} has created", name);
         }
 
-        Vars<VarValue> localVars = flow.getLocally();
+        Vars<VarValue> localVars = flow.getVars();
 
         if (option.hasGitUrl()) {
             localVars.put(Variables.Git.URL, VarValue.of(option.getGitUrl(), VarType.GIT_URL, true));
@@ -357,7 +357,7 @@ public class FlowServiceImpl implements FlowService {
     // ====================================================================
 
     private void setupDefaultVars(Flow flow) {
-        Vars<VarValue> localVars = flow.getLocally();
+        Vars<VarValue> localVars = flow.getVars();
         localVars.put(Variables.Flow.Name, VarValue.of(flow.getName(), VarType.STRING, false));
     }
 

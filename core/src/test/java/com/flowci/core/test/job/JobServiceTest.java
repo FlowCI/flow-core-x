@@ -131,7 +131,7 @@ public class JobServiceTest extends ZookeeperScenario {
     @Test
     public void should_create_job_with_expected_context() {
         // init:
-        flow.getLocally().put("LOCAL_VAR", VarValue.of("local", VarType.STRING));
+        flow.getVars().put("LOCAL_VAR", VarValue.of("local", VarType.STRING));
         flowDao.save(flow);
         flow = flowService.get(flow.getName());
 

@@ -457,7 +457,7 @@ public class JobServiceImpl implements JobService {
 
     private void initJobContext(Job job, Flow flow, Vars<String> inputs) {
         StringVars context = new StringVars();
-        context.mergeFromTypedVars(flow.getLocally());
+        context.mergeFromTypedVars(flow.getVars());
 
         Settings settings = settingService.get();
         JobContextHelper.setServerUrl(job, settings.getServerUrl());

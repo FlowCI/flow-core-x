@@ -127,7 +127,7 @@ public class YmlServiceImpl implements YmlService {
         }
 
         // sync flow envs from yml root envs
-        Vars<String> vars = flow.getVariables();
+        Vars<String> vars = flow.getReadOnlyVars();
         vars.clear();
         vars.merge(root.getEnvironments());
         flowDao.save(flow);

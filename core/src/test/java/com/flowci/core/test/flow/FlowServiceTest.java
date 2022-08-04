@@ -82,7 +82,7 @@ public class FlowServiceTest extends SpringScenario {
         final Flow flow = flowService.create("vars-test");
         should_has_db_info(flow);
 
-        final Vars<VarValue> vars = flow.getLocally();
+        final Vars<VarValue> vars = flow.getVars();
         Assert.assertEquals(1, vars.size());
 
         VarValue nameVar = vars.get(Variables.Flow.Name);
@@ -145,7 +145,7 @@ public class FlowServiceTest extends SpringScenario {
                 .setYaml(StringHelper.toBase64(defaultYml))
                 .setSecret(secretName));
 
-        Vars<VarValue> variables = flowService.get(flow.getName()).getLocally();
+        Vars<VarValue> variables = flowService.get(flow.getName()).getVars();
         Assert.assertEquals(secretName, variables.get(Variables.Git.SECRET).getData());
 
         // when:

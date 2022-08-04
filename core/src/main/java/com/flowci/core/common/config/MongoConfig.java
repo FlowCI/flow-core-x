@@ -24,6 +24,8 @@ import com.flowci.core.common.mongo.EncryptConverter;
 import com.flowci.core.common.mongo.VariableMapConverter;
 import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.TextConfig;
+import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.FlowGroup;
 import com.flowci.core.git.domain.GitConfig;
 import com.flowci.core.git.domain.GitConfigWithHost;
 import com.flowci.core.job.domain.JobItem;
@@ -58,14 +60,17 @@ import java.util.Objects;
 @EnableMongoAuditing(auditorAwareRef = "sessionManager")
 public class MongoConfig extends AbstractMongoClientConfiguration {
 
-    @Autowired
-    private AppProperties appProperties;
+    private final AppProperties appProperties;
 
-    @Autowired
-    private MongoProperties mongoProperties;
+    private final MongoProperties mongoProperties;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+
+    public MongoConfig(AppProperties appProperties, MongoProperties mongoProperties, ObjectMapper objectMapper) {
+        this.appProperties = appProperties;
+        this.mongoProperties = mongoProperties;
+        this.objectMapper = objectMapper;
+    }
 
     @NonNull
     @Override
@@ -97,6 +102,9 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
         context.setAutoIndexCreation(true);
 
         // add addPersistentEntity for subtypes since not registered if called within same thread
+        context.addEntity(Flow.class);
+        context.addEntity(FlowGroup.class);
+
         context.addEntity(SmtpConfig.class);
         context.addEntity(TextConfig.class);
 
