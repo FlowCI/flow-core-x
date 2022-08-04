@@ -165,8 +165,6 @@ public class FlowServiceImpl implements FlowService {
 
         // set properties
         flow.setName(name);
-        flow.setCreatedBy(email);
-
         setupDefaultVars(flow);
 
         try {

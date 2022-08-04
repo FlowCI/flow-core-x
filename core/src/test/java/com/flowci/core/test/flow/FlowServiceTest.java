@@ -80,7 +80,7 @@ public class FlowServiceTest extends SpringScenario {
     @Test
     public void should_create_with_default_vars() {
         final Flow flow = flowService.create("vars-test");
-        should_has_db_info(flow);
+        shouldHasCreatedAtAndCreatedBy(flow);
 
         final Vars<VarValue> vars = flow.getVars();
         Assert.assertEquals(1, vars.size());
