@@ -19,7 +19,6 @@ package com.flowci.core.flow.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
-import com.flowci.domain.TypedVars;
 import com.flowci.domain.VarValue;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
@@ -60,6 +59,8 @@ public final class Flow extends FlowItem implements Pathable {
 
         CONFIRMED
     }
+
+    private String groupId;
 
     private Status status = Status.PENDING;
 

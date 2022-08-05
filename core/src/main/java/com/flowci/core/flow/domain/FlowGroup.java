@@ -5,13 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.LinkedList;
-import java.util.List;
-
 @Setter
 @Getter
-@Document(collection = "flow")
+@Document(collection = "flow_group")
 public class FlowGroup extends FlowItem {
 
-    private List<String> flows = new LinkedList<>();
 }

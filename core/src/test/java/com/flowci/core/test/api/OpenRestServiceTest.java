@@ -79,7 +79,7 @@ public class OpenRestServiceTest extends SpringScenario {
     @Test
     public void should_save_job_report() {
         // given:
-        Flow flow = flowService.create("user-test");
+        Flow flow = flowService.create("user-test", null);
 
         Job job = new Job();
         job.setId("12345");

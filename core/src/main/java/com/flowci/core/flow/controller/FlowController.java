@@ -75,7 +75,11 @@ public class FlowController {
 
     @PostMapping(value = "/{name}")
     @Action(FlowAction.CREATE)
-    public Flow create(@PathVariable String name) {
+    public Flow create(@PathVariable String name,
+                       @RequestParam(required = false) String groupId) {
+        if (groupId != null) {
+            return flowService.create(name, groupId);
+        }
         return flowService.create(name);
     }
 

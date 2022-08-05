@@ -22,6 +22,7 @@ import com.flowci.core.common.manager.HttpRequestManager;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.FlowDao;
+import com.flowci.core.flow.dao.FlowGroupDao;
 import com.flowci.core.flow.dao.FlowUserDao;
 import com.flowci.core.flow.domain.*;
 import com.flowci.core.flow.domain.Flow.Status;
@@ -66,6 +67,9 @@ public class FlowServiceImpl implements FlowService {
 
     @Autowired
     private FlowDao flowDao;
+
+    @Autowired
+    private FlowGroupDao flowGroupDao;
 
     @Autowired
     private FlowUserDao flowUserDao;
@@ -132,7 +136,6 @@ public class FlowServiceImpl implements FlowService {
             if (Objects.equals(flow.getCredentialName(), secret.getName())) {
                 continue;
             }
-
             iter.remove();
         }
 
@@ -150,11 +153,22 @@ public class FlowServiceImpl implements FlowService {
 
     @Override
     public Flow create(String name) {
+        return create(name, null);
+    }
+
+    @Override
+    public Flow create(String name, String groupId) {
         Flow.validateName(name);
         String email = sessionManager.getUserEmail();
 
         if (exist(name)) {
             throw new DuplicateException("Flow {0} already exists", name);
+        }
+
+        if (groupId != null) {
+            if (!flowGroupDao.existsById(groupId)) {
+                throw new NotFoundException("The group id {0} not found", groupId);
+            }
         }
 
         // reuse from pending list
@@ -163,6 +177,7 @@ public class FlowServiceImpl implements FlowService {
 
         // set properties
         flow.setName(name);
+        flow.setGroupId(groupId);
         setupDefaultVars(flow);
 
         try {

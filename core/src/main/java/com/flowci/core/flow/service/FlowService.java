@@ -49,6 +49,8 @@ public interface FlowService {
      */
     Flow create(String name);
 
+    Flow create(String name, String groupId);
+
     /**
      * Confirm flow
      *
