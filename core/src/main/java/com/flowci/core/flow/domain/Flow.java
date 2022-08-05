@@ -17,8 +17,10 @@
 package com.flowci.core.flow.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
+import com.flowci.domain.TypedVars;
 import com.flowci.domain.VarValue;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
@@ -28,6 +30,7 @@ import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Objects;
@@ -39,7 +42,7 @@ import java.util.Objects;
 @Setter
 @NoArgsConstructor
 @Document(collection = "flow")
-public final class Flow extends FlowItem implements Pathable {
+public final class Flow extends Mongoable implements Pathable {
 
     public static Pathable path(String id) {
         Flow flow = new Flow();
@@ -59,6 +62,11 @@ public final class Flow extends FlowItem implements Pathable {
 
         CONFIRMED
     }
+
+    @Indexed(name = "index_flow_name")
+    private String name;
+
+    private Vars<VarValue> vars = new TypedVars();
 
     private String groupId;
 

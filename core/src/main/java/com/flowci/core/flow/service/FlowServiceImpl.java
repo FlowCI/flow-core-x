@@ -161,10 +161,6 @@ public class FlowServiceImpl implements FlowService {
         Flow.validateName(name);
         String email = sessionManager.getUserEmail();
 
-        if (exist(name)) {
-            throw new DuplicateException("Flow {0} already exists", name);
-        }
-
         if (groupId != null) {
             if (!flowGroupDao.existsById(groupId)) {
                 throw new NotFoundException("The group id {0} not found", groupId);
