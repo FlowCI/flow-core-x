@@ -157,14 +157,17 @@ public class FlowServiceImpl implements FlowService {
     }
 
     @Override
-    public Flow create(String name, String groupId) {
+    public Flow create(String name, String groupName) {
         Flow.validateName(name);
         String email = sessionManager.getUserEmail();
 
-        if (groupId != null) {
-            if (!flowGroupDao.existsById(groupId)) {
-                throw new NotFoundException("The group id {0} not found", groupId);
+        String groupId = null;
+        if (groupName != null) {
+            var optional = flowGroupDao.findByName(groupName);
+            if (optional.isEmpty()) {
+                throw new NotFoundException("group {0} not found", groupName);
             }
+            groupId = optional.get().getId();
         }
 
         // reuse from pending list
@@ -260,8 +263,7 @@ public class FlowServiceImpl implements FlowService {
     }
 
     @Override
-    public Flow delete(String name) {
-        Flow flow = get(name);
+    public void delete(Flow flow) {
         flowDao.delete(flow);
         flowUserDao.delete(flow.getId());
 
@@ -269,7 +271,6 @@ public class FlowServiceImpl implements FlowService {
         cronService.cancel(flow);
 
         eventManager.publish(new FlowDeletedEvent(this, flow));
-        return flow;
     }
 
     @Override

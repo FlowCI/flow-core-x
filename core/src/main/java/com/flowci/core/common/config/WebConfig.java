@@ -71,6 +71,7 @@ public class WebConfig {
                         .addPathPatterns("/users/**")
                         .excludePathPatterns("/users/default")
                         .addPathPatterns("/flows/**")
+                        .addPathPatterns("/flow_groups/**")
                         .addPathPatterns("/jobs/**")
                         .addPathPatterns("/agents/**")
                         .addPathPatterns("/hosts/**")

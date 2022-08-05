@@ -72,7 +72,7 @@ public interface FlowService {
     /**
      * Delete flow and yml
      */
-    Flow delete(String name);
+    void delete(Flow flow);
 
     /**
      * Create ssh-rsa credential

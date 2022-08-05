@@ -92,7 +92,9 @@ public class FlowController {
     @DeleteMapping("/{name}")
     @Action(FlowAction.DELETE)
     public Flow delete(@PathVariable String name) {
-        return flowService.delete(name);
+        var flow = flowService.get(name);
+        flowService.delete(flow);
+        return flow;
     }
 
     /**

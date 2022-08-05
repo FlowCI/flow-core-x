@@ -57,6 +57,9 @@ public abstract class FlowAction {
 
     public static final String LIST_PLUGINS = "list_plugins";
 
+    public static final String GROUP_READ = "group_read";
+    public static final String GROUP_UPDATE = "group_operation";
+
     public static final List<String> ALL = ImmutableList.of(
             CREATE,
             CHECK_NAME,
@@ -74,7 +77,8 @@ public abstract class FlowAction {
             ADD_USER,
             REMOVE_USER,
             LIST_USER,
-            LIST_PLUGINS
+            LIST_PLUGINS,
+            GROUP_READ,
+            GROUP_UPDATE
     );
-
 }

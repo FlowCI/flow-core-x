@@ -1,6 +1,8 @@
 package com.flowci.core.flow.service;
 
+import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowGroupDao;
+import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.FlowGroup;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
@@ -15,9 +17,13 @@ import java.util.Optional;
 @Service
 public class FlowGroupServiceImpl implements FlowGroupService {
 
+    private final FlowDao flowDao;
+
     private final FlowGroupDao flowGroupDao;
 
-    public FlowGroupServiceImpl(FlowGroupDao flowGroupDao) {
+    @Autowired
+    public FlowGroupServiceImpl(FlowDao flowDao, FlowGroupDao flowGroupDao) {
+        this.flowDao = flowDao;
         this.flowGroupDao = flowGroupDao;
     }
 
@@ -47,7 +53,35 @@ public class FlowGroupServiceImpl implements FlowGroupService {
     }
 
     @Override
+    public void addToGroup(String flowName, String groupName) {
+        var group = get(groupName);
+        var flow = getFlow(flowName);
+        flow.setGroupId(group.getId());
+        flowDao.save(flow);
+    }
+
+    @Override
+    public void removeFromGroup(String flowName) {
+        var flow = getFlow(flowName);
+        flow.setGroupId(null);
+        flowDao.save(flow);
+    }
+
+    @Override
     public void delete(String name) {
         flowGroupDao.deleteByName(name);
+    }
+
+    @Override
+    public List<Flow> flows(String id) {
+        return flowDao.findAllByGroupId(id);
+    }
+
+    private Flow getFlow(String flowName) {
+        var flow = flowDao.findByName(flowName);
+        if (flow.isEmpty()) {
+            throw new NotFoundException("the flow {0} not found", flowName);
+        }
+        return flow.get();
     }
 }
