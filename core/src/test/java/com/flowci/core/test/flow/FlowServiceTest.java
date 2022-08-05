@@ -27,8 +27,10 @@ import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.event.GitTestEvent;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.GitConnService;
+import com.flowci.core.git.domain.GitCommit;
 import com.flowci.core.git.domain.GitPushTrigger;
 import com.flowci.core.git.domain.GitTrigger;
+import com.flowci.core.git.domain.GitUser;
 import com.flowci.core.git.event.GitHookEvent;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.secret.domain.AuthSecret;
@@ -173,8 +175,9 @@ public class FlowServiceTest extends SpringScenario {
         GitPushTrigger trigger = new GitPushTrigger();
         trigger.setEvent(GitTrigger.GitEvent.PUSH);
         trigger.setSource(GitSource.GITEE);
-//        trigger.setAuthor(new GitUser().setEmail("xx").setId("xx").setName("xx").setUsername("xx"));
         trigger.setRef("master");
+        trigger.setCommits(List.of(new GitCommit().setId("112233").setMessage("dummy commit")));
+        trigger.setSender(new GitUser().setEmail("dummy@sender.com"));
 
         CountDownLatch c = new CountDownLatch(1);
         addEventListener((ApplicationListener<CreateNewJobEvent>) e -> {
