@@ -27,6 +27,7 @@ import com.flowci.exception.ArgumentException;
 import com.flowci.store.Pathable;
 import com.flowci.tree.NodePath;
 import com.flowci.util.StringHelper;
+import com.google.common.collect.ImmutableSet;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -34,6 +35,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author yang
@@ -44,6 +46,10 @@ import java.util.Objects;
 @Document(collection = "flow")
 public final class Flow extends Mongoable implements Pathable {
 
+    private static final Set<String> reservedFlowNames = ImmutableSet.<String>builder()
+            .add("flows")
+            .build();
+
     public static Pathable path(String id) {
         Flow flow = new Flow();
         flow.setId(id);
@@ -51,6 +57,10 @@ public final class Flow extends Mongoable implements Pathable {
     }
 
     public static void validateName(String name) {
+        if (reservedFlowNames.contains(name.toLowerCase())) {
+            throw new ArgumentException("flow name {0} cannot be used, it's reserved by system", name);
+        }
+
         if (!NodePath.validate(name)) {
             String message = "Illegal flow name {0}, the length cannot over 100 and '*' ',' is not available";
             throw new ArgumentException(message, name);
