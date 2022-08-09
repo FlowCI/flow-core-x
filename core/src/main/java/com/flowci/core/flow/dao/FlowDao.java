@@ -35,7 +35,7 @@ public interface FlowDao extends MongoRepository<Flow, String> {
 
     List<Flow> findAllByStatus(Status status);
 
-    List<Flow> findAllByGroupId(String groupId);
+    List<Flow> findAllByParentId(String parentId);
 
     List<Flow> findAllByStatusAndCreatedBy(Status status, String createdBy);
 

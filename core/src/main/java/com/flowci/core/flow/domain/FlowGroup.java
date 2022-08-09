@@ -1,22 +1,19 @@
 package com.flowci.core.flow.domain;
 
 
-import com.flowci.core.common.domain.Mongoable;
-import com.flowci.domain.TypedVars;
-import com.flowci.domain.VarValue;
-import com.flowci.domain.Vars;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Setter
 @Getter
-@Document(collection = "flow_group")
-public class FlowGroup extends Mongoable {
+@Document(collection = "flow")
+@EqualsAndHashCode(callSuper = true)
+public class FlowGroup extends FlowItem {
 
-    @Indexed(name = "index_group_name")
-    protected String name;
+    public FlowGroup() {
+        super.type = Type.Group;
+    }
 
-    protected Vars<VarValue> vars = new TypedVars();
 }

@@ -17,10 +17,8 @@
 package com.flowci.core.flow.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
-import com.flowci.domain.TypedVars;
 import com.flowci.domain.VarValue;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
@@ -28,10 +26,9 @@ import com.flowci.store.Pathable;
 import com.flowci.tree.NodePath;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableSet;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Objects;
@@ -42,9 +39,9 @@ import java.util.Set;
  */
 @Getter
 @Setter
-@NoArgsConstructor
 @Document(collection = "flow")
-public final class Flow extends Mongoable implements Pathable {
+@EqualsAndHashCode(callSuper = true)
+public final class Flow extends FlowItem implements Pathable {
 
     private static final Set<String> reservedFlowNames = ImmutableSet.<String>builder()
             .add("flows")
@@ -73,13 +70,6 @@ public final class Flow extends Mongoable implements Pathable {
         CONFIRMED
     }
 
-    @Indexed(name = "index_flow_name")
-    private String name;
-
-    private Vars<VarValue> vars = new TypedVars();
-
-    private String groupId;
-
     private Status status = Status.PENDING;
 
     private boolean isYamlFromRepo;
@@ -97,7 +87,12 @@ public final class Flow extends Mongoable implements Pathable {
 
     private WebhookStatus webhookStatus;
 
+    public Flow() {
+        this.type = Type.Flow;
+    }
+
     public Flow(String name) {
+        this();
         this.name = name;
     }
 

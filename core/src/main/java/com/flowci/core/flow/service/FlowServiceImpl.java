@@ -176,20 +176,17 @@ public class FlowServiceImpl implements FlowService {
 
         // set properties
         flow.setName(name);
-        flow.setGroupId(groupId);
+        flow.setParentId(groupId);
         setupDefaultVars(flow);
 
         try {
             flowDao.save(flow);
-            flowUserDao.create(flow.getId());
             fileManager.create(flow);
-            addUsers(flow, flow.getCreatedBy());
             eventManager.publish(new FlowCreatedEvent(this, flow));
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Flow {0} already exists", name);
         } catch (IOException e) {
             flowDao.delete(flow);
-            flowUserDao.delete(flow.getId());
             log.error(e);
             throw new StatusException("Cannot create flow workspace");
         }
@@ -218,7 +215,12 @@ public class FlowServiceImpl implements FlowService {
         flow.setStatus(Status.CONFIRMED);
 
         if (option.hasBlankTemplate()) {
-            return flowDao.save(flow);
+            flowDao.save(flow);
+
+            flowUserDao.create(flow.getId());
+            addUsers(flow, flow.getUpdatedBy());
+
+            return flow;
         }
 
         // load YAML from template
@@ -238,7 +240,10 @@ public class FlowServiceImpl implements FlowService {
             return flow;
         }
 
-        return flowDao.save(flow);
+        flowDao.save(flow);
+        flowUserDao.create(flow.getId());
+        addUsers(flow, flow.getUpdatedBy());
+        return flow;
     }
 
     @Override
@@ -297,7 +302,12 @@ public class FlowServiceImpl implements FlowService {
 
     @Override
     public void addUsers(Flow flow, String... emails) {
-        flowUserDao.insert(flow.getId(), Sets.newHashSet(emails));
+        var emailSet = Sets.newHashSet(emails);
+        flowUserDao.insert(flow.getId(), emailSet);
+
+        if (flow.hasParentId()) {
+            flowUserDao.insert(flow.getParentId(), emailSet);
+        }
     }
 
     @Override

@@ -102,6 +102,9 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
         context.setAutoIndexCreation(true);
 
         // add addPersistentEntity for subtypes since not registered if called within same thread
+        context.addEntity(Flow.class);
+        context.addEntity(FlowGroup.class);
+
         context.addEntity(SmtpConfig.class);
         context.addEntity(TextConfig.class);
 
