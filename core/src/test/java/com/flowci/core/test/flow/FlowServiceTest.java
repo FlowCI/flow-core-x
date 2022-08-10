@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.domain.http.ResponseMessage;
-import com.flowci.core.flow.domain.ConfirmOption;
+import com.flowci.core.flow.domain.CreateOption;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.event.GitTestEvent;
@@ -94,7 +94,7 @@ public class FlowServiceTest extends SpringScenario {
 
     @Test
     public void should_list_all_flows_by_user_id() {
-        ConfirmOption confirmOption = new ConfirmOption().setYaml(StringHelper.toBase64(defaultYml));
+        CreateOption confirmOption = new CreateOption().setYaml(StringHelper.toBase64(defaultYml));
 
         Flow first = flowService.create("test-1");
         flowService.confirm(first.getName(), confirmOption);
@@ -120,7 +120,7 @@ public class FlowServiceTest extends SpringScenario {
         Assert.assertEquals(Status.PENDING, created.getStatus());
 
         // when: confirm the flow
-        ConfirmOption option = new ConfirmOption()
+        CreateOption option = new CreateOption()
                 .setYaml(StringHelper.toBase64(defaultYml))
                 .setGitUrl("git@github.com:FlowCI/docs.git")
                 .setSecret("ssh-ras-credential");
@@ -143,7 +143,7 @@ public class FlowServiceTest extends SpringScenario {
         secretService.createRSA(secretName);
 
         Flow flow = flowService.create("hello");
-        flowService.confirm(flow.getName(), new ConfirmOption()
+        flowService.confirm(flow.getName(), new CreateOption()
                 .setYaml(StringHelper.toBase64(defaultYml))
                 .setSecret(secretName));
 
@@ -170,7 +170,7 @@ public class FlowServiceTest extends SpringScenario {
         Flow flow = flowService.create("githook");
 
         String yaml = StringHelper.toString(load("flow-with-condition.yml"));
-        flowService.confirm(flow.getName(), new ConfirmOption().setYaml(StringHelper.toBase64(yaml)));
+        flowService.confirm(flow.getName(), new CreateOption().setYaml(StringHelper.toBase64(yaml)));
 
         GitPushTrigger trigger = new GitPushTrigger();
         trigger.setEvent(GitTrigger.GitEvent.PUSH);

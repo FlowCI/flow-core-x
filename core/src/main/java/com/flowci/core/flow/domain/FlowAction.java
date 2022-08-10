@@ -27,8 +27,6 @@ public abstract class FlowAction {
 
     public static final String CHECK_NAME = "check_name";
 
-    public static final String CONFIRM = "confirm_flow";
-
     public static final String UPDATE = "update_flow_settings";
 
     public static final String DELETE = "delete_flow";
@@ -63,7 +61,6 @@ public abstract class FlowAction {
     public static final List<String> ALL = ImmutableList.of(
             CREATE,
             CHECK_NAME,
-            CONFIRM,
             DELETE,
             UPDATE,
             LIST,

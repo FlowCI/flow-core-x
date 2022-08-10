@@ -9,11 +9,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-public abstract class FlowItem extends Mongoable {
+@Document("flow")
+public class FlowItem extends Mongoable {
 
     public enum Type {
         Flow,

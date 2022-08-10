@@ -8,9 +8,6 @@ import com.flowci.core.flow.service.FlowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Set;
-
 @RestController
 @RequestMapping("/flow_groups")
 public class FlowGroupController {
@@ -28,12 +25,6 @@ public class FlowGroupController {
     @Action(FlowAction.GROUP_UPDATE)
     public FlowGroup create(@PathVariable String name) {
         return flowGroupService.create(name);
-    }
-
-    @PostMapping
-    @Action(FlowAction.GROUP_READ)
-    public List<FlowGroup> list(@RequestBody Set<String> ids) {
-        return flowGroupService.list(ids);
     }
 
     @PostMapping("/{groupName}/{flowName}")

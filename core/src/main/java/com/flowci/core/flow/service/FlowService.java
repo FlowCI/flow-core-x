@@ -16,9 +16,8 @@
 
 package com.flowci.core.flow.service;
 
-import com.flowci.core.flow.domain.ConfirmOption;
+import com.flowci.core.flow.domain.CreateOption;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
 
@@ -30,34 +29,14 @@ import java.util.List;
 public interface FlowService {
 
     /**
-     * List flows by current user
-     */
-    List<Flow> list(Status status);
-
-    /**
      * List flows of current user by credential name
      */
     List<Flow> listByCredential(String credentialName);
 
     /**
-     * Check the flow name is existed
-     */
-    Boolean exist(String name);
-
-    /**
      * Create flow by name with pending status
      */
-    Flow create(String name);
-
-    Flow create(String name, String groupId);
-
-    /**
-     * Confirm flow
-     *
-     * @param name   flow name
-     * @param option confirm option
-     */
-    Flow confirm(String name, ConfirmOption option);
+    Flow create(String name, CreateOption option);
 
     /**
      * Get flow by name

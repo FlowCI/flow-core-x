@@ -44,7 +44,12 @@ import java.util.Set;
 public final class Flow extends FlowItem implements Pathable {
 
     private static final Set<String> reservedFlowNames = ImmutableSet.<String>builder()
+            .add("flow")
             .add("flows")
+            .add("group")
+            .add("groups")
+            .add("template")
+            .add("templates")
             .build();
 
     public static Pathable path(String id) {
@@ -63,14 +68,6 @@ public final class Flow extends FlowItem implements Pathable {
             throw new ArgumentException(message, name);
         }
     }
-
-    public enum Status {
-        PENDING,
-
-        CONFIRMED
-    }
-
-    private Status status = Status.PENDING;
 
     private boolean isYamlFromRepo;
 
