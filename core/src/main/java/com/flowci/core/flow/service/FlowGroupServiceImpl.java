@@ -6,6 +6,7 @@ import com.flowci.core.flow.dao.FlowGroupDao;
 import com.flowci.core.flow.dao.FlowUserDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.FlowGroup;
+import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.google.common.collect.Sets;
@@ -65,6 +66,10 @@ public class FlowGroupServiceImpl implements FlowGroupService {
 
     @Override
     public void addToGroup(String flowName, String groupName) {
+        if (flowName.equals(groupName)) {
+            throw new ArgumentException("Cannot add to same group");
+        }
+
         var group = get(groupName);
         var flow = getFlow(flowName);
         flow.setParentId(group.getId());
