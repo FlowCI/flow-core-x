@@ -17,6 +17,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document("flow")
 public class FlowItem extends Mongoable {
 
+    private final static String DefaultRootId = "-1";
+
     public enum Type {
         Flow,
 
@@ -33,7 +35,7 @@ public class FlowItem extends Mongoable {
     /**
      * Parent flow item id
      */
-    protected String parentId;
+    protected String parentId = DefaultRootId;
 
     public boolean hasParentId() {
         return StringHelper.hasValue(parentId);
