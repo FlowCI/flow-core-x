@@ -33,12 +33,6 @@ public class FlowGroupController {
         flowGroupService.addToGroup(flowName, groupName);
     }
 
-    @DeleteMapping("/{groupName}/{flowName}")
-    @Action(FlowAction.GROUP_UPDATE)
-    public void removeFromGroup(@PathVariable("groupName") String ignore, @PathVariable String flowName) {
-        flowGroupService.removeFromGroup(flowName);
-    }
-
     @DeleteMapping("/{name}")
     @Action(FlowAction.GROUP_UPDATE)
     public void delete(@PathVariable String name, @RequestParam(required = false) boolean deleteFlow) {

@@ -18,10 +18,5 @@ public interface FlowGroupService {
      */
     void addToGroup(String flowName, String groupName);
 
-    /**
-     * Remove flow from a group
-     */
-    void removeFromGroup(String flowName);
-
     void delete(String name);
 }

@@ -6,6 +6,7 @@ import com.flowci.core.flow.dao.FlowGroupDao;
 import com.flowci.core.flow.dao.FlowUserDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.FlowGroup;
+import com.flowci.core.flow.domain.FlowItem;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
@@ -70,20 +71,14 @@ public class FlowGroupServiceImpl implements FlowGroupService {
             throw new ArgumentException("Cannot add to same group");
         }
 
-        var group = get(groupName);
-        var flow = getFlow(flowName);
-        flow.setParentId(group.getId());
-        flowDao.save(flow);
+        var groupId = FlowItem.ROOT_ID;
+        if (!FlowItem.ROOT_NAME.equals(groupName)) {
+            var group = get(groupName);
+            groupId = group.getId();
+        }
 
-        // add all users from current flow to parent group
-        var users = flowUserDao.findAllUsers(flow.getId());
-        flowUserDao.insert(group.getId(), Sets.newHashSet(users));
-    }
-
-    @Override
-    public void removeFromGroup(String flowName) {
         var flow = getFlow(flowName);
-        flow.setParentId(null);
+        flow.setParentId(groupId);
         flowDao.save(flow);
     }
 

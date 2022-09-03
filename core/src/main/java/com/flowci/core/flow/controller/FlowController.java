@@ -43,19 +43,15 @@ public class FlowController {
 
     private final FlowService flowService;
 
-    private final FlowGroupService flowGroupService;
-
     private final FlowItemService flowItemService;
 
     public FlowController(List<Template> templates,
                           UserService userService,
                           FlowService flowService,
-                          FlowGroupService flowGroupService,
                           FlowItemService flowItemService) {
         this.templates = templates;
         this.userService = userService;
         this.flowService = flowService;
-        this.flowGroupService = flowGroupService;
         this.flowItemService = flowItemService;
     }
 
