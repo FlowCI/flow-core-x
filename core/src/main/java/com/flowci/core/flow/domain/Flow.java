@@ -17,6 +17,7 @@
 package com.flowci.core.flow.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.VarValue;
@@ -29,6 +30,7 @@ import com.google.common.collect.ImmutableSet;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Objects;
@@ -83,6 +85,10 @@ public final class Flow extends FlowItem implements Pathable {
     private Vars<String> readOnlyVars = new StringVars();
 
     private WebhookStatus webhookStatus;
+
+    @JsonInclude()
+    @Transient
+    private FlowGroup parent;
 
     public Flow() {
         this.type = Type.Flow;

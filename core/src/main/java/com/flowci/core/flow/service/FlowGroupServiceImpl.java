@@ -50,6 +50,15 @@ public class FlowGroupServiceImpl implements FlowGroupService {
     }
 
     @Override
+    public FlowGroup getById(String id) {
+        Optional<FlowGroup> optional = flowGroupDao.findById(id);
+        if (optional.isEmpty()) {
+            throw new NotFoundException("Group {0} not found", id);
+        }
+        return optional.get();
+    }
+
+    @Override
     public FlowGroup create(String name) {
         var email = sessionManager.getUserEmail();
 

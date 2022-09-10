@@ -9,6 +9,8 @@ public interface FlowGroupService {
 
     FlowGroup get(String name);
 
+    FlowGroup getById(String id);
+
     List<Flow> flows(String id);
 
     FlowGroup create(String name);

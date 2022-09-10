@@ -43,15 +43,19 @@ public class FlowController {
 
     private final FlowService flowService;
 
+    private final FlowGroupService flowGroupService;
+
     private final FlowItemService flowItemService;
 
     public FlowController(List<Template> templates,
                           UserService userService,
                           FlowService flowService,
+                          FlowGroupService flowGroupService,
                           FlowItemService flowItemService) {
         this.templates = templates;
         this.userService = userService;
         this.flowService = flowService;
+        this.flowGroupService = flowGroupService;
         this.flowItemService = flowItemService;
     }
 
@@ -69,8 +73,12 @@ public class FlowController {
 
     @GetMapping(value = "/{name}")
     @Action(FlowAction.GET)
-    public Flow get(@PathVariable String name) {
-        return flowService.get(name);
+    public Flow get(@PathVariable String name, @RequestParam boolean group) {
+        var flow = flowService.get(name);
+        if (group && flow.hasParentId()) {
+            flow.setParent(flowGroupService.getById(flow.getParentId()));
+        }
+        return flow;
     }
 
     @GetMapping(value = "/{name}/exist")

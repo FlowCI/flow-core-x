@@ -40,7 +40,7 @@ public class FlowItem extends Mongoable {
     protected String parentId = ROOT_ID;
 
     public boolean hasParentId() {
-        return StringHelper.hasValue(parentId);
+        return StringHelper.hasValue(parentId) && !parentId.equals(ROOT_ID);
     }
 
     public boolean hasRootParent() {
