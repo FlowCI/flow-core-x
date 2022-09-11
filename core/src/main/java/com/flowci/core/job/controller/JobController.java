@@ -35,6 +35,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -55,6 +57,15 @@ public class JobController extends BaseController {
 
     @Autowired
     private TaskExecutor appTaskExecutor;
+
+    @PostMapping("/batch/latest")
+    @Action(JobAction.LIST)
+    public List<Job> listLatest(@RequestBody Collection<String> flowIdList) {
+        if (flowIdList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return jobService.listLatest(flowIdList);
+    }
 
     @GetMapping("/{flow}")
     @Action(JobAction.LIST)
