@@ -32,11 +32,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @Accessors(chain = true)
 @EqualsAndHashCode(of = "id")
-@Document(collection = "flow_stats")
+@Document(collection = "flow_matrix")
 @CompoundIndexes(
     @CompoundIndex(name = "index_flow_day_type", def = "{'flowId' : 1, 'day': -1, 'type': 1}")
 )
-public class StatsItem {
+public class MatrixItem {
 
     // zero day used for total
     public static final int ZERO_DAY = 0;
@@ -69,18 +69,18 @@ public class StatsItem {
     /**
      * Current day counter
      */
-    private StatsCounter counter = new StatsCounter();
+    private MatrixCounter counter = new MatrixCounter();
 
     /**
      * Counter in total
      */
-    private StatsCounter total = new StatsCounter();
+    private MatrixCounter total = new MatrixCounter();
 
     public void plusOneToday() {
         numOfToday++;
     }
 
-    public void plusDayCounter(StatsCounter other) {
+    public void plusDayCounter(MatrixCounter other) {
         counter.add(other);
     }
 }

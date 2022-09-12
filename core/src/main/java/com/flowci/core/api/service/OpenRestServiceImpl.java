@@ -24,9 +24,9 @@ import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.flow.dao.FlowUserDao;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.StatsCounter;
+import com.flowci.core.flow.domain.MatrixCounter;
 import com.flowci.core.flow.service.FlowService;
-import com.flowci.core.flow.service.StatsService;
+import com.flowci.core.flow.service.MatrixService;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobKey;
@@ -69,7 +69,7 @@ public class OpenRestServiceImpl implements OpenRestService {
     private SecretService credentialService;
 
     @Autowired
-    private StatsService statsService;
+    private MatrixService matrixService;
 
     @Autowired
     private ReportService reportService;
@@ -115,10 +115,10 @@ public class OpenRestServiceImpl implements OpenRestService {
     }
 
     @Override
-    public void saveStatsForFlow(String flowName, String statsType, StatsCounter counter) {
+    public void saveStatsForFlow(String flowName, String statsType, MatrixCounter counter) {
         Flow flow = flowService.get(flowName);
         int today = DateHelper.toIntDay(new Date());
-        statsService.add(flow.getId(), today, statsType, counter);
+        matrixService.add(flow.getId(), today, statsType, counter);
     }
 
     @Override

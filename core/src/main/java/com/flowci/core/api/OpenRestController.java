@@ -22,7 +22,7 @@ import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.api.service.OpenRestService;
 import com.flowci.core.config.domain.Config;
-import com.flowci.core.flow.domain.StatsCounter;
+import com.flowci.core.flow.domain.MatrixCounter;
 import com.flowci.core.job.domain.JobCache;
 import com.flowci.core.job.service.CacheService;
 import com.flowci.core.job.service.LoggingService;
@@ -92,7 +92,7 @@ public class OpenRestController {
     @PostMapping("/flow/{name}/stats")
     public void addStatsItem(@PathVariable String name,
                              @Validated @RequestBody AddStatsItem body) {
-        openRestService.saveStatsForFlow(name, body.getType(), StatsCounter.from(body.getData()));
+        openRestService.saveStatsForFlow(name, body.getType(), MatrixCounter.from(body.getData()));
     }
 
     @PostMapping("/flow/{name}/job/{number}/context")

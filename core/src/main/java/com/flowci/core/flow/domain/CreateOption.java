@@ -17,6 +17,7 @@
 package com.flowci.core.flow.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.flowci.util.StringHelper;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -33,11 +34,21 @@ public class CreateOption {
     @JsonProperty("title")
     private String templateTitle;
 
+    /**
+     * Yaml in base64 format
+     */
+    @JsonProperty("yml")
+    private String rawYaml;
+
     public boolean hasGroupName() {
         return StringHelper.hasValue(groupName);
     }
 
     public boolean hasTemplateTitle() {
         return StringHelper.hasValue(templateTitle);
+    }
+
+    public boolean hasRawYaml() {
+        return StringHelper.hasValue(rawYaml);
     }
 }

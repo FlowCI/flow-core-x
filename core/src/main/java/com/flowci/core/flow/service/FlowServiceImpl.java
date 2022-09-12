@@ -133,8 +133,7 @@ public class FlowServiceImpl implements FlowService {
     @Override
     public Flow create(String name, CreateOption option) {
         Flow.validateName(name);
-        var email = sessionManager.getUserEmail();
-
+        var yamlContent = getYmlContent(option);
         var flow = new Flow(name);
         flow.getVars().put(Variables.Flow.Name, VarValue.of(flow.getName(), VarType.STRING, false));
 
@@ -146,19 +145,10 @@ public class FlowServiceImpl implements FlowService {
             flow.setParentId(opt.get().getParentId());
         }
 
-        String template = StringHelper.EMPTY;
-        if (option.hasTemplateTitle()) {
-            try {
-                template = loadYmlFromTemplate(option.getTemplateTitle());
-            } catch (IOException e) {
-                throw new NotFoundException("Unable to load template {0} content", option.getTemplateTitle());
-            }
-        }
-
         try {
             flowDao.save(flow);
             fileManager.create(flow);
-            ymlService.saveYml(flow, Yml.DEFAULT_NAME, template);
+            ymlService.saveYml(flow, Yml.DEFAULT_NAME, yamlContent);
 
             flowUserDao.create(flow.getId());
             addUsers(flow, flow.getUpdatedBy());
@@ -204,28 +194,6 @@ public class FlowServiceImpl implements FlowService {
         cronService.cancel(flow);
 
         eventManager.publish(new FlowDeletedEvent(this, flow));
-    }
-
-    @Override
-    public String setSshRsaCredential(String name, SimpleKeyPair pair) {
-        Flow flow = get(name);
-
-        String secretName = "flow-" + flow.getName() + "-ssh-rsa";
-        CreateRsaEvent event = eventManager.publish(new CreateRsaEvent(this, secretName, pair));
-
-        ObjectsHelper.throwIfNotNull(event.getErr());
-        return secretName;
-    }
-
-    @Override
-    public String setAuthCredential(String name, SimpleAuthPair keyPair) {
-        Flow flow = get(name);
-
-        String secretName = "flow-" + flow.getName() + "-auth";
-        CreateAuthEvent event = eventManager.publish(new CreateAuthEvent(this, secretName, keyPair));
-
-        ObjectsHelper.throwIfNotNull(event.getErr());
-        return secretName;
     }
 
     @Override
@@ -307,6 +275,22 @@ public class FlowServiceImpl implements FlowService {
     // ====================================================================
     // %% Utils
     // ====================================================================
+
+    private String getYmlContent(CreateOption option) {
+        if (option.hasTemplateTitle()) {
+            try {
+                return loadYmlFromTemplate(option.getTemplateTitle());
+            } catch (IOException e) {
+                throw new NotFoundException("Unable to load template {0} content", option.getTemplateTitle());
+            }
+        }
+
+        if (option.hasRawYaml()) {
+            return StringHelper.fromBase64(option.getRawYaml());
+        }
+
+        throw new NotFoundException("Yaml content or template name not found");
+    }
 
     private List<Flow> list() {
         String email = sessionManager.getUserEmail();

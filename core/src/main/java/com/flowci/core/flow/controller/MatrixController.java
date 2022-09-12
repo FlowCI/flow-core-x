@@ -18,10 +18,10 @@ package com.flowci.core.flow.controller;
 
 import com.flowci.core.common.helper.DateHelper;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.StatsItem;
-import com.flowci.core.flow.domain.StatsType;
+import com.flowci.core.flow.domain.MatrixItem;
+import com.flowci.core.flow.domain.MatrixType;
 import com.flowci.core.flow.service.FlowService;
-import com.flowci.core.flow.service.StatsService;
+import com.flowci.core.flow.service.MatrixService;
 import com.flowci.exception.ArgumentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +35,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/flows")
-public class StatsController {
+public class MatrixController {
 
     private static final int MaxDays = 31;
 
@@ -43,32 +43,32 @@ public class StatsController {
     private FlowService flowService;
 
     @Autowired
-    private StatsService statsService;
+    private MatrixService matrixService;
 
-    @GetMapping("/{name}/stats/types")
-    public List<StatsType> types(@PathVariable String name) {
+    @GetMapping("/{name}/matrix/types")
+    public List<MatrixType> types(@PathVariable String name) {
         Flow flow = flowService.get(name);
-        return statsService.getStatsType(flow);
+        return matrixService.getStatsType(flow);
     }
 
-    @GetMapping("/{name}/stats/total")
-    public StatsItem total(@PathVariable String name, @RequestParam String t) {
+    @GetMapping("/{name}/matrix/total")
+    public MatrixItem total(@PathVariable String name, @RequestParam String t) {
         Flow flow = flowService.get(name);
-        return statsService.get(flow.getId(), t, StatsItem.ZERO_DAY);
+        return matrixService.get(flow.getId(), t, MatrixItem.ZERO_DAY);
     }
 
-    @GetMapping("/{name}/stats")
-    public List<StatsItem> list(@PathVariable String name,
-                                @RequestParam(required = false) String t,
-                                @RequestParam int from,
-                                @RequestParam int to) {
+    @GetMapping("/{name}/matrix")
+    public List<MatrixItem> list(@PathVariable String name,
+                                 @RequestParam(required = false) String t,
+                                 @RequestParam int from,
+                                 @RequestParam int to) {
 
         if (isValidDuration(from, to)) {
             throw new ArgumentException("Illegal query argument");
         }
 
         Flow flow = flowService.get(name);
-        return statsService.list(flow.getId(), t, from, to);
+        return matrixService.list(flow.getId(), t, from, to);
     }
 
     private boolean isValidDuration(int from, int to) {
@@ -79,11 +79,6 @@ public class StatsController {
             return false;
         }
 
-        if (f.plus(MaxDays, ChronoUnit.DAYS).isAfter(t)) {
-            return false;
-        }
-
-        return true;
+        return !f.plus(MaxDays, ChronoUnit.DAYS).isAfter(t);
     }
-
 }

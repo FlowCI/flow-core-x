@@ -23,6 +23,7 @@ import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.flow.dao.FlowDao;
+import com.flowci.core.flow.domain.CreateOption;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
@@ -123,7 +124,7 @@ public class JobServiceTest extends ZookeeperScenario {
     @Before
     public void mockFlowAndYml() throws IOException {
         mockLogin();
-        flow = flowService.create("hello");
+        flow = flowService.create("hello", new CreateOption());
         String yaml = StringHelper.toString(load("flow.yml"));
         yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
     }

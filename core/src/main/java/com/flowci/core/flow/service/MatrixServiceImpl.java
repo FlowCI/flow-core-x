@@ -46,9 +46,9 @@ import java.util.*;
  */
 @Log4j2
 @Service
-public class StatsServiceImpl implements StatsService {
+public class MatrixServiceImpl implements MatrixService {
 
-    private static final TypeReference<List<StatsType>> StatsTypeRef = new TypeReference<List<StatsType>>() {
+    private static final TypeReference<List<MatrixType>> StatsTypeRef = new TypeReference<List<MatrixType>>() {
     };
 
     @Value("classpath:default_statistic_type.json")
@@ -68,14 +68,14 @@ public class StatsServiceImpl implements StatsService {
 
     private final Object statsSync = new Object();
 
-    private final Map<String, StatsType> defaultTypes = new HashMap<>(5);
+    private final Map<String, MatrixType> defaultTypes = new HashMap<>(5);
 
     @PostConstruct
     public void loadDefaultTypes() {
         try {
-            List<StatsType> types = objectMapper.readValue(defaultTypeJsonFile.getInputStream(), StatsTypeRef);
+            List<MatrixType> types = objectMapper.readValue(defaultTypeJsonFile.getInputStream(), StatsTypeRef);
 
-            for (StatsType t : types) {
+            for (MatrixType t : types) {
                 defaultTypes.put(t.getName(), t);
             }
 
@@ -92,8 +92,8 @@ public class StatsServiceImpl implements StatsService {
             return;
         }
 
-        StatsType t = defaultTypes.get(StatsType.JOB_STATUS);
-        StatsItem item = t.createEmptyItem();
+        MatrixType t = defaultTypes.get(MatrixType.JOB_STATUS);
+        MatrixItem item = t.createEmptyItem();
         item.getCounter().put(job.getStatus().name(), 1.0F);
 
         int day = DateHelper.toIntDay(job.getCreatedAt());
@@ -106,13 +106,13 @@ public class StatsServiceImpl implements StatsService {
     }
 
     @Override
-    public Map<String, StatsType> defaultTypes() {
+    public Map<String, MatrixType> defaultTypes() {
         return defaultTypes;
     }
 
     @Override
-    public List<StatsType> getStatsType(Flow flow) {
-        List<StatsType> list = new LinkedList<>(defaultTypes.values());
+    public List<MatrixType> getStatsType(Flow flow) {
+        List<MatrixType> list = new LinkedList<>(defaultTypes.values());
 
         List<Yml> yamlList = ymlService.list(flow.getId());
         if (yamlList.isEmpty()) {
@@ -124,7 +124,7 @@ public class StatsServiceImpl implements StatsService {
             for (String pluginName : tree.getPlugins()) {
                 try {
                     Plugin plugin = pluginService.get(pluginName);
-                    list.addAll(plugin.getMeta().getStatsTypes());
+                    list.addAll(plugin.getMeta().getMatrixTypes());
                 } catch (NotFoundException ignore) {
 
                 }
@@ -135,7 +135,7 @@ public class StatsServiceImpl implements StatsService {
     }
 
     @Override
-    public List<StatsItem> list(String flowId, String type, int fromDay, int toDay) {
+    public List<MatrixItem> list(String flowId, String type, int fromDay, int toDay) {
         Sort sort = Sort.by(Sort.Direction.ASC, "day");
 
         if (StringHelper.hasValue(type)) {
@@ -146,8 +146,8 @@ public class StatsServiceImpl implements StatsService {
     }
 
     @Override
-    public StatsItem get(String flowId, String type, int day) {
-        Optional<StatsItem> item = statsItemDao.findByFlowIdAndDayAndType(flowId, day, type);
+    public MatrixItem get(String flowId, String type, int day) {
+        Optional<MatrixItem> item = statsItemDao.findByFlowIdAndDayAndType(flowId, day, type);
         if (item.isPresent()) {
             return item.get();
         }
@@ -155,13 +155,13 @@ public class StatsServiceImpl implements StatsService {
     }
 
     @Override
-    public StatsItem add(String flowId, int day, String type, StatsCounter counter) {
+    public MatrixItem add(String flowId, int day, String type, MatrixCounter counter) {
         synchronized (statsSync) {
-            StatsItem totalItem = getItem(flowId, StatsItem.ZERO_DAY, type);
+            MatrixItem totalItem = getItem(flowId, MatrixItem.ZERO_DAY, type);
             totalItem.plusDayCounter(counter);
             totalItem.plusOneToday();
 
-            StatsItem dayItem = getItem(flowId, day, type);
+            MatrixItem dayItem = getItem(flowId, day, type);
             dayItem.plusDayCounter(counter);
             dayItem.plusOneToday();
 
@@ -173,10 +173,10 @@ public class StatsServiceImpl implements StatsService {
         }
     }
 
-    private StatsItem getItem(String flowId, int day, String type) {
-        Optional<StatsItem> optional = statsItemDao.findByFlowIdAndDayAndType(flowId, day, type);
+    private MatrixItem getItem(String flowId, int day, String type) {
+        Optional<MatrixItem> optional = statsItemDao.findByFlowIdAndDayAndType(flowId, day, type);
 
-        return optional.orElseGet(() -> new StatsItem()
+        return optional.orElseGet(() -> new MatrixItem()
                 .setDay(day)
                 .setFlowId(flowId)
                 .setType(type));

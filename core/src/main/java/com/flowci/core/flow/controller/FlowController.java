@@ -101,21 +101,6 @@ public class FlowController {
         return flow;
     }
 
-    /**
-     * Create credential for flow only
-     */
-    @PostMapping("/{name}/secret/rsa")
-    @Action(FlowAction.SETUP_CREDENTIAL)
-    public String setupRSACredential(@PathVariable String name, @RequestBody SimpleKeyPair pair) {
-        return flowService.setSshRsaCredential(name, pair);
-    }
-
-    @PostMapping("/{name}/secret/auth")
-    @Action(FlowAction.SETUP_CREDENTIAL)
-    public String setupAuthCredential(@PathVariable String name, @RequestBody SimpleAuthPair pair) {
-        return flowService.setAuthCredential(name, pair);
-    }
-
     @PostMapping("/{name}/users")
     @Action(FlowAction.ADD_USER)
     public List<User> addUsers(@PathVariable String name, @RequestBody String[] emails) {

@@ -5,15 +5,16 @@ import com.flowci.domain.TypedVars;
 import com.flowci.domain.VarValue;
 import com.flowci.domain.Vars;
 import com.flowci.util.StringHelper;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Objects;
+
+
 @Getter
 @Setter
-@EqualsAndHashCode(callSuper = true)
 @Document("flow")
 public class FlowItem extends Mongoable {
 
@@ -45,5 +46,18 @@ public class FlowItem extends Mongoable {
 
     public boolean hasRootParent() {
         return hasParentId() && parentId.equals(ROOT_ID);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getId());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof Flow) {
+            return getId().equals(((Flow) o).getId());
+        }
+        return false;
     }
 }

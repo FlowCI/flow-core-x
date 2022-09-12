@@ -54,23 +54,6 @@ public interface FlowService {
     void delete(Flow flow);
 
     /**
-     * Create ssh-rsa credential
-     * It will create default credential name: 'flow-{flow name}-ssh-rsa'
-     *
-     * @return credential name
-     */
-    String setSshRsaCredential(String name, SimpleKeyPair keyPair);
-
-    /**
-     * Create auth credential
-     * It will create default credential name: 'flow-{flow name}-auth'
-     *
-     * @return credential name
-     */
-    String setAuthCredential(String name, SimpleAuthPair keyPair);
-
-
-    /**
      * Add users to flow
      */
     void addUsers(Flow flow, String... emails);
