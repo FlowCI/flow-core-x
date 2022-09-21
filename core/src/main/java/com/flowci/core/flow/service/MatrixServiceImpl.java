@@ -19,7 +19,7 @@ package com.flowci.core.flow.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.helper.DateHelper;
-import com.flowci.core.flow.dao.StatsItemDao;
+import com.flowci.core.flow.dao.MatrixItemDao;
 import com.flowci.core.flow.domain.*;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.job.domain.Job;
@@ -58,7 +58,7 @@ public class MatrixServiceImpl implements MatrixService {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private StatsItemDao statsItemDao;
+    private MatrixItemDao matrixItemDao;
 
     @Autowired
     private YmlService ymlService;
@@ -102,7 +102,7 @@ public class MatrixServiceImpl implements MatrixService {
 
     @EventListener
     public void onFlowDelete(FlowDeletedEvent event) {
-        statsItemDao.deleteByFlowId(event.getFlow().getId());
+        matrixItemDao.deleteByFlowId(event.getFlow().getId());
     }
 
     @Override
@@ -139,15 +139,20 @@ public class MatrixServiceImpl implements MatrixService {
         Sort sort = Sort.by(Sort.Direction.ASC, "day");
 
         if (StringHelper.hasValue(type)) {
-            return statsItemDao.findByFlowIdAndTypeDayBetween(flowId, type, fromDay, toDay, sort);
+            return matrixItemDao.findByFlowIdAndTypeDayBetween(flowId, type, fromDay, toDay, sort);
         }
 
-        return statsItemDao.findByFlowIdDayBetween(flowId, fromDay, toDay, sort);
+        return matrixItemDao.findByFlowIdDayBetween(flowId, fromDay, toDay, sort);
+    }
+
+    @Override
+    public List<MatrixItem> list(Collection<String> flowIdList, String type, int day) {
+        return matrixItemDao.findAllByFlowIdInAndDayAndType(flowIdList, day, type);
     }
 
     @Override
     public MatrixItem get(String flowId, String type, int day) {
-        Optional<MatrixItem> item = statsItemDao.findByFlowIdAndDayAndType(flowId, day, type);
+        Optional<MatrixItem> item = matrixItemDao.findByFlowIdAndDayAndType(flowId, day, type);
         if (item.isPresent()) {
             return item.get();
         }
@@ -168,13 +173,13 @@ public class MatrixServiceImpl implements MatrixService {
             dayItem.setTotal(totalItem.getCounter());
             dayItem.setNumOfTotal(totalItem.getNumOfToday());
 
-            statsItemDao.saveAll(Arrays.asList(dayItem, totalItem));
+            matrixItemDao.saveAll(Arrays.asList(dayItem, totalItem));
             return dayItem;
         }
     }
 
     private MatrixItem getItem(String flowId, int day, String type) {
-        Optional<MatrixItem> optional = statsItemDao.findByFlowIdAndDayAndType(flowId, day, type);
+        Optional<MatrixItem> optional = matrixItemDao.findByFlowIdAndDayAndType(flowId, day, type);
 
         return optional.orElseGet(() -> new MatrixItem()
                 .setDay(day)

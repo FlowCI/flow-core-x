@@ -20,6 +20,8 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.MatrixCounter;
 import com.flowci.core.flow.domain.MatrixItem;
 import com.flowci.core.flow.domain.MatrixType;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +46,11 @@ public interface MatrixService {
          * List statistic by range
          */
     List<MatrixItem> list(String flowId, String type, int fromDay, int toDay);
+
+    /**
+     * List matrix items on specific day by flow id list
+     */
+    List<MatrixItem> list(Collection<String> flowIdList, String type, int day);
 
     /**
      * Get statistic item

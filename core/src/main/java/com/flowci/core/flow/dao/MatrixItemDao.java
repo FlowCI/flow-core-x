@@ -22,6 +22,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,7 +30,7 @@ import java.util.Optional;
  * @author yang
  */
 @Repository
-public interface StatsItemDao extends MongoRepository<MatrixItem, String> {
+public interface MatrixItemDao extends MongoRepository<MatrixItem, String> {
 
     @Query("{'flowId':?0, 'type': ?1, 'day' : {$gte : ?2, $lte : ?3}}")
     List<MatrixItem> findByFlowIdAndTypeDayBetween(String flowId, String type, int dayGT, int dayLT, Sort sort);
@@ -38,6 +39,8 @@ public interface StatsItemDao extends MongoRepository<MatrixItem, String> {
     List<MatrixItem> findByFlowIdDayBetween(String flowId, int dayGT, int dayLT, Sort sort);
 
     Optional<MatrixItem> findByFlowIdAndDayAndType(String flowId, int day, String type);
+
+    List<MatrixItem> findAllByFlowIdInAndDayAndType(Collection<String> flowIds, int day, String type);
 
     void deleteByFlowId(String flowId);
 }

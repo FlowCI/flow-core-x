@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -55,6 +56,11 @@ public class MatrixController {
     public MatrixItem total(@PathVariable String name, @RequestParam String t) {
         Flow flow = flowService.get(name);
         return matrixService.get(flow.getId(), t, MatrixItem.ZERO_DAY);
+    }
+
+    @PostMapping("/matrix/batch/total")
+    public List<MatrixItem> batchTotal(@RequestParam String t, @RequestBody Collection<String> flowIdList) {
+        return matrixService.list(flowIdList, t, MatrixItem.ZERO_DAY);
     }
 
     @GetMapping("/{name}/matrix")
