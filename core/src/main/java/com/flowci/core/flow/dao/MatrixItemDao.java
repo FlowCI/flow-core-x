@@ -16,12 +16,13 @@
 
 package com.flowci.core.flow.dao;
 
-import com.flowci.core.flow.domain.StatsItem;
+import com.flowci.core.flow.domain.MatrixItem;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,15 +30,17 @@ import java.util.Optional;
  * @author yang
  */
 @Repository
-public interface StatsItemDao extends MongoRepository<StatsItem, String> {
+public interface MatrixItemDao extends MongoRepository<MatrixItem, String> {
 
     @Query("{'flowId':?0, 'type': ?1, 'day' : {$gte : ?2, $lte : ?3}}")
-    List<StatsItem> findByFlowIdAndTypeDayBetween(String flowId, String type, int dayGT, int dayLT, Sort sort);
+    List<MatrixItem> findByFlowIdAndTypeDayBetween(String flowId, String type, int dayGT, int dayLT, Sort sort);
 
     @Query("{'flowId':?0, 'day' : {$gte : ?1, $lte : ?2}}")
-    List<StatsItem> findByFlowIdDayBetween(String flowId, int dayGT, int dayLT, Sort sort);
+    List<MatrixItem> findByFlowIdDayBetween(String flowId, int dayGT, int dayLT, Sort sort);
 
-    Optional<StatsItem> findByFlowIdAndDayAndType(String flowId, int day, String type);
+    Optional<MatrixItem> findByFlowIdAndDayAndType(String flowId, int day, String type);
+
+    List<MatrixItem> findAllByFlowIdInAndDayAndType(Collection<String> flowIds, int day, String type);
 
     void deleteByFlowId(String flowId);
 }

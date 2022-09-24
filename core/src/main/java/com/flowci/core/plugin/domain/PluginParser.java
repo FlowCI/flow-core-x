@@ -16,7 +16,7 @@
 
 package com.flowci.core.plugin.domain;
 
-import com.flowci.core.flow.domain.StatsType;
+import com.flowci.core.flow.domain.MatrixType;
 import com.flowci.domain.Input;
 import com.flowci.domain.VarType;
 import com.flowci.domain.Version;
@@ -84,7 +84,7 @@ public abstract class PluginParser {
             ObjectsHelper.ifNotNull(allow_failure, meta::setAllowFailure);
             ObjectsHelper.ifNotNull(stats, list -> {
                 for (StatsWrapper wrapper : list) {
-                    meta.getStatsTypes().add(wrapper.toStatsType());
+                    meta.getMatrixTypes().add(wrapper.toStatsType());
                 }
             });
             ObjectsHelper.ifNotNull(inputs, list -> {
@@ -115,8 +115,8 @@ public abstract class PluginParser {
 
         public List<String> fields = new LinkedList<>();
 
-        public StatsType toStatsType() {
-            return new StatsType()
+        public MatrixType toStatsType() {
+            return new MatrixType()
                     .setName(name)
                     .setDesc(desc)
                     .setPercent(percent)

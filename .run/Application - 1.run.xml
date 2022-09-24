@@ -1,21 +1,21 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Application - 1" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
-    <module name="core" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="com.flowci.core.Application" />
-    <option name="VM_PARAMETERS" value="-Xms1g -Xmx1g -Xmn600m -XX:-UseAdaptiveSizePolicy -XX:SurvivorRatio=4 -verbose:gc" />
-    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="ACTIVE_PROFILES" />
     <envs>
+      <env name="FLOWCI_AGENT_IMAGE" value="flowci/agent:dev" />
+      <env name="FLOWCI_AGENT_VOLUMES" value="name=pyenv,dest=/ci/python,script=init.sh,image=flowci/pyenv,init=init-pyenv-volume.sh" />
+      <env name="FLOWCI_AUTO_AGENT" value="false" />
       <env name="FLOWCI_LOG_LEVEL" value="DEBUG" />
       <env name="FLOWCI_PLUGIN_URL" value="https://raw.githubusercontent.com/FlowCI/plugins/develop/repository.json" />
       <env name="FLOWCI_RABBITMQ_URI" value="amqp://guest:guest@127.0.0.1:5672" />
-      <env name="FLOWCI_ZK_HOST" value="127.0.0.1" />
-      <env name="FLOWCI_AUTO_AGENT" value="false" />
-      <env name="FLOWCI_AGENT_VOLUMES" value="name=pyenv,dest=/ci/python,script=init.sh,image=flowci/pyenv,init=init-pyenv-volume.sh" />
       <env name="FLOWCI_SERVER_PORT" value="8080" />
+      <env name="FLOWCI_SERVER_URL" value="http://localhost:8080" />
       <env name="FLOWCI_TEMPLATES" value="https://raw.githubusercontent.com/FlowCI/templates/develop/templates.json" />
-      <env name="FLOWCI_AGENT_IMAGE" value="flowci/agent:dev" />
-      <env name="FLOWCI_SERVER_URL" value="http://192.168.31.173:8080" />
+      <env name="FLOWCI_ZK_HOST" value="127.0.0.1" />
     </envs>
+    <module name="core" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.flowci.core.Application" />
+    <option name="VM_PARAMETERS" value="-Xms1g -Xmx1g -Xmn600m -XX:-UseAdaptiveSizePolicy -XX:SurvivorRatio=4 -verbose:gc" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

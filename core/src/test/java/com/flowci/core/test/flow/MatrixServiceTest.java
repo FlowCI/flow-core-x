@@ -18,9 +18,9 @@ package com.flowci.core.test.flow;
 
 import com.flowci.core.common.helper.DateHelper;
 import com.flowci.core.common.helper.ThreadHelper;
-import com.flowci.core.flow.domain.StatsItem;
-import com.flowci.core.flow.domain.StatsType;
-import com.flowci.core.flow.service.StatsService;
+import com.flowci.core.flow.domain.MatrixItem;
+import com.flowci.core.flow.domain.MatrixType;
+import com.flowci.core.flow.service.MatrixService;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.test.SpringScenario;
@@ -36,10 +36,10 @@ import java.util.List;
 /**
  * @author yang
  */
-public class StatsServiceTest extends SpringScenario {
+public class MatrixServiceTest extends SpringScenario {
 
     @Autowired
-    private StatsService statsService;
+    private MatrixService matrixService;
 
     @Test
     public void should_add_stats_item_when_job_status_changed() {
@@ -52,7 +52,7 @@ public class StatsServiceTest extends SpringScenario {
         multicastEvent(new JobStatusChangeEvent(this, job));
         ThreadHelper.sleep(1000);
 
-        StatsItem item = statsService.get(job.getFlowId(), StatsType.JOB_STATUS, DateHelper.toIntDay(new Date()));
+        MatrixItem item = matrixService.get(job.getFlowId(), MatrixType.JOB_STATUS, DateHelper.toIntDay(new Date()));
         Assert.assertNotNull(item);
         Assert.assertEquals(Job.FINISH_STATUS.size(), item.getCounter().size());
 
@@ -99,11 +99,11 @@ public class StatsServiceTest extends SpringScenario {
 
         int fromDay = DateHelper.toIntDay(yesterday);
         int toDay = DateHelper.toIntDay(tomorrow);
-        List<StatsItem> list = statsService.list(flowId, StatsType.JOB_STATUS, fromDay, toDay);
+        List<MatrixItem> list = matrixService.list(flowId, MatrixType.JOB_STATUS, fromDay, toDay);
         Assert.assertNotNull(list);
         Assert.assertEquals(3, list.size());
 
-        StatsItem total = statsService.get(flowId, StatsType.JOB_STATUS, StatsItem.ZERO_DAY);
+        MatrixItem total = matrixService.get(flowId, MatrixType.JOB_STATUS, MatrixItem.ZERO_DAY);
         Assert.assertNotNull(total);
         Assert.assertEquals(2.0F, total.getCounter().get("SUCCESS"), 0.0);
         Assert.assertEquals(1.0F, total.getCounter().get("FAILURE"), 0.0);

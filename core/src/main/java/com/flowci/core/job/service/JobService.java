@@ -26,6 +26,7 @@ import com.flowci.domain.StringVars;
 import org.springframework.data.domain.Page;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -61,9 +62,14 @@ public interface JobService {
     JobYml getYml(Job job);
 
     /**
-     * Get latest job
+     * Get the latest job
      */
     Job getLatest(String flowId);
+
+    /**
+     * List latest jobs from flow id list
+     */
+    List<Job> listLatest(Collection<String> flowIdList);
 
     /**
      * List jobs with fields only shown on the list

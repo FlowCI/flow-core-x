@@ -200,6 +200,12 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    public List<Job> listLatest(Collection<String> flowIdList) {
+        List<JobNumber> numberList = jobNumberDao.findAllByFlowIdIn(flowIdList);
+        return jobDao.list(numberList);
+    }
+
+    @Override
     public Page<JobItem> list(Flow flow, int page, int size) {
         PageRequest pageable = PageRequest.of(page, size, SortByBuildNumber);
         return jobItemDao.findAllByFlowId(flow.getId(), pageable);
@@ -457,7 +463,7 @@ public class JobServiceImpl implements JobService {
 
     private void initJobContext(Job job, Flow flow, Vars<String> inputs) {
         StringVars context = new StringVars();
-        context.mergeFromTypedVars(flow.getLocally());
+        context.mergeFromTypedVars(flow.getVars());
 
         Settings settings = settingService.get();
         JobContextHelper.setServerUrl(job, settings.getServerUrl());

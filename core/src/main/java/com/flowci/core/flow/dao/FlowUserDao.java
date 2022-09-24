@@ -17,8 +17,8 @@
 
 package com.flowci.core.flow.dao;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public interface FlowUserDao {
 
@@ -42,12 +42,12 @@ public interface FlowUserDao {
     /**
      * Batch insert users
      */
-    void insert(String flowId, Set<String> emails);
+    void insert(String flowId, Collection<String> emails);
 
     /**
      * Batch remove users
      */
-    void remove(String flowId, Set<String> emails);
+    void remove(String flowId, Collection<String> emails);
 
     /**
      * Check user is existed

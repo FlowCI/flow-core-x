@@ -27,7 +27,7 @@ import lombok.experimental.Accessors;
 @Getter
 @EqualsAndHashCode(of = "name")
 @Accessors(chain = true)
-public class StatsType {
+public class MatrixType {
 
     public static final String JOB_STATUS = "default/ci_job_status";
 
@@ -43,13 +43,13 @@ public class StatsType {
     // stats fields that applied in counter as key
     private List<String> fields = new LinkedList<>();
 
-    public StatsItem createEmptyItem() {
-        StatsCounter counter = new StatsCounter();
+    public MatrixItem createEmptyItem() {
+        MatrixCounter counter = new MatrixCounter();
         for (String field : fields) {
             counter.put(field, 0.0F);
         }
 
-        return new StatsItem()
+        return new MatrixItem()
             .setType(name)
             .setCounter(counter);
     }

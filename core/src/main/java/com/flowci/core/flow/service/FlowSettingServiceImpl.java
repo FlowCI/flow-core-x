@@ -87,7 +87,7 @@ public class FlowSettingServiceImpl implements FlowSettingService {
             boolean isVerified = varManager.verify(value.getType(), value.getData());
 
             if (isVerified) {
-                flow.getLocally().put(name, value);
+                flow.getVars().put(name, value);
                 continue;
             }
 
@@ -100,7 +100,7 @@ public class FlowSettingServiceImpl implements FlowSettingService {
     @Override
     public void remove(Flow flow, List<String> vars) {
         for (String key : vars) {
-            flow.getLocally().remove(key);
+            flow.getVars().remove(key);
         }
 
         flowDao.save(flow);

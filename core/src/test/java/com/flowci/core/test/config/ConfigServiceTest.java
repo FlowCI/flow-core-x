@@ -51,7 +51,7 @@ public class ConfigServiceTest extends SpringScenario {
 
         // then:
         SmtpConfig config = (SmtpConfig) configService.get("smtp-config");
-        should_has_db_info(config);
+        shouldHasCreatedAtAndCreatedBy(config);
 
         Assert.assertNotNull(config.getId());
         Assert.assertEquals(mockSecret.getUsername(), config.getAuth().getUsername());

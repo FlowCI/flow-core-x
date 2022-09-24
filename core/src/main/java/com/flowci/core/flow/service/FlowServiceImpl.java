@@ -22,9 +22,9 @@ import com.flowci.core.common.manager.HttpRequestManager;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.FlowDao;
+import com.flowci.core.flow.dao.FlowGroupDao;
 import com.flowci.core.flow.dao.FlowUserDao;
 import com.flowci.core.flow.domain.*;
-import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
@@ -45,6 +45,7 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.util.ObjectsHelper;
+import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +67,9 @@ public class FlowServiceImpl implements FlowService {
 
     @Autowired
     private FlowDao flowDao;
+
+    @Autowired
+    private FlowGroupDao flowGroupDao;
 
     @Autowired
     private FlowUserDao flowUserDao;
@@ -97,24 +101,12 @@ public class FlowServiceImpl implements FlowService {
 
     @EventListener(ContextRefreshedEvent.class)
     public void initFlows() {
-        eventManager.publish(new FlowInitEvent(this, flowDao.findAllByStatus(Status.CONFIRMED)));
+        eventManager.publish(new FlowInitEvent(this, flowDao.findAll()));
     }
 
     // ====================================================================
     // %% Public function
     // ====================================================================
-
-    @Override
-    public List<Flow> list(Status status) {
-        String email = sessionManager.getUserEmail();
-        List<String> flowIds = flowUserDao.findAllFlowsByUserEmail(email);
-
-        if (flowIds.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return flowDao.findAllByIdInAndStatus(flowIds, status);
-    }
 
     @Override
     public List<Flow> listByCredential(String secretName) {
@@ -124,7 +116,7 @@ public class FlowServiceImpl implements FlowService {
         }
 
         Secret secret = event.getFetched();
-        List<Flow> list = list(Status.CONFIRMED);
+        List<Flow> list = list();
         Iterator<Flow> iter = list.iterator();
 
         while (iter.hasNext()) {
@@ -132,7 +124,6 @@ public class FlowServiceImpl implements FlowService {
             if (Objects.equals(flow.getCredentialName(), secret.getName())) {
                 continue;
             }
-
             iter.remove();
         }
 
@@ -140,104 +131,47 @@ public class FlowServiceImpl implements FlowService {
     }
 
     @Override
-    public Boolean exist(String name) {
-        try {
-            Flow flow = get(name);
-            return flow.getStatus() != Status.PENDING;
-        } catch (NotFoundException e) {
-            return false;
-        }
-    }
-
-    @Override
-    public Flow create(String name) {
+    public Flow create(String name, CreateOption option) {
         Flow.validateName(name);
-        String email = sessionManager.getUserEmail();
+        var yamlContent = getYmlContent(option);
+        var flow = new Flow(name);
+        flow.getVars().put(Variables.Flow.Name, VarValue.of(flow.getName(), VarType.STRING, false));
 
-        Flow flow = flowDao.findByName(name);
-        if (flow != null && flow.getStatus() == Status.CONFIRMED) {
-            throw new DuplicateException("Flow {0} already exists", name);
+        if (option.hasGroupName()) {
+            var opt = flowGroupDao.findByName(option.getGroupName());
+            if (opt.isEmpty()) {
+                throw new NotFoundException("group {0} not found", option.getGroupName());
+            }
+            flow.setParentId(opt.get().getParentId());
         }
-
-        // reuse from pending list
-        List<Flow> pending = flowDao.findAllByStatusAndCreatedBy(Status.PENDING, email);
-        flow = pending.size() > 0 ? pending.get(0) : new Flow();
-
-        // set properties
-        flow.setName(name);
-        flow.setCreatedBy(email);
-
-        setupDefaultVars(flow);
 
         try {
             flowDao.save(flow);
-            flowUserDao.create(flow.getId());
             fileManager.create(flow);
-            addUsers(flow, flow.getCreatedBy());
+            ymlService.saveYml(flow, Yml.DEFAULT_NAME, yamlContent);
+
+            flowUserDao.create(flow.getId());
+            addUsers(flow, flow.getUpdatedBy());
+
             eventManager.publish(new FlowCreatedEvent(this, flow));
+            return flow;
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Flow {0} already exists", name);
         } catch (IOException e) {
             flowDao.delete(flow);
-            flowUserDao.delete(flow.getId());
             log.error(e);
             throw new StatusException("Cannot create flow workspace");
         }
-
-        return flow;
-    }
-
-    @Override
-    public Flow confirm(String name, ConfirmOption option) {
-        Flow flow = get(name);
-
-        if (flow.getStatus() == Status.CONFIRMED) {
-            throw new DuplicateException("Flow {0} has created", name);
-        }
-
-        Vars<VarValue> localVars = flow.getLocally();
-
-        if (option.hasGitUrl()) {
-            localVars.put(Variables.Git.URL, VarValue.of(option.getGitUrl(), VarType.GIT_URL, true));
-        }
-
-        if (option.hasSecret()) {
-            localVars.put(Variables.Git.SECRET, VarValue.of(option.getSecret(), VarType.STRING, true));
-        }
-
-        flow.setStatus(Status.CONFIRMED);
-
-        if (option.hasBlankTemplate()) {
-            return flowDao.save(flow);
-        }
-
-        // load YAML from template
-        if (option.hasTemplateTitle()) {
-            try {
-                String template = loadYmlFromTemplate(option.getTemplateTitle());
-                ymlService.saveYml(flow, Yml.DEFAULT_NAME, template);
-                return flow;
-            } catch (IOException e) {
-                throw new NotFoundException("Unable to load template {0} content", option.getTemplateTitle());
-            }
-        }
-
-        // flow instance will be saved in saveYml
-        if (option.hasYml()) {
-            ymlService.saveYmlFromB64(flow, Yml.DEFAULT_NAME, option.getYaml());
-            return flow;
-        }
-
-        return flowDao.save(flow);
     }
 
     @Override
     public Flow get(String name) {
-        Flow flow = flowDao.findByName(name);
-        if (Objects.isNull(flow)) {
+        Optional<Flow> optional = flowDao.findByName(name);
+
+        if (optional.isEmpty()) {
             throw new NotFoundException("Flow {0} is not found", name);
         }
-        return flow;
+        return optional.get();
     }
 
     @Override
@@ -252,8 +186,7 @@ public class FlowServiceImpl implements FlowService {
     }
 
     @Override
-    public Flow delete(String name) {
-        Flow flow = get(name);
+    public void delete(Flow flow) {
         flowDao.delete(flow);
         flowUserDao.delete(flow.getId());
 
@@ -261,34 +194,16 @@ public class FlowServiceImpl implements FlowService {
         cronService.cancel(flow);
 
         eventManager.publish(new FlowDeletedEvent(this, flow));
-        return flow;
-    }
-
-    @Override
-    public String setSshRsaCredential(String name, SimpleKeyPair pair) {
-        Flow flow = get(name);
-
-        String secretName = "flow-" + flow.getName() + "-ssh-rsa";
-        CreateRsaEvent event = eventManager.publish(new CreateRsaEvent(this, secretName, pair));
-
-        ObjectsHelper.throwIfNotNull(event.getErr());
-        return secretName;
-    }
-
-    @Override
-    public String setAuthCredential(String name, SimpleAuthPair keyPair) {
-        Flow flow = get(name);
-
-        String secretName = "flow-" + flow.getName() + "-auth";
-        CreateAuthEvent event = eventManager.publish(new CreateAuthEvent(this, secretName, keyPair));
-
-        ObjectsHelper.throwIfNotNull(event.getErr());
-        return secretName;
     }
 
     @Override
     public void addUsers(Flow flow, String... emails) {
-        flowUserDao.insert(flow.getId(), Sets.newHashSet(emails));
+        var emailSet = Sets.newHashSet(emails);
+        flowUserDao.insert(flow.getId(), emailSet);
+
+        if (flow.hasParentId()) {
+            flowUserDao.insert(flow.getParentId(), emailSet);
+        }
     }
 
     @Override
@@ -324,8 +239,13 @@ public class FlowServiceImpl implements FlowService {
     @EventListener
     public void onGitHookEvent(GitHookEvent event) {
         GitTrigger trigger = event.getTrigger();
-        Flow flow = flowDao.findByName(event.getFlow());
+        Optional<Flow> optional = flowDao.findByName(event.getFlow());
+        if (optional.isEmpty()) {
+            log.warn("The flow {} doesn't exist", event.getFlow());
+            return;
+        }
 
+        var flow = optional.get();
         if (event.isPingEvent()) {
             GitPingTrigger ping = (GitPingTrigger) trigger;
 
@@ -356,9 +276,31 @@ public class FlowServiceImpl implements FlowService {
     // %% Utils
     // ====================================================================
 
-    private void setupDefaultVars(Flow flow) {
-        Vars<VarValue> localVars = flow.getLocally();
-        localVars.put(Variables.Flow.Name, VarValue.of(flow.getName(), VarType.STRING, false));
+    private String getYmlContent(CreateOption option) {
+        if (option.hasTemplateTitle()) {
+            try {
+                return loadYmlFromTemplate(option.getTemplateTitle());
+            } catch (IOException e) {
+                throw new NotFoundException("Unable to load template {0} content", option.getTemplateTitle());
+            }
+        }
+
+        if (option.hasRawYaml()) {
+            return StringHelper.fromBase64(option.getRawYaml());
+        }
+
+        throw new NotFoundException("Yaml content or template name not found");
+    }
+
+    private List<Flow> list() {
+        String email = sessionManager.getUserEmail();
+        List<String> flowIds = flowUserDao.findAllFlowsByUserEmail(email);
+
+        if (flowIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return flowDao.findAllByIdIn(flowIds);
     }
 
     private String loadYmlFromTemplate(String title) throws IOException {
