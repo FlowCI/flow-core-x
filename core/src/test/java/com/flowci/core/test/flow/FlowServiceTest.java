@@ -21,23 +21,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.domain.http.ResponseMessage;
-import com.flowci.core.flow.domain.ConfirmOption;
+import com.flowci.core.flow.domain.CreateOption;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.core.flow.event.GitTestEvent;
 import com.flowci.core.flow.service.FlowService;
+import com.flowci.core.flow.service.FlowSettingService;
 import com.flowci.core.flow.service.GitConnService;
+import com.flowci.core.git.domain.GitCommit;
 import com.flowci.core.git.domain.GitPushTrigger;
 import com.flowci.core.git.domain.GitTrigger;
+import com.flowci.core.git.domain.GitUser;
 import com.flowci.core.git.event.GitHookEvent;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.domain.SimpleAuthPair;
-import com.flowci.domain.SimpleKeyPair;
-import com.flowci.domain.VarValue;
-import com.flowci.domain.Vars;
+import com.flowci.domain.*;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.StringHelper;
 import org.junit.*;
@@ -46,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -64,6 +64,9 @@ public class FlowServiceTest extends SpringScenario {
     private FlowService flowService;
 
     @Autowired
+    private FlowSettingService flowSettingService;
+
+    @Autowired
     private GitConnService gitConnService;
 
     @Autowired
@@ -79,10 +82,13 @@ public class FlowServiceTest extends SpringScenario {
 
     @Test
     public void should_create_with_default_vars() {
-        final Flow flow = flowService.create("vars-test");
-        should_has_db_info(flow);
+        var option = new CreateOption();
+        option.setRawYaml(StringHelper.toBase64(defaultYml));
 
-        final Vars<VarValue> vars = flow.getLocally();
+        Flow flow = flowService.create("vars-test", option);
+        shouldHasCreatedAtAndCreatedBy(flow);
+
+        Vars<VarValue> vars = flow.getVars();
         Assert.assertEquals(1, vars.size());
 
         VarValue nameVar = vars.get(Variables.Flow.Name);
@@ -91,61 +97,20 @@ public class FlowServiceTest extends SpringScenario {
     }
 
     @Test
-    public void should_list_all_flows_by_user_id() {
-        ConfirmOption confirmOption = new ConfirmOption().setYaml(StringHelper.toBase64(defaultYml));
-
-        Flow first = flowService.create("test-1");
-        flowService.confirm(first.getName(), confirmOption);
-
-        Flow second = flowService.create("test-2");
-        flowService.confirm(second.getName(), confirmOption);
-
-        List<Flow> list = flowService.list(Status.CONFIRMED);
-        Assert.assertEquals(2, list.size());
-        Assert.assertEquals(first, list.get(0));
-        Assert.assertEquals(second, list.get(1));
-    }
-
-    @Test
-    public void should_create_and_confirm_flow() {
-        // when: create flow
-        String name = "hello";
-        flowService.create(name);
-
-        // then: flow with pending status
-        Flow created = flowService.get(name);
-        Assert.assertNotNull(created);
-        Assert.assertEquals(Status.PENDING, created.getStatus());
-
-        // when: confirm the flow
-        ConfirmOption option = new ConfirmOption()
-                .setYaml(StringHelper.toBase64(defaultYml))
-                .setGitUrl("git@github.com:FlowCI/docs.git")
-                .setSecret("ssh-ras-credential");
-        flowService.confirm(name, option);
-
-        // then: flow should be with confirmed status
-        Flow confirmed = flowService.get(name);
-        Assert.assertNotNull(confirmed);
-        Assert.assertEquals(Status.CONFIRMED, confirmed.getStatus());
-
-        // then:
-        List<Flow> flows = flowService.list(Status.CONFIRMED);
-        Assert.assertEquals(1, flows.size());
-    }
-
-    @Test
     public void should_list_flow_by_credential_name() {
         // init:
         String secretName = "flow-ssh-ras-name";
         secretService.createRSA(secretName);
 
-        Flow flow = flowService.create("hello");
-        flowService.confirm(flow.getName(), new ConfirmOption()
-                .setYaml(StringHelper.toBase64(defaultYml))
-                .setSecret(secretName));
+        var option = new CreateOption();
+        option.setRawYaml(StringHelper.toBase64(defaultYml));
+        Flow flow = flowService.create("hello", option);
 
-        Vars<VarValue> variables = flowService.get(flow.getName()).getLocally();
+        var vars = new HashMap<String, VarValue>();
+        vars.put(Variables.Git.SECRET, VarValue.of(secretName, VarType.STRING));
+        flowSettingService.add(flow, vars);
+
+        Vars<VarValue> variables = flowService.get(flow.getName()).getVars();
         Assert.assertEquals(secretName, variables.get(Variables.Git.SECRET).getData());
 
         // when:
@@ -160,21 +125,24 @@ public class FlowServiceTest extends SpringScenario {
     @Test(expected = ArgumentException.class)
     public void should_throw_exception_if_flow_name_is_invalid_when_create() {
         String name = "hello.world";
-        flowService.create(name);
+        flowService.create(name, new CreateOption());
     }
 
     @Test
     public void should_start_job_with_condition() throws IOException, InterruptedException {
-        Flow flow = flowService.create("githook");
+        String rawYaml = StringHelper.toString(load("flow-with-condition.yml"));
 
-        String yaml = StringHelper.toString(load("flow-with-condition.yml"));
-        flowService.confirm(flow.getName(), new ConfirmOption().setYaml(StringHelper.toBase64(yaml)));
+        CreateOption option = new CreateOption();
+        option.setRawYaml(StringHelper.toBase64(rawYaml));
+
+        Flow flow = flowService.create("githook", option);
 
         GitPushTrigger trigger = new GitPushTrigger();
         trigger.setEvent(GitTrigger.GitEvent.PUSH);
         trigger.setSource(GitSource.GITEE);
-//        trigger.setAuthor(new GitUser().setEmail("xx").setId("xx").setName("xx").setUsername("xx"));
         trigger.setRef("master");
+        trigger.setCommits(List.of(new GitCommit().setId("112233").setMessage("dummy commit")));
+        trigger.setSender(new GitUser().setEmail("dummy@sender.com"));
 
         CountDownLatch c = new CountDownLatch(1);
         addEventListener((ApplicationListener<CreateNewJobEvent>) e -> {
@@ -199,7 +167,7 @@ public class FlowServiceTest extends SpringScenario {
         ResponseMessage<SimpleKeyPair> r = objectMapper.readValue(load("rsa-test.json"), keyPairResponseType);
 
         // given:
-        Flow flow = flowService.create("git-test");
+        Flow flow = flowService.create("git-test", new CreateOption());
         CountDownLatch countDown = new CountDownLatch(2);
         List<String> branches = new LinkedList<>();
 
@@ -235,7 +203,7 @@ public class FlowServiceTest extends SpringScenario {
         String credentialName = "test-auth-c";
         AuthSecret mocked = secretService.createAuth(credentialName, SimpleAuthPair.of("xxx", "xxx"));
 
-        Flow flow = flowService.create("git-test");
+        Flow flow = flowService.create("git-test", new CreateOption());
         CountDownLatch countDown = new CountDownLatch(2);
         List<String> branches = new LinkedList<>();
 

@@ -55,7 +55,7 @@ public class AuthConfig {
 
         // developer
         permissionMap.add(User.Role.Developer,
-                FlowAction.GET, FlowAction.LIST, FlowAction.LIST_BRANCH, FlowAction.GET, FlowAction.GET_YML);
+                FlowAction.GET, FlowAction.LIST, FlowAction.LIST_BRANCH, FlowAction.GET, FlowAction.GET_YML, FlowAction.LIST_USER);
         permissionMap.add(User.Role.Developer, JobAction.ALL);
         permissionMap.add(User.Role.Developer, SecretActions.LIST_NAME);
         permissionMap.add(User.Role.Developer, AgentAction.GET, AgentAction.LIST);

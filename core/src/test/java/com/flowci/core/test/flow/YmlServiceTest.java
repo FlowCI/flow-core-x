@@ -16,6 +16,7 @@
 
 package com.flowci.core.test.flow;
 
+import com.flowci.core.flow.domain.CreateOption;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
@@ -47,7 +48,7 @@ public class YmlServiceTest extends SpringScenario {
     @Before
     public void login() {
         mockLogin();
-        flow = flowService.create("hello");
+        flow = flowService.create("hello", new CreateOption());
     }
 
     @Test

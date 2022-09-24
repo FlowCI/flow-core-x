@@ -39,7 +39,7 @@ public class PluginParserTest {
         Plugin.Meta meta = PluginParser.parse(is);
         Assert.assertNotNull(meta);
 
-        Assert.assertEquals(1, meta.getStatsTypes().size());
+        Assert.assertEquals(1, meta.getMatrixTypes().size());
         Assert.assertEquals("gitclone", meta.getName());
         Assert.assertEquals(Version.of(0, 0, 1, null), meta.getVersion());
         Assert.assertEquals("src/icon.svg", meta.getIcon());

@@ -18,6 +18,7 @@ package com.flowci.core.test.api;
 
 import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.api.service.OpenRestService;
+import com.flowci.core.flow.domain.CreateOption;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.job.dao.JobDao;
@@ -59,7 +60,7 @@ public class OpenRestServiceTest extends SpringScenario {
 
     @Test
     public void should_list_all_flow_users() {
-        Flow flow = flowService.create("user-test");
+        Flow flow = flowService.create("user-test", new CreateOption());
 
         List<User> users = openRestService.users(flow.getName());
         Assert.assertEquals(1, users.size());
@@ -79,7 +80,7 @@ public class OpenRestServiceTest extends SpringScenario {
     @Test
     public void should_save_job_report() {
         // given:
-        Flow flow = flowService.create("user-test");
+        Flow flow = flowService.create("user-test", null);
 
         Job job = new Job();
         job.setId("12345");

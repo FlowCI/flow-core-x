@@ -17,18 +17,15 @@
 package com.flowci.core.flow.controller;
 
 import com.flowci.core.auth.annotation.Action;
-import com.flowci.core.flow.domain.ConfirmOption;
-import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Flow.Status;
-import com.flowci.core.flow.domain.FlowAction;
-import com.flowci.core.flow.domain.Template;
+import com.flowci.core.flow.domain.*;
+import com.flowci.core.flow.service.FlowGroupService;
+import com.flowci.core.flow.service.FlowItemService;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
 import com.google.common.collect.Lists;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,19 +37,32 @@ import java.util.List;
 @RequestMapping("/flows")
 public class FlowController {
 
-    @Autowired
-    private List<Template> templates;
+    private final List<Template> templates;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private FlowService flowService;
+    private final FlowService flowService;
+
+    private final FlowGroupService flowGroupService;
+
+    private final FlowItemService flowItemService;
+
+    public FlowController(List<Template> templates,
+                          UserService userService,
+                          FlowService flowService,
+                          FlowGroupService flowGroupService,
+                          FlowItemService flowItemService) {
+        this.templates = templates;
+        this.userService = userService;
+        this.flowService = flowService;
+        this.flowGroupService = flowGroupService;
+        this.flowItemService = flowItemService;
+    }
 
     @GetMapping
     @Action(FlowAction.LIST)
-    public List<Flow> list() {
-        return flowService.list(Status.CONFIRMED);
+    public List<FlowItem> list() {
+        return flowItemService.list();
     }
 
     @GetMapping("/templates")
@@ -63,47 +73,32 @@ public class FlowController {
 
     @GetMapping(value = "/{name}")
     @Action(FlowAction.GET)
-    public Flow get(@PathVariable String name) {
-        return flowService.get(name);
+    public Flow get(@PathVariable String name, @RequestParam boolean group) {
+        var flow = flowService.get(name);
+        if (group && flow.hasParentId()) {
+            flow.setParent(flowGroupService.getById(flow.getParentId()));
+        }
+        return flow;
     }
 
     @GetMapping(value = "/{name}/exist")
     @Action(FlowAction.CHECK_NAME)
     public Boolean exist(@PathVariable String name) {
-        return flowService.exist(name);
+        return flowItemService.existed(name);
     }
 
     @PostMapping(value = "/{name}")
     @Action(FlowAction.CREATE)
-    public Flow create(@PathVariable String name) {
-        return flowService.create(name);
-    }
-
-    @PostMapping(value = "/{name}/confirm")
-    @Action(FlowAction.CONFIRM)
-    public Flow confirm(@PathVariable String name, @RequestBody ConfirmOption option) {
-        return flowService.confirm(name, option);
+    public Flow create(@PathVariable String name, @RequestBody CreateOption option) {
+        return flowService.create(name, option);
     }
 
     @DeleteMapping("/{name}")
     @Action(FlowAction.DELETE)
     public Flow delete(@PathVariable String name) {
-        return flowService.delete(name);
-    }
-
-    /**
-     * Create credential for flow only
-     */
-    @PostMapping("/{name}/secret/rsa")
-    @Action(FlowAction.SETUP_CREDENTIAL)
-    public String setupRSACredential(@PathVariable String name, @RequestBody SimpleKeyPair pair) {
-        return flowService.setSshRsaCredential(name, pair);
-    }
-
-    @PostMapping("/{name}/secret/auth")
-    @Action(FlowAction.SETUP_CREDENTIAL)
-    public String setupAuthCredential(@PathVariable String name, @RequestBody SimpleAuthPair pair) {
-        return flowService.setAuthCredential(name, pair);
+        var flow = flowService.get(name);
+        flowService.delete(flow);
+        return flow;
     }
 
     @PostMapping("/{name}/users")

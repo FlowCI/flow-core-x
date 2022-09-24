@@ -22,15 +22,15 @@ import java.util.Map;
 /**
  * @author yang
  */
-public class StatsCounter extends HashMap<String, Float> {
+public class MatrixCounter extends HashMap<String, Float> {
 
-    public static StatsCounter from(Map<String, Float> data) {
-        StatsCounter counter = new StatsCounter();
+    public static MatrixCounter from(Map<String, Float> data) {
+        MatrixCounter counter = new MatrixCounter();
         counter.putAll(data);
         return counter;
     }
 
-    public void add(StatsCounter another) {
+    public void add(MatrixCounter another) {
         for (Map.Entry<String, Float> entry : another.entrySet()) {
             String key = entry.getKey();
             Float localValue = this.getOrDefault(key, 0.0F);

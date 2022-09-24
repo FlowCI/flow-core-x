@@ -15,7 +15,7 @@
  *
  */
 
-package com.flowci.core.auth;
+package com.flowci.core.auth.controller;
 
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.auth.service.AuthService;

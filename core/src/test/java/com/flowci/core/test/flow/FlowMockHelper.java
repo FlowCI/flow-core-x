@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
-import com.flowci.core.flow.domain.ConfirmOption;
+import com.flowci.core.flow.domain.CreateOption;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.test.MockMvcHelper;
@@ -72,15 +72,11 @@ public class FlowMockHelper {
         // create
         ResponseMessage<Flow> response = mockMvcHelper.expectSuccessAndReturnClass(post("/flows/" + name), FlowType);
 
-        Assert.assertEquals(StatusCode.OK, response.getCode());
-
-        // confirm
-        response = mockMvcHelper.expectSuccessAndReturnClass(
-                post("/flows/" + name + "/confirm")
+        // set yaml
+        mockMvcHelper.expectSuccessAndReturnString(
+                post(String.format("/%s/yml/default", name))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new ConfirmOption().setYaml(StringHelper.toBase64(yml)))),
-                FlowType);
-        Assert.assertEquals(StatusCode.OK, response.getCode());
+                        .content(objectMapper.writeValueAsBytes(StringHelper.toBase64(yml))));
 
         return response.getData();
     }

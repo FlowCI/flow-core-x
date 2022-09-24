@@ -20,7 +20,7 @@ package com.flowci.core.api.service;
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.config.domain.Config;
-import com.flowci.core.flow.domain.StatsCounter;
+import com.flowci.core.flow.domain.MatrixCounter;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.user.domain.User;
 import org.springframework.core.io.Resource;
@@ -51,7 +51,7 @@ public interface OpenRestService {
     /**
      * Save statistic data for flow
      */
-    void saveStatsForFlow(String flowName, String statsType, StatsCounter counter);
+    void saveStatsForFlow(String flowName, String statsType, MatrixCounter counter);
 
     /**
      * Save uploaded job report with file

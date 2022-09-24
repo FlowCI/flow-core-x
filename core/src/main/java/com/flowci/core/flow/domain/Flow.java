@@ -17,34 +17,42 @@
 package com.flowci.core.flow.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.flowci.core.common.domain.Mongoable;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
-import com.flowci.domain.TypedVars;
 import com.flowci.domain.VarValue;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.store.Pathable;
 import com.flowci.tree.NodePath;
 import com.flowci.util.StringHelper;
+import com.google.common.collect.ImmutableSet;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
-import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author yang
  */
-@Document(collection = "flow")
 @Getter
 @Setter
-@NoArgsConstructor
-@ToString(of = {"name"}, callSuper = true)
-public final class Flow extends Mongoable implements Pathable {
+@Document(collection = "flow")
+@EqualsAndHashCode(callSuper = true)
+public final class Flow extends FlowItem implements Pathable {
+
+    private static final Set<String> reservedFlowNames = ImmutableSet.<String>builder()
+            .add("flow")
+            .add("flows")
+            .add("group")
+            .add("groups")
+            .add("template")
+            .add("templates")
+            .build();
 
     public static Pathable path(String id) {
         Flow flow = new Flow();
@@ -53,22 +61,15 @@ public final class Flow extends Mongoable implements Pathable {
     }
 
     public static void validateName(String name) {
+        if (reservedFlowNames.contains(name.toLowerCase())) {
+            throw new ArgumentException("flow name {0} cannot be used, it's reserved by system", name);
+        }
+
         if (!NodePath.validate(name)) {
             String message = "Illegal flow name {0}, the length cannot over 100 and '*' ',' is not available";
             throw new ArgumentException(message, name);
         }
     }
-
-    public enum Status {
-        PENDING,
-
-        CONFIRMED
-    }
-
-    @Indexed(name = "index_flow_name")
-    private String name;
-
-    private Status status = Status.PENDING;
 
     private boolean isYamlFromRepo;
 
@@ -81,14 +82,20 @@ public final class Flow extends Mongoable implements Pathable {
     private String cron;
 
     // variables from yml
-    private Vars<String> variables = new StringVars();
-
-    // variables for flow obj only
-    private Vars<VarValue> locally = new TypedVars();
+    private Vars<String> readOnlyVars = new StringVars();
 
     private WebhookStatus webhookStatus;
 
+    @JsonInclude()
+    @Transient
+    private FlowGroup parent;
+
+    public Flow() {
+        this.type = Type.Flow;
+    }
+
     public Flow(String name) {
+        this();
         this.name = name;
     }
 
@@ -120,12 +127,12 @@ public final class Flow extends Mongoable implements Pathable {
      * Get credential name from vars, local var has top priority
      */
     private String findVar(String name) {
-        VarValue cnVal = locally.get(name);
+        VarValue cnVal = vars.get(name);
         if (!Objects.isNull(cnVal)) {
             return cnVal.getData();
         }
 
-        String cn = variables.get(name);
+        String cn = readOnlyVars.get(name);
         if (StringHelper.hasValue(cn)) {
             return cn;
         }
@@ -133,3 +140,4 @@ public final class Flow extends Mongoable implements Pathable {
         return StringHelper.EMPTY;
     }
 }
+

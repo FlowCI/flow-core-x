@@ -22,7 +22,7 @@
     </modules>
 
     <properties>
-        <revision>1.22.12</revision>
+        <revision>1.22.38</revision>
         <lombok.version>1.18.22</lombok.version>
         <guava.version>31.0.1-jre</guava.version>
         <junit.version>4.13.1</junit.version>

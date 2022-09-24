@@ -19,7 +19,7 @@ package com.flowci.core.plugin.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.flowci.core.common.domain.SourceWithDomain;
-import com.flowci.core.flow.domain.StatsType;
+import com.flowci.core.flow.domain.MatrixType;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.Input;
 import com.flowci.domain.Version;
@@ -63,7 +63,7 @@ public class Plugin extends SourceWithDomain {
             Set<String> getExports();
 
             @JsonIgnore
-            List<StatsType> getStatsTypes();
+            List<MatrixType> getStatsTypes();
 
             @JsonIgnore
             boolean isAllowFailure();
@@ -86,7 +86,7 @@ public class Plugin extends SourceWithDomain {
         private Set<String> exports = new HashSet<>();
 
         // Plugin that supported statistic types
-        private List<StatsType> statsTypes = new LinkedList<>();
+        private List<MatrixType> matrixTypes = new LinkedList<>();
 
         private boolean allowFailure;
 

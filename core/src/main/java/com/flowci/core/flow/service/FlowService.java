@@ -16,9 +16,8 @@
 
 package com.flowci.core.flow.service;
 
-import com.flowci.core.flow.domain.ConfirmOption;
+import com.flowci.core.flow.domain.CreateOption;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Flow.Status;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
 
@@ -30,32 +29,14 @@ import java.util.List;
 public interface FlowService {
 
     /**
-     * List flows by current user
-     */
-    List<Flow> list(Status status);
-
-    /**
      * List flows of current user by credential name
      */
     List<Flow> listByCredential(String credentialName);
 
     /**
-     * Check the flow name is existed
-     */
-    Boolean exist(String name);
-
-    /**
      * Create flow by name with pending status
      */
-    Flow create(String name);
-
-    /**
-     * Confirm flow
-     *
-     * @param name   flow name
-     * @param option confirm option
-     */
-    Flow confirm(String name, ConfirmOption option);
+    Flow create(String name, CreateOption option);
 
     /**
      * Get flow by name
@@ -70,24 +51,7 @@ public interface FlowService {
     /**
      * Delete flow and yml
      */
-    Flow delete(String name);
-
-    /**
-     * Create ssh-rsa credential
-     * It will create default credential name: 'flow-{flow name}-ssh-rsa'
-     *
-     * @return credential name
-     */
-    String setSshRsaCredential(String name, SimpleKeyPair keyPair);
-
-    /**
-     * Create auth credential
-     * It will create default credential name: 'flow-{flow name}-auth'
-     *
-     * @return credential name
-     */
-    String setAuthCredential(String name, SimpleAuthPair keyPair);
-
+    void delete(Flow flow);
 
     /**
      * Add users to flow

@@ -18,6 +18,7 @@ package com.flowci.core.test.job;
 
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.flow.domain.CreateOption;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
@@ -34,6 +35,7 @@ import com.flowci.domain.*;
 import com.flowci.tree.*;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Lists;
+import org.checkerframework.checker.units.qual.C;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -74,7 +76,7 @@ public class CmdManagerTest extends SpringScenario {
     @Test
     public void should_apply_flow_level_docker_option() throws IOException {
         // given: flow and job
-        Flow flow = flowService.create("hello");
+        Flow flow = flowService.create("hello", new CreateOption());
         String yaml = StringHelper.toString(load("flow-with-root-docker.yml"));
         Yml ymlObj = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
         Job job = jobService.create(flow, ymlObj.getRaw(), Job.Trigger.MANUAL, new StringVars());
@@ -113,7 +115,7 @@ public class CmdManagerTest extends SpringScenario {
         Mockito.when(eventManager.publish(Mockito.any())).thenReturn(event);
 
         // given: flow and job
-        Flow flow = flowService.create("hello");
+        Flow flow = flowService.create("hello", new CreateOption());
         String yaml = StringHelper.toString(load("flow-with-plugin.yml"));
         Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
 
@@ -151,7 +153,7 @@ public class CmdManagerTest extends SpringScenario {
     @Test
     public void should_handle_step_in_step() throws IOException {
         // given: flow and job
-        Flow flow = flowService.create("hello");
+        Flow flow = flowService.create("hello", new CreateOption());
         String yaml = StringHelper.toString(load("step-in-step.yml"));
         Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
 

@@ -17,9 +17,11 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.StatsCounter;
-import com.flowci.core.flow.domain.StatsItem;
-import com.flowci.core.flow.domain.StatsType;
+import com.flowci.core.flow.domain.MatrixCounter;
+import com.flowci.core.flow.domain.MatrixItem;
+import com.flowci.core.flow.domain.MatrixType;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -28,31 +30,36 @@ import java.util.Map;
  *
  * @author yang
  */
-public interface StatsService {
+public interface MatrixService {
 
     /**
      * List system default stats type
      */
-    Map<String, StatsType> defaultTypes();
+    Map<String, MatrixType> defaultTypes();
 
     /**
      * Get stats type from default and plugins
      */
-    List<StatsType> getStatsType(Flow flow);
+    List<MatrixType> getStatsType(Flow flow);
 
         /**
          * List statistic by range
          */
-    List<StatsItem> list(String flowId, String type, int fromDay, int toDay);
+    List<MatrixItem> list(String flowId, String type, int fromDay, int toDay);
+
+    /**
+     * List matrix items on specific day by flow id list
+     */
+    List<MatrixItem> list(Collection<String> flowIdList, String type, int day);
 
     /**
      * Get statistic item
      */
-    StatsItem get(String flowId, String type, int day);
+    MatrixItem get(String flowId, String type, int day);
 
     /**
      * Add statistic item
      */
-    StatsItem add(String flowId, int day, String type, StatsCounter counter);
+    MatrixItem add(String flowId, int day, String type, MatrixCounter counter);
 
 }

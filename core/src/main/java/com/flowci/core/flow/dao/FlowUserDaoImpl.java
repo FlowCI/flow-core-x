@@ -71,14 +71,14 @@ public class FlowUserDaoImpl implements FlowUserDao {
     }
 
     @Override
-    public void insert(String flowId, Set<String> emails) {
+    public void insert(String flowId, Collection<String> emails) {
         Query q = Query.query(Criteria.where("_id").is(flowId));
         Update u = new Update().addToSet("users").each(emails);
         mongoOps.upsert(q, u, FlowUsers.class);
     }
 
     @Override
-    public void remove(String flowId, Set<String> emails) {
+    public void remove(String flowId, Collection<String> emails) {
         Query q = Query.query(Criteria.where("_id").is(flowId));
 
         Update u = new Update();
