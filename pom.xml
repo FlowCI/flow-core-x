@@ -40,7 +40,7 @@
         <amqp-client.version>5.9.0</amqp-client.version>
         <java-jwt.version>3.8.1</java-jwt.version>
         <minio.version>6.0.11</minio.version>
-        <log4j.version>2.17.0</log4j.version>
+        <log4j.version>2.18.0</log4j.version>
         <kubernetes-client.version>5.11.1</kubernetes-client.version>
     </properties>
 
@@ -263,6 +263,12 @@
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-jul</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
                 <version>${log4j.version}</version>
             </dependency>
 
