@@ -29,7 +29,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.flowci.tree.FlowNode.DEFAULT_ROOT_NAME;
 
@@ -338,13 +340,21 @@ public class YmlParserTest {
 
         List<Node> nextFromSubflowC = tree.post(NodePath.create("flow/parallel-3/subflow-C/C"));
         Assert.assertEquals(2, nextFromSubflowC.size());
-        Assert.assertEquals(postOfSubC, nextFromSubflowC.get(0).getPath());
-        Assert.assertEquals(postOfSubD, nextFromSubflowC.get(1).getPath());
+
+        Set<NodePath> postOfParallel3 = new HashSet<>(2);
+        postOfParallel3.add(nextFromSubflowC.get(0).getPath());
+        postOfParallel3.add(nextFromSubflowC.get(1).getPath());
+        Assert.assertTrue(postOfParallel3.contains(postOfSubC));
+        Assert.assertTrue(postOfParallel3.contains(postOfSubD));
 
         List<Node> nextFromSubA = tree.post(postOfSubA);
         Assert.assertEquals(2, nextFromSubA.size());
-        Assert.assertEquals(postOfSubC, nextFromSubA.get(0).getPath());
-        Assert.assertEquals(postOfSubD, nextFromSubA.get(1).getPath());
+
+        postOfParallel3 = new HashSet<>(2);
+        postOfParallel3.add(nextFromSubA.get(0).getPath());
+        postOfParallel3.add(nextFromSubA.get(1).getPath());
+        Assert.assertTrue(postOfParallel3.contains(postOfSubC));
+        Assert.assertTrue(postOfParallel3.contains(postOfSubD));
 
         List<Node> nextFromSubC = tree.post(postOfSubC);
         Assert.assertEquals(1, nextFromSubC.size());
