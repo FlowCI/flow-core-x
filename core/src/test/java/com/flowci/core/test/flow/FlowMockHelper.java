@@ -30,6 +30,7 @@ import com.flowci.util.StringHelper;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,16 +70,13 @@ public class FlowMockHelper {
     private ObjectMapper objectMapper;
 
     public Flow create(String name, String yml) throws Exception {
-        // create
-        ResponseMessage<Flow> response = mockMvcHelper.expectSuccessAndReturnClass(post("/flows/" + name), FlowType);
+        var options = new CreateOption().setRawYaml(StringHelper.toBase64(yml));
 
-        // set yaml
-        mockMvcHelper.expectSuccessAndReturnString(
-                post(String.format("/%s/yml/default", name))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(StringHelper.toBase64(yml))));
+        var post = post("/flows/" + name)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(options));
 
-        return response.getData();
+        return mockMvcHelper.expectSuccessAndReturnClass(post, FlowType).getData();
     }
 
     void addUsers(String name, User... users) throws Exception {

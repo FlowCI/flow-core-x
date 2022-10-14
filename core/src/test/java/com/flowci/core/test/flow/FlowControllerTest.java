@@ -63,7 +63,7 @@ public class FlowControllerTest extends SpringScenario {
     @Test
     public void should_get_flow_and_yml_then_delete() throws Exception {
         ResponseMessage<Flow> getFlowResponse = mockMvcHelper
-                .expectSuccessAndReturnClass(get("/flows/" + flowName), FlowMockHelper.FlowType);
+                .expectSuccessAndReturnClass(get("/flows/" + flowName + "?group=false"), FlowMockHelper.FlowType);
         Assert.assertEquals(StatusCode.OK, getFlowResponse.getCode());
         Assert.assertEquals(flowName, getFlowResponse.getData().getName());
 
