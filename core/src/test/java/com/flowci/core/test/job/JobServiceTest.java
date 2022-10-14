@@ -124,9 +124,10 @@ public class JobServiceTest extends ZookeeperScenario {
     @Before
     public void mockFlowAndYml() throws IOException {
         mockLogin();
-        flow = flowService.create("hello", new CreateOption());
-        String yaml = StringHelper.toString(load("flow.yml"));
-        yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
+        var yaml = StringHelper.toString(load("flow.yml"));
+        var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
+        flow = flowService.create("hello", option);
+        yml = ymlService.getYml(flow.getId(), Yml.DEFAULT_NAME);
     }
 
     @Test
@@ -230,7 +231,7 @@ public class JobServiceTest extends ZookeeperScenario {
         p.setVersion(Version.parse("0.1.1"));
         pluginDao.save(p);
 
-        String yaml = StringHelper.toString(load("flow-with-notify.yml"));
+        String yaml = StringHelper.toString(load("flow.yml"));
         yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
 
         Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
