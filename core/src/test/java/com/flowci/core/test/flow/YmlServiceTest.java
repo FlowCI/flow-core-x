@@ -46,18 +46,16 @@ public class YmlServiceTest extends SpringScenario {
     private Flow flow;
 
     @Before
-    public void login() {
+    public void login() throws IOException {
         mockLogin();
-        flow = flowService.create("hello", new CreateOption());
+        var raw = StringHelper.toString(load("flow.yml"));
+        var option = new CreateOption().setRawYaml(StringHelper.toBase64(raw));
+        flow = flowService.create("hello", option);
     }
 
     @Test
-    public void should_save_yml_for_flow() throws IOException {
-        // when:
-        String ymlRaw = StringHelper.toString(load("flow.yml"));
-
-        // then: yml object should be created
-        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, ymlRaw);
+    public void should_get_yml() {
+        Yml yml = ymlService.getYml(flow.getId(), Yml.DEFAULT_NAME);
         Assert.assertNotNull(yml);
 
         Assert.assertNotNull(yml.getId());
