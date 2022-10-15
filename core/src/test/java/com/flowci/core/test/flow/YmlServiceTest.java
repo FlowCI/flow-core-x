@@ -21,6 +21,7 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.YmlException;
@@ -35,7 +36,7 @@ import java.io.IOException;
 /**
  * @author yang
  */
-public class YmlServiceTest extends SpringScenario {
+public class YmlServiceTest extends MockLoggedInScenario {
 
     @Autowired
     private FlowService flowService;
@@ -46,8 +47,7 @@ public class YmlServiceTest extends SpringScenario {
     private Flow flow;
 
     @Before
-    public void login() throws IOException {
-        mockLogin();
+    public void init() throws IOException {
         var raw = StringHelper.toString(load("flow.yml"));
         var option = new CreateOption().setRawYaml(StringHelper.toBase64(raw));
         flow = flowService.create("hello", option);

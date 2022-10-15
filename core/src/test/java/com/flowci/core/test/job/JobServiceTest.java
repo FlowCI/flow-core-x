@@ -123,7 +123,6 @@ public class JobServiceTest extends ZookeeperScenario {
 
     @Before
     public void mockFlowAndYml() throws IOException {
-        mockLogin();
         var yaml = StringHelper.toString(load("flow.yml"));
         var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
         flow = flowService.create("hello", option);

@@ -20,6 +20,7 @@ import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Yml;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.User;
@@ -43,7 +44,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /**
  * @author yang
  */
-public class FlowControllerTest extends SpringScenario {
+public class FlowControllerTest extends MockLoggedInScenario {
 
     @Autowired
     private FlowMockHelper flowMockHelper;
@@ -55,7 +56,6 @@ public class FlowControllerTest extends SpringScenario {
 
     @Before
     public void createFlowWithYml() throws Exception {
-        mockLogin();
         String yml = StringHelper.toString(load("flow.yml"));
         flowMockHelper.create(flowName, yml);
     }

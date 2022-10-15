@@ -6,6 +6,7 @@ import com.flowci.core.config.domain.SmtpOption;
 import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.event.GetSecretEvent;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.SimpleAuthPair;
 import org.junit.Assert;
@@ -18,18 +19,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import static com.flowci.core.config.domain.Config.Category.SMTP;
 import static com.flowci.core.config.domain.Config.Category.TEXT;
 
-public class ConfigServiceTest extends SpringScenario {
+public class ConfigServiceTest extends MockLoggedInScenario {
 
     @MockBean
     private SpringEventManager eventManager;
 
     @Autowired
     private ConfigService configService;
-
-    @Before
-    public void init() {
-        mockLogin();
-    }
 
     @Test
     public void should_create_smtp_config_with_secret() {

@@ -26,6 +26,7 @@ import com.flowci.core.job.dao.JobReportDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobOutput.ContentType;
 import com.flowci.core.job.domain.JobReport;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.User;
 import org.junit.Assert;
@@ -39,7 +40,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import java.util.List;
 import java.util.Optional;
 
-public class OpenRestServiceTest extends SpringScenario {
+public class OpenRestServiceTest extends MockLoggedInScenario {
 
     @MockBean
     private JobDao jobDao;
@@ -52,11 +53,6 @@ public class OpenRestServiceTest extends SpringScenario {
 
     @Autowired
     private OpenRestService openRestService;
-
-    @Before
-    public void login() {
-        mockLogin();
-    }
 
     @Test
     public void should_list_all_flow_users() {

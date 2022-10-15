@@ -43,11 +43,6 @@ public class CronServiceTest extends ZookeeperScenario {
 
     private final ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
 
-    @Before
-    public void login() {
-        mockLogin();
-    }
-
     @Test
     public void should_get_exec_time_from_crontab() throws InterruptedException {
         CronDefinition definition = CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX);

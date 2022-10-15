@@ -20,6 +20,7 @@ package com.flowci.core.test.user;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.StatusCode;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.*;
@@ -42,10 +43,10 @@ import java.util.concurrent.TimeUnit;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
-public class UserControllerTest extends SpringScenario {
+public class UserControllerTest extends MockLoggedInScenario {
 
     private static final TypeReference<ResponseMessage<User>> UserType =
-            new TypeReference<ResponseMessage<User>>() {
+            new TypeReference<>() {
             };
 
     @Autowired
@@ -53,11 +54,6 @@ public class UserControllerTest extends SpringScenario {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Before
-    public void loginBefore() {
-        mockLogin();
-    }
 
     @Test(expected = AuthenticationException.class)
     public void should_change_password_for_current_user_successfully() throws Exception {

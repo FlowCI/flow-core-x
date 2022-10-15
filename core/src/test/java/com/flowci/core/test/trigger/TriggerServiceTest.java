@@ -8,6 +8,7 @@ import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.git.domain.GitCommit;
 import com.flowci.core.git.domain.GitUser;
 import com.flowci.core.job.domain.Job;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.trigger.domain.EmailTrigger;
 import com.flowci.core.trigger.domain.Trigger;
 import com.flowci.core.trigger.event.EmailTemplateParsedEvent;
@@ -32,7 +33,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
 
-public class TriggerServiceTest extends SpringScenario {
+public class TriggerServiceTest extends MockLoggedInScenario {
 
     @Autowired
     private TriggerService triggerService;
@@ -46,11 +47,6 @@ public class TriggerServiceTest extends SpringScenario {
     private final SmtpConfig config = getSmtpConfig();
 
     private final JavaMailSender sender = getSender();
-
-    @Before
-    public void login() {
-        mockLogin();
-    }
 
     @Before
     public void mock() {

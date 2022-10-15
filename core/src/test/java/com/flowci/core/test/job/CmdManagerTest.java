@@ -30,6 +30,7 @@ import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginEvent;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.*;
 import com.flowci.tree.*;
@@ -48,7 +49,7 @@ import java.util.List;
 
 import static com.flowci.tree.FlowNode.DEFAULT_ROOT_NAME;
 
-public class CmdManagerTest extends SpringScenario {
+public class CmdManagerTest extends MockLoggedInScenario {
 
     @Autowired
     private FlowService flowService;
@@ -67,11 +68,6 @@ public class CmdManagerTest extends SpringScenario {
 
     @MockBean
     private SpringEventManager eventManager;
-
-    @Before
-    public void login() {
-        mockLogin();
-    }
 
     @Test
     public void should_apply_flow_level_docker_option() throws IOException {

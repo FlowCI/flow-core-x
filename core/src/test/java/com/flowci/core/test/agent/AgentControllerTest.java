@@ -24,6 +24,7 @@ import com.flowci.core.agent.domain.DeleteAgent;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.exception.ErrorCode;
@@ -42,7 +43,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /**
  * @author yang
  */
-public class AgentControllerTest extends SpringScenario {
+public class AgentControllerTest extends MockLoggedInScenario {
 
     private static final TypeReference<ResponseMessage<Agent>> AgentResponseType =
             new TypeReference<ResponseMessage<Agent>>() {
@@ -60,14 +61,6 @@ public class AgentControllerTest extends SpringScenario {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Autowired
-    private AppProperties.RabbitMQ rabbitConfig;
-
-    @Before
-    public void login() {
-        mockLogin();
-    }
 
     @Test
     public void should_duplicate_error_when_create_agent_with_same_name() throws Throwable {

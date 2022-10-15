@@ -25,6 +25,7 @@ import com.flowci.core.job.domain.CreateJob;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobItem;
 import com.flowci.core.job.domain.Step;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.test.flow.FlowMockHelper;
@@ -48,22 +49,22 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * @author yang
  */
 @FixMethodOrder(value = MethodSorters.JVM)
-public class JobControllerTest extends SpringScenario {
+public class JobControllerTest extends MockLoggedInScenario {
 
     private static final TypeReference<ResponseMessage<Job>> JobType =
-            new TypeReference<ResponseMessage<Job>>() {
+            new TypeReference<>() {
             };
 
     private static final TypeReference<ResponseMessage<JsonablePage<JobItem>>> JobListType =
-            new TypeReference<ResponseMessage<JsonablePage<JobItem>>>() {
+            new TypeReference<>() {
             };
 
     private static final TypeReference<ResponseMessage<List<Step>>> JobStepsType =
-            new TypeReference<ResponseMessage<List<Step>>>() {
+            new TypeReference<>() {
             };
 
     private static final TypeReference<ResponseMessage<String>> JobYmlType =
-            new TypeReference<ResponseMessage<String>>() {
+            new TypeReference<>() {
             };
 
     @Autowired
@@ -79,7 +80,6 @@ public class JobControllerTest extends SpringScenario {
 
     @Before
     public void init() throws Exception {
-        mockLogin();
         String yml = StringHelper.toString(load("flow.yml"));
         flowMockHelper.create(flow, yml);
     }

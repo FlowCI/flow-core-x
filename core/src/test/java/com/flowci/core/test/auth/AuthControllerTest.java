@@ -21,6 +21,7 @@ import com.flowci.core.auth.domain.Tokens;
 import com.flowci.core.auth.service.AuthService;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.helper.ThreadHelper;
+import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.common.domain.http.ResponseMessage;
@@ -31,10 +32,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 
 public class AuthControllerTest extends SpringScenario {
 
     private User user;
+
+    @Autowired
+    private SessionManager sessionManager;
 
     @Autowired
     private AuthHelper authHelper;
@@ -67,7 +72,7 @@ public class AuthControllerTest extends SpringScenario {
         Assert.assertTrue(authService.set(token));
 
         // when: request logout
-        ResponseMessage logoutMsg = authHelper.logout(token);
+        var logoutMsg = authHelper.logout(token);
         Assert.assertEquals(StatusCode.OK, logoutMsg.getCode());
 
         // then: should throw new AuthenticationException("Not logged in") exception
