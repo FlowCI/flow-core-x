@@ -46,17 +46,23 @@ import java.util.List;
 @RequestMapping("/jobs")
 public class JobController extends BaseController {
 
-    @Autowired
-    private SessionManager sessionManager;
+    private final SessionManager sessionManager;
 
-    @Autowired
-    private YmlService ymlService;
+    private final YmlService ymlService;
 
-    @Autowired
-    private ReportService reportService;
+    private final ReportService reportService;
 
-    @Autowired
-    private TaskExecutor appTaskExecutor;
+    private final TaskExecutor appTaskExecutor;
+
+    public JobController(SessionManager sessionManager,
+                         YmlService ymlService,
+                         ReportService reportService,
+                         TaskExecutor appTaskExecutor) {
+        this.sessionManager = sessionManager;
+        this.ymlService = ymlService;
+        this.reportService = reportService;
+        this.appTaskExecutor = appTaskExecutor;
+    }
 
     @PostMapping("/batch/latest")
     @Action(JobAction.LIST)
