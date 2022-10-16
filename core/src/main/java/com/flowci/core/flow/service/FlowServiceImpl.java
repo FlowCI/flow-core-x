@@ -132,7 +132,9 @@ public class FlowServiceImpl implements FlowService {
 
     @Override
     public Flow create(String name, CreateOption option) {
+        Objects.requireNonNull(option, "CreateOption is missing");
         Flow.validateName(name);
+
         var yamlContent = getYmlContent(option);
         var flow = new Flow(name);
         flow.getVars().put(Variables.Flow.Name, VarValue.of(flow.getName(), VarType.STRING, false));

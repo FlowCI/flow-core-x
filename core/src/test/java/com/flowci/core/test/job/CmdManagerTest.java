@@ -72,13 +72,14 @@ public class CmdManagerTest extends MockLoggedInScenario {
     @Test
     public void should_apply_flow_level_docker_option() throws IOException {
         // given: flow and job
-        Flow flow = flowService.create("hello", new CreateOption());
-        String yaml = StringHelper.toString(load("flow-with-root-docker.yml"));
-        Yml ymlObj = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
-        Job job = jobService.create(flow, ymlObj.getRaw(), Job.Trigger.MANUAL, new StringVars());
+        var yaml = StringHelper.toString(load("flow-with-root-docker.yml"));
+        var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
+        Flow flow = flowService.create("hello", option);
+
+        Job job = jobService.create(flow, yaml, Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
-        FlowNode root = YmlParser.load(ymlObj.getRaw());
+        FlowNode root = YmlParser.load(yaml);
         NodeTree tree = NodeTree.create(root);
 
         // when: create first shell cmd
@@ -111,15 +112,15 @@ public class CmdManagerTest extends MockLoggedInScenario {
         Mockito.when(eventManager.publish(Mockito.any())).thenReturn(event);
 
         // given: flow and job
-        Flow flow = flowService.create("hello", new CreateOption());
-        String yaml = StringHelper.toString(load("flow-with-plugin.yml"));
-        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
+        var yaml = StringHelper.toString(load("flow-with-plugin.yml"));
+        var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
+        var flow = flowService.create("hello", option);
 
-        Job job = jobService.create(flow, yml.getRaw(), Job.Trigger.MANUAL, new StringVars());
+        Job job = jobService.create(flow, yaml, Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
         // when: create shell cmd
-        FlowNode root = YmlParser.load(yml.getRaw());
+        FlowNode root = YmlParser.load(yaml);
         NodeTree tree = NodeTree.create(root);
         Node node = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "plugin-test"));
         Step step = stepService.get(job.getId(), node.getPath().getPathInStr());
@@ -149,15 +150,15 @@ public class CmdManagerTest extends MockLoggedInScenario {
     @Test
     public void should_handle_step_in_step() throws IOException {
         // given: flow and job
-        Flow flow = flowService.create("hello", new CreateOption());
-        String yaml = StringHelper.toString(load("step-in-step.yml"));
-        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
+        var yaml = StringHelper.toString(load("step-in-step.yml"));
+        var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
+        var flow = flowService.create("hello", option);
 
-        Job job = jobService.create(flow, yml.getRaw(), Job.Trigger.MANUAL, new StringVars());
+        Job job = jobService.create(flow, yaml, Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
         // when: create shell cmd
-        FlowNode root = YmlParser.load(yml.getRaw());
+        FlowNode root = YmlParser.load(yaml);
         NodeTree tree = NodeTree.create(root);
 
         Node step2_1 = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step2", "step-2-1"));
