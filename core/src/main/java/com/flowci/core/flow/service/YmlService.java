@@ -56,6 +56,7 @@ public interface YmlService {
     /**
      * Create or update yml for flow
      *
+     * @param yml could be null or empty string
      * @throws com.flowci.exception.ArgumentException if yml string is empty or null
      */
     Yml saveYml(Flow flow, String name, String yml);

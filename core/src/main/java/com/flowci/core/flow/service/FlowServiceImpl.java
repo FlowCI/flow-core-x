@@ -279,6 +279,10 @@ public class FlowServiceImpl implements FlowService {
     // ====================================================================
 
     private String getYmlContent(CreateOption option) {
+        if (option.isBlank()) {
+            return StringHelper.EMPTY;
+        }
+
         if (option.hasTemplateTitle()) {
             try {
                 return loadYmlFromTemplate(option.getTemplateTitle());

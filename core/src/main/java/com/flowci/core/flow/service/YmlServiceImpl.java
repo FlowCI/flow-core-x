@@ -105,10 +105,6 @@ public class YmlServiceImpl implements YmlService {
 
     @Override
     public Yml saveYml(Flow flow, String name, String yaml) {
-        if (!StringHelper.hasValue(yaml)) {
-            throw new ArgumentException("YAML content cannot be null or empty");
-        }
-
         FlowNode root = YmlParser.load(yaml);
         NodeTree tree = NodeTree.create(root);
 
