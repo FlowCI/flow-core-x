@@ -54,9 +54,7 @@ public abstract class YmlBase<T extends Node> implements Serializable {
 
     protected StringVars getVariableMap() {
         StringVars variables = new StringVars(envs.size());
-        for (Map.Entry<String, String> entry : envs.entrySet()) {
-            variables.put(entry.getKey(), entry.getValue());
-        }
+        variables.putAll(envs);
         return variables;
     }
 

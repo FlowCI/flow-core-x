@@ -17,6 +17,7 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.tree.NodeTree;
 
@@ -62,6 +63,8 @@ public interface YmlService {
     Yml saveYml(Flow flow, String name, String yml);
 
     Yml saveYmlFromB64(Flow flow, String name, String ymlInB64);
+
+    List<Yml> saveYml(Flow flow, List<SimpleYml> ymlList);
 
     /**
      * Delete all yaml of flow

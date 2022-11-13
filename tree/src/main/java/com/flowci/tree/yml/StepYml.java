@@ -40,7 +40,7 @@ public class StepYml extends YmlBase<RegularStepNode> {
 
     private static final String DefaultParallelPrefix = "parallel-";
 
-    private static final Set<String> FieldsForStep = ObjectsHelper.fields(StepYml.class);
+    private static final Set<String> FieldsForStep = ObjectsHelper.nameOfFields(StepYml.class);
 
     static {
         FieldsForStep.remove("parallel");
@@ -76,7 +76,7 @@ public class StepYml extends YmlBase<RegularStepNode> {
     public Node toNode(Node parent, int index) {
         if (parallel != null) {
             try {
-                if (ObjectsHelper.hasValue(this, FieldsForStep)) {
+                if (ObjectsHelper.hasValues(this, FieldsForStep)) {
                     throw new YmlException("Parallel section only");
                 }
             } catch (ReflectiveOperationException e) {

@@ -21,15 +21,18 @@ import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
 import com.flowci.tree.NodePath;
 import com.flowci.tree.Selector;
-import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.SneakyThrows;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import static com.flowci.util.ObjectsHelper.*;
 
 /**
  * @author yang
@@ -39,10 +42,31 @@ import java.util.Set;
 @NoArgsConstructor
 public class FlowYml extends YmlBase<FlowNode> {
 
-    private Selector selector = new Selector();
+    private Selector selector;
 
     // post steps
     private List<StepYml> post = new LinkedList<>();
+
+    /**
+     * Merge yml element from others
+     * it will through YMLException if elements are duplicated
+     */
+    @SneakyThrows
+    public void merge(FlowYml flowYml) {
+        Set<Field> fields = fields(FlowYml.class);
+        for (Field field : fields) {
+            boolean hasValueOnThis = hasValue(this, field);
+            boolean hasValueOnOther = hasValue(flowYml, field);
+
+            if (hasValueOnThis && hasValueOnOther) {
+                throw new YmlException("Duplicated YAML " + field.getName());
+            }
+
+            if (hasValueOnOther) {
+                field.set(this, field.get(flowYml));
+            }
+        }
+    }
 
     public FlowNode toNode(Node parent) {
         if (!NodePath.validate(name)) {
@@ -56,7 +80,7 @@ public class FlowYml extends YmlBase<FlowNode> {
 
         setDockerToNode(node);
 
-        if (!ObjectsHelper.hasCollection(steps)) {
+        if (!hasCollection(steps)) {
             throw new YmlException("The 'steps' section must be defined");
         }
 
