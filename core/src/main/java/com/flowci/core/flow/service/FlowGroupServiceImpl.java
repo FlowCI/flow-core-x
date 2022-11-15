@@ -11,6 +11,7 @@ import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.google.common.collect.Sets;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class FlowGroupServiceImpl implements FlowGroupService {
 
     private final FlowDao flowDao;
@@ -28,17 +30,6 @@ public class FlowGroupServiceImpl implements FlowGroupService {
     private final FlowUserDao flowUserDao;
 
     private final SessionManager sessionManager;
-
-    @Autowired
-    public FlowGroupServiceImpl(FlowDao flowDao,
-                                FlowGroupDao flowGroupDao,
-                                FlowUserDao flowUserDao,
-                                SessionManager sessionManager) {
-        this.flowDao = flowDao;
-        this.flowGroupDao = flowGroupDao;
-        this.flowUserDao = flowUserDao;
-        this.sessionManager = sessionManager;
-    }
 
     @Override
     public FlowGroup get(String name) {

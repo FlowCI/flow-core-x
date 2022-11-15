@@ -5,11 +5,13 @@ import com.flowci.core.flow.dao.FlowItemDao;
 import com.flowci.core.flow.dao.FlowUserDao;
 import com.flowci.core.flow.domain.FlowItem;
 import com.google.common.collect.ImmutableList;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
+@AllArgsConstructor
 public class FlowItemServiceImpl implements FlowItemService {
 
     private final FlowItemDao flowItemDao;
@@ -17,12 +19,6 @@ public class FlowItemServiceImpl implements FlowItemService {
     private final FlowUserDao flowUserDao;
 
     private final SessionManager sessionManager;
-
-    public FlowItemServiceImpl(FlowItemDao flowItemDao, FlowUserDao flowUserDao, SessionManager sessionManager) {
-        this.flowItemDao = flowItemDao;
-        this.flowUserDao = flowUserDao;
-        this.sessionManager = sessionManager;
-    }
 
     @Override
     public List<FlowItem> list() {

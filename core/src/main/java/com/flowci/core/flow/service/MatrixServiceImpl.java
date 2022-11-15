@@ -48,27 +48,30 @@ import java.util.*;
 @Service
 public class MatrixServiceImpl implements MatrixService {
 
-    private static final TypeReference<List<MatrixType>> StatsTypeRef = new TypeReference<List<MatrixType>>() {
+    private static final TypeReference<List<MatrixType>> StatsTypeRef = new TypeReference<>() {
     };
-
-    @Value("classpath:default_statistic_type.json")
-    private Resource defaultTypeJsonFile;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private MatrixItemDao matrixItemDao;
-
-    @Autowired
-    private YmlService ymlService;
-
-    @Autowired
-    private PluginService pluginService;
 
     private final Object statsSync = new Object();
 
     private final Map<String, MatrixType> defaultTypes = new HashMap<>(5);
+
+    @Value("classpath:default_statistic_type.json")
+    private Resource defaultTypeJsonFile;
+
+    private final ObjectMapper objectMapper;
+
+    private final MatrixItemDao matrixItemDao;
+
+    private final YmlService ymlService;
+
+    private final PluginService pluginService;
+
+    public MatrixServiceImpl(ObjectMapper objectMapper, MatrixItemDao matrixItemDao, YmlService ymlService, PluginService pluginService) {
+        this.objectMapper = objectMapper;
+        this.matrixItemDao = matrixItemDao;
+        this.ymlService = ymlService;
+        this.pluginService = pluginService;
+    }
 
     @PostConstruct
     public void loadDefaultTypes() {

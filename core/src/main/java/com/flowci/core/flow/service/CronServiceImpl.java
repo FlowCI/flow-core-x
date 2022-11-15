@@ -50,17 +50,20 @@ public class CronServiceImpl implements CronService {
 
     private final Map<String, ScheduledFuture<?>> scheduled = new ConcurrentHashMap<>();
 
-    @Autowired
-    private TaskScheduler cronScheduler;
+    private final TaskScheduler cronScheduler;
 
-    @Autowired
-    private SpringEventManager eventManager;
+    private final SpringEventManager eventManager;
 
-    @Autowired
-    private SpringTaskManager taskManager;
+    private final SpringTaskManager taskManager;
 
-    @Autowired
-    private YmlService ymlService;
+    private final YmlService ymlService;
+
+    public CronServiceImpl(TaskScheduler cronScheduler, SpringEventManager eventManager, SpringTaskManager taskManager, YmlService ymlService) {
+        this.cronScheduler = cronScheduler;
+        this.eventManager = eventManager;
+        this.taskManager = taskManager;
+        this.ymlService = ymlService;
+    }
 
     //====================================================================
     //        %% Internal events

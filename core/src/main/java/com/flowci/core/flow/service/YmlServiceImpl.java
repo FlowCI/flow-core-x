@@ -26,7 +26,6 @@ import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.domain.Vars;
-import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.FlowNode;
@@ -35,7 +34,6 @@ import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.collect.ImmutableList;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
@@ -50,27 +48,29 @@ import java.util.function.Function;
 @Service
 public class YmlServiceImpl implements YmlService {
 
-    private final List<NodeElementChecker> elementCheckers = ImmutableList.of(
-            new ConditionChecker(),
-            new ConfigChecker(),
-            new PluginChecker(),
-            new SecretChecker()
-    );
+    private final List<NodeElementChecker> elementCheckers = ImmutableList.of(new ConditionChecker(), new ConfigChecker(), new PluginChecker(), new SecretChecker());
 
-    @Autowired
-    private Cache<String, NodeTree> flowTreeCache;
+    private final Cache<String, NodeTree> flowTreeCache;
 
-    @Autowired
-    private YmlDao ymlDao;
+    private final YmlDao ymlDao;
 
-    @Autowired
-    private FlowDao flowDao;
+    private final FlowDao flowDao;
 
-    @Autowired
-    private SpringEventManager eventManager;
+    private final SpringEventManager eventManager;
 
-    @Autowired
-    private ConditionManager conditionManager;
+    private final ConditionManager conditionManager;
+
+    public YmlServiceImpl(Cache<String, NodeTree> flowTreeCache,
+                          YmlDao ymlDao,
+                          FlowDao flowDao,
+                          SpringEventManager eventManager,
+                          ConditionManager conditionManager) {
+        this.flowTreeCache = flowTreeCache;
+        this.ymlDao = ymlDao;
+        this.flowDao = flowDao;
+        this.eventManager = eventManager;
+        this.conditionManager = conditionManager;
+    }
 
     //====================================================================
     //        %% Public function

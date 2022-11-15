@@ -34,22 +34,20 @@ import com.flowci.core.git.event.GitHookEvent;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.secret.domain.Secret;
-import com.flowci.core.secret.event.CreateAuthEvent;
-import com.flowci.core.secret.event.CreateRsaEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.core.user.event.UserDeletedEvent;
-import com.flowci.domain.*;
+import com.flowci.domain.StringVars;
+import com.flowci.domain.VarType;
+import com.flowci.domain.VarValue;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
-import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
@@ -63,41 +61,30 @@ import java.util.*;
  */
 @Log4j2
 @Service
+@AllArgsConstructor
 public class FlowServiceImpl implements FlowService {
 
-    @Autowired
-    private FlowDao flowDao;
+    private final FlowDao flowDao;
 
-    @Autowired
-    private FlowGroupDao flowGroupDao;
+    private final FlowGroupDao flowGroupDao;
 
-    @Autowired
-    private FlowUserDao flowUserDao;
+    private final FlowUserDao flowUserDao;
 
-    @Autowired
-    private SessionManager sessionManager;
+    private final SessionManager sessionManager;
 
-    @Autowired
-    private SpringEventManager eventManager;
+    private final SpringEventManager eventManager;
 
-    @Qualifier("fileManager")
-    @Autowired
-    private FileManager fileManager;
+    private final FileManager fileManager;
 
-    @Autowired
-    private HttpRequestManager httpRequestManager;
+    private final HttpRequestManager httpRequestManager;
 
-    @Autowired
-    private YmlService ymlService;
+    private final YmlService ymlService;
 
-    @Autowired
-    private CronService cronService;
+    private final CronService cronService;
 
-    @Autowired
-    private List<Template> templates;
+    private final List<Template> templates;
 
-    @Autowired
-    private AppProperties appProperties;
+    private final AppProperties appProperties;
 
     @EventListener(ContextRefreshedEvent.class)
     public void initFlows() {
