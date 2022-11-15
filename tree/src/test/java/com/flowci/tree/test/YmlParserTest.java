@@ -47,12 +47,6 @@ public class YmlParserTest {
         content = loadContent("flow.yml");
     }
 
-    @Test
-    public void should_parse_empty_string() {
-        FlowNode node = YmlParser.load("");
-        Assert.assertNotNull(node);
-    }
-
     @Test(expected = YmlException.class)
     public void should_yml_exception_if_name_is_invalid() throws IOException {
         content = loadContent("flow-with-invalid-name.yml");

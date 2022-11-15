@@ -18,9 +18,7 @@ package com.flowci.tree;
 
 import com.flowci.exception.YmlException;
 import com.flowci.tree.yml.FlowYml;
-import com.flowci.util.StringHelper;
 import com.flowci.util.YamlHelper;
-import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
 import static com.flowci.tree.FlowNode.DEFAULT_ROOT_NAME;
@@ -33,14 +31,18 @@ public class YmlParser {
     /**
      * Create Node instance from yml
      */
-    public static synchronized FlowNode load(String yml) {
-        if (!StringHelper.hasValue(yml)) {
+    public static synchronized FlowNode load(String ...ymls) {
+        if (ymls.length == 0) {
             return new FlowNode(DEFAULT_ROOT_NAME);
         }
 
         try {
-            Yaml yaml = YamlHelper.create(FlowYml.class);
-            FlowYml root = yaml.load(yml);
+            var root = new FlowYml();
+            for (var yml : ymls) {
+                var ymlObj = YamlHelper.create(FlowYml.class);
+                FlowYml tmp = ymlObj.load(yml);
+                root.merge(tmp);
+            }
             root.setName(DEFAULT_ROOT_NAME);
             return root.toNode(null);
         } catch (YAMLException e) {

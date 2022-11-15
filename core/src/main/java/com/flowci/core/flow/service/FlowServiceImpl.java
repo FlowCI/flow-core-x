@@ -135,7 +135,6 @@ public class FlowServiceImpl implements FlowService {
         Objects.requireNonNull(option, "CreateOption is missing");
         Flow.validateName(name);
 
-        var yamlContent = getYmlContent(option);
         var flow = new Flow(name);
         flow.getVars().put(Variables.Flow.Name, VarValue.of(flow.getName(), VarType.STRING, false));
 
@@ -150,7 +149,11 @@ public class FlowServiceImpl implements FlowService {
         try {
             flowDao.save(flow);
             fileManager.create(flow);
-            ymlService.saveYml(flow, Yml.DEFAULT_NAME, yamlContent);
+
+            if (!option.isBlank()) {
+                var yamlContent = getYmlContent(option);
+                ymlService.saveYml(flow, Yml.DEFAULT_NAME, yamlContent);
+            }
 
             flowUserDao.create(flow.getId());
             addUsers(flow, flow.getUpdatedBy());
@@ -279,10 +282,6 @@ public class FlowServiceImpl implements FlowService {
     // ====================================================================
 
     private String getYmlContent(CreateOption option) {
-        if (option.isBlank()) {
-            return StringHelper.EMPTY;
-        }
-
         if (option.hasTemplateTitle()) {
             try {
                 return loadYmlFromTemplate(option.getTemplateTitle());
