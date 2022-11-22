@@ -19,6 +19,7 @@ package com.flowci.core.flow.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.util.StringHelper;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -34,6 +35,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @Document(collection = "flow_yml")
 @NoArgsConstructor
+@AllArgsConstructor
 @CompoundIndexes(
         @CompoundIndex(
                 name = "index_flow_id_and_yaml_name",
@@ -52,12 +54,6 @@ public class Yml extends Mongoable {
     private String name;
 
     private String rawInB64;
-
-    public Yml(String flowId, String name, String rawInB64) {
-        this.flowId = flowId;
-        this.name = name;
-        this.rawInB64 = rawInB64;
-    }
 
     @JsonIgnore
     public String getRaw() {

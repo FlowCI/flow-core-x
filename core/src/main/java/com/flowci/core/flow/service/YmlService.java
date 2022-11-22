@@ -17,10 +17,10 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.flow.domain.Yml;
 import com.flowci.tree.NodeTree;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -34,34 +34,23 @@ public interface YmlService {
     List<Yml> list(String flowId);
 
     /**
+     * Get yml list by flow id
+     *
+     * @throws com.flowci.exception.NotFoundException if YML not found
+     */
+    List<Yml> get(String flowId);
+
+    /**
      * Get NodeTree from yaml
      *
      * @throws com.flowci.exception.NotFoundException if YML not found
      */
-    NodeTree getTree(String flowId, String name);
-
-    /**
-     * Get yml by flow id and yaml name
-     *
-     * @throws com.flowci.exception.NotFoundException if YML not found
-     */
-    Yml getYml(String flowId, String name);
-
-    /**
-     * Get b64 yml string only by flow id and yaml name
-     */
-    @Nullable
-    String getYmlString(String flowId, String name);
+    NodeTree getTree(String flowId);
 
     /**
      * Create or update yml for flow
-     *
-     * @param yml could be null or empty string
-     * @throws com.flowci.exception.ArgumentException if yml string is empty or null
      */
-    Yml saveYml(Flow flow, String name, String yml);
-
-    Yml saveYmlFromB64(Flow flow, String name, String ymlInB64);
+    List<Yml> saveYml(Flow flow, SimpleYml... list);
 
     /**
      * Delete all yaml of flow
