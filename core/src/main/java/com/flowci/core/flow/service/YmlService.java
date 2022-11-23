@@ -18,7 +18,7 @@ package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.SimpleYml;
-import com.flowci.core.flow.domain.Yml;
+import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.tree.NodeTree;
 
 import java.util.List;
@@ -29,16 +29,11 @@ import java.util.List;
 public interface YmlService {
 
     /**
-     * List Yml instance without raw field
-     */
-    List<Yml> list(String flowId);
-
-    /**
      * Get yml list by flow id
      *
      * @throws com.flowci.exception.NotFoundException if YML not found
      */
-    List<Yml> get(String flowId);
+    List<FlowYml> get(String flowId);
 
     /**
      * Get NodeTree from yaml
@@ -50,7 +45,7 @@ public interface YmlService {
     /**
      * Create or update yml for flow
      */
-    List<Yml> saveYml(Flow flow, SimpleYml... list);
+    List<FlowYml> saveYml(Flow flow, List<SimpleYml> list);
 
     /**
      * Delete all yaml of flow
@@ -58,7 +53,7 @@ public interface YmlService {
     void delete(String flowId);
 
     /**
-     * Delete a yaml in flow
+     * Delete a yaml of flow by name
      */
     void delete(String flowId, String name);
 }

@@ -44,7 +44,6 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
-import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -138,8 +137,8 @@ public class FlowServiceImpl implements FlowService {
             fileManager.create(flow);
 
             if (!option.isBlank()) {
-                var yamlContent = getYmlContent(option);
-                ymlService.saveYml(flow, Yml.DEFAULT_NAME, yamlContent);
+                var b64Content = getBase64Content(option);
+                ymlService.saveYml(flow, List.of(new SimpleYml(FlowYml.DEFAULT_NAME, b64Content)));
             }
 
             flowUserDao.create(flow.getId());
@@ -259,16 +258,15 @@ public class FlowServiceImpl implements FlowService {
         StringVars gitInput = trigger.toVariableMap();
         Job.Trigger jobTrigger = trigger.toJobTrigger();
 
-        Yml yml = ymlService.getYml(flow.getId(), Yml.DEFAULT_NAME);
-        eventManager.publish(new CreateNewJobEvent(this, flow, yml.getRaw(), jobTrigger, gitInput));
+        var outEvent = new CreateNewJobEvent(this, flow, ymlService.get(flow.getId()), jobTrigger, gitInput);
+        eventManager.publish(outEvent);
     }
-
 
     // ====================================================================
     // %% Utils
     // ====================================================================
 
-    private String getYmlContent(CreateOption option) {
+    private String getBase64Content(CreateOption option) {
         if (option.hasTemplateTitle()) {
             try {
                 return loadYmlFromTemplate(option.getTemplateTitle());
@@ -278,7 +276,7 @@ public class FlowServiceImpl implements FlowService {
         }
 
         if (option.hasRawYaml()) {
-            return StringHelper.fromBase64(option.getRawYaml());
+            return option.getRawYaml();
         }
 
         throw new NotFoundException("Yaml content or template name not found");

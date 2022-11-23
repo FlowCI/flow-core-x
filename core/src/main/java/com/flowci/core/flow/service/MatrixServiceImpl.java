@@ -20,7 +20,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.helper.DateHelper;
 import com.flowci.core.flow.dao.MatrixItemDao;
-import com.flowci.core.flow.domain.*;
+import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.MatrixCounter;
+import com.flowci.core.flow.domain.MatrixItem;
+import com.flowci.core.flow.domain.MatrixType;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.JobStatusChangeEvent;
@@ -30,7 +33,6 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.tree.NodeTree;
 import com.flowci.util.StringHelper;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
@@ -116,21 +118,14 @@ public class MatrixServiceImpl implements MatrixService {
     @Override
     public List<MatrixType> getStatsType(Flow flow) {
         List<MatrixType> list = new LinkedList<>(defaultTypes.values());
+        NodeTree tree = ymlService.getTree(flow.getId());
 
-        List<Yml> yamlList = ymlService.list(flow.getId());
-        if (yamlList.isEmpty()) {
-            return list;
-        }
+        for (String pluginName : tree.getPlugins()) {
+            try {
+                Plugin plugin = pluginService.get(pluginName);
+                list.addAll(plugin.getMeta().getMatrixTypes());
+            } catch (NotFoundException ignore) {
 
-        for (Yml item : yamlList) {
-            NodeTree tree = ymlService.getTree(flow.getId(), item.getName());
-            for (String pluginName : tree.getPlugins()) {
-                try {
-                    Plugin plugin = pluginService.get(pluginName);
-                    list.addAll(plugin.getMeta().getMatrixTypes());
-                } catch (NotFoundException ignore) {
-
-                }
             }
         }
 

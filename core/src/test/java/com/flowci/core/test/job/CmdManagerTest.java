@@ -20,9 +20,7 @@ import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.CreateOption;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
-import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.manager.CmdManager;
@@ -31,14 +29,11 @@ import com.flowci.core.job.service.StepService;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.test.MockLoggedInScenario;
-import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.*;
 import com.flowci.tree.*;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Lists;
-import org.checkerframework.checker.units.qual.C;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,9 +48,6 @@ public class CmdManagerTest extends MockLoggedInScenario {
 
     @Autowired
     private FlowService flowService;
-
-    @Autowired
-    private YmlService ymlService;
 
     @Autowired
     private JobService jobService;

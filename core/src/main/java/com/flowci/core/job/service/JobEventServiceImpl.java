@@ -35,8 +35,8 @@ import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.Errors;
 import com.flowci.tree.FlowNode;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
@@ -46,31 +46,24 @@ import java.util.Arrays;
 
 @Log4j2
 @Service
+@AllArgsConstructor
 public class JobEventServiceImpl implements JobEventService {
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-    @Autowired
-    private SpringEventManager eventManager;
+    private final SpringEventManager eventManager;
 
-    @Autowired
-    private JobActionService jobActionService;
+    private final JobActionService jobActionService;
 
-    @Autowired
-    private ConditionManager conditionManager;
+    private final ConditionManager conditionManager;
 
-    @Autowired
-    private YmlManager ymlManager;
+    private final YmlManager ymlManager;
 
-    @Autowired
-    private TaskExecutor appTaskExecutor;
+    private final TaskExecutor appTaskExecutor;
 
-    @Autowired
-    private JobService jobService;
+    private final JobService jobService;
 
-    @Autowired
-    private StepService stepService;
+    private final StepService stepService;
 
     @EventListener
     public void onFlowInitiated(FlowInitEvent event) {

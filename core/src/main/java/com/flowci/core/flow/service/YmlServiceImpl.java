@@ -23,7 +23,7 @@ import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.YmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.SimpleYml;
-import com.flowci.core.flow.domain.Yml;
+import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.domain.Vars;
@@ -79,12 +79,7 @@ public class YmlServiceImpl implements YmlService {
     //====================================================================
 
     @Override
-    public List<Yml> list(String flowId) {
-        return ymlDao.findAllWithoutRawByFlowId(flowId);
-    }
-
-    @Override
-    public List<Yml> get(String flowId) {
+    public List<FlowYml> get(String flowId) {
         var list = ymlDao.findAllByFlowId(flowId);
         if (list.size() == 0) {
             throw new NotFoundException("YAML not found");
@@ -107,10 +102,10 @@ public class YmlServiceImpl implements YmlService {
     }
 
     @Override
-    public List<Yml> saveYml(Flow flow, SimpleYml... list) {
-        var ymlContentList = new String[list.length];
-        for (int i = 0; i < list.length; i++) {
-            ymlContentList[i] = StringHelper.fromBase64(list[i].getRawInB64());
+    public List<FlowYml> saveYml(Flow flow, List<SimpleYml> list) {
+        var ymlContentList = new String[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            ymlContentList[i] = StringHelper.fromBase64(list.get(i).getRawInB64());
         }
 
         FlowNode root = YmlParser.load(ymlContentList);
@@ -123,14 +118,9 @@ public class YmlServiceImpl implements YmlService {
             }
         }
 
-        var entities = new ArrayList<Yml>(list.length);
-        try {
-            for (var s : list) {
-                var entity = new Yml(flow.getId(), s.getName(), s.getRawInB64());
-                entities.add(ymlDao.save(entity));
-            }
-        } catch (DuplicateKeyException e) {
-            throw new DuplicateException("Yaml name or condition already existed");
+        var entities = new ArrayList<FlowYml>(list.size());
+        for (var s : list) {
+            entities.add(save(flow, s));
         }
 
         // sync flow envs from yml root envs
@@ -152,6 +142,21 @@ public class YmlServiceImpl implements YmlService {
     @Override
     public void delete(String flowId, String name) {
         ymlDao.deleteByFlowIdAndName(flowId, name);
+    }
+
+    private FlowYml save(Flow flow, SimpleYml yml) {
+        try {
+            var optional = ymlDao.findByFlowIdAndName(flow.getId(), yml.getName());
+            if (optional.isPresent()) {
+                var entity = optional.get();
+                entity.setRawInB64(yml.getRawInB64());
+                return ymlDao.save(entity);
+
+            }
+            return ymlDao.save(new FlowYml(flow.getId(), yml.getName(), yml.getRawInB64()));
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateException("Yaml name or condition already existed");
+        }
     }
 
     private static String yamlCacheKey(String flowId) {

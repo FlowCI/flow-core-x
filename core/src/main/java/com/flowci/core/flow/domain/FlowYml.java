@@ -38,13 +38,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @CompoundIndexes(
         @CompoundIndex(
-                name = "index_flow_id_and_yaml_name",
+                name = "index_flow_id_and_name",
                 def = "{'flowId': 1, 'name': 1}",
                 sparse = true,
                 unique = true
         )
 )
-public class Yml extends Mongoable {
+public class FlowYml extends Mongoable {
 
     public final static String DEFAULT_NAME = "default";
 
