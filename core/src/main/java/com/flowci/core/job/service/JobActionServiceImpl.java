@@ -229,10 +229,8 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     @Override
-    public void toCreated(String jobId, String yml) {
-        onTransition(jobId, Created, context -> {
-            context.setYml(yml);
-        });
+    public void toCreated(JobYml jobYml) {
+        onTransition(jobYml.getId(), Created, context -> context.setYml(jobYml));
     }
 
     @Override
@@ -339,7 +337,7 @@ public class JobActionServiceImpl implements JobActionService {
 
     private void doFromXToCreated(JobSmContext context) {
         Job job = context.getJob();
-        String yml = context.getYml();
+        JobYml yml = context.getYml();
 
         setupJobYamlAndSteps(job, yml);
         setJobStatusAndSave(job, Job.Status.CREATED, StringHelper.EMPTY);
@@ -783,8 +781,8 @@ public class JobActionServiceImpl implements JobActionService {
         sm.execute(context);
     }
 
-    private void setupJobYamlAndSteps(Job job, String yml) {
-        ymlManager.create(job, yml);
+    private void setupJobYamlAndSteps(Job job, JobYml yml) {
+        ymlManager.create(yml);
         stepService.init(job);
 
         FlowNode root = ymlManager.parse(yml);
@@ -843,7 +841,7 @@ public class JobActionServiceImpl implements JobActionService {
         sm.execute(context);
     }
 
-    private String fetchYamlFromGit(Job job) {
+    private JobYml fetchYamlFromGit(Job job) {
         final String gitUrl = JobContextHelper.getGitUrl(job);
 
         if (!StringHelper.hasValue(gitUrl)) {
@@ -869,7 +867,11 @@ public class JobActionServiceImpl implements JobActionService {
 
         try {
             byte[] ymlInBytes = Files.readAllBytes(Paths.get(dir.toString(), files[0]));
-            return new String(ymlInBytes);
+
+            var jobYml = new JobYml(job.getId());
+            jobYml.add(".flowci.yml", StringHelper.toBase64(new String(ymlInBytes)));
+
+            return jobYml;
         } catch (IOException e) {
             throw new NotAvailableException("Unable to read yaml file in repo").setExtra(job);
         }

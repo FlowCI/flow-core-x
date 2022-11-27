@@ -24,8 +24,8 @@ import com.flowci.tree.FlowNode;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.YmlParser;
 import com.github.benmanes.caffeine.cache.Cache;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -35,17 +35,21 @@ import java.util.Optional;
  */
 @Log4j2
 @Component
+@AllArgsConstructor
 public class YmlManagerImpl implements YmlManager {
 
-    @Autowired
-    private Cache<String, NodeTree> jobTreeCache;
+    private final Cache<String, NodeTree> jobTreeCache;
 
-    @Autowired
-    private JobYmlDao jobYmlDao;
+    private final JobYmlDao jobYmlDao;
 
     @Override
-    public FlowNode parse(String yml) {
-        return YmlParser.load(yml);
+    public FlowNode parse(JobYml jobYml) {
+        return YmlParser.load(jobYml.getRawArray());
+    }
+
+    @Override
+    public FlowNode parse(String... raw) {
+        return YmlParser.load(raw);
     }
 
     @Override
@@ -60,9 +64,8 @@ public class YmlManagerImpl implements YmlManager {
     }
 
     @Override
-    public JobYml create(Job job, String yml) {
-        JobYml jobYml = new JobYml(job.getId(), job.getFlowName(), yml);
-        return jobYmlDao.insert(jobYml);
+    public JobYml create(JobYml jobYml) {
+        return jobYmlDao.save(jobYml);
     }
 
     @Override
@@ -75,7 +78,7 @@ public class YmlManagerImpl implements YmlManager {
         return jobTreeCache.get(jobId, s -> {
             log.debug("Cache tree for job: {}", jobId);
             JobYml yml = jobYmlDao.findById(jobId).get();
-            FlowNode root = YmlParser.load(yml.getRaw());
+            FlowNode root = YmlParser.load(yml.getRawArray());
             return NodeTree.create(root);
         });
     }

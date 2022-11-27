@@ -25,6 +25,7 @@ import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.OnCmdOutEvent;
 import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
@@ -43,6 +44,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 @Log4j2
 @Service
@@ -98,7 +100,9 @@ public class JobEventServiceImpl implements JobEventService {
     public void startNewJob(CreateNewJobEvent event) {
         appTaskExecutor.execute(() -> {
             try {
-                FlowNode root = ymlManager.parse(event.getYml());
+                List<FlowYml> ymlList = event.getFlowYmlList();
+                String[] array = FlowYml.toRawArray(ymlList);
+                FlowNode root = ymlManager.parse(array);
                 boolean canCreateJob = true;
 
                 if (root.hasCondition()) {
@@ -111,7 +115,7 @@ public class JobEventServiceImpl implements JobEventService {
                     return;
                 }
 
-                Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
+                Job job = jobService.create(event.getFlow(), ymlList, event.getTrigger(), event.getInput());
                 jobService.start(job);
 
             } catch (Throwable e) {

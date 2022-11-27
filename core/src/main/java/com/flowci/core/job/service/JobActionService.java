@@ -17,13 +17,14 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.agent.domain.ShellOut;
+import com.flowci.core.job.domain.JobYml;
 import com.flowci.exception.CIException;
 
 public interface JobActionService {
 
     void toLoading(String jobId);
 
-    void toCreated(String jobId, String yml);
+    void toCreated(JobYml yml);
 
     void toStart(String jobId);
 

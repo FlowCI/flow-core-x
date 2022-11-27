@@ -96,24 +96,21 @@ public class JobController extends BaseController {
 
     @GetMapping(value = "/{flow}/{buildNumber}/yml", produces = MediaType.APPLICATION_JSON_VALUE)
     @Action(JobAction.GET_YML)
-    public String getYml(@PathVariable String flow, @PathVariable String buildNumber) {
+    public JobYml getYml(@PathVariable String flow, @PathVariable String buildNumber) {
         Job job = get(flow, buildNumber);
-        JobYml yml = jobService.getYml(job);
-        return Base64.getEncoder().encodeToString(yml.getRaw().getBytes());
+        return jobService.getYml(job);
     }
 
     @GetMapping("/{flow}/{buildNumberOrLatest}/steps")
     @Action(JobAction.LIST_STEPS)
-    public List<Step> listSteps(@PathVariable String flow,
-                                @PathVariable String buildNumberOrLatest) {
+    public List<Step> steps(@PathVariable String flow, @PathVariable String buildNumberOrLatest) {
         Job job = get(flow, buildNumberOrLatest);
         return stepService.list(job);
     }
 
     @GetMapping("/{flow}/{buildNumberOrLatest}/related")
     @Action(JobAction.LIST)
-    public List<JobDesc> listRelated(@PathVariable String flow,
-                                     @PathVariable String buildNumberOrLatest) {
+    public List<JobDesc> relatedJobs(@PathVariable String flow, @PathVariable String buildNumberOrLatest) {
         Job job = get(flow, buildNumberOrLatest);
         return jobService.listRelated(job);
     }
@@ -121,27 +118,22 @@ public class JobController extends BaseController {
     @PostMapping
     @Action(JobAction.CREATE)
     public Job create(@Validated @RequestBody CreateJob data) {
-        Flow flow = flowService.get(data.getFlow());
-        String b64Yaml = ymlService.getYmlString(flow.getId(), FlowYml.DEFAULT_NAME);
-        return jobService.create(flow, StringHelper.fromBase64(b64Yaml), Trigger.API, data.getInputs());
+        var flow = flowService.get(data.getFlow());
+        var ymlList = ymlService.get(flow.getId());
+        return jobService.create(flow, ymlList, Trigger.API, data.getInputs());
     }
 
     @PostMapping("/run")
     @Action(JobAction.RUN)
     public void createAndStart(@Validated @RequestBody CreateJob body) {
-        User current = sessionManager.get();
-        Flow flow = flowService.get(body.getFlow());
-        String b64Yml = ymlService.getYmlString(flow.getId(), FlowYml.DEFAULT_NAME);
-        if (!StringHelper.hasValue(b64Yml)) {
-            throw new NotFoundException("YAML not found");
-        }
-
-        String ymlStr = StringHelper.fromBase64(b64Yml);
+        var current = sessionManager.get();
+        var flow = flowService.get(body.getFlow());
+        var ymlList = ymlService.get(flow.getId());
 
         // start from thread since could be loading yaml from git repo
         appTaskExecutor.execute(() -> {
             sessionManager.set(current);
-            Job job = jobService.create(flow, ymlStr, Trigger.API, body.getInputs());
+            Job job = jobService.create(flow, ymlList, Trigger.API, body.getInputs());
             jobService.start(job);
         });
     }

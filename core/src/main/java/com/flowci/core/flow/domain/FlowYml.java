@@ -28,6 +28,8 @@ import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
+
 /**
  * @author yang
  */
@@ -58,5 +60,14 @@ public class FlowYml extends Mongoable {
     @JsonIgnore
     public String getRaw() {
         return StringHelper.fromBase64(rawInB64);
+    }
+
+    public static String[] toRawArray(List<FlowYml> list) {
+        var array = new String[list.size()];
+        int i = 0;
+        for (var item : list) {
+            array[0] = StringHelper.fromBase64(item.getRawInB64());
+        }
+        return array;
     }
 }
