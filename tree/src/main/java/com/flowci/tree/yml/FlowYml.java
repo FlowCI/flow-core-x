@@ -55,11 +55,21 @@ public class FlowYml extends YmlBase<FlowNode> {
     public void merge(FlowYml flowYml) {
         Set<Field> fields = fields(FlowYml.class);
         for (Field field : fields) {
+            String fieldName = field.getName();
+
+            // for $jacocoData
+            if (fieldName.startsWith("$")) {
+                continue;
+            }
+
             boolean hasValueOnThis = hasValue(this, field);
             boolean hasValueOnOther = hasValue(flowYml, field);
 
+            System.out.printf("------ %s - %s%n", fieldName, field.get(this));
+            System.out.printf("------ %s - %s%n", fieldName, field.get(flowYml));
+
             if (hasValueOnThis && hasValueOnOther) {
-                throw new YmlException("Duplicated YAML " + field.getName());
+                throw new YmlException("Duplicated YAML " + fieldName);
             }
 
             if (hasValueOnOther) {

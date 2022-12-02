@@ -71,10 +71,6 @@ public class FlowControllerTest extends MockLoggedInScenario {
         List<FlowYml> yamlNameList = responseMessage.getData();
         Assert.assertEquals(1, yamlNameList.size());
 
-        ResponseMessage<String> contentRespMsg = mockMvcHelper
-                .expectSuccessAndReturnClass(get("/flows/" + flowName + "/yml/" + yamlNameList.get(0).getName()), FlowMockHelper.FlowYmlContentType);
-        Assert.assertEquals(StringHelper.toString(load("flow.yml")), StringHelper.fromBase64(contentRespMsg.getData()));
-
         ResponseMessage<Flow> deleted = mockMvcHelper
                 .expectSuccessAndReturnClass(delete("/flows/" + flowName), FlowMockHelper.FlowType);
         Assert.assertEquals(StatusCode.OK, deleted.getCode());
