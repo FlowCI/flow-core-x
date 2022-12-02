@@ -74,7 +74,7 @@ public class FlowYml extends YmlBase<FlowNode> {
         }
 
         FlowNode node = new FlowNode(name, parent);
-        node.setSelector(selector);
+        node.setSelector(selector == null ? Selector.EMPTY : selector);
         node.setCondition(condition);
         node.setEnvironments(getVariableMap());
 

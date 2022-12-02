@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author yang
@@ -71,7 +72,7 @@ public class FlowYmlServiceTest extends MockLoggedInScenario {
         illegalYml.setName("test");
         illegalYml.setRawInB64(StringHelper.toBase64("hell-..."));
 
-        ymlService.saveYml(flow, illegalYml);
+        ymlService.saveYml(flow, List.of(illegalYml));
     }
 
     @Test(expected = NotFoundException.class)
@@ -84,6 +85,6 @@ public class FlowYmlServiceTest extends MockLoggedInScenario {
         illegalYml.setRawInB64(StringHelper.toBase64(ymlRaw));
 
         // then:
-        ymlService.saveYml(flow, illegalYml);
+        ymlService.saveYml(flow, List.of(illegalYml));
     }
 }

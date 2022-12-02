@@ -19,8 +19,8 @@ package com.flowci.core.test.job;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.CreateOption;
-import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.service.FlowService;
+import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.manager.CmdManager;
@@ -50,6 +50,9 @@ public class CmdManagerTest extends MockLoggedInScenario {
     private FlowService flowService;
 
     @Autowired
+    private YmlService ymlService;
+
+    @Autowired
     private JobService jobService;
 
     @Autowired
@@ -66,9 +69,10 @@ public class CmdManagerTest extends MockLoggedInScenario {
         // given: flow and job
         var yaml = StringHelper.toString(load("flow-with-root-docker.yml"));
         var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
-        Flow flow = flowService.create("hello", option);
+        var flow = flowService.create("hello", option);
+        var ymlList = ymlService.get(flow.getId());
 
-        Job job = jobService.create(flow, yaml, Job.Trigger.MANUAL, new StringVars());
+        Job job = jobService.create(flow, ymlList, Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
         FlowNode root = YmlParser.load(yaml);
@@ -107,8 +111,9 @@ public class CmdManagerTest extends MockLoggedInScenario {
         var yaml = StringHelper.toString(load("flow-with-plugin.yml"));
         var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
         var flow = flowService.create("hello", option);
+        var ymlList = ymlService.get(flow.getId());
 
-        Job job = jobService.create(flow, yaml, Job.Trigger.MANUAL, new StringVars());
+        Job job = jobService.create(flow, ymlList, Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
         // when: create shell cmd
@@ -145,8 +150,9 @@ public class CmdManagerTest extends MockLoggedInScenario {
         var yaml = StringHelper.toString(load("step-in-step.yml"));
         var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
         var flow = flowService.create("hello", option);
+        var ymlList = ymlService.get(flow.getId());
 
-        Job job = jobService.create(flow, yaml, Job.Trigger.MANUAL, new StringVars());
+        Job job = jobService.create(flow, ymlList, Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
         // when: create shell cmd
