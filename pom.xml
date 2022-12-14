@@ -27,7 +27,7 @@
         <guava.version>31.0.1-jre</guava.version>
         <junit.version>4.13.1</junit.version>
         <spring.version>2.6.0</spring.version>
-        <snakeyaml.version>1.26</snakeyaml.version>
+        <snakeyaml.version>1.32</snakeyaml.version>
         <jackson.version>2.13.1</jackson.version>
         <curator.version>4.3.0</curator.version>
         <caffeine.version>2.6.2</caffeine.version>
