@@ -44,6 +44,7 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
+import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -269,7 +270,8 @@ public class FlowServiceImpl implements FlowService {
     private String getBase64Content(CreateOption option) {
         if (option.hasTemplateTitle()) {
             try {
-                return loadYmlFromTemplate(option.getTemplateTitle());
+                String content = loadYmlFromTemplate(option.getTemplateTitle());
+                return StringHelper.toBase64(content);
             } catch (IOException e) {
                 throw new NotFoundException("Unable to load template {0} content", option.getTemplateTitle());
             }

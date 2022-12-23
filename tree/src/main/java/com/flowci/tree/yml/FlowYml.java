@@ -65,9 +65,6 @@ public class FlowYml extends YmlBase<FlowNode> {
             boolean hasValueOnThis = hasValue(this, field);
             boolean hasValueOnOther = hasValue(flowYml, field);
 
-            System.out.printf("------ %s - %s%n", fieldName, field.get(this));
-            System.out.printf("------ %s - %s%n", fieldName, field.get(flowYml));
-
             if (hasValueOnThis && hasValueOnOther) {
                 throw new YmlException("Duplicated YAML " + fieldName);
             }
