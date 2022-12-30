@@ -61,7 +61,7 @@ public class JobYml extends Mongoable {
         var array = new String[list.size()];
         int i = 0;
         for (var body : list) {
-            array[i] = StringHelper.fromBase64(body.getRawInB64());
+            array[i++] = StringHelper.fromBase64(body.getRawInB64());
         }
         return array;
     }

@@ -43,8 +43,8 @@ import java.util.Objects;
 @AllArgsConstructor
 @CompoundIndexes(
         @CompoundIndex(
-                name = "index_yml_name",
-                def = "{'list.name': 1}",
+                name = "index_flow_id_and_yml_name",
+                def = "{'flowId': 1, 'list.name': 1}",
                 sparse = true,
                 unique = true
         )
