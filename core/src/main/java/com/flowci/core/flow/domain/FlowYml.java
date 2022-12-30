@@ -53,7 +53,7 @@ public class FlowYml extends Mongoable {
 
     public final static String DEFAULT_NAME = ".flowci.yml";
 
-    @Indexed(name = "index_flow_id", unique = true)
+    @Indexed(name = "index_yml_flow_id", unique = true)
     private String flowId;
 
     private List<SimpleYml> list;
