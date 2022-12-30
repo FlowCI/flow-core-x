@@ -25,6 +25,7 @@ import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
+import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.job.dao.JobAgentDao;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.dao.JobPriorityDao;
@@ -869,7 +870,7 @@ public class JobActionServiceImpl implements JobActionService {
             byte[] ymlInBytes = Files.readAllBytes(Paths.get(dir.toString(), files[0]));
 
             var jobYml = new JobYml(job.getId());
-            jobYml.add(".flowci.yml", StringHelper.toBase64(new String(ymlInBytes)));
+            jobYml.add(FlowYml.DEFAULT_NAME, StringHelper.toBase64(new String(ymlInBytes)));
 
             return jobYml;
         } catch (IOException e) {

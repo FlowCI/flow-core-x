@@ -18,17 +18,20 @@ package com.flowci.core.flow.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.common.domain.Mongoable;
+import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.internal.util.CollectionHelper;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author yang
@@ -40,29 +43,26 @@ import java.util.List;
 @AllArgsConstructor
 @CompoundIndexes(
         @CompoundIndex(
-                name = "index_flow_id_and_name",
-                def = "{'flowId': 1, 'name': 1}",
+                name = "index_yml_name",
+                def = "{'list.name': 1}",
                 sparse = true,
                 unique = true
         )
 )
 public class FlowYml extends Mongoable {
 
-    public final static String DEFAULT_NAME = "default";
+    public final static String DEFAULT_NAME = ".flowci.yml";
 
-    @Indexed(name = "index_flow_id")
+    @Indexed(name = "index_flow_id", unique = true)
     private String flowId;
 
-    private String name;
+    private List<SimpleYml> list;
 
-    private String rawInB64;
-
-    @JsonIgnore
-    public String getRaw() {
-        return StringHelper.fromBase64(rawInB64);
+    public boolean hasYml() {
+        return ObjectsHelper.hasCollection(list);
     }
 
-    public static String[] toRawArray(List<FlowYml> list) {
+    public static String[] toRawArray(List<SimpleYml> list) {
         var array = new String[list.size()];
         int i = 0;
         for (var item : list) {

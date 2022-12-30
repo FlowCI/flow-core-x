@@ -33,7 +33,7 @@ public interface YmlService {
      *
      * @throws com.flowci.exception.NotFoundException if YML not found
      */
-    List<FlowYml> get(String flowId);
+    FlowYml get(String flowId);
 
     /**
      * Get NodeTree from yaml
@@ -45,15 +45,10 @@ public interface YmlService {
     /**
      * Create or update yml for flow
      */
-    List<FlowYml> saveYml(Flow flow, List<SimpleYml> list);
+    FlowYml saveYml(Flow flow, List<SimpleYml> list);
 
     /**
      * Delete all yaml of flow
      */
     void delete(String flowId);
-
-    /**
-     * Delete a yaml of flow by name
-     */
-    void delete(String flowId, String name);
 }

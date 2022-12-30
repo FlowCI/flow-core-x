@@ -100,8 +100,8 @@ public class JobEventServiceImpl implements JobEventService {
     public void startNewJob(CreateNewJobEvent event) {
         appTaskExecutor.execute(() -> {
             try {
-                List<FlowYml> ymlList = event.getFlowYmlList();
-                String[] array = FlowYml.toRawArray(ymlList);
+                FlowYml ymlEntity = event.getYmlEntity();
+                String[] array = FlowYml.toRawArray(ymlEntity.getList());
                 FlowNode root = ymlManager.parse(array);
                 boolean canCreateJob = true;
 
@@ -115,7 +115,7 @@ public class JobEventServiceImpl implements JobEventService {
                     return;
                 }
 
-                Job job = jobService.create(event.getFlow(), ymlList, event.getTrigger(), event.getInput());
+                Job job = jobService.create(event.getFlow(), ymlEntity.getList(), event.getTrigger(), event.getInput());
                 jobService.start(job);
 
             } catch (Throwable e) {

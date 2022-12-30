@@ -70,9 +70,9 @@ public class CmdManagerTest extends MockLoggedInScenario {
         var yaml = StringHelper.toString(load("flow-with-root-docker.yml"));
         var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
         var flow = flowService.create("hello", option);
-        var ymlList = ymlService.get(flow.getId());
+        var ymlEntity = ymlService.get(flow.getId());
 
-        Job job = jobService.create(flow, ymlList, Job.Trigger.MANUAL, new StringVars());
+        Job job = jobService.create(flow, ymlEntity.getList(), Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
         FlowNode root = YmlParser.load(yaml);
@@ -111,9 +111,9 @@ public class CmdManagerTest extends MockLoggedInScenario {
         var yaml = StringHelper.toString(load("flow-with-plugin.yml"));
         var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
         var flow = flowService.create("hello", option);
-        var ymlList = ymlService.get(flow.getId());
+        var ymlEntity = ymlService.get(flow.getId());
 
-        Job job = jobService.create(flow, ymlList, Job.Trigger.MANUAL, new StringVars());
+        Job job = jobService.create(flow, ymlEntity.getList(), Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
         // when: create shell cmd
@@ -150,9 +150,9 @@ public class CmdManagerTest extends MockLoggedInScenario {
         var yaml = StringHelper.toString(load("step-in-step.yml"));
         var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
         var flow = flowService.create("hello", option);
-        var ymlList = ymlService.get(flow.getId());
+        var ymlEntity = ymlService.get(flow.getId());
 
-        Job job = jobService.create(flow, ymlList, Job.Trigger.MANUAL, new StringVars());
+        Job job = jobService.create(flow, ymlEntity.getList(), Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
         // when: create shell cmd
@@ -167,7 +167,7 @@ public class CmdManagerTest extends MockLoggedInScenario {
         Assert.assertEquals(500, cmdStep2_1.getTimeout());
         Assert.assertEquals(2, cmdStep2_1.getRetry());
 
-        // input should be overwrite
+        // input should be overwritten
         Assert.assertEquals("overwrite-parent", cmdStep2_1.getInputs().get("STEP_2"));
         Assert.assertEquals("overwrite-parent", cmdStep2_1.getInputs().get("STEP_2"));
 

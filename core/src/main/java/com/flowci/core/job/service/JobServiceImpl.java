@@ -25,6 +25,7 @@ import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.FlowYml;
+import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.job.dao.*;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
@@ -228,7 +229,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job create(Flow flow, List<FlowYml> yml, Trigger trigger, StringVars input) {
+    public Job create(Flow flow, List<SimpleYml> ymlList, Trigger trigger, StringVars input) {
         Job job = createJob(flow, trigger, input);
         eventManager.publish(new JobCreatedEvent(this, job));
 
@@ -238,7 +239,7 @@ public class JobServiceImpl implements JobService {
         }
 
         var jobYml = new JobYml(job.getId());
-        for (var fy : yml) {
+        for (var fy : ymlList) {
             jobYml.add(fy.getName(), fy.getRawInB64());
         }
 

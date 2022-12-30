@@ -119,8 +119,8 @@ public class JobController extends BaseController {
     @Action(JobAction.CREATE)
     public Job create(@Validated @RequestBody CreateJob data) {
         var flow = flowService.get(data.getFlow());
-        var ymlList = ymlService.get(flow.getId());
-        return jobService.create(flow, ymlList, Trigger.API, data.getInputs());
+        var ymlEntity = ymlService.get(flow.getId());
+        return jobService.create(flow, ymlEntity.getList(), Trigger.API, data.getInputs());
     }
 
     @PostMapping("/run")
@@ -128,12 +128,12 @@ public class JobController extends BaseController {
     public void createAndStart(@Validated @RequestBody CreateJob body) {
         var current = sessionManager.get();
         var flow = flowService.get(body.getFlow());
-        var ymlList = ymlService.get(flow.getId());
+        var ymlEntity = ymlService.get(flow.getId());
 
         // start from thread since could be loading yaml from git repo
         appTaskExecutor.execute(() -> {
             sessionManager.set(current);
-            Job job = jobService.create(flow, ymlList, Trigger.API, body.getInputs());
+            Job job = jobService.create(flow, ymlEntity.getList(), Trigger.API, body.getInputs());
             jobService.start(job);
         });
     }

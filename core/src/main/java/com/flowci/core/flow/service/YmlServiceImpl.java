@@ -20,7 +20,7 @@ import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.flow.dao.FlowDao;
-import com.flowci.core.flow.dao.YmlDao;
+import com.flowci.core.flow.dao.FlowYmlDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.flow.domain.FlowYml;
@@ -54,7 +54,7 @@ public class YmlServiceImpl implements YmlService {
 
     private final Cache<String, NodeTree> flowTreeCache;
 
-    private final YmlDao ymlDao;
+    private final FlowYmlDao flowYmlDao;
 
     private final FlowDao flowDao;
 
@@ -63,12 +63,12 @@ public class YmlServiceImpl implements YmlService {
     private final ConditionManager conditionManager;
 
     public YmlServiceImpl(Cache<String, NodeTree> flowTreeCache,
-                          YmlDao ymlDao,
+                          FlowYmlDao flowYmlDao,
                           FlowDao flowDao,
                           SpringEventManager eventManager,
                           ConditionManager conditionManager) {
         this.flowTreeCache = flowTreeCache;
-        this.ymlDao = ymlDao;
+        this.flowYmlDao = flowYmlDao;
         this.flowDao = flowDao;
         this.eventManager = eventManager;
         this.conditionManager = conditionManager;
@@ -79,18 +79,18 @@ public class YmlServiceImpl implements YmlService {
     //====================================================================
 
     @Override
-    public List<FlowYml> get(String flowId) {
-        var list = ymlDao.findAllByFlowId(flowId);
-        if (list.size() == 0) {
-            throw new NotFoundException("YAML not found");
+    public FlowYml get(String flowId) {
+        var yml = flowYmlDao.findByFlowId(flowId);
+        if (yml.isPresent() && yml.get().hasYml()) {
+            return yml.get();
         }
-        return list;
+        throw new NotFoundException("YAML not found");
     }
 
     @Override
     public NodeTree getTree(String flowId) {
         return flowTreeCache.get(yamlCacheKey(flowId), key -> {
-            var list = get(flowId);
+            var list = get(flowId).getList();
             var ymlContentList = new String[list.size()];
             for (int i = 0; i < list.size(); i++) {
                 ymlContentList[i] = StringHelper.fromBase64(list.get(i).getRawInB64());
@@ -102,7 +102,7 @@ public class YmlServiceImpl implements YmlService {
     }
 
     @Override
-    public List<FlowYml> saveYml(Flow flow, List<SimpleYml> list) {
+    public FlowYml saveYml(Flow flow, List<SimpleYml> list) {
         var ymlContentList = new String[list.size()];
         for (int i = 0; i < list.size(); i++) {
             ymlContentList[i] = StringHelper.fromBase64(list.get(i).getRawInB64());
@@ -118,10 +118,7 @@ public class YmlServiceImpl implements YmlService {
             }
         }
 
-        var entities = new ArrayList<FlowYml>(list.size());
-        for (var s : list) {
-            entities.add(save(flow, s));
-        }
+        var ymlEntity = save(flow, list);
 
         // sync flow envs from yml root envs
         Vars<String> vars = flow.getReadOnlyVars();
@@ -131,29 +128,24 @@ public class YmlServiceImpl implements YmlService {
 
         // put tree into cache
         flowTreeCache.put(yamlCacheKey(flow.getId()), tree);
-        return entities;
+        return ymlEntity;
     }
 
     @Override
     public void delete(String flowId) {
-        ymlDao.deleteAllByFlowId(flowId);
+        flowYmlDao.deleteByFlowId(flowId);
     }
 
-    @Override
-    public void delete(String flowId, String name) {
-        ymlDao.deleteByFlowIdAndName(flowId, name);
-    }
-
-    private FlowYml save(Flow flow, SimpleYml yml) {
+    private FlowYml save(Flow flow, List<SimpleYml> list) {
         try {
-            var optional = ymlDao.findByFlowIdAndName(flow.getId(), yml.getName());
+            var optional = flowYmlDao.findByFlowId(flow.getId());
             if (optional.isPresent()) {
                 var entity = optional.get();
-                entity.setRawInB64(yml.getRawInB64());
-                return ymlDao.save(entity);
-
+                entity.setList(list);
+                return flowYmlDao.save(entity);
             }
-            return ymlDao.save(new FlowYml(flow.getId(), yml.getName(), yml.getRawInB64()));
+
+            return flowYmlDao.save(new FlowYml(flow.getId(), list));
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Yaml name or condition already existed");
         }

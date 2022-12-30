@@ -42,7 +42,7 @@ public class YmlController {
     private final YmlService ymlService;
 
     @GetMapping("/{flowName}/yml")
-    public List<FlowYml> get(@PathVariable String flowName) {
+    public FlowYml get(@PathVariable String flowName) {
         Flow flow = flowService.get(flowName);
         return ymlService.get(flow.getId());
     }

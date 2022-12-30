@@ -120,14 +120,14 @@ public class JobServiceTest extends ZookeeperScenario {
 
     private Flow flow;
 
-    private List<FlowYml> ymlList;
+    private FlowYml ymlEntity;
 
     @Before
     public void mockFlowAndYml() throws IOException {
         var yaml = StringHelper.toString(load("flow.yml"));
         var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
         flow = flowService.create("hello", option);
-        ymlList = ymlService.get(flow.getId());
+        ymlEntity = ymlService.get(flow.getId());
     }
 
     @Test
@@ -142,7 +142,7 @@ public class JobServiceTest extends ZookeeperScenario {
         input.put(Variables.Git.EVENT_ID, "dummy_git_event_id");
 
         // when: create job
-        Job job = jobService.create(flow, ymlList, Trigger.MANUAL, input);
+        Job job = jobService.create(flow, ymlEntity.getList(), Trigger.MANUAL, input);
         Vars<String> context = job.getContext();
         Assert.assertNotNull(context);
 
@@ -172,7 +172,7 @@ public class JobServiceTest extends ZookeeperScenario {
 
     @Test
     public void should_init_steps_cmd_after_job_created() {
-        Job job = jobService.create(flow, ymlList, Trigger.MANUAL, StringVars.EMPTY);
+        Job job = jobService.create(flow, ymlEntity.getList(), Trigger.MANUAL, StringVars.EMPTY);
 
         List<Step> steps = stepService.list(job);
         Assert.assertNotNull(steps);
@@ -198,7 +198,7 @@ public class JobServiceTest extends ZookeeperScenario {
         });
 
         // when: create and start job
-        Job job = jobService.create(flow, ymlList, Trigger.MANUAL, StringVars.EMPTY);
+        Job job = jobService.create(flow, ymlEntity.getList(), Trigger.MANUAL, StringVars.EMPTY);
         job = jobService.get(job.getId());
 
         Assert.assertEquals(Status.CREATED, job.getStatus());
@@ -219,7 +219,7 @@ public class JobServiceTest extends ZookeeperScenario {
 
     @Test
     public void should_get_job_expire() {
-        Job job = jobService.create(flow, ymlList, Trigger.MANUAL, StringVars.EMPTY);
+        Job job = jobService.create(flow, ymlEntity.getList(), Trigger.MANUAL, StringVars.EMPTY);
         Assert.assertFalse(job.isExpired());
     }
 
@@ -232,14 +232,14 @@ public class JobServiceTest extends ZookeeperScenario {
         pluginDao.save(p);
 
         String yaml = StringHelper.toString(load("flow.yml"));
-        ymlList = ymlService.saveYml(flow, List.of(new SimpleYml("default", StringHelper.toBase64(yaml))));
+        ymlEntity = ymlService.saveYml(flow, List.of(new SimpleYml("default", StringHelper.toBase64(yaml))));
 
         Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
         mockAgentOnline(agent.getToken());
 
-        Job job = jobService.create(flow, this.ymlList, Trigger.MANUAL, StringVars.EMPTY);
+        Job job = jobService.create(flow, ymlEntity.getList(), Trigger.MANUAL, StringVars.EMPTY);
 
-        FlowNode root = YmlParser.load(FlowYml.toRawArray(ymlList));
+        FlowNode root = YmlParser.load(FlowYml.toRawArray(ymlEntity.getList()));
         NodeTree tree = NodeTree.create(root);
 
         Node firstNode = tree.getRoot().getNext().get(0);
@@ -388,7 +388,7 @@ public class JobServiceTest extends ZookeeperScenario {
     public void should_handle_cmd_callback_for_failure_status() throws IOException {
         // init: agent and job
         String yaml = StringHelper.toString(load("flow-with-failure.yml"));
-        ymlList = ymlService.saveYml(flow, List.of(new SimpleYml("default", StringHelper.toBase64(yaml))));
+        ymlEntity = ymlService.saveYml(flow, List.of(new SimpleYml("default", StringHelper.toBase64(yaml))));
 
         Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
         Job job = prepareJobForRunningStatus(agent);
@@ -412,7 +412,7 @@ public class JobServiceTest extends ZookeeperScenario {
     public void should_handle_cmd_callback_for_failure_status_but_allow_failure() throws IOException {
         // init: agent and job
         String yaml = StringHelper.toString(load("flow-all-failure.yml"));
-        ymlList = ymlService.saveYml(flow, List.of(new SimpleYml("default", StringHelper.toBase64(yaml))));
+        ymlEntity = ymlService.saveYml(flow, List.of(new SimpleYml("default", StringHelper.toBase64(yaml))));
 
         Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
         Job job = prepareJobForRunningStatus(agent);
@@ -458,7 +458,7 @@ public class JobServiceTest extends ZookeeperScenario {
     public void should_cancel_job_if_agent_offline() throws IOException, InterruptedException {
         // init:
         String yaml = StringHelper.toString(load("flow-with-condition.yml"));
-        ymlList = ymlService.saveYml(flow, List.of(new SimpleYml("default", StringHelper.toBase64(yaml))));
+        ymlEntity = ymlService.saveYml(flow, List.of(new SimpleYml("default", StringHelper.toBase64(yaml))));
 
         // mock agent online
         Agent agent = agentService.create(new AgentOption().setName("hello.agent.2"));
@@ -496,7 +496,7 @@ public class JobServiceTest extends ZookeeperScenario {
     @Test
     public void should_rerun_job() {
         // init: create old job wit success status
-        Job job = jobService.create(flow, ymlList, Trigger.MANUAL, StringVars.EMPTY);
+        Job job = jobService.create(flow, ymlEntity.getList(), Trigger.MANUAL, StringVars.EMPTY);
         job.setStatus(Status.SUCCESS);
         JobContextHelper.setStatus(job, Status.SUCCESS);
         jobDao.save(job);
@@ -525,8 +525,8 @@ public class JobServiceTest extends ZookeeperScenario {
     }
 
     private Job prepareJobForRunningStatus(Agent agent) {
-        // init: job to mock the first node been send to agent
-        Job job = jobService.create(flow, ymlList, Trigger.MANUAL, StringVars.EMPTY);
+        // init: job to mock the first node been sent to agent
+        Job job = jobService.create(flow, ymlEntity.getList(), Trigger.MANUAL, StringVars.EMPTY);
 
         NodeTree tree = ymlManager.getTree(job);
         Node firstNode = tree.getRoot().getNext().get(0);

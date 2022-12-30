@@ -35,16 +35,16 @@ public class CreateNewJobEvent extends ApplicationEvent {
 
     private final Flow flow;
 
-    private final List<FlowYml> flowYmlList;
+    private final FlowYml ymlEntity;
 
     private final Trigger trigger;
 
     private final StringVars input;
 
-    public CreateNewJobEvent(Object source, Flow flow, List<FlowYml> flowYmlList, Trigger trigger, StringVars input) {
+    public CreateNewJobEvent(Object source, Flow flow, FlowYml ymlEntity, Trigger trigger, StringVars input) {
         super(source);
         this.flow = flow;
-        this.flowYmlList = flowYmlList;
+        this.ymlEntity = ymlEntity;
         this.trigger = trigger;
         this.input = input;
     }

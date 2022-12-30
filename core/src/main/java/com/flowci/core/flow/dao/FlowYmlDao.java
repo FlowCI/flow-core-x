@@ -20,20 +20,15 @@ import com.flowci.core.flow.domain.FlowYml;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
  * @author yang
  */
 @Repository
-public interface YmlDao extends MongoRepository<FlowYml, String> {
+public interface FlowYmlDao extends MongoRepository<FlowYml, String> {
 
-    Optional<FlowYml> findByFlowIdAndName(String flowId, String name);
+    Optional<FlowYml> findByFlowId(String flowId);
 
-    List<FlowYml> findAllByFlowId(String flowId);
-
-    void deleteAllByFlowId(String flowId);
-
-    void deleteByFlowIdAndName(String flowId, String name);
+    void deleteByFlowId(String flowId);
 }

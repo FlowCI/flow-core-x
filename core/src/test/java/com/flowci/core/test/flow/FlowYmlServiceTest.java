@@ -56,14 +56,14 @@ public class FlowYmlServiceTest extends MockLoggedInScenario {
 
     @Test
     public void should_get_yml() {
-        var ymlList = ymlService.get(flow.getId());
-        Assert.assertNotNull(ymlList);
-        Assert.assertEquals(1, ymlList.size());
-
-        var entity = ymlList.get(0);
+        var entity = ymlService.get(flow.getId());
+        Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getId());
         Assert.assertEquals(flow.getId(), entity.getFlowId());
-        Assert.assertEquals(FlowYml.DEFAULT_NAME, entity.getName());
+        Assert.assertEquals(1, entity.getList().size());
+
+        var yml = entity.getList().get(0);
+        Assert.assertEquals(FlowYml.DEFAULT_NAME, yml.getName());
     }
 
     @Test(expected = YmlException.class)
