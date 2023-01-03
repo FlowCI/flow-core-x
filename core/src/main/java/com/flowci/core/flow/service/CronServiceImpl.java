@@ -22,13 +22,11 @@ import com.cronutils.parser.CronParser;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.manager.SpringTaskManager;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.event.FlowInitEvent;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.exception.NotFoundException;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -50,17 +48,20 @@ public class CronServiceImpl implements CronService {
 
     private final Map<String, ScheduledFuture<?>> scheduled = new ConcurrentHashMap<>();
 
-    @Autowired
-    private TaskScheduler cronScheduler;
+    private final TaskScheduler cronScheduler;
 
-    @Autowired
-    private SpringEventManager eventManager;
+    private final SpringEventManager eventManager;
 
-    @Autowired
-    private SpringTaskManager taskManager;
+    private final SpringTaskManager taskManager;
 
-    @Autowired
-    private YmlService ymlService;
+    private final YmlService ymlService;
+
+    public CronServiceImpl(TaskScheduler cronScheduler, SpringEventManager eventManager, SpringTaskManager taskManager, YmlService ymlService) {
+        this.cronScheduler = cronScheduler;
+        this.eventManager = eventManager;
+        this.taskManager = taskManager;
+        this.ymlService = ymlService;
+    }
 
     //====================================================================
     //        %% Internal events
@@ -121,10 +122,9 @@ public class CronServiceImpl implements CronService {
 
             taskManager.run(taskName, false, () -> {
                 try {
-                    Yml yml = ymlService.getYml(flow.getId(), Yml.DEFAULT_NAME);
                     log.info("Start flow '{}' from cron task", flow.getName());
-
-                    eventManager.publish(new CreateNewJobEvent(this, flow, yml.getRaw(), Trigger.SCHEDULER, null));
+                    var event = new CreateNewJobEvent(this, flow, ymlService.get(flow.getId()), Trigger.SCHEDULER, null);
+                    eventManager.publish(event);
                 } catch (NotFoundException ignore) {
                     // ignore
                 }

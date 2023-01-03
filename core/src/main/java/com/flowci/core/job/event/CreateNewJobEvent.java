@@ -17,10 +17,13 @@
 package com.flowci.core.job.event;
 
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.domain.StringVars;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
+
+import java.util.List;
 
 /**
  * Start job from jobRunExecutor
@@ -32,16 +35,16 @@ public class CreateNewJobEvent extends ApplicationEvent {
 
     private final Flow flow;
 
-    private final String yml;
+    private final FlowYml ymlEntity;
 
     private final Trigger trigger;
 
     private final StringVars input;
 
-    public CreateNewJobEvent(Object source, Flow flow, String yml, Trigger trigger, StringVars input) {
+    public CreateNewJobEvent(Object source, Flow flow, FlowYml ymlEntity, Trigger trigger, StringVars input) {
         super(source);
         this.flow = flow;
-        this.yml = yml;
+        this.ymlEntity = ymlEntity;
         this.trigger = trigger;
         this.input = input;
     }

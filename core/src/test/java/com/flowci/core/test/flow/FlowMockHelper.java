@@ -22,7 +22,7 @@ import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.flow.domain.CreateOption;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Yml;
+import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.VarValue;
@@ -30,7 +30,6 @@ import com.flowci.util.StringHelper;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,25 +42,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  */
 public class FlowMockHelper {
 
-    static final TypeReference<ResponseMessage<Flow>> FlowType =
-            new TypeReference<ResponseMessage<Flow>>() {
-            };
+    static final TypeReference<ResponseMessage<Flow>> FlowType = new TypeReference<>() {
+    };
 
-    static final TypeReference<ResponseMessage<List<Flow>>> ListFlowType =
-            new TypeReference<ResponseMessage<List<Flow>>>() {
-            };
+    static final TypeReference<ResponseMessage<List<Flow>>> ListFlowType = new TypeReference<>() {
+    };
 
-    static final TypeReference<ResponseMessage<List<Yml>>> FlowYmlNameListType =
-            new TypeReference<ResponseMessage<List<Yml>>>() {
-            };
+    static final TypeReference<ResponseMessage<List<FlowYml>>> FlowYmlNameListType = new TypeReference<>() {
+    };
 
-    static final TypeReference<ResponseMessage<String>> FlowYmlContentType =
-            new TypeReference<ResponseMessage<String>>() {
-            };
+    static final TypeReference<ResponseMessage<String>> FlowYmlContentType = new TypeReference<>() {
+    };
 
-    private static final TypeReference<ResponseMessage<List<User>>> UserListType =
-            new TypeReference<ResponseMessage<List<User>>>() {
-            };
+    private static final TypeReference<ResponseMessage<List<User>>> UserListType = new TypeReference<>() {
+    };
 
     @Autowired
     private MockMvcHelper mockMvcHelper;

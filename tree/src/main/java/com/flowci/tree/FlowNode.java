@@ -19,7 +19,7 @@ public final class FlowNode extends Node {
     /**
      * Agent tags to set node running on which agent
      */
-    private Selector selector = Selector.EMPTY;
+    private Selector selector;
 
     private List<Node> children = new LinkedList<>();
 

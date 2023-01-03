@@ -31,7 +31,7 @@ public class JobSmContext extends Context {
 
     private Job job;
 
-    private String yml;
+    private JobYml yml;
 
     private Step step;
 

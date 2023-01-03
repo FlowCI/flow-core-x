@@ -17,13 +17,16 @@
 package com.flowci.core.job.domain;
 
 import com.flowci.core.common.domain.Mongoable;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.flowci.util.StringHelper;
+import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
+ * JobYml represent set of yml for job
+ *
  * @author yang
  */
 @Document(collection = "job_yml")
@@ -33,13 +36,33 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @EqualsAndHashCode(callSuper = true)
 public class JobYml extends Mongoable {
 
-    /**
-     * Yml raw
-     */
-    private String raw;
+    @Setter
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Body {
 
-    public JobYml(String jobId, String name, String raw) {
+        private String name;
+
+        private String rawInB64;
+    }
+
+    private List<Body> list = new LinkedList<>();
+
+    public JobYml(String jobId) {
         this.id = jobId;
-        this.raw = raw;
+    }
+
+    public void add(String name, String rawInB64) {
+        list.add(new Body(name, rawInB64));
+    }
+
+    public String[] getRawArray() {
+        var array = new String[list.size()];
+        int i = 0;
+        for (var body : list) {
+            array[i++] = StringHelper.fromBase64(body.getRawInB64());
+        }
+        return array;
     }
 }

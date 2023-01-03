@@ -38,7 +38,7 @@ public abstract class ObjectsHelper {
         return map != null && !map.isEmpty();
     }
 
-    public static Set<String> fields(Class<?> klass) {
+    public static Set<String> nameOfFields(Class<?> klass) {
         Set<String> fields = new HashSet<>();
         for (Class<?> c = klass; c != null; c = c.getSuperclass()) {
             for (Field f : c.getDeclaredFields()) {
@@ -48,10 +48,41 @@ public abstract class ObjectsHelper {
         return fields;
     }
 
+    public static Set<Field> fields(Class<?> klass) {
+        Set<Field> fields = new HashSet<>();
+        for (Class<?> c = klass; c != null; c = c.getSuperclass()) {
+            fields.addAll(Arrays.asList(c.getDeclaredFields()));
+        }
+        return fields;
+    }
+
+    public static <T> boolean hasValue(T instance, Field field) throws ReflectiveOperationException {
+        field.setAccessible(true);
+        Object o = field.get(instance);
+
+        if (Objects.isNull(o)) {
+            return false;
+        }
+
+        if (o instanceof Collection) {
+            if (((Collection<?>) o).isEmpty()) {
+                return false;
+            }
+        }
+
+        if (o instanceof Map) {
+            if (((Map<?, ?>) o).isEmpty()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Check input fields are all have value or not
      */
-    public static <T> boolean hasValue(T instance, Set<String> fields) throws ReflectiveOperationException {
+    public static <T> boolean hasValues(T instance, Set<String> fields) throws ReflectiveOperationException {
         Map<String, Field> all = new HashMap<>();
 
         for (Class<?> c = instance.getClass(); c != null; c = c.getSuperclass()) {
@@ -66,17 +97,8 @@ public abstract class ObjectsHelper {
                 throw new NoSuchFieldException(name);
             }
 
-            field.setAccessible(true);
-            Object o = field.get(instance);
-
-            if (o == null) {
+            if (!hasValue(instance, field)) {
                 return false;
-            }
-
-            if (o instanceof Collection) {
-                if (((Collection<?>) o).isEmpty()) {
-                    return false;
-                }
             }
         }
 

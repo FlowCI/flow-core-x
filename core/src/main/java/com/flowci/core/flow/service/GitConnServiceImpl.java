@@ -32,6 +32,7 @@ import com.flowci.util.StringHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
@@ -46,22 +47,18 @@ import java.util.List;
  */
 @Log4j2
 @Service("gitConnService")
+@AllArgsConstructor
 public class GitConnServiceImpl implements GitConnService {
 
-    @Autowired
-    private TaskExecutor appTaskExecutor;
+    private final TaskExecutor appTaskExecutor;
 
-    @Autowired
-    private Path tmpDir;
+    private final Path tmpDir;
 
-    @Autowired
-    private Cache<String, List<String>> gitBranchCache;
+    private final Cache<String, List<String>> gitBranchCache;
 
-    @Autowired
-    private SpringEventManager eventManager;
+    private final SpringEventManager eventManager;
 
-    @Autowired
-    private SecretService credentialService;
+    private final SecretService credentialService;
 
     @Override
     public void testConn(Flow flow, String url, String secret) {

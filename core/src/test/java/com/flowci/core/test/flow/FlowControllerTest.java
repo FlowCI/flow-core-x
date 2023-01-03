@@ -19,10 +19,9 @@ package com.flowci.core.test.flow;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Yml;
+import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.MockMvcHelper;
-import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.VarType;
 import com.flowci.domain.VarValue;
@@ -67,14 +66,10 @@ public class FlowControllerTest extends MockLoggedInScenario {
         Assert.assertEquals(StatusCode.OK, getFlowResponse.getCode());
         Assert.assertEquals(flowName, getFlowResponse.getData().getName());
 
-        ResponseMessage<List<Yml>> responseMessage = mockMvcHelper
+        ResponseMessage<List<FlowYml>> responseMessage = mockMvcHelper
                 .expectSuccessAndReturnClass(get("/flows/" + flowName + "/yml"), FlowMockHelper.FlowYmlNameListType);
-        List<Yml> yamlNameList = responseMessage.getData();
+        List<FlowYml> yamlNameList = responseMessage.getData();
         Assert.assertEquals(1, yamlNameList.size());
-
-        ResponseMessage<String> contentRespMsg = mockMvcHelper
-                .expectSuccessAndReturnClass(get("/flows/" + flowName + "/yml/" + yamlNameList.get(0).getName()), FlowMockHelper.FlowYmlContentType);
-        Assert.assertEquals(StringHelper.toString(load("flow.yml")), StringHelper.fromBase64(contentRespMsg.getData()));
 
         ResponseMessage<Flow> deleted = mockMvcHelper
                 .expectSuccessAndReturnClass(delete("/flows/" + flowName), FlowMockHelper.FlowType);

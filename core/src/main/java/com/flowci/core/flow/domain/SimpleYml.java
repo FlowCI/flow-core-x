@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 flow.ci
+ * Copyright 2022 flow.ci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package com.flowci.core.job.service;
+package com.flowci.core.flow.domain;
 
-import com.flowci.core.agent.domain.ShellOut;
-import com.flowci.core.job.domain.JobYml;
-import com.flowci.exception.CIException;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-public interface JobActionService {
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class SimpleYml {
 
-    void toLoading(String jobId);
+    private String name;
 
-    void toCreated(JobYml yml);
-
-    void toStart(String jobId);
-
-    void toRun(String jobId);
-
-    void toContinue(String jobId, ShellOut shellOut);
-
-    void toCancelled(String jobId, CIException exception);
-
-    void toTimeout(String jobId);
+    private String rawInB64;
 }
