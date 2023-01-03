@@ -1,5 +1,7 @@
 FROM amazoncorretto:11-alpine3.15
 
+RUN apk add bash
+
 ENV WORKER=/flow.ci
 ENV JAR=flow-ci-core.jar
 
