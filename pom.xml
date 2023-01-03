@@ -27,7 +27,7 @@
         <guava.version>31.0.1-jre</guava.version>
         <junit.version>4.13.1</junit.version>
         <spring.version>2.6.0</spring.version>
-        <snakeyaml.version>1.26</snakeyaml.version>
+        <snakeyaml.version>1.32</snakeyaml.version>
         <jackson.version>2.13.1</jackson.version>
         <curator.version>4.3.0</curator.version>
         <caffeine.version>2.6.2</caffeine.version>
@@ -40,7 +40,7 @@
         <amqp-client.version>5.9.0</amqp-client.version>
         <java-jwt.version>3.8.1</java-jwt.version>
         <minio.version>6.0.11</minio.version>
-        <log4j.version>2.17.0</log4j.version>
+        <log4j.version>2.18.0</log4j.version>
         <kubernetes-client.version>5.11.1</kubernetes-client.version>
     </properties>
 
@@ -263,6 +263,12 @@
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-jul</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
                 <version>${log4j.version}</version>
             </dependency>
 

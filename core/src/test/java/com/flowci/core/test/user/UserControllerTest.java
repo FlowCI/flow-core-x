@@ -20,6 +20,8 @@ package com.flowci.core.test.user;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.StatusCode;
+import com.flowci.core.common.manager.SessionManager;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.*;
@@ -29,6 +31,7 @@ import com.flowci.exception.AuthenticationException;
 import com.flowci.exception.ErrorCode;
 import com.flowci.exception.NotFoundException;
 import com.flowci.util.HashingHelper;
+import com.flowci.util.StringHelper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +48,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 public class UserControllerTest extends SpringScenario {
 
     private static final TypeReference<ResponseMessage<User>> UserType =
-            new TypeReference<ResponseMessage<User>>() {
+            new TypeReference<>() {
             };
 
     @Autowired
@@ -54,13 +57,18 @@ public class UserControllerTest extends SpringScenario {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Before
-    public void loginBefore() {
-        mockLogin();
-    }
+    @Autowired
+    private SessionManager sessionManager;
 
     @Test(expected = AuthenticationException.class)
     public void should_change_password_for_current_user_successfully() throws Exception {
+        var dummy = new User();
+        dummy.setId("1111");
+        dummy.setPasswordOnMd5(HashingHelper.md5("22222"));
+        dummy.setRole(User.Role.Admin);
+        dummy.setEmail("test@flow.ci");
+        sessionManager.set(dummy);
+
         User user = sessionManager.get();
 
         String newPwOnMd5 = HashingHelper.md5("11111");
@@ -70,7 +78,7 @@ public class UserControllerTest extends SpringScenario {
         body.setConfirm(newPwOnMd5);
 
         // when:
-        ResponseMessage message = mockMvcHelper.expectSuccessAndReturnClass(
+        var message = mockMvcHelper.expectSuccessAndReturnClass(
                 post("/users/change/password")
                         .content(objectMapper.writeValueAsBytes(body))
                         .contentType(MediaType.APPLICATION_JSON), ResponseMessage.class);

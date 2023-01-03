@@ -26,7 +26,9 @@ import com.flowci.tree.NodeTree;
  */
 public interface YmlManager {
 
-    FlowNode parse(String yml);
+    FlowNode parse(JobYml jobYml);
+
+    FlowNode parse(String ...raw);
 
 
     JobYml get(Job job);
@@ -34,7 +36,7 @@ public interface YmlManager {
     /**
      * Create job yaml from flow yaml
      */
-    JobYml create(Job job, String yml);
+    JobYml create(JobYml jobYml);
 
     /**
      * Get node tree from job

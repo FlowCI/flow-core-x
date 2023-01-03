@@ -84,7 +84,7 @@ public class StateMachine<T extends Context> {
             });
 
         } catch (Throwable e) {
-            log.debug(e);
+            log.debug(e.getMessage());
             action.onException(e, context);
         } finally {
             action.onFinally(context);

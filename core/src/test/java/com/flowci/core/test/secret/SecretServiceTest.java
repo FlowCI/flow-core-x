@@ -18,6 +18,7 @@ package com.flowci.core.test.secret;
 
 import com.flowci.core.secret.domain.*;
 import com.flowci.core.secret.service.SecretService;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.SimpleAuthPair;
 import org.assertj.core.util.Strings;
@@ -32,15 +33,10 @@ import java.util.List;
 /**
  * @author yang
  */
-public class SecretServiceTest extends SpringScenario {
+public class SecretServiceTest extends MockLoggedInScenario {
 
     @Autowired
     private SecretService secretService;
-
-    @Before
-    public void login() {
-        mockLogin();
-    }
 
     @Test
     public void should_create_rsa_secret() {

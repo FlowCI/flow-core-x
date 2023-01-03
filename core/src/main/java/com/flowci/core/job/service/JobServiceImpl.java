@@ -24,6 +24,8 @@ import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.FlowYml;
+import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.job.dao.*;
 import com.flowci.core.job.domain.*;
 import com.flowci.core.job.domain.Job.Trigger;
@@ -227,7 +229,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job create(Flow flow, String yml, Trigger trigger, StringVars input) {
+    public Job create(Flow flow, List<SimpleYml> ymlList, Trigger trigger, StringVars input) {
         Job job = createJob(flow, trigger, input);
         eventManager.publish(new JobCreatedEvent(this, job));
 
@@ -236,11 +238,12 @@ public class JobServiceImpl implements JobService {
             return job;
         }
 
-        if (!StringHelper.hasValue(yml)) {
-            throw new ArgumentException("YAML config is required to start a job");
+        var jobYml = new JobYml(job.getId());
+        for (var fy : ymlList) {
+            jobYml.add(fy.getName(), fy.getRawInB64());
         }
 
-        jobActionService.toCreated(job.getId(), yml);
+        jobActionService.toCreated(jobYml);
         return get(job.getId());
     }
 
@@ -259,10 +262,6 @@ public class JobServiceImpl implements JobService {
         if (!job.isDone()) {
             throw new StatusException("Job not finished, cannot re-start");
         }
-
-        // load yaml
-        JobYml yml = ymlManager.get(job);
-        FlowNode root = ymlManager.parse(yml.getRaw());
 
         // reset
         job.setTimeout(flow.getStepTimeout());
@@ -302,10 +301,12 @@ public class JobServiceImpl implements JobService {
             iterator.remove();
         }
 
+        JobYml yml = ymlManager.get(job);
+        FlowNode root = ymlManager.parse(yml);
+
         initJobContext(job, flow, null);
         context.put(Variables.Job.TriggerBy, sessionManager.get().getEmail());
         context.merge(root.getEnvironments(), false);
-
 
         jobDao.save(job);
 
@@ -316,7 +317,7 @@ public class JobServiceImpl implements JobService {
         stepService.delete(job);
         ymlManager.delete(job);
 
-        jobActionService.toCreated(job.getId(), yml.getRaw());
+        jobActionService.toCreated(yml);
         jobActionService.toStart(job.getId());
         return get(job.getId());
     }

@@ -1,4 +1,4 @@
-FROM openjdk:11-jre-slim
+FROM amazoncorretto:11-alpine3.15
 
 ENV WORKER=/flow.ci
 ENV JAR=flow-ci-core.jar

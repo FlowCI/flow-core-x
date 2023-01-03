@@ -18,6 +18,7 @@ package com.flowci.core.test.git;
 
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.JobCreatedEvent;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.test.flow.FlowMockHelper;
@@ -38,18 +39,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /**
  * @author yang
  */
-public class GitHookControllerTest extends SpringScenario {
+public class GitHookControllerTest extends MockLoggedInScenario {
 
     @Autowired
     private FlowMockHelper flowMockHelper;
 
     @Autowired
     private MockMvcHelper mockMvcHelper;
-
-    @Before
-    public void login() {
-        mockLogin();
-    }
 
     @Test
     public void should_start_job_from_github_push_event() throws Exception {

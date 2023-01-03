@@ -16,9 +16,7 @@
 
 package com.flowci.core.test;
 
-import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.domain.Settings;
-import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.dao.FlowDao;
@@ -27,17 +25,12 @@ import com.flowci.core.flow.domain.Template;
 import com.flowci.core.test.SpringScenario.Config;
 import com.flowci.core.test.auth.AuthHelper;
 import com.flowci.core.test.flow.FlowMockHelper;
-import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
-import com.flowci.exception.NotFoundException;
-import com.flowci.util.HashingHelper;
 import lombok.extern.log4j.Log4j2;
 import org.assertj.core.util.Lists;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -52,7 +45,10 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author yang
@@ -100,20 +96,8 @@ public abstract class SpringScenario {
         }
     }
 
-    private final static User defaultAdminUser = new User();
-
-    static {
-        defaultAdminUser.setId("112233");
-        defaultAdminUser.setRole(User.Role.Admin);
-        defaultAdminUser.setEmail("test@flow.ci");
-        defaultAdminUser.setPasswordOnMd5(HashingHelper.md5("12345"));
-    }
-
     @MockBean
     protected SettingService settingService;
-
-    @MockBean
-    protected SessionManager sessionManager;
 
     @Autowired
     protected UserService userService;
@@ -159,18 +143,6 @@ public abstract class SpringScenario {
         }
     }
 
-    protected void shouldHasCreatedAtAndCreatedBy(Mongoable obj) {
-        Assert.assertNotNull(obj.getCreatedAt());
-        Assert.assertNotNull(obj.getCreatedBy());
-        Assert.assertEquals(sessionManager.getUserEmail(), obj.getCreatedBy());
-    }
-
-    protected void shouldHasUpdatedAtAndUpdatedBy(Mongoable obj) {
-        Assert.assertNotNull(obj.getUpdatedAt());
-        Assert.assertNotNull(obj.getUpdatedBy());
-        Assert.assertEquals(sessionManager.getUserEmail(), obj.getUpdatedBy());
-    }
-
     protected void addEventListener(ApplicationListener<?> listener) {
         applicationEventMulticaster.addApplicationListener(listener);
         listenersForTest.add(listener);
@@ -187,11 +159,5 @@ public abstract class SpringScenario {
 
     protected InputStream load(String resource) {
         return SpringScenario.class.getClassLoader().getResourceAsStream(resource);
-    }
-
-    protected void mockLogin() {
-        Mockito.when(sessionManager.get()).thenReturn(defaultAdminUser);
-        Mockito.when(sessionManager.getUserEmail()).thenReturn(defaultAdminUser.getEmail());
-        Mockito.when(sessionManager.getCurrentAuditor()).thenReturn(Optional.of(defaultAdminUser.getEmail()));
     }
 }

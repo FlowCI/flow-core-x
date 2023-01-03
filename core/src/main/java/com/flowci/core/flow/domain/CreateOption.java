@@ -22,12 +22,16 @@ import com.flowci.util.StringHelper;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.Objects;
+
 /**
  * @author yang
  */
 @Data
 @Accessors(chain = true)
 public class CreateOption {
+
+    private static final String TEMPLATE_BLANK = "_blank_";
 
     private String groupName;
 
@@ -39,6 +43,10 @@ public class CreateOption {
      */
     @JsonProperty("yml")
     private String rawYaml;
+
+    public boolean isBlank() {
+        return Objects.equals(templateTitle, TEMPLATE_BLANK);
+    }
 
     public boolean hasGroupName() {
         return StringHelper.hasValue(groupName);

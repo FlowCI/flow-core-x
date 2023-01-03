@@ -20,13 +20,13 @@ import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.flow.dao.FlowDao;
-import com.flowci.core.flow.dao.YmlDao;
+import com.flowci.core.flow.dao.FlowYmlDao;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Yml;
+import com.flowci.core.flow.domain.SimpleYml;
+import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.domain.Vars;
-import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.FlowNode;
@@ -35,10 +35,10 @@ import com.flowci.tree.YmlParser;
 import com.flowci.util.StringHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.collect.ImmutableList;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -50,66 +50,65 @@ import java.util.function.Function;
 @Service
 public class YmlServiceImpl implements YmlService {
 
-    private final List<NodeElementChecker> elementCheckers = ImmutableList.of(
-            new ConditionChecker(),
-            new ConfigChecker(),
-            new PluginChecker(),
-            new SecretChecker()
-    );
+    private final List<NodeElementChecker> elementCheckers = ImmutableList.of(new ConditionChecker(), new ConfigChecker(), new PluginChecker(), new SecretChecker());
 
-    @Autowired
-    private Cache<String, NodeTree> flowTreeCache;
+    private final Cache<String, NodeTree> flowTreeCache;
 
-    @Autowired
-    private YmlDao ymlDao;
+    private final FlowYmlDao flowYmlDao;
 
-    @Autowired
-    private FlowDao flowDao;
+    private final FlowDao flowDao;
 
-    @Autowired
-    private SpringEventManager eventManager;
+    private final SpringEventManager eventManager;
 
-    @Autowired
-    private ConditionManager conditionManager;
+    private final ConditionManager conditionManager;
+
+    public YmlServiceImpl(Cache<String, NodeTree> flowTreeCache,
+                          FlowYmlDao flowYmlDao,
+                          FlowDao flowDao,
+                          SpringEventManager eventManager,
+                          ConditionManager conditionManager) {
+        this.flowTreeCache = flowTreeCache;
+        this.flowYmlDao = flowYmlDao;
+        this.flowDao = flowDao;
+        this.eventManager = eventManager;
+        this.conditionManager = conditionManager;
+    }
 
     //====================================================================
     //        %% Public function
     //====================================================================
 
     @Override
-    public List<Yml> list(String flowId) {
-        return ymlDao.findAllWithoutRawByFlowId(flowId);
-    }
-
-    @Override
-    public NodeTree getTree(String flowId, String name) {
-        Yml yml = getYml(flowId, name);
-        FlowNode root = YmlParser.load(yml.getRaw());
-        return flowTreeCache.get(yamlCacheKey(flowId, name), key -> NodeTree.create(root));
-    }
-
-    @Override
-    public Yml getYml(String flowId, String name) {
-        Optional<Yml> optional = ymlDao.findByFlowIdAndName(flowId, name);
-        if (optional.isPresent()) {
-            return optional.get();
+    public FlowYml get(String flowId) {
+        var yml = flowYmlDao.findByFlowId(flowId);
+        if (yml.isPresent() && yml.get().hasYml()) {
+            return yml.get();
         }
         throw new NotFoundException("YAML not found");
     }
 
     @Override
-    public String getYmlString(String flowId, String name) {
-        Yml yml = getYml(flowId, name);
-        return yml.getRawInB64();
+    public NodeTree getTree(String flowId) {
+        return flowTreeCache.get(yamlCacheKey(flowId), key -> {
+            var list = get(flowId).getList();
+            var ymlContentList = new String[list.size()];
+            for (int i = 0; i < list.size(); i++) {
+                ymlContentList[i] = StringHelper.fromBase64(list.get(i).getRawInB64());
+            }
+
+            FlowNode root = YmlParser.load(ymlContentList);
+            return NodeTree.create(root);
+        });
     }
 
     @Override
-    public Yml saveYml(Flow flow, String name, String yaml) {
-        if (!StringHelper.hasValue(yaml)) {
-            throw new ArgumentException("YAML content cannot be null or empty");
+    public FlowYml saveYml(Flow flow, List<SimpleYml> list) {
+        var ymlContentList = new String[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            ymlContentList[i] = StringHelper.fromBase64(list.get(i).getRawInB64());
         }
 
-        FlowNode root = YmlParser.load(yaml);
+        FlowNode root = YmlParser.load(ymlContentList);
         NodeTree tree = NodeTree.create(root);
 
         for (NodeElementChecker checker : elementCheckers) {
@@ -119,12 +118,7 @@ public class YmlServiceImpl implements YmlService {
             }
         }
 
-        Yml ymlObj = getOrCreate(flow.getId(), name, StringHelper.toBase64(yaml));
-        try {
-            ymlDao.save(ymlObj);
-        } catch (DuplicateKeyException e) {
-            throw new DuplicateException("Yaml name or condition already existed");
-        }
+        var ymlEntity = save(flow, list);
 
         // sync flow envs from yml root envs
         Vars<String> vars = flow.getReadOnlyVars();
@@ -133,38 +127,32 @@ public class YmlServiceImpl implements YmlService {
         flowDao.save(flow);
 
         // put tree into cache
-        flowTreeCache.put(yamlCacheKey(flow.getId(), name), tree);
-        return ymlObj;
-    }
-
-    @Override
-    public Yml saveYmlFromB64(Flow flow, String name, String ymlInB64) {
-        String yaml = StringHelper.fromBase64(ymlInB64);
-        return saveYml(flow, name, yaml);
+        flowTreeCache.put(yamlCacheKey(flow.getId()), tree);
+        return ymlEntity;
     }
 
     @Override
     public void delete(String flowId) {
-        ymlDao.deleteAllByFlowId(flowId);
+        flowYmlDao.deleteByFlowId(flowId);
     }
 
-    @Override
-    public void delete(String flowId, String name) {
-        ymlDao.deleteByFlowIdAndName(flowId, name);
-    }
+    private FlowYml save(Flow flow, List<SimpleYml> list) {
+        try {
+            var optional = flowYmlDao.findByFlowId(flow.getId());
+            if (optional.isPresent()) {
+                var entity = optional.get();
+                entity.setList(list);
+                return flowYmlDao.save(entity);
+            }
 
-    private String yamlCacheKey(String flowId, String name) {
-        return flowId + "-" + name;
-    }
-
-    private Yml getOrCreate(String flowId, String name, String ymlInB64) {
-        Optional<Yml> optional = ymlDao.findByFlowIdAndName(flowId, name);
-        if (optional.isPresent()) {
-            Yml yml = optional.get();
-            yml.setRawInB64(ymlInB64);
-            return yml;
+            return flowYmlDao.save(new FlowYml(flow.getId(), list));
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateException("Yaml name or condition already existed");
         }
-        return new Yml(flowId, name, ymlInB64);
+    }
+
+    private static String yamlCacheKey(String flowId) {
+        return flowId;
     }
 
     private interface NodeElementChecker extends Function<NodeTree, Optional<RuntimeException>> {

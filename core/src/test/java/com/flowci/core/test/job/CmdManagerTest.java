@@ -19,8 +19,6 @@ package com.flowci.core.test.job;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.CreateOption;
-import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Yml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.job.domain.Job;
@@ -30,14 +28,12 @@ import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginEvent;
-import com.flowci.core.test.SpringScenario;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.domain.*;
 import com.flowci.tree.*;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Lists;
-import org.checkerframework.checker.units.qual.C;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +44,7 @@ import java.util.List;
 
 import static com.flowci.tree.FlowNode.DEFAULT_ROOT_NAME;
 
-public class CmdManagerTest extends SpringScenario {
+public class CmdManagerTest extends MockLoggedInScenario {
 
     @Autowired
     private FlowService flowService;
@@ -68,21 +64,18 @@ public class CmdManagerTest extends SpringScenario {
     @MockBean
     private SpringEventManager eventManager;
 
-    @Before
-    public void login() {
-        mockLogin();
-    }
-
     @Test
     public void should_apply_flow_level_docker_option() throws IOException {
         // given: flow and job
-        Flow flow = flowService.create("hello", new CreateOption());
-        String yaml = StringHelper.toString(load("flow-with-root-docker.yml"));
-        Yml ymlObj = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
-        Job job = jobService.create(flow, ymlObj.getRaw(), Job.Trigger.MANUAL, new StringVars());
+        var yaml = StringHelper.toString(load("flow-with-root-docker.yml"));
+        var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
+        var flow = flowService.create("hello", option);
+        var ymlEntity = ymlService.get(flow.getId());
+
+        Job job = jobService.create(flow, ymlEntity.getList(), Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
-        FlowNode root = YmlParser.load(ymlObj.getRaw());
+        FlowNode root = YmlParser.load(yaml);
         NodeTree tree = NodeTree.create(root);
 
         // when: create first shell cmd
@@ -115,15 +108,16 @@ public class CmdManagerTest extends SpringScenario {
         Mockito.when(eventManager.publish(Mockito.any())).thenReturn(event);
 
         // given: flow and job
-        Flow flow = flowService.create("hello", new CreateOption());
-        String yaml = StringHelper.toString(load("flow-with-plugin.yml"));
-        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
+        var yaml = StringHelper.toString(load("flow-with-plugin.yml"));
+        var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
+        var flow = flowService.create("hello", option);
+        var ymlEntity = ymlService.get(flow.getId());
 
-        Job job = jobService.create(flow, yml.getRaw(), Job.Trigger.MANUAL, new StringVars());
+        Job job = jobService.create(flow, ymlEntity.getList(), Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
         // when: create shell cmd
-        FlowNode root = YmlParser.load(yml.getRaw());
+        FlowNode root = YmlParser.load(yaml);
         NodeTree tree = NodeTree.create(root);
         Node node = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "plugin-test"));
         Step step = stepService.get(job.getId(), node.getPath().getPathInStr());
@@ -153,15 +147,16 @@ public class CmdManagerTest extends SpringScenario {
     @Test
     public void should_handle_step_in_step() throws IOException {
         // given: flow and job
-        Flow flow = flowService.create("hello", new CreateOption());
-        String yaml = StringHelper.toString(load("step-in-step.yml"));
-        Yml yml = ymlService.saveYml(flow, Yml.DEFAULT_NAME, yaml);
+        var yaml = StringHelper.toString(load("step-in-step.yml"));
+        var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
+        var flow = flowService.create("hello", option);
+        var ymlEntity = ymlService.get(flow.getId());
 
-        Job job = jobService.create(flow, yml.getRaw(), Job.Trigger.MANUAL, new StringVars());
+        Job job = jobService.create(flow, ymlEntity.getList(), Job.Trigger.MANUAL, new StringVars());
         Assert.assertNotNull(job);
 
         // when: create shell cmd
-        FlowNode root = YmlParser.load(yml.getRaw());
+        FlowNode root = YmlParser.load(yaml);
         NodeTree tree = NodeTree.create(root);
 
         Node step2_1 = tree.get(NodePath.create(DEFAULT_ROOT_NAME, "step2", "step-2-1"));
@@ -172,7 +167,7 @@ public class CmdManagerTest extends SpringScenario {
         Assert.assertEquals(500, cmdStep2_1.getTimeout());
         Assert.assertEquals(2, cmdStep2_1.getRetry());
 
-        // input should be overwrite
+        // input should be overwritten
         Assert.assertEquals("overwrite-parent", cmdStep2_1.getInputs().get("STEP_2"));
         Assert.assertEquals("overwrite-parent", cmdStep2_1.getInputs().get("STEP_2"));
 

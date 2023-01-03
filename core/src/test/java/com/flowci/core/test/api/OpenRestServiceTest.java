@@ -26,8 +26,10 @@ import com.flowci.core.job.dao.JobReportDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobOutput.ContentType;
 import com.flowci.core.job.domain.JobReport;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.User;
+import com.flowci.util.StringHelper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,10 +38,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-public class OpenRestServiceTest extends SpringScenario {
+public class OpenRestServiceTest extends MockLoggedInScenario {
 
     @MockBean
     private JobDao jobDao;
@@ -53,15 +56,17 @@ public class OpenRestServiceTest extends SpringScenario {
     @Autowired
     private OpenRestService openRestService;
 
+    private Flow flow;
+
     @Before
-    public void login() {
-        mockLogin();
+    public void init() throws IOException {
+        var yaml = StringHelper.toString(load("flow.yml"));
+        var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
+        flow = flowService.create("user-test", option);
     }
 
     @Test
     public void should_list_all_flow_users() {
-        Flow flow = flowService.create("user-test", new CreateOption());
-
         List<User> users = openRestService.users(flow.getName());
         Assert.assertEquals(1, users.size());
 
@@ -78,10 +83,8 @@ public class OpenRestServiceTest extends SpringScenario {
     }
 
     @Test
-    public void should_save_job_report() {
+    public void should_save_job_report() throws IOException {
         // given:
-        Flow flow = flowService.create("user-test", null);
-
         Job job = new Job();
         job.setId("12345");
         job.setFlowId(flow.getId());

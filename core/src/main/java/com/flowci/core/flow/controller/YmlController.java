@@ -17,15 +17,14 @@
 package com.flowci.core.flow.controller;
 
 import com.flowci.core.auth.annotation.Action;
-import com.flowci.core.common.domain.http.RequestMessage;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.FlowAction;
-import com.flowci.core.flow.domain.Yml;
+import com.flowci.core.flow.domain.SimpleYml;
+import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.tree.FlowNode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,40 +34,29 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/flows")
+@AllArgsConstructor
 public class YmlController {
 
-    @Autowired
     private FlowService flowService;
 
-    @Autowired
-    private YmlService ymlService;
+    private final YmlService ymlService;
 
     @GetMapping("/{flowName}/yml")
-    public List<Yml> list(@PathVariable String flowName) {
+    public FlowYml get(@PathVariable String flowName) {
         Flow flow = flowService.get(flowName);
-        return ymlService.list(flow.getId());
+        return ymlService.get(flow.getId());
     }
 
-    @GetMapping("/{flowName}/yml/{ymlName}/obj")
-    public FlowNode listSteps(@PathVariable String flowName, @PathVariable String ymlName) {
+    @GetMapping("/{flowName}/yml/steps")
+    public FlowNode steps(@PathVariable String flowName) {
         Flow flow = flowService.get(flowName);
-        return ymlService.getTree(flow.getId(), ymlName).getRoot();
+        return ymlService.getTree(flow.getId()).getRoot();
     }
 
-    @PostMapping("/{flowName}/yml/{ymlName}")
+    @PostMapping("/{flowName}/yml")
     @Action(FlowAction.SET_YML)
-    public void saveYml(@PathVariable String flowName,
-                        @PathVariable String ymlName,
-                        @RequestBody RequestMessage<String> body) {
+    public void saveYml(@PathVariable String flowName, @RequestBody List<SimpleYml> body) {
         Flow flow = flowService.get(flowName);
-        String yamlInB64 = body.getData();
-        ymlService.saveYmlFromB64(flow, ymlName, yamlInB64);
-    }
-
-    @GetMapping(value = "/{flowName}/yml/{ymlName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Action(FlowAction.GET_YML)
-    public String getYml(@PathVariable String flowName, @PathVariable String ymlName) {
-        Flow flow = flowService.get(flowName);
-        return ymlService.getYmlString(flow.getId(), ymlName);
+        ymlService.saveYml(flow, body);
     }
 }

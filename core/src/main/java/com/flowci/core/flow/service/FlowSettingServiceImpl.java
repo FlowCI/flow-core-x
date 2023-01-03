@@ -24,6 +24,7 @@ import com.flowci.core.flow.domain.WebhookStatus;
 import com.flowci.domain.VarValue;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.StringHelper;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,17 +38,15 @@ import java.util.Map;
 
 @Log4j2
 @Service
+@AllArgsConstructor
 public class FlowSettingServiceImpl implements FlowSettingService {
 
-    @Autowired
-    private FlowDao flowDao;
+    private final FlowDao flowDao;
 
-    @Autowired
-    private VarManager varManager;
+    private final VarManager varManager;
 
-    @Autowired
-    private CronService cronService;
-
+    private final CronService cronService;
+    
     @Override
     public void set(Flow flow, Settings settings) {
         if (settings.hasCron()) {

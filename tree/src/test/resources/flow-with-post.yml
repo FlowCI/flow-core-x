@@ -36,7 +36,6 @@ steps:
         post:
           - name: subA-post-1
             bash: "echo sub A post-1"
-
       subflow-B:
         selector:
           label: [ "linux" ]
@@ -45,7 +44,6 @@ steps:
             plugin: 'B-plugin'
             script: |
               echo "A"
-
 
   - parallel:
       subflow-C:
@@ -67,6 +65,7 @@ steps:
           - name: Post-D
             bash: |
               echo "Post-D"
+
 
   - name: step3
     steps:

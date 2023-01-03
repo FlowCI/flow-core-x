@@ -17,6 +17,8 @@
 package com.flowci.core.job.service;
 
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.FlowYml;
+import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.domain.JobDesc;
@@ -86,7 +88,7 @@ public interface JobService {
      *
      * @throws com.flowci.exception.NotAvailableException with job object in extra field
      */
-    Job create(Flow flow, @Nullable String yml, Trigger trigger, StringVars input);
+    Job create(Flow flow, List<SimpleYml> yml, Trigger trigger, StringVars input);
 
     /**
      * Run job, dispatch to queue, status will be CREATED -> RUNNING

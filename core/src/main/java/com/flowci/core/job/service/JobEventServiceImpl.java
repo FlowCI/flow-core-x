@@ -25,6 +25,7 @@ import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.OnCmdOutEvent;
 import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
+import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
 import com.flowci.core.flow.event.FlowInitEvent;
@@ -35,42 +36,36 @@ import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.Errors;
 import com.flowci.tree.FlowNode;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 @Log4j2
 @Service
+@AllArgsConstructor
 public class JobEventServiceImpl implements JobEventService {
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-    @Autowired
-    private SpringEventManager eventManager;
+    private final SpringEventManager eventManager;
 
-    @Autowired
-    private JobActionService jobActionService;
+    private final JobActionService jobActionService;
 
-    @Autowired
-    private ConditionManager conditionManager;
+    private final ConditionManager conditionManager;
 
-    @Autowired
-    private YmlManager ymlManager;
+    private final YmlManager ymlManager;
 
-    @Autowired
-    private TaskExecutor appTaskExecutor;
+    private final TaskExecutor appTaskExecutor;
 
-    @Autowired
-    private JobService jobService;
+    private final JobService jobService;
 
-    @Autowired
-    private StepService stepService;
+    private final StepService stepService;
 
     @EventListener
     public void onFlowInitiated(FlowInitEvent event) {
@@ -105,7 +100,9 @@ public class JobEventServiceImpl implements JobEventService {
     public void startNewJob(CreateNewJobEvent event) {
         appTaskExecutor.execute(() -> {
             try {
-                FlowNode root = ymlManager.parse(event.getYml());
+                FlowYml ymlEntity = event.getYmlEntity();
+                String[] array = FlowYml.toRawArray(ymlEntity.getList());
+                FlowNode root = ymlManager.parse(array);
                 boolean canCreateJob = true;
 
                 if (root.hasCondition()) {
@@ -118,7 +115,7 @@ public class JobEventServiceImpl implements JobEventService {
                     return;
                 }
 
-                Job job = jobService.create(event.getFlow(), event.getYml(), event.getTrigger(), event.getInput());
+                Job job = jobService.create(event.getFlow(), ymlEntity.getList(), event.getTrigger(), event.getInput());
                 jobService.start(job);
 
             } catch (Throwable e) {

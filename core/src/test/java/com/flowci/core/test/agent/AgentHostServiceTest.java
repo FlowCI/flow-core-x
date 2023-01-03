@@ -22,11 +22,6 @@ public class AgentHostServiceTest extends ZookeeperScenario {
     @Autowired
     private AgentHostService agentHostService;
 
-    @Before
-    public void login() {
-        mockLogin();
-    }
-
     @After
     public void cleanup() {
         for (AgentHost h : agentHostService.list()) {

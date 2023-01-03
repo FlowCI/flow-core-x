@@ -35,7 +35,7 @@ public class ObjectsHelperTest {
     public void should_check_fields_value() throws ReflectiveOperationException {
         DummyObj obj = new DummyObj();
 
-        boolean r = ObjectsHelper.hasValue(obj, Sets.newHashSet("id", "name", "isCreated", "array"));
+        boolean r = ObjectsHelper.hasValues(obj, Sets.newHashSet("id", "name", "isCreated", "array"));
         Assert.assertFalse(r);
 
         obj.setId("123");
@@ -43,7 +43,7 @@ public class ObjectsHelperTest {
         obj.setIsCreated(true);
         obj.setArray(Lists.newArrayList("1"));
 
-        r = ObjectsHelper.hasValue(obj, Sets.newHashSet("id", "name", "isCreated", "array"));
+        r = ObjectsHelper.hasValues(obj, Sets.newHashSet("id", "name", "isCreated", "array"));
         Assert.assertTrue(r);
     }
 

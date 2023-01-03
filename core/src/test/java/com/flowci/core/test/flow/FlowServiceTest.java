@@ -35,6 +35,7 @@ import com.flowci.core.git.event.GitHookEvent;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.service.SecretService;
+import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.*;
 import com.flowci.exception.ArgumentException;
@@ -55,7 +56,7 @@ import java.util.concurrent.TimeUnit;
  * @author yang
  */
 @FixMethodOrder(value = MethodSorters.JVM)
-public class FlowServiceTest extends SpringScenario {
+public class FlowServiceTest extends MockLoggedInScenario {
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -75,8 +76,7 @@ public class FlowServiceTest extends SpringScenario {
     private String defaultYml;
 
     @Before
-    public void login() throws IOException {
-        mockLogin();
+    public void init() throws IOException {
         defaultYml = StringHelper.toString(load("flow.yml"));
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 flow.ci
+ * Copyright 2022 flow.ci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,20 @@
  * limitations under the License.
  */
 
-package com.flowci.core.job.event;
+package com.flowci.core.flow.domain;
 
-import com.flowci.core.common.event.BroadcastEvent;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class CacheShellLogEvent extends BroadcastEvent {
+@NoArgsConstructor
+@AllArgsConstructor
+public class SimpleYml {
 
-    private String jobId;
+    private String name;
 
-    private String stepId;
-
-    private byte[] body; // StepLogItem json byte string
-
-    public CacheShellLogEvent() {
-       super();
-    }
-
-    public CacheShellLogEvent(Object source, String jobId, String stepId, byte[] body) {
-        super(source);
-        this.jobId = jobId;
-        this.stepId = stepId;
-        this.body = body;
-    }
+    private String rawInB64;
 }
