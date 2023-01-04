@@ -3,7 +3,7 @@ package com.flowci.core.flow.service;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowGroupDao;
-import com.flowci.core.flow.dao.FlowUserDao;
+import com.flowci.core.flow.dao.FlowUsersDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.FlowGroup;
 import com.flowci.core.flow.domain.FlowItem;
@@ -12,9 +12,9 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +27,7 @@ public class FlowGroupServiceImpl implements FlowGroupService {
 
     private final FlowGroupDao flowGroupDao;
 
-    private final FlowUserDao flowUserDao;
+    private final FlowUsersDao flowUsersDao;
 
     private final SessionManager sessionManager;
 
@@ -50,6 +50,7 @@ public class FlowGroupServiceImpl implements FlowGroupService {
     }
 
     @Override
+    @Transactional
     public FlowGroup create(String name) {
         var email = sessionManager.getUserEmail();
 
@@ -58,7 +59,7 @@ public class FlowGroupServiceImpl implements FlowGroupService {
 
         try {
             flowGroupDao.save(group);
-            flowUserDao.insert(group.getId(), Sets.newHashSet(email));
+            flowUsersDao.insert(group.getId(), Sets.newHashSet(email));
             return group;
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Group {0} already exists", name);

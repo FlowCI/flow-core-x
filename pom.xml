@@ -26,7 +26,7 @@
         <lombok.version>1.18.22</lombok.version>
         <guava.version>31.0.1-jre</guava.version>
         <junit.version>4.13.1</junit.version>
-        <spring.version>2.6.0</spring.version>
+        <springboot.version>2.6.0</springboot.version>
         <snakeyaml.version>1.32</snakeyaml.version>
         <jackson.version>2.13.1</jackson.version>
         <curator.version>4.3.0</curator.version>
@@ -51,7 +51,7 @@
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${spring.version}</version>
+                    <version>${springboot.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -201,7 +201,7 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring.version}</version>
+                <version>${springboot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

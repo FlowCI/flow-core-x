@@ -3,11 +3,18 @@
 version: '3'
 services:
   db:
-    image: mongo:4.2
+    image: bitnami/mongodb:5.0
     restart: always
     container_name: flowci-debug-db
     ports:
       - "27017:27017"
+    environment:
+      MONGODB_REPLICA_SET_MODE: primary
+      MONGODB_ROOT_PASSWORD: flowci
+      MONGODB_USERNAME: flowci
+      MONGODB_PASSWORD: flowci
+      MONGODB_REPLICA_SET_KEY: replicakey123
+      MONGODB_DATABASE: flow_db
 
   zk:
     image: zookeeper:3.6

@@ -22,8 +22,9 @@ import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.common.helper.DateHelper;
 import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.service.ConfigService;
-import com.flowci.core.flow.dao.FlowUserDao;
+import com.flowci.core.flow.dao.FlowUsersDao;
 import com.flowci.core.flow.domain.Flow;
+import com.flowci.core.flow.domain.FlowUsers;
 import com.flowci.core.flow.domain.MatrixCounter;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.MatrixService;
@@ -54,7 +55,7 @@ import java.util.*;
 public class OpenRestServiceImpl implements OpenRestService {
 
     @Autowired
-    private FlowUserDao flowUserDao;
+    private FlowUsersDao flowUsersDao;
 
     @Autowired
     private JobDao jobDao;
@@ -146,7 +147,12 @@ public class OpenRestServiceImpl implements OpenRestService {
     @Override
     public List<User> users(String flowName) {
         Flow flow = flowService.get(flowName);
-        List<String> emails = flowUserDao.findAllUsers(flow.getId());
+        Optional<FlowUsers> optional = flowUsersDao.findById(flow.getId());
+        if (optional.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        var emails = optional.get().getUsers();
         List<User> users = new ArrayList<>(emails.size());
         for (String email : emails) {
             User user = new User();

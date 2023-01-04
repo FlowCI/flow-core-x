@@ -2,13 +2,15 @@ package com.flowci.core.flow.service;
 
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.flow.dao.FlowItemDao;
-import com.flowci.core.flow.dao.FlowUserDao;
+import com.flowci.core.flow.dao.FlowUsersDao;
 import com.flowci.core.flow.domain.FlowItem;
-import com.google.common.collect.ImmutableList;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -16,7 +18,7 @@ public class FlowItemServiceImpl implements FlowItemService {
 
     private final FlowItemDao flowItemDao;
 
-    private final FlowUserDao flowUserDao;
+    private final FlowUsersDao flowUsersDao;
 
     private final SessionManager sessionManager;
 
@@ -24,7 +26,7 @@ public class FlowItemServiceImpl implements FlowItemService {
     public List<FlowItem> list() {
         var email = sessionManager.getUserEmail();
 
-        List<String> itemIdList = flowUserDao.findAllFlowsByUserEmail(email);
+        List<String> itemIdList = flowUsersDao.findAllFlowsByUserEmail(email);
         Set<FlowItem> items = flowItemDao.findAllByIdIn(itemIdList);
 
         // find all group id, since need to load group that user has permission for flow

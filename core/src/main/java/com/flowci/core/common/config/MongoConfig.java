@@ -34,6 +34,7 @@ import com.flowci.core.trigger.domain.EmailTrigger;
 import com.flowci.core.trigger.domain.WebhookTrigger;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import lombok.NonNull;
@@ -43,6 +44,8 @@ import org.springframework.boot.autoconfigure.mongo.MongoProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
@@ -72,16 +75,16 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
         this.objectMapper = objectMapper;
     }
 
+    @Bean
+    public MongoTransactionManager transactionManager(MongoDatabaseFactory dbFactory) {
+        return new MongoTransactionManager(dbFactory);
+    }
+
     @NonNull
     @Override
     public MongoClient mongoClient() {
         log.info("Mongo URI: {}", mongoProperties.getUri());
-        ConnectionString connectionString = new ConnectionString(mongoProperties.getUri());
-        MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
-                .applyConnectionString(connectionString)
-                .build();
-
-        return MongoClients.create(mongoClientSettings);
+        return MongoClients.create(mongoProperties.getUri());
     }
 
     @NonNull
