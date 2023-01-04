@@ -20,6 +20,7 @@ import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.job.domain.JobYml;
+import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
@@ -65,7 +66,9 @@ public class Ver122to123 implements CommandLineRunner {
         public JobYml toNewEntity() {
             var newEntity = new JobYml();
             newEntity.setId(this.id);
-            newEntity.setList(List.of(new JobYml.Body(FlowYml.DEFAULT_NAME, raw)));
+
+            var body = new JobYml.Body(FlowYml.DEFAULT_NAME, StringHelper.toBase64(raw));
+            newEntity.setList(List.of(body));
             return newEntity;
         }
     }
