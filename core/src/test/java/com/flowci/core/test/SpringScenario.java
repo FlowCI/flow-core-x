@@ -16,15 +16,24 @@
 
 package com.flowci.core.test;
 
+import com.flowci.core.agent.domain.Agent;
+import com.flowci.core.agent.domain.AgentHost;
+import com.flowci.core.api.domain.SimpleUser;
 import com.flowci.core.common.domain.Settings;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.dao.FlowDao;
-import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.Template;
+import com.flowci.core.flow.domain.*;
+import com.flowci.core.git.domain.GitConfig;
+import com.flowci.core.job.domain.*;
+import com.flowci.core.plugin.domain.Plugin;
+import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.test.SpringScenario.Config;
 import com.flowci.core.test.auth.AuthHelper;
 import com.flowci.core.test.flow.FlowMockHelper;
+import com.flowci.core.trigger.domain.Trigger;
+import com.flowci.core.trigger.domain.TriggerDelivery;
+import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
 import lombok.extern.log4j.Log4j2;
 import org.assertj.core.util.Lists;
@@ -42,6 +51,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.InputStream;
@@ -125,11 +135,6 @@ public abstract class SpringScenario {
     }
 
     @After
-    public void dbCleanUp() {
-        mongoTemplate.getDb().drop();
-    }
-
-    @After
     public void cleanListeners() {
         for (ApplicationListener<?> listener : listenersForTest) {
             applicationEventMulticaster.removeApplicationListener(listener);
@@ -137,10 +142,33 @@ public abstract class SpringScenario {
     }
 
     @After
-    public void queueCleanUp() {
+    public void dbAndQueueCleanUp() {
         for (Flow flow : flowDao.findAll()) {
             jobsQueueManager.delete(flow.getQueueName());
         }
+
+        mongoTemplate.dropCollection(Flow.class);
+        mongoTemplate.dropCollection(FlowYml.class);
+        mongoTemplate.dropCollection(FlowUsers.class);
+        mongoTemplate.dropCollection(Agent.class);
+        mongoTemplate.dropCollection(SimpleUser.class);
+        mongoTemplate.dropCollection(Config.class);
+        mongoTemplate.dropCollection(MatrixItem.class);
+        mongoTemplate.dropCollection(GitConfig.class);
+        mongoTemplate.dropCollection(Job.class);
+        mongoTemplate.dropCollection(JobAgent.class);
+        mongoTemplate.dropCollection(JobArtifact.class);
+        mongoTemplate.dropCollection(JobReport.class);
+        mongoTemplate.dropCollection(JobNumber.class);
+        mongoTemplate.dropCollection(JobPriority.class);
+        mongoTemplate.dropCollection(JobYml.class);
+        mongoTemplate.dropCollection(RelatedJobs.class);
+        mongoTemplate.dropCollection(Step.class);
+        mongoTemplate.dropCollection(Plugin.class);
+        mongoTemplate.dropCollection(Secret.class);
+        mongoTemplate.dropCollection(Trigger.class);
+        mongoTemplate.dropCollection(TriggerDelivery.class);
+        mongoTemplate.dropCollection(User.class);
     }
 
     protected void addEventListener(ApplicationListener<?> listener) {

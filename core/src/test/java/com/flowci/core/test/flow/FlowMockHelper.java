@@ -48,7 +48,7 @@ public class FlowMockHelper {
     static final TypeReference<ResponseMessage<List<Flow>>> ListFlowType = new TypeReference<>() {
     };
 
-    static final TypeReference<ResponseMessage<List<FlowYml>>> FlowYmlNameListType = new TypeReference<>() {
+    static final TypeReference<ResponseMessage<FlowYml>> FlowYmlType = new TypeReference<>() {
     };
 
     static final TypeReference<ResponseMessage<String>> FlowYmlContentType = new TypeReference<>() {

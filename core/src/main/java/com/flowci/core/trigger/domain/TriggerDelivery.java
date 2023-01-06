@@ -11,7 +11,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@Document("trigger_delivery")
+@Document(collection = "trigger_delivery")
 public class TriggerDelivery {
 
     @Id
