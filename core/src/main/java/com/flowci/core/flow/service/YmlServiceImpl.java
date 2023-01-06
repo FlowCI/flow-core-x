@@ -37,6 +37,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.collect.ImmutableList;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -102,6 +103,7 @@ public class YmlServiceImpl implements YmlService {
     }
 
     @Override
+    @Transactional
     public FlowYml saveYml(Flow flow, List<SimpleYml> list) {
         var ymlContentList = new String[list.size()];
         for (int i = 0; i < list.size(); i++) {

@@ -23,7 +23,7 @@ import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowGroupDao;
-import com.flowci.core.flow.dao.FlowUserDao;
+import com.flowci.core.flow.dao.FlowUsersDao;
 import com.flowci.core.flow.domain.*;
 import com.flowci.core.flow.event.FlowCreatedEvent;
 import com.flowci.core.flow.event.FlowDeletedEvent;
@@ -52,6 +52,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
@@ -68,7 +69,7 @@ public class FlowServiceImpl implements FlowService {
 
     private final FlowGroupDao flowGroupDao;
 
-    private final FlowUserDao flowUserDao;
+    private final FlowUsersDao flowUsersDao;
 
     private final SessionManager sessionManager;
 
@@ -103,7 +104,7 @@ public class FlowServiceImpl implements FlowService {
         }
 
         Secret secret = event.getFetched();
-        List<Flow> list = list();
+        List<Flow> list = listFlowsOfCurrentUser();
         Iterator<Flow> iter = list.iterator();
 
         while (iter.hasNext()) {
@@ -118,6 +119,7 @@ public class FlowServiceImpl implements FlowService {
     }
 
     @Override
+    @Transactional
     public Flow create(String name, CreateOption option) {
         Objects.requireNonNull(option, "CreateOption is missing");
         Flow.validateName(name);
@@ -142,15 +144,16 @@ public class FlowServiceImpl implements FlowService {
                 ymlService.saveYml(flow, List.of(new SimpleYml(FlowYml.DEFAULT_NAME, b64Content)));
             }
 
-            flowUserDao.create(flow.getId());
-            addUsers(flow, flow.getUpdatedBy());
+
+            var users = new FlowUsers(flow.getId());
+            users.add(flow.getCreatedBy());
+            flowUsersDao.save(users);
 
             eventManager.publish(new FlowCreatedEvent(this, flow));
             return flow;
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Flow {0} already exists", name);
         } catch (IOException e) {
-            flowDao.delete(flow);
             log.error(e);
             throw new StatusException("Cannot create flow workspace");
         }
@@ -180,7 +183,7 @@ public class FlowServiceImpl implements FlowService {
     @Override
     public void delete(Flow flow) {
         flowDao.delete(flow);
-        flowUserDao.delete(flow.getId());
+        flowUsersDao.deleteById(flow.getId());
 
         ymlService.delete(flow.getId());
         cronService.cancel(flow);
@@ -189,19 +192,26 @@ public class FlowServiceImpl implements FlowService {
     }
 
     @Override
+    @Transactional
     public void addUsers(Flow flow, String... emails) {
         var emailSet = Sets.newHashSet(emails);
-        flowUserDao.insert(flow.getId(), emailSet);
+        flowUsersDao.insert(flow.getId(), emailSet);
 
         if (flow.hasParentId()) {
-            flowUserDao.insert(flow.getParentId(), emailSet);
+            flowUsersDao.insert(flow.getParentId(), emailSet);
         }
     }
 
     @Override
     public List<String> listUsers(String name) {
         Flow flow = get(name);
-        return flowUserDao.findAllUsers(flow.getId());
+        Optional<FlowUsers> optional = flowUsersDao.findById(flow.getId());
+
+        if (optional.isEmpty()) {
+            throw new NotFoundException("Users of flow {0} not found", flow.getName());
+        }
+
+        return optional.get().getUsers();
     }
 
     @Override
@@ -216,7 +226,7 @@ public class FlowServiceImpl implements FlowService {
             throw new ArgumentException("Cannot remove current user from flow");
         }
 
-        flowUserDao.remove(flow.getId(), emailSet);
+        flowUsersDao.remove(flow.getId(), emailSet);
     }
 
     // ====================================================================
@@ -284,9 +294,9 @@ public class FlowServiceImpl implements FlowService {
         throw new NotFoundException("Yaml content or template name not found");
     }
 
-    private List<Flow> list() {
+    private List<Flow> listFlowsOfCurrentUser() {
         String email = sessionManager.getUserEmail();
-        List<String> flowIds = flowUserDao.findAllFlowsByUserEmail(email);
+        List<String> flowIds = flowUsersDao.findAllFlowsByUserEmail(email);
 
         if (flowIds.isEmpty()) {
             return Collections.emptyList();

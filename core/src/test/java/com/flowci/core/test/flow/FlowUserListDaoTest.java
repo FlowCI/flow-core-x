@@ -18,7 +18,7 @@
 package com.flowci.core.test.flow;
 
 import com.flowci.core.flow.dao.FlowDao;
-import com.flowci.core.flow.dao.FlowUserDao;
+import com.flowci.core.flow.dao.FlowUsersDao;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.test.SpringScenario;
 import com.google.common.collect.Sets;
@@ -35,19 +35,22 @@ public class FlowUserListDaoTest extends SpringScenario {
     private FlowDao flowDao;
 
     @Autowired
-    private FlowUserDao flowUserListDao;
+    private FlowUsersDao flowUsersDao;
 
     @Test
     public void should_insert_unique_user_id() {
         Flow flow = createFlow("test-flow");
 
         HashSet<String> userIds = Sets.newHashSet("user1", "user2");
-        flowUserListDao.insert(flow.getId(), userIds);
+        flowUsersDao.insert(flow.getId(), userIds);
 
         HashSet<String> userDuplicate = Sets.newHashSet("user2");
-        flowUserListDao.insert(flow.getId(), userDuplicate);
+        flowUsersDao.insert(flow.getId(), userDuplicate);
 
-        List<String> users = flowUserListDao.findAllUsers(flow.getId());
+        var optional = flowUsersDao.findById(flow.getId());
+        Assert.assertTrue(optional.isPresent());
+
+        List<String> users = optional.get().getUsers();
         Assert.assertEquals(2, users.size());
     }
 
@@ -56,19 +59,19 @@ public class FlowUserListDaoTest extends SpringScenario {
         Flow flow = createFlow("test-flow");
 
         HashSet<String> userIds = Sets.newHashSet("1", "2");
-        flowUserListDao.insert(flow.getId(), userIds);
+        flowUsersDao.insert(flow.getId(), userIds);
 
-        List<String> users = flowUserListDao.findAllUsers(flow.getId());
+        List<String> users = flowUsersDao.findById(flow.getId()).get().getUsers();
         Assert.assertEquals(2, users.size());
 
         // when: remove user1
-        flowUserListDao.remove(flow.getId(), Sets.newHashSet("1"));
-        users = flowUserListDao.findAllUsers(flow.getId());
+        flowUsersDao.remove(flow.getId(), Sets.newHashSet("1"));
+        users = flowUsersDao.findById(flow.getId()).get().getUsers();
         Assert.assertEquals(1, users.size());
 
         // then: check existing
-        Assert.assertFalse(flowUserListDao.exist(flow.getId(), "1"));
-        Assert.assertTrue(flowUserListDao.exist(flow.getId(), "2"));
+        Assert.assertFalse(flowUsersDao.exist(flow.getId(), "1"));
+        Assert.assertTrue(flowUsersDao.exist(flow.getId(), "2"));
     }
 
     @Test
@@ -78,15 +81,15 @@ public class FlowUserListDaoTest extends SpringScenario {
         Flow flow3 = createFlow("test-flow-3");
 
         // when: set user1 for flow 1,2,3, user2 for flow 1
-        flowUserListDao.insert(flow1.getId(), Sets.newHashSet("1", "2"));
-        flowUserListDao.insert(flow2.getId(), Sets.newHashSet("1"));
-        flowUserListDao.insert(flow3.getId(), Sets.newHashSet("1"));
+        flowUsersDao.insert(flow1.getId(), Sets.newHashSet("1", "2"));
+        flowUsersDao.insert(flow2.getId(), Sets.newHashSet("1"));
+        flowUsersDao.insert(flow3.getId(), Sets.newHashSet("1"));
 
         // then:
-        List<String> flowsForUser1 = flowUserListDao.findAllFlowsByUserEmail("1");
+        List<String> flowsForUser1 = flowUsersDao.findAllFlowsByUserEmail("1");
         Assert.assertEquals(3, flowsForUser1.size());
 
-        List<String> flowsForUser2 = flowUserListDao.findAllFlowsByUserEmail("2");
+        List<String> flowsForUser2 = flowUsersDao.findAllFlowsByUserEmail("2");
         Assert.assertEquals(1, flowsForUser2.size());
     }
 

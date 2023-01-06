@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2019 flow.ci
+ *   Copyright (c) 2023 flow.ci
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,24 +20,12 @@ package com.flowci.core.flow.dao;
 import java.util.Collection;
 import java.util.List;
 
-public interface FlowUserDao {
-
-    void create(String flowId);
-
-    /**
-     * Remove flow user list
-     */
-    void delete(String flowId);
+public interface CustomizedFlowUserDao {
 
     /**
      * Find all flows by users email
      */
     List<String> findAllFlowsByUserEmail(String email);
-
-    /**
-     * Find all users by flow id
-     */
-    List<String> findAllUsers(String flowId);
 
     /**
      * Batch insert users

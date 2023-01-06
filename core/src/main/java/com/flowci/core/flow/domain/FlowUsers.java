@@ -17,11 +17,13 @@
 
 package com.flowci.core.flow.domain;
 
+import com.flowci.core.common.domain.Mongoable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.LinkedList;
@@ -29,17 +31,17 @@ import java.util.List;
 
 @Getter
 @Setter
-@EqualsAndHashCode(of = {"flowId"})
 @Document(collection = "flow_users")
 @NoArgsConstructor
-public class FlowUsers {
-
-    @Id
-    private String flowId;
+public class FlowUsers extends Mongoable {
 
     private List<String> users = new LinkedList<>(); // user email list
 
     public FlowUsers(String flowId) {
-        this.flowId = flowId;
+        this.id = flowId;
+    }
+
+    public void add(String email) {
+        users.add(email);
     }
 }

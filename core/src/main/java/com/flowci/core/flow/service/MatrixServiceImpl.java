@@ -38,6 +38,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -52,8 +53,6 @@ public class MatrixServiceImpl implements MatrixService {
 
     private static final TypeReference<List<MatrixType>> StatsTypeRef = new TypeReference<>() {
     };
-
-    private final Object statsSync = new Object();
 
     private final Map<String, MatrixType> defaultTypes = new HashMap<>(5);
 
@@ -158,22 +157,21 @@ public class MatrixServiceImpl implements MatrixService {
     }
 
     @Override
+    @Transactional
     public MatrixItem add(String flowId, int day, String type, MatrixCounter counter) {
-        synchronized (statsSync) {
-            MatrixItem totalItem = getItem(flowId, MatrixItem.ZERO_DAY, type);
-            totalItem.plusDayCounter(counter);
-            totalItem.plusOneToday();
+        MatrixItem totalItem = getItem(flowId, MatrixItem.ZERO_DAY, type);
+        totalItem.plusDayCounter(counter);
+        totalItem.plusOneToday();
 
-            MatrixItem dayItem = getItem(flowId, day, type);
-            dayItem.plusDayCounter(counter);
-            dayItem.plusOneToday();
+        MatrixItem dayItem = getItem(flowId, day, type);
+        dayItem.plusDayCounter(counter);
+        dayItem.plusOneToday();
 
-            dayItem.setTotal(totalItem.getCounter());
-            dayItem.setNumOfTotal(totalItem.getNumOfToday());
+        dayItem.setTotal(totalItem.getCounter());
+        dayItem.setNumOfTotal(totalItem.getNumOfToday());
 
-            matrixItemDao.saveAll(Arrays.asList(dayItem, totalItem));
-            return dayItem;
-        }
+        matrixItemDao.saveAll(Arrays.asList(dayItem, totalItem));
+        return dayItem;
     }
 
     private MatrixItem getItem(String flowId, int day, String type) {
