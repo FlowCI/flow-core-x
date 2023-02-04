@@ -16,13 +16,12 @@
 
 package com.flowci.core.common.adviser;
 
+import org.springframework.web.bind.annotation.RequestMethod;
+
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.HandlerInterceptor;
-
 import java.io.IOException;
 
 /**
@@ -33,6 +32,8 @@ public class CorsFilter implements Filter {
 
     private static final String AllowedHeaders =
         "Origin, X-Requested-With, Content-Disposition, Content-Type, Accept, Token, Authorization";
+
+    private static final String AllowedMethods = "GET, POST, PATCH, OPTIONS, DELETE";
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -45,10 +46,10 @@ public class CorsFilter implements Filter {
         var httpResponse = (HttpServletResponse) response;
 
         httpResponse.setHeader("Access-Control-Allow-Origin", "*");
-        httpResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS, DELETE");
+        httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
+        httpResponse.setHeader("Access-Control-Allow-Methods", AllowedMethods);
         httpResponse.setHeader("Access-Control-Max-Age", "1800");
         httpResponse.setHeader("Access-Control-Allow-Headers", AllowedHeaders);
-        httpResponse.setHeader("Access-Control-Expose-Headers", AllowedHeaders);
 
         if (httpRequest.getMethod().equals(RequestMethod.OPTIONS.name())) {
             httpResponse.setStatus(HttpServletResponse.SC_OK);
