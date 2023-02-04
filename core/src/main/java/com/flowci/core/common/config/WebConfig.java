@@ -17,14 +17,18 @@
 package com.flowci.core.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flowci.core.common.adviser.CrosInterceptor;
+import com.flowci.core.common.adviser.CorsFilter;
 import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.domain.Vars;
 import com.google.common.collect.ImmutableList;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
@@ -32,11 +36,9 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.*;
 
+import javax.servlet.Filter;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -44,16 +46,14 @@ import java.util.Map;
 
 @EnableWebMvc
 @Configuration
+@AllArgsConstructor
 public class WebConfig {
 
-    @Autowired
-    private HandlerInterceptor apiAuth;
+    private final HandlerInterceptor apiAuth;
 
-    @Autowired
-    private HandlerInterceptor webAuth;
+    private final HandlerInterceptor webAuth;
 
-    @Autowired
-    private AppProperties appProperties;
+    private final AppProperties appProperties;
 
     @Bean("staticResourceDir")
     public Path staticResourceDir() {
@@ -61,12 +61,17 @@ public class WebConfig {
     }
 
     @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    @ConditionalOnProperty(prefix = "app", name = "cors", havingValue = "true")
+    public Filter corsFilter() {
+        return new CorsFilter();
+    }
+
+    @Bean
     public WebMvcConfigurer webMvcConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addInterceptors(InterceptorRegistry registry) {
-                registry.addInterceptor(new CrosInterceptor());
-
                 registry.addInterceptor(webAuth)
                         .addPathPatterns("/users/**")
                         .excludePathPatterns("/users/default")

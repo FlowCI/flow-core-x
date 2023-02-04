@@ -25,6 +25,7 @@ import com.flowci.exception.AccessException;
 import com.flowci.exception.AuthenticationException;
 import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -43,17 +44,16 @@ import java.util.Optional;
  * @author yang
  */
 @Component("webAuth")
+@AllArgsConstructor
 public class WebAuth implements HandlerInterceptor {
 
     private static final String HeaderToken = "Token";
 
     private static final String ParameterToken = "token";
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
 
-    @Autowired
-    private SessionManager sessionManager;
+    private final SessionManager sessionManager;
 
     /**
      * Get user object from ws message header
@@ -73,7 +73,7 @@ public class WebAuth implements HandlerInterceptor {
         }
 
         Optional<User> user = authService.get(token);
-        if (!user.isPresent()) {
+        if (user.isEmpty()) {
             throw new AuthenticationException("Invalid token");
         }
 
