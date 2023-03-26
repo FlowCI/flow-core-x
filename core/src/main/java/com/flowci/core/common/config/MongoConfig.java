@@ -26,20 +26,16 @@ import com.flowci.core.config.domain.SmtpConfig;
 import com.flowci.core.config.domain.TextConfig;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.FlowGroup;
-import com.flowci.core.git.domain.GitConfig;
 import com.flowci.core.git.domain.GitConfigWithHost;
 import com.flowci.core.job.domain.JobItem;
 import com.flowci.core.secret.domain.*;
 import com.flowci.core.trigger.domain.EmailTrigger;
 import com.flowci.core.trigger.domain.WebhookTrigger;
 import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoCredential;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import lombok.NonNull;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.mongo.MongoProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,7 +54,7 @@ import java.util.Objects;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Configuration
 @EnableMongoAuditing(auditorAwareRef = "sessionManager")
 public class MongoConfig extends AbstractMongoClientConfiguration {

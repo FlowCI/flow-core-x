@@ -28,7 +28,7 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.tree.*;
 import com.flowci.util.StringHelper;
 import com.github.benmanes.caffeine.cache.Cache;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,7 +39,7 @@ import java.util.*;
  *
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Service
 public class StepServiceImpl implements StepService {
 

@@ -63,7 +63,7 @@ import java.util.Map;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,

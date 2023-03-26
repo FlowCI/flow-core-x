@@ -25,7 +25,7 @@ import com.flowci.exception.ArgumentException;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableMap;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -37,7 +37,7 @@ import java.util.function.Function;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Component("gitLabConverter")
 public class GitLabConverter extends TriggerConverter {
 

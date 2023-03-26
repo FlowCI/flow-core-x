@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 public abstract class ZookeeperScenario extends MockLoggedInScenario {
 
     private final HttpHeaders headers = new HttpHeaders();

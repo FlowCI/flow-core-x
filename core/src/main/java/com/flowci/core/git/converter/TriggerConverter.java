@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.git.domain.GitTrigger;
 import com.flowci.core.git.domain.GitTriggerable;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
@@ -34,7 +34,7 @@ import java.util.function.Function;
  *
  * @author yang
  */
-@Log4j2
+@Slf4j
 public abstract class TriggerConverter {
 
     @Autowired

@@ -3,7 +3,7 @@ package com.flowci.core.common.manager;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.flowci.zookeeper.ZookeeperException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 /**
  * Run task among all duplications
  */
-@Log4j2
+@Slf4j
 @Component
 public class SpringTaskManager {
 

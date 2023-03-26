@@ -37,16 +37,15 @@ import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.Errors;
 import com.flowci.tree.FlowNode;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 
-@Log4j2
+@Slf4j
 @Service
 @AllArgsConstructor
 public class JobEventServiceImpl implements JobEventService {
@@ -119,7 +118,7 @@ public class JobEventServiceImpl implements JobEventService {
                 jobService.start(job);
 
             } catch (Throwable e) {
-                log.warn(e);
+                log.warn("Fail to start job on CreateNewJobEvent", e);
             }
         });
     }

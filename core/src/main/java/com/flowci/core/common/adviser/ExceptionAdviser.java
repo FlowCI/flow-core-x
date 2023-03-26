@@ -20,7 +20,7 @@ import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.exception.CIException;
 import com.flowci.exception.ErrorCode;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @ControllerAdvice({
         "com.flowci.core.auth",
         "com.flowci.core.user",
@@ -82,7 +82,7 @@ public class ExceptionAdviser {
     @ResponseStatus(HttpStatus.OK)
     @ExceptionHandler(Throwable.class)
     public ResponseMessage<Object> fatalException(Throwable e) {
-        log.error(e);
+        log.error("Fatal exception", e);
         return new ResponseMessage<>(StatusCode.FATAL, e.getMessage(), null);
     }
 }

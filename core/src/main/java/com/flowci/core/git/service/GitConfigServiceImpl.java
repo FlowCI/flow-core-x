@@ -22,7 +22,7 @@ import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.UnsupportedException;
 import com.flowci.util.StringHelper;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,7 @@ import javax.annotation.PostConstruct;
 import java.net.http.HttpClient;
 import java.util.*;
 
-@Log4j2
+@Slf4j
 @Service("gitConfigService")
 public class GitConfigServiceImpl implements GitConfigService {
 

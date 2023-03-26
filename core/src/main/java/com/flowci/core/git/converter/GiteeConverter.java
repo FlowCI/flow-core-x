@@ -24,7 +24,7 @@ import com.flowci.exception.ArgumentException;
 import com.flowci.util.ObjectsHelper;
 import com.google.common.collect.ImmutableMap;
 import lombok.EqualsAndHashCode;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-@Log4j2
+@Slf4j
 @Component("giteeConverter")
 public class GiteeConverter extends TriggerConverter {
 

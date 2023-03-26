@@ -23,7 +23,7 @@ import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.job.event.StepUpdateEvent;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Service
 public class PushServiceImpl implements PushService {
 

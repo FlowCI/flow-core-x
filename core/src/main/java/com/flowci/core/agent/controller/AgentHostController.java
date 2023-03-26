@@ -21,14 +21,14 @@ import com.flowci.core.agent.domain.AgentHostAction;
 import com.flowci.core.agent.domain.AgentHostOption;
 import com.flowci.core.agent.service.AgentHostService;
 import com.flowci.core.auth.annotation.Action;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Log4j2
+@Slf4j
 @RestController
 @RequestMapping("/hosts")
 public class AgentHostController {

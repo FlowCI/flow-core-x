@@ -9,7 +9,7 @@ import com.flowci.core.git.domain.GitUser;
 import com.flowci.core.git.util.BranchHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableMap;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-@Log4j2
+@Slf4j
 @Component("gerritConverter")
 public class GerritConverter extends TriggerConverter {
 

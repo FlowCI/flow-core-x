@@ -4,7 +4,7 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.dao.SettingsDao;
 import com.flowci.core.common.domain.Settings;
 import com.flowci.core.common.domain.Variables;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-@Log4j2
+@Slf4j
 @Service
 public class SettingServiceImpl implements SettingService {
 

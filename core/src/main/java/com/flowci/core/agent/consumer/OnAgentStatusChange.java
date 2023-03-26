@@ -16,11 +16,11 @@
 
 package com.flowci.core.agent.consumer;
 
+import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.common.domain.PushEvent;
 import com.flowci.core.common.manager.SocketPushManager;
-import com.flowci.core.agent.domain.Agent;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Component
 public class OnAgentStatusChange implements ApplicationListener<AgentStatusEvent> {
 

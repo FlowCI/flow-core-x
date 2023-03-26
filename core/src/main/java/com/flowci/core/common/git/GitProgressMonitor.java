@@ -1,11 +1,11 @@
 package com.flowci.core.common.git;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.lib.ProgressMonitor;
 
 import java.io.File;
 
-@Log4j2
+@Slf4j
 public class GitProgressMonitor implements ProgressMonitor {
 
     private final String source;

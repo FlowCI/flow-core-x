@@ -24,8 +24,7 @@ import com.flowci.core.job.service.TtyService;
 import com.flowci.core.user.domain.User;
 import com.flowci.exception.AuthenticationException;
 import com.flowci.util.StringHelper;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
@@ -33,7 +32,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 
-@Log4j2
+@Slf4j
 @Controller
 public class TtyController {
 

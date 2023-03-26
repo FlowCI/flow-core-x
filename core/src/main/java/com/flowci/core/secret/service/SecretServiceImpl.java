@@ -34,8 +34,7 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.util.StringHelper;
-import io.fabric8.kubernetes.client.Config;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
@@ -45,13 +44,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Service
 public class SecretServiceImpl implements SecretService {
 

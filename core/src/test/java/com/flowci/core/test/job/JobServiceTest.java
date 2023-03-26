@@ -72,7 +72,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @FixMethodOrder(MethodSorters.JVM)
 public class JobServiceTest extends ZookeeperScenario {
 

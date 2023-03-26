@@ -8,10 +8,9 @@ import com.flowci.core.git.domain.GitCommitStatus;
 import com.flowci.core.git.domain.GitConfig;
 import com.flowci.core.git.domain.GitRepo;
 import com.flowci.core.secret.domain.TokenSecret;
-import com.flowci.exception.ArgumentException;
 import com.flowci.exception.CIException;
 import com.flowci.exception.UnsupportedException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.util.UriTemplate;
 
@@ -22,7 +21,7 @@ import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.Objects;
 
-@Log4j2
+@Slf4j
 public class GitHubApiClient implements GitApiClient<GitConfig> {
 
     private final static UriTemplate HttpTemplate = new UriTemplate("https://github.com/{owner}/{repo}.git");

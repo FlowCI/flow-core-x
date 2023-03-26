@@ -30,7 +30,7 @@ import com.flowci.core.user.service.UserService;
 import com.flowci.exception.AuthenticationException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.util.HashingHelper;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +38,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-@Log4j2
+@Slf4j
 @Service
 public class AuthServiceImpl implements AuthService {
 

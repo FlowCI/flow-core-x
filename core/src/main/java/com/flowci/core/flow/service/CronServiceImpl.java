@@ -26,7 +26,7 @@ import com.flowci.core.flow.event.FlowInitEvent;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.exception.NotFoundException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -40,7 +40,7 @@ import java.util.concurrent.ScheduledFuture;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Service
 public class CronServiceImpl implements CronService {
 

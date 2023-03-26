@@ -47,7 +47,7 @@ import com.flowci.store.FileManager;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
@@ -60,7 +60,7 @@ import java.util.*;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Service
 @AllArgsConstructor
 public class FlowServiceImpl implements FlowService {
@@ -154,7 +154,7 @@ public class FlowServiceImpl implements FlowService {
         } catch (DuplicateKeyException e) {
             throw new DuplicateException("Flow {0} already exists", name);
         } catch (IOException e) {
-            log.error(e);
+            log.error("Unable to create flow workspace", e);
             throw new StatusException("Cannot create flow workspace");
         }
     }

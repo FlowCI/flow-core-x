@@ -35,7 +35,7 @@ import com.flowci.store.Pathable;
 import com.flowci.util.FileHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.collect.ImmutableList;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.InputStreamResource;
@@ -53,7 +53,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Service
 public class LoggingServiceImpl implements LoggingService {
 
@@ -117,7 +117,7 @@ public class LoggingServiceImpl implements LoggingService {
             eventManager.publish(new CacheShellLogEvent(this, jobId, stepId, bytes));
             socketPushManager.push(topicForLogs + "/" + jobId, bytes);
         } catch (JsonProcessingException e) {
-            log.warn(e);
+            log.warn("Unable to write StepLogItem", e);
         }
     }
 

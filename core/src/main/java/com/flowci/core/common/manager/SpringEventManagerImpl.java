@@ -23,7 +23,7 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.event.BroadcastEvent;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.google.common.collect.ImmutableMap;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -33,7 +33,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.Map;
 
-@Log4j2
+@Slf4j
 @Component("eventManager")
 public class SpringEventManagerImpl implements SpringEventManager {
 
@@ -62,8 +62,8 @@ public class SpringEventManagerImpl implements SpringEventManager {
                 BroadcastEvent event = (BroadcastEvent) objectMapper.readValue(body, Class.forName(className));
                 event.setInternal(true);
                 publish(event);
-            } catch (Exception e) {
-                log.warn(e);
+            } catch (IOException | ClassNotFoundException e) {
+                log.warn("Unable to convert to BroadcastEvent", e);
             }
             return false;
         }, null);
@@ -76,7 +76,7 @@ public class SpringEventManagerImpl implements SpringEventManager {
                 Map<String, Object> header = ImmutableMap.of(HeaderClass, event.getClass().getName());
                 this.broadcastQueueManager.sendToEx(rabbitProperties.getEventBroadcastEx(), bytes, header);
             } catch (JsonProcessingException e) {
-                log.warn(e);
+                log.warn("Unable to publish event", e);
             }
             return event;
         }

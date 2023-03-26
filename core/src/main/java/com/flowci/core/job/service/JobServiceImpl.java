@@ -24,7 +24,6 @@ import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.common.service.SettingService;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.job.dao.*;
 import com.flowci.core.job.domain.*;
@@ -37,14 +36,13 @@ import com.flowci.core.job.util.JobContextHelper;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
-import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Maps;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
@@ -64,7 +62,7 @@ import static com.flowci.core.common.domain.Variables.Git.*;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Service
 public class JobServiceImpl implements JobService {
 
@@ -134,7 +132,7 @@ public class JobServiceImpl implements JobService {
                 String jobId = new String(body);
                 eventManager.publish(new JobActionEvent(this, jobId, JobActionEvent.ACTION_TO_TIMEOUT));
             } catch (Exception e) {
-                log.warn(e);
+                log.warn("Fail to publish TIMEOUT action", e);
             }
             return false;
         }, null);
@@ -378,8 +376,9 @@ public class JobServiceImpl implements JobService {
     //====================================================================
 
     private void declareJobQueueAndStartConsumer(Flow flow) {
+        final String queue = flow.getQueueName();
+
         try {
-            final String queue = flow.getQueueName();
             jobsQueueManager.declare(queue, true, 255, rabbitProperties.getJobDlExchange());
 
             jobsQueueManager.startConsumer(queue, false, (header, body, envelope) -> {
@@ -387,12 +386,12 @@ public class JobServiceImpl implements JobService {
                     String jobId = new String(body);
                     eventManager.publish(new JobActionEvent(this, jobId, JobActionEvent.ACTION_TO_RUN));
                 } catch (Exception e) {
-                    log.warn(e);
+                    log.warn("Fail to publish job action RUN", e);
                 }
                 return true;
             }, appTaskExecutor);
         } catch (IOException e) {
-            log.warn(e);
+            log.error("Unable to communicate with queue", e);
         }
     }
 

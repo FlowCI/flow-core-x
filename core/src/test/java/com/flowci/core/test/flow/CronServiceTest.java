@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 public class CronServiceTest extends ZookeeperScenario {
 
     private final ScheduledExecutorService service = Executors.newScheduledThreadPool(1);

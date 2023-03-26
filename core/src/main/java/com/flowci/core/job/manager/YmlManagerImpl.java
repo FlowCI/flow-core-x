@@ -25,7 +25,7 @@ import com.flowci.tree.NodeTree;
 import com.flowci.tree.YmlParser;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -33,7 +33,7 @@ import java.util.Optional;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Component
 @AllArgsConstructor
 public class YmlManagerImpl implements YmlManager {

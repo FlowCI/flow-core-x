@@ -16,7 +16,6 @@
 
 package com.flowci.core.user.service;
 
-import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.user.dao.UserDao;
 import com.flowci.core.user.domain.User;
@@ -27,7 +26,7 @@ import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.google.common.collect.Lists;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -47,7 +46,7 @@ import java.util.Optional;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 

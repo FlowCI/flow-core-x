@@ -21,7 +21,7 @@ import com.flowci.core.common.config.QueueConfig;
 import com.flowci.util.StringHelper;
 import com.rabbitmq.client.*;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.TaskExecutor;
 
 import java.io.IOException;
@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Log4j2
+@Slf4j
 @Getter
 public class RabbitOperations implements AutoCloseable {
 
@@ -159,12 +159,14 @@ public class RabbitOperations implements AutoCloseable {
 
     public void removeConsumer(String queue) {
         String consumerTag = consumers.remove(queue);
-        if (consumerTag != null) {
-            try {
-                getChannel().basicCancel(consumerTag);
-            } catch (IOException e) {
-                log.warn(e);
-            }
+        if (consumerTag == null) {
+            return;
+        }
+
+        try {
+            getChannel().basicCancel(consumerTag);
+        } catch (IOException e) {
+            log.warn("Fail to remove rabbit consumer", e);
         }
     }
 
@@ -191,7 +193,7 @@ public class RabbitOperations implements AutoCloseable {
             try {
                 getChannel().basicAck(envelope.getDeliveryTag(), false);
             } catch (Exception e) {
-                log.warn(e);
+                log.warn("Fail to send ack", e);
             }
         }
     }

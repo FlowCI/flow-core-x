@@ -18,13 +18,13 @@ package com.flowci.core.job.manager;
 
 import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-@Log4j2
+@Slf4j
 @Component
 public class LockManagerImpl implements LockManager {
 
@@ -47,7 +47,7 @@ public class LockManagerImpl implements LockManager {
             zk.release(lock);
             log.debug("Unlock: {}", jobId);
         } catch (Exception warn) {
-            log.warn(warn);
+            log.warn("Unable to release lock", warn);
         }
     }
 }

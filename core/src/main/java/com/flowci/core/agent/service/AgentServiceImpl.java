@@ -40,7 +40,7 @@ import com.flowci.util.ObjectsHelper;
 import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.Sets;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
@@ -60,7 +60,7 @@ import static com.flowci.core.agent.domain.Agent.Status.*;
  *
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Service
 public class AgentServiceImpl implements AgentService {
 
@@ -377,7 +377,7 @@ public class AgentServiceImpl implements AgentService {
             agentEventManager.writeMessage(agent.getToken(), body);
             eventManager.publish(new CmdSentEvent(this, agent, cmd));
         } catch (IOException e) {
-            log.warn(e);
+            log.warn("Unable to write CmdIn", e);
         }
     }
 
@@ -450,7 +450,7 @@ public class AgentServiceImpl implements AgentService {
             zk.release(lock);
             log.debug("Unlock: {}", FetchAgentLockKey);
         } catch (Exception warn) {
-            log.warn(warn);
+            log.warn("Unable to unlock agent", warn);
         }
     }
 }

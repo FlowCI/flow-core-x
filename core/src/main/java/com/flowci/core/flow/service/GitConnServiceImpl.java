@@ -34,6 +34,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,7 @@ import java.util.List;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Service("gitConnService")
 @AllArgsConstructor
 public class GitConnServiceImpl implements GitConnService {

@@ -15,7 +15,7 @@ import com.flowci.exception.ArgumentException;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
-@Log4j2
+@Slf4j
 @Service
 public class ConfigServiceImpl implements ConfigService {
 

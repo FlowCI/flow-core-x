@@ -6,7 +6,7 @@ import com.flowci.core.secret.domain.TokenSecret;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableMap;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,7 +20,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-@Log4j2
+@Slf4j
 public class GitLabV4ApiClient implements GitApiClient<GitConfigWithHost> {
 
     private final HttpClient httpClient;

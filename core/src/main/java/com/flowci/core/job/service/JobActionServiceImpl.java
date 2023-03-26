@@ -55,7 +55,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.util.ScriptException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -71,7 +71,7 @@ import java.util.function.Consumer;
 import static com.flowci.core.job.domain.Executed.Status.RUNNING;
 import static com.flowci.core.job.domain.Executed.Status.WAITING_AGENT;
 
-@Log4j2
+@Slf4j
 @Service
 public class JobActionServiceImpl implements JobActionService {
 

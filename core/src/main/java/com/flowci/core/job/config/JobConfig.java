@@ -25,7 +25,7 @@ import com.flowci.sm.StateMachine;
 import com.flowci.tree.NodeTree;
 import com.flowci.util.FileHelper;
 import com.github.benmanes.caffeine.cache.Cache;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Configuration
 public class JobConfig {
 

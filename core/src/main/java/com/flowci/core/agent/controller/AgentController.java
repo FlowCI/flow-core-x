@@ -22,7 +22,7 @@ import com.flowci.core.agent.domain.AgentOption;
 import com.flowci.core.agent.domain.DeleteAgent;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.auth.annotation.Action;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @RestController
 @RequestMapping("/agents")
 public class AgentController {

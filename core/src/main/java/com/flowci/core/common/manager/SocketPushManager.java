@@ -21,7 +21,7 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.PushBody;
 import com.flowci.core.common.domain.PushEvent;
 import com.flowci.core.common.rabbit.RabbitOperations;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Component
 public class SocketPushManager {
 
@@ -62,7 +62,7 @@ public class SocketPushManager {
                 String topic = headers.get(HeaderTopic).toString();
                 simpMessagingTemplate.convertAndSend(topic, body);
             } catch (Exception e) {
-                log.warn(e);
+                log.warn("", e);
             }
             return false;
         }, null);

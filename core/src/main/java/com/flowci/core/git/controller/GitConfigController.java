@@ -5,13 +5,13 @@ import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.git.domain.GitConfig;
 import com.flowci.core.git.service.GitConfigService;
 import com.flowci.exception.ArgumentException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Log4j2
+@Slf4j
 @RestController
 @RequestMapping("/gitconfig")
 public class GitConfigController {

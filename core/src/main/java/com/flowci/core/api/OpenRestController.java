@@ -29,7 +29,7 @@ import com.flowci.core.job.service.LoggingService;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.user.domain.User;
 import com.flowci.exception.ArgumentException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -48,7 +48,7 @@ import java.util.Map;
 /**
  * Provides API which calling from agent plugin
  */
-@Log4j2
+@Slf4j
 @RestController
 @RequestMapping("/api")
 public class OpenRestController {

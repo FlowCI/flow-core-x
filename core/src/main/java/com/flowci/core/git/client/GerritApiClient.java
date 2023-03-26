@@ -7,13 +7,12 @@ import com.flowci.core.git.domain.GitCommitStatus;
 import com.flowci.core.git.domain.GitConfigWithHost;
 import com.flowci.core.git.util.CommitHelper;
 import com.flowci.core.secret.domain.AuthSecret;
-import com.flowci.exception.ArgumentException;
 import com.flowci.exception.CIException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.util.StringHelper;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,7 +23,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-@Log4j2
+@Slf4j
 public class GerritApiClient implements GitApiClient<GitConfigWithHost> {
 
     private final HttpClient httpClient;

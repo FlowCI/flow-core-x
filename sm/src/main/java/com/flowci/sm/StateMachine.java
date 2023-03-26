@@ -4,12 +4,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-@Log4j2
+@Slf4j
 @Setter
 @Getter
 @RequiredArgsConstructor

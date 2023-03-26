@@ -33,7 +33,7 @@ import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.util.StringHelper;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
@@ -55,7 +55,7 @@ import java.util.*;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Component
 public class PluginServiceImpl implements PluginService {
 

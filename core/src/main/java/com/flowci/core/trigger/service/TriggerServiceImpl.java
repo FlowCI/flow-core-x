@@ -26,7 +26,7 @@ import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
 import com.flowci.util.StringHelper;
 import groovy.util.ScriptException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
@@ -52,7 +52,7 @@ import java.util.*;
 
 import static com.flowci.core.common.domain.Variables.Git.PUSH_COMMIT_LIST;
 
-@Log4j2
+@Slf4j
 @Service
 public class TriggerServiceImpl implements TriggerService {
 

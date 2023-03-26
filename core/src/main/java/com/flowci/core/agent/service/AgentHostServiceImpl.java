@@ -46,6 +46,7 @@ import com.github.benmanes.caffeine.cache.RemovalListener;
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
@@ -63,7 +64,7 @@ import java.util.*;
 import static com.flowci.core.secret.domain.Secret.Category.KUBE_CONFIG;
 import static com.flowci.core.secret.domain.Secret.Category.SSH_RSA;
 
-@Log4j2
+@Slf4j
 @Service
 public class AgentHostServiceImpl implements AgentHostService {
 
@@ -665,7 +666,7 @@ public class AgentHostServiceImpl implements AgentHostService {
         }
     }
 
-    @Log4j2
+    @Slf4j
     private static class PoolManagerRemover implements RemovalListener<AgentHost, DockerManager> {
 
         @Override

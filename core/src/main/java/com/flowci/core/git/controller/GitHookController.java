@@ -23,7 +23,7 @@ import com.flowci.core.git.domain.GitTrigger;
 import com.flowci.core.git.event.GitHookEvent;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.StringHelper;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,7 +42,7 @@ import java.util.Optional;
  *
  * @author yang
  */
-@Log4j2
+@Slf4j
 @RestController
 @RequestMapping("/webhooks")
 public class GitHookController {

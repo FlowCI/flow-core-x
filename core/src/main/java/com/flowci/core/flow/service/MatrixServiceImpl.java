@@ -32,7 +32,7 @@ import com.flowci.core.plugin.service.PluginService;
 import com.flowci.exception.NotFoundException;
 import com.flowci.tree.NodeTree;
 import com.flowci.util.StringHelper;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
@@ -47,7 +47,7 @@ import java.util.*;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Service
 public class MatrixServiceImpl implements MatrixService {
 

@@ -1,12 +1,13 @@
 package com.flowci.core.agent.manager;
 
+import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.agent.domain.*;
 import com.flowci.core.agent.event.*;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.common.manager.SpringEventManager;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.BinaryMessage;
@@ -23,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Handle event from agent via websocket
  */
-@Log4j2
+@Slf4j
 @Component
 public class AgentEventManager extends BinaryWebSocketHandler {
 
@@ -128,8 +129,8 @@ public class AgentEventManager extends BinaryWebSocketHandler {
         try {
             byte[] bytes = objectMapper.writeValueAsBytes(msg);
             writeMessage(session, bytes);
-        } catch (IOException e) {
-            log.warn(e);
+        } catch (JacksonException e) {
+            log.warn("Unable to convert agent response message", e);
         }
     }
 
@@ -138,7 +139,7 @@ public class AgentEventManager extends BinaryWebSocketHandler {
             try {
                 session.sendMessage(new BinaryMessage(body));
             } catch (IOException e) {
-                log.warn(e);
+                log.warn("Unable to send message", e);
             }
         }
     }
@@ -159,18 +160,14 @@ public class AgentEventManager extends BinaryWebSocketHandler {
             writeMessage(token, new ResponseMessage<>(StatusCode.OK, agent.getConfig()));
             log.debug("Agent {} is connected with status {}", token, init.getStatus());
         } catch (Exception e) {
-            log.warn(e);
+            log.warn("Agent connected error", e);
             writeMessage(session, new ResponseMessage<Void>(StatusCode.FATAL, e.getMessage(), null));
         }
     }
 
     private void onCmdOut(String token, byte[] body) {
-        try {
-            log.debug("Agent {} got cmd back: {}", token, new String(body));
-            eventManager.publish(new OnCmdOutEvent(this, body));
-        } catch (Exception e) {
-            log.warn(e);
-        }
+        log.debug("Agent {} got cmd back: {}", token, new String(body));
+        eventManager.publish(new OnCmdOutEvent(this, body));
     }
 
     private void onShellLog(byte[] body) {
@@ -178,7 +175,7 @@ public class AgentEventManager extends BinaryWebSocketHandler {
             ShellLog item = objectMapper.readValue(body, ShellLog.class);
             eventManager.publish(new OnShellLogEvent(this, item.getJobId(), item.getStepId(), item.getLog()));
         } catch (IOException e) {
-            log.warn(e);
+            log.warn("Unable to convert to ShellLog", e);
         }
     }
 
@@ -187,7 +184,7 @@ public class AgentEventManager extends BinaryWebSocketHandler {
             TtyCmd.Log item = objectMapper.readValue(body, TtyCmd.Log.class);
             eventManager.publish(new OnTTYLogEvent(this, item.getId(), item.getLog()));
         } catch (IOException e) {
-            log.warn(e);
+            log.warn("Unable to convert to TtyCmd.Log", e);
         }
     }
 
@@ -197,7 +194,7 @@ public class AgentEventManager extends BinaryWebSocketHandler {
             profile.setId(token);
             eventManager.publish(new OnAgentProfileEvent(this, profile));
         } catch (IOException e) {
-            log.warn(e);
+            log.warn("Unable to convert to AgentProfile", e);
         }
     }
 

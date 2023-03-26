@@ -28,7 +28,7 @@ import com.flowci.store.Pathable;
 import com.flowci.store.StringPath;
 import com.flowci.util.StringHelper;
 import com.google.api.client.util.Lists;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
@@ -40,7 +40,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
-@Log4j2
+@Slf4j
 @Service
 public class ArtifactServiceImpl implements ArtifactService {
 

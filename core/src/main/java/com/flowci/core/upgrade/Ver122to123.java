@@ -23,7 +23,7 @@ import com.flowci.core.job.domain.JobYml;
 import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Upgrade Yml and Job data from version 1.22.xx to 1.23.xx
  */
-@Log4j2
+@Slf4j
 @Component
 public class Ver122to123 implements CommandLineRunner {
 

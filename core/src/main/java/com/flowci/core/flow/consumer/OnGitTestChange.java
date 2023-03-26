@@ -20,17 +20,18 @@ import com.flowci.core.common.domain.PushEvent;
 import com.flowci.core.common.manager.SocketPushManager;
 import com.flowci.core.flow.event.GitTestEvent;
 import com.flowci.core.flow.event.GitTestEvent.Status;
-import java.util.List;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Component
 public class OnGitTestChange implements ApplicationListener<GitTestEvent> {
 

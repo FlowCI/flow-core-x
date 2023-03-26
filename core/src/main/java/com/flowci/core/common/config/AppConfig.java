@@ -21,7 +21,7 @@ import com.flowci.core.common.event.AsyncEvent;
 import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.util.FileHelper;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.web.servlet.MultipartProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationEvent;
@@ -46,7 +46,7 @@ import java.util.concurrent.Executor;
 /**
  * @author yang
  */
-@Log4j2
+@Slf4j
 @Configuration
 @EnableScheduling
 @EnableCaching

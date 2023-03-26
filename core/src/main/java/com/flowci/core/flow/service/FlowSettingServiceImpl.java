@@ -25,8 +25,7 @@ import com.flowci.domain.VarValue;
 import com.flowci.exception.ArgumentException;
 import com.flowci.util.StringHelper;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,7 +35,7 @@ import java.util.Map;
  * @author yang
  */
 
-@Log4j2
+@Slf4j
 @Service
 @AllArgsConstructor
 public class FlowSettingServiceImpl implements FlowSettingService {
