@@ -26,7 +26,6 @@ import com.flowci.exception.AuthenticationException;
 import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;

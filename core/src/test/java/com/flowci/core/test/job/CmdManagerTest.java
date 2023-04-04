@@ -30,7 +30,8 @@ import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.domain.*;
-import com.flowci.tree.*;
+import com.flowci.parser.v1.*;
+import com.flowci.parser.domain.NodePath;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
@@ -42,7 +43,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.io.IOException;
 import java.util.List;
 
-import static com.flowci.tree.FlowNode.DEFAULT_ROOT_NAME;
+import static com.flowci.parser.v1.FlowNode.DEFAULT_ROOT_NAME;
 
 public class CmdManagerTest extends MockLoggedInScenario {
 

@@ -19,7 +19,7 @@ package com.flowci.core.flow.service;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.flow.domain.FlowYml;
-import com.flowci.tree.NodeTree;
+import com.flowci.parser.v1.NodeTree;
 
 import java.util.List;
 

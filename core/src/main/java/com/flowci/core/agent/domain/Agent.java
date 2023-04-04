@@ -22,7 +22,7 @@ import com.flowci.domain.Common.OS;
 import com.flowci.domain.SimpleKeyPair;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
-import com.flowci.tree.Selector;
+import com.flowci.parser.v1.Selector;
 import com.google.common.base.Strings;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

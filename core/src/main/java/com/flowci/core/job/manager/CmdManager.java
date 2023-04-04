@@ -20,7 +20,7 @@ import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.domain.ShellKill;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Step;
-import com.flowci.tree.Node;
+import com.flowci.parser.v1.Node;
 
 /**
  * @author yang

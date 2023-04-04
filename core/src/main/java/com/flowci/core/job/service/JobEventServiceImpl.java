@@ -35,7 +35,7 @@ import com.flowci.core.job.event.JobActionEvent;
 import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.Errors;
-import com.flowci.tree.FlowNode;
+import com.flowci.parser.v1.FlowNode;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

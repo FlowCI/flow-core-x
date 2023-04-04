@@ -20,7 +20,7 @@ import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.AgentProfile;
 import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.AgentOption;
-import com.flowci.tree.Selector;
+import com.flowci.parser.v1.Selector;
 
 import java.util.Collection;
 import java.util.List;

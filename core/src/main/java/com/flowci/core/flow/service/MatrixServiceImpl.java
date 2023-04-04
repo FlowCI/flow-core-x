@@ -30,7 +30,7 @@ import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.exception.NotFoundException;
-import com.flowci.tree.NodeTree;
+import com.flowci.parser.v1.NodeTree;
 import com.flowci.util.StringHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

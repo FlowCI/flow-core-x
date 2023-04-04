@@ -24,9 +24,8 @@ import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
 import com.flowci.core.test.ZookeeperScenario;
 import com.flowci.domain.ObjectWrapper;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.time.ZonedDateTime;

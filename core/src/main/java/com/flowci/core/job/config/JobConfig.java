@@ -22,7 +22,7 @@ import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.job.domain.JobSmContext;
 import com.flowci.core.job.domain.Step;
 import com.flowci.sm.StateMachine;
-import com.flowci.tree.NodeTree;
+import com.flowci.parser.v1.NodeTree;
 import com.flowci.util.FileHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.slf4j.Slf4j;

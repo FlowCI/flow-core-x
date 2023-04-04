@@ -23,7 +23,7 @@ import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
-import com.flowci.tree.FlowNode;
+import com.flowci.parser.v1.FlowNode;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

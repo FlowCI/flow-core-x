@@ -24,7 +24,7 @@ import com.flowci.core.common.manager.ResourceManager;
 import com.flowci.core.flow.domain.Template;
 import com.flowci.exception.StatusException;
 import com.flowci.exception.UnsupportedException;
-import com.flowci.tree.NodeTree;
+import com.flowci.parser.v1.NodeTree;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

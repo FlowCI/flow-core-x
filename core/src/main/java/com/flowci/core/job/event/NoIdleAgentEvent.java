@@ -17,7 +17,7 @@
 package com.flowci.core.job.event;
 
 import com.flowci.core.common.event.AsyncEvent;
-import com.flowci.tree.Selector;
+import com.flowci.parser.v1.Selector;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

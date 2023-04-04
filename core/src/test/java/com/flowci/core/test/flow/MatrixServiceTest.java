@@ -56,15 +56,15 @@ public class MatrixServiceTest extends SpringScenario {
         Assert.assertNotNull(item);
         Assert.assertEquals(Job.FINISH_STATUS.size(), item.getCounter().size());
 
-        Assert.assertEquals(new Float(1.0F), item.getCounter().get("SUCCESS"));
-        Assert.assertEquals(new Float(0.0F), item.getCounter().get("FAILURE"));
-        Assert.assertEquals(new Float(0.0F), item.getCounter().get("CANCELLED"));
-        Assert.assertEquals(new Float(0.0F), item.getCounter().get("TIMEOUT"));
+        Assert.assertEquals(Float.valueOf(1.0F), item.getCounter().get("SUCCESS"));
+        Assert.assertEquals(Float.valueOf(0.0F), item.getCounter().get("FAILURE"));
+        Assert.assertEquals(Float.valueOf(0.0F), item.getCounter().get("CANCELLED"));
+        Assert.assertEquals(Float.valueOf(0.0F), item.getCounter().get("TIMEOUT"));
 
-        Assert.assertEquals(new Float(1.0F), item.getTotal().get("SUCCESS"));
-        Assert.assertEquals(new Float(0.0F), item.getTotal().get("FAILURE"));
-        Assert.assertEquals(new Float(0.0F), item.getTotal().get("CANCELLED"));
-        Assert.assertEquals(new Float(0.0F), item.getTotal().get("TIMEOUT"));
+        Assert.assertEquals(Float.valueOf(1.0F), item.getTotal().get("SUCCESS"));
+        Assert.assertEquals(Float.valueOf(0.0F), item.getTotal().get("FAILURE"));
+        Assert.assertEquals(Float.valueOf(0.0F), item.getTotal().get("CANCELLED"));
+        Assert.assertEquals(Float.valueOf(0.0F), item.getTotal().get("TIMEOUT"));
     }
 
     @Test

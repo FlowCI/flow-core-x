@@ -35,7 +35,7 @@ import com.flowci.core.job.event.NoIdleAgentEvent;
 import com.flowci.exception.DuplicateException;
 import com.flowci.exception.NotFoundException;
 import com.flowci.exception.StatusException;
-import com.flowci.tree.Selector;
+import com.flowci.parser.v1.Selector;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;

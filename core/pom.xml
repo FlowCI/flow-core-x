@@ -35,7 +35,7 @@
 
     <dependency>
       <groupId>com.flowci</groupId>
-      <artifactId>tree</artifactId>
+      <artifactId>parser</artifactId>
     </dependency>
 
     <dependency>

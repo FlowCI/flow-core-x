@@ -17,7 +17,6 @@
 package com.flowci.core.test;
 
 import com.flowci.core.agent.domain.Agent;
-import com.flowci.core.agent.domain.AgentHost;
 import com.flowci.core.api.domain.SimpleUser;
 import com.flowci.core.common.domain.Settings;
 import com.flowci.core.common.rabbit.RabbitOperations;
@@ -35,7 +34,7 @@ import com.flowci.core.trigger.domain.Trigger;
 import com.flowci.core.trigger.domain.TriggerDelivery;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
@@ -51,7 +50,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.InputStream;

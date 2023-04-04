@@ -25,7 +25,7 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.domain.Common;
 import com.flowci.domain.ObjectWrapper;
 import com.flowci.zookeeper.ZookeeperClient;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;

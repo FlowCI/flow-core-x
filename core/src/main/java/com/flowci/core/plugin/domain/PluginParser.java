@@ -20,7 +20,7 @@ import com.flowci.core.flow.domain.MatrixType;
 import com.flowci.domain.Input;
 import com.flowci.domain.VarType;
 import com.flowci.domain.Version;
-import com.flowci.tree.yml.DockerYml;
+import com.flowci.parser.v1.yml.DockerYml;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.flowci.util.YamlHelper;

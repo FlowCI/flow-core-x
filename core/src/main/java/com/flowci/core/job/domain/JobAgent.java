@@ -16,9 +16,9 @@
 
 package com.flowci.core.job.domain;
 
-import com.flowci.tree.FlowNode;
-import com.flowci.tree.Node;
-import com.flowci.tree.NodePath;
+import com.flowci.parser.v1.FlowNode;
+import com.flowci.parser.v1.Node;
+import com.flowci.parser.domain.NodePath;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
