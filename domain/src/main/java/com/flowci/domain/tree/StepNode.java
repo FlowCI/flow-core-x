@@ -33,6 +33,11 @@ public class StepNode extends Node {
     private String pwsh;
 
     /**
+     * Indicate the step is post step
+     */
+    private boolean post;
+
+    /**
      * Plugin name
      */
     private String plugin;
@@ -76,11 +81,6 @@ public class StepNode extends Node {
      * Artifact of step
      */
     private Set<ArtifactOption> artifacts;
-
-    /**
-     * 0 to N steps
-     */
-    private List<StepNode> steps = new LinkedList<>();
 
     /**
      * Indicate step as stage if there is no children steps

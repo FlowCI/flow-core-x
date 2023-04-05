@@ -47,6 +47,11 @@ public abstract class Node implements Serializable {
      */
     protected Node parent;
 
+    /**
+     * Children steps
+     */
+    protected List<StepNode> steps;
+
     public boolean hasParent() {
         return parent != null;
     }
