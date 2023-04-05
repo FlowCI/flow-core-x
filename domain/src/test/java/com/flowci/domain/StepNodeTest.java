@@ -1,5 +1,6 @@
 package com.flowci.domain;
 
+import com.flowci.domain.tree.ArtifactOption;
 import com.flowci.domain.tree.CacheOption;
 import com.flowci.domain.tree.StepNode;
 import org.junit.jupiter.api.Test;
@@ -22,10 +23,10 @@ public class StepNodeTest {
                 .secrets(Set.of("root-secret"))
                 .condition("condition from root")
                 .timeout(10)
-                .cache(CacheOption.builder()
-                        .key("report")
+                .caches(Set.of(CacheOption.builder()
+                        .name("report")
                         .paths(List.of("/path/a", "/path/b"))
-                        .build())
+                        .build()))
                 .build();
 
         StepNode parent = StepNode.builder()
@@ -36,10 +37,14 @@ public class StepNodeTest {
                 .configs(Set.of("parent-config"))
                 .condition("condition from parent")
                 .timeout(5)
-                .cache(CacheOption.builder()
-                        .key("jar")
+                .caches(Set.of(CacheOption.builder()
+                        .name("jar")
                         .paths(List.of("/path/b", "/java/jar"))
-                        .build())
+                        .build()))
+                .artifacts(Set.of(ArtifactOption.builder()
+                        .name("jar")
+                        .paths(List.of("/path/output"))
+                        .build()))
                 .build();
 
         StepNode child = StepNode.builder()
@@ -49,10 +54,10 @@ public class StepNodeTest {
                 .exports(new HashSet<>())
                 .configs(Set.of("child-config-1", "child-config-2"))
                 .condition("condition from child")
-                .cache(CacheOption.builder()
-                        .key("report")
+                .caches(Set.of(CacheOption.builder()
+                        .name("report")
                         .paths(List.of("/path/c"))
-                        .build())
+                        .build()))
                 .build();
 
         shouldFetchBashList(child);
@@ -64,6 +69,7 @@ public class StepNodeTest {
         shouldFetchConfigList(child);
         shouldFetchConditionList(child);
         shouldFetchMostClosedCacheOptionSet(child);
+        shouldFetchMostClosedArtifactOptionSet(child);
     }
 
     private static void shouldFetchConfigList(StepNode step) {
@@ -131,23 +137,35 @@ public class StepNodeTest {
     }
 
     private static void shouldFetchMostClosedCacheOptionSet(StepNode step) {
-        // when: fetch condition list
-        var options = step.fetchCacheOption();
-        assertEquals(2, options.size());
+        // when: fetch cache options
+        var caches = step.fetchCacheOption();
+        assertEquals(2, caches.size());
 
         // then:
-        var iter = options.iterator();
+        var iter = caches.iterator();
 
         var childCacheOpt = iter.next();
-        assertEquals("report", childCacheOpt.getKey());
+        assertEquals("report", childCacheOpt.getName());
         assertEquals(1, childCacheOpt.getPaths().size());
         assertEquals("/path/c", childCacheOpt.getPaths().get(0));
 
         var parentCacheOpt = iter.next();
-        assertEquals("jar", parentCacheOpt.getKey());
+        assertEquals("jar", parentCacheOpt.getName());
         assertEquals(2, parentCacheOpt.getPaths().size());
         assertEquals("/path/b", parentCacheOpt.getPaths().get(0));
         assertEquals("/java/jar", parentCacheOpt.getPaths().get(1));
+    }
+
+    private static void shouldFetchMostClosedArtifactOptionSet(StepNode step) {
+        // when: fetch artifact options
+        var artifacts = step.fetchArtifactOption();
+        assertEquals(1, artifacts.size());
+
+        // then:
+        var parentArtifactOpt = artifacts.iterator().next();
+        assertEquals("jar", parentArtifactOpt.getName());
+        assertEquals(1, parentArtifactOpt.getPaths().size());
+        assertEquals("/path/output", parentArtifactOpt.getPaths().get(0));
     }
 
     private void shouldFetchMostClosedTimeOut(StepNode step) {

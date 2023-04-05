@@ -8,6 +8,5 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class CacheOption extends FileOption {
-
+public class ArtifactOption extends FileOption {
 }

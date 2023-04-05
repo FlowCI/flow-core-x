@@ -68,9 +68,14 @@ public class StepNode extends Node {
     private boolean allowFailure = ALLOW_FAILURE_DEFAULT;
 
     /**
-     * Cache setting
+     * Cache of step
      */
-    private CacheOption cache;
+    private Set<CacheOption> caches;
+
+    /**
+     * Artifact of step
+     */
+    private Set<ArtifactOption> artifacts;
 
     /**
      * 0 to N steps
@@ -138,6 +143,16 @@ public class StepNode extends Node {
     @JsonIgnore
     public boolean hasRetry() {
         return retry != null;
+    }
+
+    @JsonIgnore
+    public boolean hasCaches() {
+        return caches != null && !caches.isEmpty();
+    }
+
+    @JsonIgnore
+    public boolean hasArtifact() {
+        return artifacts != null && !artifacts.isEmpty();
     }
 
     @JsonIgnore
@@ -225,8 +240,19 @@ public class StepNode extends Node {
     public Set<CacheOption> fetchCacheOption() {
         var output = new LinkedHashSet<CacheOption>();
         forEachBottomUp(this, (n) -> {
-            if (n.cache != null) {
-                output.add(n.cache);
+            if (n.hasCaches()) {
+                output.addAll(n.caches);
+            }
+        });
+        return output;
+    }
+
+    @JsonIgnore
+    public Set<ArtifactOption> fetchArtifactOption() {
+        var output = new LinkedHashSet<ArtifactOption>();
+        forEachBottomUp(this, (n) -> {
+            if (n.hasArtifact()) {
+                output.addAll(n.artifacts);
             }
         });
         return output;
