@@ -16,9 +16,9 @@
 
 package com.flowci.parser.v1;
 
-import com.flowci.domain.DockerOption;
+import com.flowci.domain.tree.DockerOption;
 import com.flowci.exception.YmlException;
-import com.flowci.parser.domain.NodePath;
+import com.flowci.domain.tree.NodePath;
 import com.google.common.io.Files;
 import org.junit.Assert;
 import org.junit.Before;

@@ -23,7 +23,7 @@ import com.flowci.domain.StringVars;
 import com.flowci.domain.VarValue;
 import com.flowci.domain.Vars;
 import com.flowci.exception.ArgumentException;
-import com.flowci.parser.domain.NodePath;
+import com.flowci.domain.tree.NodePath;
 import com.flowci.store.Pathable;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableSet;

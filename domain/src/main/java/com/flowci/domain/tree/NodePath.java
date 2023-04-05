@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flowci.parser.domain;
+package com.flowci.domain.tree;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;

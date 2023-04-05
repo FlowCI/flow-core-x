@@ -1,6 +1,6 @@
 package com.flowci.core.agent.domain;
 
-import com.flowci.domain.DockerOption;
+import com.flowci.domain.tree.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.parser.v1.Cache;

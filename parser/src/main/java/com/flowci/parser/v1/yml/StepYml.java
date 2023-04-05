@@ -17,7 +17,7 @@
 package com.flowci.parser.v1.yml;
 
 import com.flowci.exception.YmlException;
-import com.flowci.parser.domain.NodePath;
+import com.flowci.domain.tree.NodePath;
 import com.flowci.parser.v1.*;
 import com.flowci.util.FileHelper;
 import com.flowci.util.ObjectsHelper;

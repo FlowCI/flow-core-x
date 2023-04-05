@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flowci.domain;
+package com.flowci.domain.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;

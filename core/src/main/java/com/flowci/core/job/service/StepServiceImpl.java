@@ -25,7 +25,7 @@ import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.StepUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.exception.NotFoundException;
-import com.flowci.parser.domain.NodePath;
+import com.flowci.domain.tree.NodePath;
 import com.flowci.parser.v1.*;
 import com.flowci.util.StringHelper;
 import com.github.benmanes.caffeine.cache.Cache;
