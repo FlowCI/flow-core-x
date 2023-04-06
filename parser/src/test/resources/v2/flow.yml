@@ -16,40 +16,41 @@ agents:
 docker:
   image: "helloworld:0.1"
 
-#steps:
-#  step-1:
-#    bash: "echo step 1"
-#
-#  step-2:
-#    bash: "echo step 2"
-#    dependencies:
-#      - step-1
-#    steps:
-#      step-2-1:
-#        bash: "echo step-2-1"
-#      step-2-2:
-#        bash: "echo step-2-2"
-#
-#  step-3:
-#    bash: "echo step 3"
-#    dependencies:
-#      - step-1
-#    steps:
-#      step-3-1:
-#        bash: "echo step-3-1"
-#      step-3-2:
-#        bash: "echo step-3-2"
-#
-#  step-4:
-#    bash: "echo step 4"
-#    dependencies:
-#      - step-2
-#      - step-3
-#
-#  step-5:
-#    bash: "echo step 5"
-#    dependencies:
-#      - step-4
+steps:
+  step-1:
+    bash: "echo step 1"
+
+  step-2:
+    bash: "echo step 2"
+    dependencies:
+      - step-1
+    steps:
+      step-2-1:
+        bash: "echo step-2-1"
+      step-2-2:
+        bash: "echo step-2-2"
+
+  step-3:
+    bash: "echo step 3"
+    dependencies:
+      - step-1
+    steps:
+      step-3-1:
+        bash: "echo step-3-1"
+
+  step-4:
+    bash: "echo step 4"
+    dependencies:
+      - step-2
+      - step-3
+    artifacts:
+      - name: jar
+        paths: [ "/path/jar", "/var/pwd" ]
+
+  step-5:
+    bash: "echo step 5"
+    dependencies:
+      - step-4
 
   #
   #       / 2 (2.1 - > 2.2) \
