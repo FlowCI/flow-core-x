@@ -19,6 +19,7 @@ package com.flowci.util;
 import java.io.*;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -58,11 +59,20 @@ public abstract class ObjectsHelper {
         return fields;
     }
 
+    public static boolean isPublicStaticFinal(Field field) {
+        int modifiers = field.getModifiers();
+        return Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers);
+    }
+
     public static <T> void merge(T from, T to) throws ReflectiveOperationException {
         Set<Field> fields = fields(from.getClass());
 
         for (Field field : fields) {
             String fieldName = field.getName();
+
+            if (isPublicStaticFinal(field)) {
+                continue;
+            }
 
             // for $jacocoData
             if (fieldName.startsWith("$")) {

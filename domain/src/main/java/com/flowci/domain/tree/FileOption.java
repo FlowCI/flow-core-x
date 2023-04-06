@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "name")
-public abstract class FileOption implements Serializable {
+public class FileOption implements Serializable {
 
     private String name;
 

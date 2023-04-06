@@ -1,7 +1,6 @@
 package com.flowci.domain;
 
-import com.flowci.domain.tree.ArtifactOption;
-import com.flowci.domain.tree.CacheOption;
+import com.flowci.domain.tree.FileOption;
 import com.flowci.domain.tree.StepNode;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +22,7 @@ public class StepNodeTest {
                 .secrets(Set.of("root-secret"))
                 .condition("condition from root")
                 .timeout(10)
-                .caches(Set.of(CacheOption.builder()
+                .caches(Set.of(FileOption.builder()
                         .name("report")
                         .paths(List.of("/path/a", "/path/b"))
                         .build()))
@@ -37,11 +36,11 @@ public class StepNodeTest {
                 .configs(Set.of("parent-config"))
                 .condition("condition from parent")
                 .timeout(5)
-                .caches(Set.of(CacheOption.builder()
+                .caches(Set.of(FileOption.builder()
                         .name("jar")
                         .paths(List.of("/path/b", "/java/jar"))
                         .build()))
-                .artifacts(Set.of(ArtifactOption.builder()
+                .artifacts(Set.of(FileOption.builder()
                         .name("jar")
                         .paths(List.of("/path/output"))
                         .build()))
@@ -54,7 +53,7 @@ public class StepNodeTest {
                 .exports(new HashSet<>())
                 .configs(Set.of("child-config-1", "child-config-2"))
                 .condition("condition from child")
-                .caches(Set.of(CacheOption.builder()
+                .caches(Set.of(FileOption.builder()
                         .name("report")
                         .paths(List.of("/path/c"))
                         .build()))

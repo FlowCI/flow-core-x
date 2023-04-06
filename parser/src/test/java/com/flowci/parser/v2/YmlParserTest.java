@@ -1,5 +1,6 @@
 package com.flowci.parser.v2;
 
+import com.flowci.domain.tree.StepNode;
 import com.flowci.parser.TestUtil;
 import com.flowci.parser.v2.yml.FlowYml;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,19 @@ public class YmlParserTest {
 
         shouldParseFlowYmlProperties(flow);
         shouldParseStepYmlProperties(flow);
+        shouldConvertToFlowNode(flow);
+    }
+
+    private void shouldConvertToFlowNode(FlowYml flowYml) {
+        var flow = flowYml.convert();
+        assertNotNull(flow);
+        assertEquals(5, flow.getSteps().size());
+
+        var step2 = flow.getSteps().get(1);
+        assertEquals(2, step2.getSteps().size());
+
+        var step3 = flow.getSteps().get(2);
+        assertEquals(1, step3.getSteps().size());
     }
 
     private void shouldParseStepYmlProperties(FlowYml flow) {

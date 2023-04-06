@@ -75,12 +75,17 @@ public class StepNode extends Node {
     /**
      * Cache of step
      */
-    private Set<CacheOption> caches;
+    private Set<FileOption> caches;
 
     /**
      * Artifact of step
      */
-    private Set<ArtifactOption> artifacts;
+    private Set<FileOption> artifacts;
+
+    /**
+     * Dependency step name
+     */
+    private List<String> dependencies;
 
     /**
      * Indicate step as stage if there is no children steps
@@ -237,8 +242,8 @@ public class StepNode extends Node {
     }
 
     @JsonIgnore
-    public Set<CacheOption> fetchCacheOption() {
-        var output = new LinkedHashSet<CacheOption>();
+    public Set<FileOption> fetchCacheOption() {
+        var output = new LinkedHashSet<FileOption>();
         forEachBottomUp(this, (n) -> {
             if (n.hasCaches()) {
                 output.addAll(n.caches);
@@ -248,8 +253,8 @@ public class StepNode extends Node {
     }
 
     @JsonIgnore
-    public Set<ArtifactOption> fetchArtifactOption() {
-        var output = new LinkedHashSet<ArtifactOption>();
+    public Set<FileOption> fetchArtifactOption() {
+        var output = new LinkedHashSet<FileOption>();
         forEachBottomUp(this, (n) -> {
             if (n.hasArtifact()) {
                 output.addAll(n.artifacts);

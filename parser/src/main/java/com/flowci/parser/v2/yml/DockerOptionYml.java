@@ -1,5 +1,6 @@
 package com.flowci.parser.v2.yml;
 
+import com.flowci.domain.tree.DockerOption;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,7 +9,7 @@ import java.util.Map;
 
 @Setter
 @Getter
-public class DockerOptionYml {
+public class DockerOptionYml implements Convertable<DockerOption> {
 
     private String image;
 
@@ -26,9 +27,26 @@ public class DockerOptionYml {
 
     private Map<String, String> environment;
 
-    private Boolean is_runtime;
+    private Boolean is_runtime = Boolean.FALSE;
 
-    private Boolean stop_on_finish;
+    private Boolean stop_on_finish = Boolean.TRUE;
 
-    private Boolean delete_on_finish;
+    private Boolean delete_on_finish = Boolean.TRUE;
+
+    @Override
+    public DockerOption convert() {
+        return DockerOption.builder()
+                .image(image)
+                .auth(auth)
+                .name(name)
+                .network(network)
+                .ports(ports)
+                .entrypoint(entrypoint)
+                .command(command)
+                .environment(environment)
+                .runtime(is_runtime)
+                .stopContainer(stop_on_finish)
+                .deleteContainer(delete_on_finish)
+                .build();
+    }
 }

@@ -43,14 +43,24 @@ public abstract class Node implements Serializable {
     protected List<String> agents;
 
     /**
-     * Parent node
+     * Docker options
+     */
+    protected DockerOption docker;
+
+    /**
+     * Parent node of tree structure
      */
     protected Node parent;
 
     /**
-     * Children steps
+     * Children steps represent origin yaml config
      */
     protected List<StepNode> steps;
+
+    /**
+     * Children steps represent tree structure
+     */
+    protected List<StepNode> children;
 
     public boolean hasParent() {
         return parent != null;
