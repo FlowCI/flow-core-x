@@ -19,8 +19,8 @@ package com.flowci.parser.v1;
 import com.flowci.exception.YmlException;
 import com.flowci.parser.v1.yml.FlowYml;
 import com.flowci.parser.v1.yml.StepYml;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class FlowYmlTest {
 
@@ -36,10 +36,10 @@ public class FlowYmlTest {
         other.getSteps().add(stepYml);
 
         main.merge(other);
-        Assert.assertEquals(main.getSteps(), other.getSteps());
+        Assertions.assertEquals(main.getSteps(), other.getSteps());
     }
 
-    @Test(expected = YmlException.class)
+    @Test
     public void should_throw_yml_exception_on_duplicated_element() {
         var stepYml = new StepYml();
         stepYml.setName("step");
@@ -51,6 +51,6 @@ public class FlowYmlTest {
         FlowYml other = new FlowYml();
         other.getSteps().add(stepYml);
 
-        main.merge(other);
+        Assertions.assertThrows(YmlException.class, () -> main.merge(other));
     }
 }

@@ -21,16 +21,14 @@ import com.flowci.parser.v1.FlowNode;
 import com.flowci.parser.v1.Node;
 import com.flowci.domain.tree.NodePath;
 import com.flowci.parser.v1.Selector;
+import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.flowci.util.ObjectsHelper.*;
 
@@ -52,26 +50,11 @@ public class FlowYml extends YmlBase<FlowNode> {
      * it will through YMLException if elements are duplicated
      */
     @SneakyThrows
-    public void merge(FlowYml flowYml) {
-        Set<Field> fields = fields(FlowYml.class);
-        for (Field field : fields) {
-            String fieldName = field.getName();
-
-            // for $jacocoData
-            if (fieldName.startsWith("$")) {
-                continue;
-            }
-
-            boolean hasValueOnThis = hasValue(this, field);
-            boolean hasValueOnOther = hasValue(flowYml, field);
-
-            if (hasValueOnThis && hasValueOnOther) {
-                throw new YmlException("Duplicated YAML " + fieldName);
-            }
-
-            if (hasValueOnOther) {
-                field.set(this, field.get(flowYml));
-            }
+    public void merge(FlowYml other) {
+        try {
+            ObjectsHelper.merge(other, this);
+        } catch (DuplicateFormatFlagsException e) {
+            throw new YmlException(e.getMessage());
         }
     }
 

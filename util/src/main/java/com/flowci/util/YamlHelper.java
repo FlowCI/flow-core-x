@@ -20,8 +20,10 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.DumperOptions.LineBreak;
 import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.introspector.PropertyUtils;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.util.Map;
@@ -31,11 +33,15 @@ import java.util.Map;
  */
 public abstract class YamlHelper {
 
+    private static final LoaderOptions LOADER_OPTIONS = new LoaderOptions();
+
     private static final DumperOptions DUMPER_OPTIONS = new DumperOptions();
 
     private static final LineBreak LINE_BREAK = LineBreak.getPlatformLineBreak();
 
     static {
+        LOADER_OPTIONS.setAllowDuplicateKeys(false);
+
         DUMPER_OPTIONS.setIndent(2);
         DUMPER_OPTIONS.setIndicatorIndent(0);
         DUMPER_OPTIONS.setExplicitStart(true);
@@ -44,14 +50,13 @@ public abstract class YamlHelper {
         DUMPER_OPTIONS.setLineBreak(LINE_BREAK);
     }
 
-    public static Yaml create(Map<String, Integer> order, Class<? extends Object> root) {
-        Constructor rootConstructor = new Constructor(root);
-        Representer representer = new YamlOrderedSkipEmptyRepresenter(order);
-        return new Yaml(rootConstructor, representer, DUMPER_OPTIONS);
-    }
-
     public static Yaml create(Class<?> root) {
-        Constructor constructor = new Constructor(root);
+        PropertyUtils propertyUtils = new PropertyUtils();
+        propertyUtils.setSkipMissingProperties(true);
+
+        Constructor constructor = new Constructor(root, LOADER_OPTIONS);
+        constructor.setPropertyUtils(propertyUtils);
+
         return new Yaml(constructor);
     }
 }

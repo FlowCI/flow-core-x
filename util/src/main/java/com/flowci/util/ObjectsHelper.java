@@ -17,9 +17,11 @@
 package com.flowci.util;
 
 import java.io.*;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author yang
@@ -54,6 +56,30 @@ public abstract class ObjectsHelper {
             fields.addAll(Arrays.asList(c.getDeclaredFields()));
         }
         return fields;
+    }
+
+    public static <T> void merge(T from, T to) throws ReflectiveOperationException {
+        Set<Field> fields = fields(from.getClass());
+
+        for (Field field : fields) {
+            String fieldName = field.getName();
+
+            // for $jacocoData
+            if (fieldName.startsWith("$")) {
+                continue;
+            }
+
+            boolean hasValueOnFrom = hasValue(from, field);
+            boolean hasValueOnTo = hasValue(to, field);
+
+            if (hasValueOnFrom && hasValueOnTo) {
+                throw new DuplicateFormatFlagsException("Duplicated value on filed " + fieldName);
+            }
+
+            if (hasValueOnFrom) {
+                field.set(to, field.get(from));
+            }
+        }
     }
 
     public static <T> boolean hasValue(T instance, Field field) throws ReflectiveOperationException {

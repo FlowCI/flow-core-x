@@ -27,7 +27,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <revision>1.23.01</revision>
         <guava.version>31.0.1-jre</guava.version>
-        <junit.version>4.13.1</junit.version>
         <springboot.version>2.6.0</springboot.version>
         <curator.version>4.3.0</curator.version>
         <wiremock.version>2.18.0</wiremock.version>
@@ -40,6 +39,7 @@
         <minio.version>6.0.11</minio.version>
         <log4j.version>2.18.0</log4j.version>
         <kubernetes-client.version>5.11.1</kubernetes-client.version>
+        <snakeyaml.version>2.0</snakeyaml.version>
     </properties>
 
     <build>
@@ -167,11 +167,9 @@
             </dependency>
 
             <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${springboot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml.version}</version>
             </dependency>
 
             <dependency>
@@ -227,14 +225,20 @@
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-test</artifactId>
                 <version>${curator.version}</version>
-                <scope>test</scope>
             </dependency>
 
             <dependency>
                 <groupId>com.github.tomakehurst</groupId>
                 <artifactId>wiremock</artifactId>
                 <version>${wiremock.version}</version>
-                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${springboot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

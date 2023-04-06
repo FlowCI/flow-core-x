@@ -19,8 +19,7 @@ package com.flowci.domain.tree;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flowci.util.StringHelper;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -31,7 +30,9 @@ import java.util.Map;
 
 @Getter
 @Setter
-@Accessors(chain = true)
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class DockerOption implements Serializable {
 
     private String image;
