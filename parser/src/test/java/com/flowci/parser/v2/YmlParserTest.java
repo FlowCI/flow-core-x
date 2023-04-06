@@ -1,6 +1,5 @@
 package com.flowci.parser.v2;
 
-import com.flowci.domain.tree.StepNode;
 import com.flowci.parser.TestUtil;
 import com.flowci.parser.v2.yml.FlowYml;
 import org.junit.jupiter.api.Test;
@@ -122,8 +121,9 @@ public class YmlParserTest {
 
         assertEquals("return $FLOWCI_GIT_BRANCH == \"develop\" || $FLOWCI_GIT_BRANCH == \"master\";\n", flow.getCondition());
 
-        var dockerOptions = flow.getDocker();
-        assertEquals("helloworld:0.1", dockerOptions.getImage());
+        var dockers = flow.getDockers();
+        assertEquals(1, dockers.size());
+        assertEquals("helloworld:0.1", dockers.get(0).getImage());
 
         var agents = flow.getAgents();
         assertEquals(3, agents.size());

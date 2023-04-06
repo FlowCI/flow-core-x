@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Setter
 @Getter
@@ -35,6 +36,8 @@ public class DockerOptionYml implements Convertable<DockerOption> {
 
     @Override
     public DockerOption convert() {
+        Objects.requireNonNull(image, "Docker image must be specified");
+
         return DockerOption.builder()
                 .image(image)
                 .auth(auth)

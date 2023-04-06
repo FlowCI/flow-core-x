@@ -13,8 +13,8 @@ agents:
   - "stage"
   - "prod"
 
-docker:
-  image: "helloworld:0.1"
+dockers:
+  - image: "helloworld:0.1"
 
 steps:
   step-1:

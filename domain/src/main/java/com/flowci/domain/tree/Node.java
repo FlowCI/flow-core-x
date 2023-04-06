@@ -45,7 +45,7 @@ public abstract class Node implements Serializable {
     /**
      * Docker options
      */
-    protected DockerOption docker;
+    protected List<DockerOption> dockers;
 
     /**
      * Parent node of tree structure

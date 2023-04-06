@@ -1,7 +1,9 @@
 package com.flowci.parser.v2.yml;
 
 import com.flowci.domain.StringVars;
+import com.flowci.domain.tree.NodePath;
 import com.flowci.domain.tree.StepNode;
+import com.flowci.exception.YmlException;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -54,7 +56,7 @@ public class StepYml extends NodeYml implements Convertable<StepNode> {
         return StepNode.builder()
                 .vars(new StringVars(vars))
                 .condition(condition)
-                .docker(docker == null ? null : docker.convert())
+                .dockers(dockers.stream().map(DockerOptionYml::convert).toList())
                 .agents(agents)
                 .bash(bash)
                 .pwsh(pwsh)
@@ -69,11 +71,7 @@ public class StepYml extends NodeYml implements Convertable<StepNode> {
                 .configs(new HashSet<>(configs))
                 .caches(new HashSet<>(caches.stream().map(FileOptionYml::convert).toList()))
                 .artifacts(new HashSet<>(artifacts.stream().map(FileOptionYml::convert).toList()))
-                .steps(steps.entrySet().stream().map(entry -> {
-                    StepNode node = entry.getValue().convert();
-                    node.setName(entry.getKey());
-                    return node;
-                }).toList())
+                .steps(toStepNodeList())
                 .build();
     }
 }
