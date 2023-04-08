@@ -10,7 +10,7 @@ import java.util.Objects;
 
 @Setter
 @Getter
-public class DockerOptionYml implements Convertable<DockerOption> {
+public class DockerOptionYml implements Convertable<DockerOption, Void> {
 
     private String image;
 
@@ -35,7 +35,7 @@ public class DockerOptionYml implements Convertable<DockerOption> {
     private Boolean delete_on_finish = Boolean.TRUE;
 
     @Override
-    public DockerOption convert() {
+    public DockerOption convert(Void ...ignore) {
         Objects.requireNonNull(image, "Docker image must be specified");
 
         return DockerOption.builder()

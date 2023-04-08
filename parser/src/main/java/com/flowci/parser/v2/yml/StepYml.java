@@ -1,9 +1,7 @@
 package com.flowci.parser.v2.yml;
 
 import com.flowci.domain.StringVars;
-import com.flowci.domain.tree.NodePath;
 import com.flowci.domain.tree.StepNode;
-import com.flowci.exception.YmlException;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,7 +11,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class StepYml extends NodeYml implements Convertable<StepNode> {
+public class StepYml extends NodeYml implements Convertable<StepNode, Integer> {
 
     /**
      * Bash script
@@ -52,7 +50,9 @@ public class StepYml extends NodeYml implements Convertable<StepNode> {
     private List<FileOptionYml> artifacts = new LinkedList<>();
 
     @Override
-    public StepNode convert() {
+    public StepNode convert(Integer ...params) {
+        int depth = params[0];
+
         return StepNode.builder()
                 .vars(new StringVars(vars))
                 .condition(condition)
@@ -71,7 +71,7 @@ public class StepYml extends NodeYml implements Convertable<StepNode> {
                 .configs(new HashSet<>(configs))
                 .caches(new HashSet<>(caches.stream().map(FileOptionYml::convert).toList()))
                 .artifacts(new HashSet<>(artifacts.stream().map(FileOptionYml::convert).toList()))
-                .steps(toStepNodeList())
+                .steps(toStepNodeList(depth))
                 .build();
     }
 }

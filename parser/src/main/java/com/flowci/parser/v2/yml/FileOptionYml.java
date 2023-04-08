@@ -8,14 +8,14 @@ import java.util.List;
 
 @Setter
 @Getter
-public class FileOptionYml implements Convertable<FileOption> {
+public class FileOptionYml implements Convertable<FileOption, Void> {
 
     private String name;
 
     private List<String> paths;
 
     @Override
-    public FileOption convert() {
+    public FileOption convert(Void ...ignore) {
         return FileOption.builder()
                 .name(name)
                 .paths(paths)

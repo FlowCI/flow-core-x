@@ -16,7 +16,7 @@ import static com.flowci.util.ObjectsHelper.hasCollection;
 
 @Getter
 @Setter
-public class FlowYml extends NodeYml implements Convertable<FlowNode> {
+public class FlowYml extends NodeYml implements Convertable<FlowNode, Void> {
 
     public static final String DEFAULT_NAME = "root";
 
@@ -34,7 +34,7 @@ public class FlowYml extends NodeYml implements Convertable<FlowNode> {
     }
 
     @Override
-    public FlowNode convert() {
+    public FlowNode convert(Void ...ignore) {
         if (!hasCollection(steps)) {
             throw new YmlException("The 'steps' section must be defined");
         }
@@ -49,7 +49,7 @@ public class FlowYml extends NodeYml implements Convertable<FlowNode> {
                 .condition(condition)
                 .dockers(dockers.stream().map(DockerOptionYml::convert).toList())
                 .agents(agents)
-                .steps(toStepNodeList())
+                .steps(toStepNodeList(1))
                 .build();
     }
 }

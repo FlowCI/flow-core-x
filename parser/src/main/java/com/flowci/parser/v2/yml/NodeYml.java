@@ -15,6 +15,8 @@ import java.util.Map;
 @Setter
 public abstract class NodeYml {
 
+    protected final static int MaxStepDepth = 2;
+
     protected Map<String, String> vars = new LinkedHashMap<>();
 
     protected String condition;
@@ -31,7 +33,11 @@ public abstract class NodeYml {
      */
     protected Map<String, StepYml> steps = new LinkedHashMap<>();
 
-    protected List<StepNode> toStepNodeList() {
+    protected List<StepNode> toStepNodeList(int depth) {
+        if (depth > MaxStepDepth) {
+            throw new YmlException("Max step depth is 2");
+        }
+
         return steps.entrySet().stream().map(entry -> {
             String name = entry.getKey();
 
@@ -39,7 +45,7 @@ public abstract class NodeYml {
                 throw new YmlException("Invalid name '{0}'", name);
             }
 
-            StepNode node = entry.getValue().convert();
+            StepNode node = entry.getValue().convert(depth + 1);
             node.setName(name);
             return node;
         }).toList();

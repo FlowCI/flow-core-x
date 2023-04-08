@@ -1,7 +1,9 @@
 package com.flowci.parser.v2;
 
+import com.flowci.exception.YmlException;
 import com.flowci.parser.TestUtil;
 import com.flowci.parser.v2.yml.FlowYml;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -19,6 +21,13 @@ public class YmlParserTest {
         shouldParseFlowYmlProperties(flow);
         shouldParseStepYmlProperties(flow);
         shouldConvertToFlowNode(flow);
+    }
+
+    @Test
+    void whenConvertToFlowNode_thenShouldThrowExceptionIfStepDepthOverTwo() throws IOException {
+        var yml = TestUtil.loadContent("v2/flow-over-2-depth.yml");
+        var flowYml = YmlParser.load(yml);
+        Assertions.assertThrows(YmlException.class, flowYml::convert);
     }
 
     private void shouldConvertToFlowNode(FlowYml flowYml) {

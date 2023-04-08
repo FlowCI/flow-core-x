@@ -1,6 +1,6 @@
 package com.flowci.parser.v2.yml;
 
-public interface Convertable<T> {
+public interface Convertable<T, P> {
 
-    T convert();
+    T convert(P ...params);
 }

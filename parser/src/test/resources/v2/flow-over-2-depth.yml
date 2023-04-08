@@ -1,0 +1,21 @@
+version: 2
+name: root
+
+steps:
+  step-1:
+    bash: "echo step 1"
+
+  step-2:
+    bash: "echo step 2"
+    dependencies:
+      - step-1
+    steps:
+      step-2-1:
+        bash: "echo step-2-1"
+        steps:
+          step-2-1-1:
+            bash: "not allowed here"
+
+      step-2-2:
+        bash: "echo step-2-2"
+
