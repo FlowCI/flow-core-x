@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flowci.domain.tree;
+package com.flowci.domain.node;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;

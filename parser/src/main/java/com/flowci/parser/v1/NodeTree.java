@@ -17,7 +17,7 @@
 package com.flowci.parser.v1;
 
 import com.flowci.exception.ArgumentException;
-import com.flowci.domain.tree.NodePath;
+import com.flowci.domain.node.NodePath;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.Getter;

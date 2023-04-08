@@ -46,7 +46,7 @@ import com.flowci.domain.Vars;
 import com.flowci.exception.CIException;
 import com.flowci.exception.NotAvailableException;
 import com.flowci.exception.StatusException;
-import com.flowci.domain.tree.NodePath;
+import com.flowci.domain.node.NodePath;
 import com.flowci.sm.*;
 import com.flowci.parser.v1.*;
 import com.flowci.util.ObjectsHelper;

@@ -1,6 +1,6 @@
 package com.flowci.parser.v2.yml;
 
-import com.flowci.domain.tree.FileOption;
+import com.flowci.domain.node.FileOption;
 import lombok.Getter;
 import lombok.Setter;
 

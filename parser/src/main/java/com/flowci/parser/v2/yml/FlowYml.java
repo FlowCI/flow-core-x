@@ -1,8 +1,8 @@
 package com.flowci.parser.v2.yml;
 
 import com.flowci.domain.StringVars;
-import com.flowci.domain.tree.FlowNode;
-import com.flowci.domain.tree.NodePath;
+import com.flowci.domain.node.FlowNode;
+import com.flowci.domain.node.NodePath;
 import com.flowci.exception.YmlException;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;

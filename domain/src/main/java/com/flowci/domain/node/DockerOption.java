@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.flowci.domain.tree;
+package com.flowci.domain.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flowci.util.StringHelper;
 import lombok.*;
-import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.HashMap;

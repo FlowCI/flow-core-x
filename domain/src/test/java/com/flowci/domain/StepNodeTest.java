@@ -1,7 +1,7 @@
 package com.flowci.domain;
 
-import com.flowci.domain.tree.FileOption;
-import com.flowci.domain.tree.StepNode;
+import com.flowci.domain.node.FileOption;
+import com.flowci.domain.node.StepNode;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;

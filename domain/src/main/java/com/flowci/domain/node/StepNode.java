@@ -1,4 +1,4 @@
-package com.flowci.domain.tree;
+package com.flowci.domain.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.domain.ObjectWrapper;

@@ -1,4 +1,4 @@
-package com.flowci.domain.tree;
+package com.flowci.domain.node;
 
 import lombok.*;
 import lombok.experimental.SuperBuilder;

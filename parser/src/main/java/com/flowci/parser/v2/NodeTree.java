@@ -1,9 +1,13 @@
-package com.flowci.domain.tree;
+package com.flowci.parser.v2;
 
+import com.flowci.domain.node.FlowNode;
+import com.flowci.domain.node.Node;
+import com.flowci.domain.node.NodePath;
+import com.flowci.domain.node.StepNode;
+import com.flowci.parser.Tree;
 import lombok.Getter;
 
 import java.util.Collection;
-import java.util.List;
 
 @Getter
 public class NodeTree implements Tree {
@@ -37,5 +41,9 @@ public class NodeTree implements Tree {
     @Override
     public Collection<StepNode> previous(StepNode current) {
         return null;
+    }
+
+    private void buildGraph(Node flow) {
+
     }
 }

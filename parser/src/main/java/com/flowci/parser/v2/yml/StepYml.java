@@ -1,7 +1,7 @@
 package com.flowci.parser.v2.yml;
 
 import com.flowci.domain.StringVars;
-import com.flowci.domain.tree.StepNode;
+import com.flowci.domain.node.StepNode;
 import lombok.Getter;
 import lombok.Setter;
 

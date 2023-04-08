@@ -16,7 +16,7 @@
 
 package com.flowci.parser.v1.yml;
 
-import com.flowci.domain.tree.DockerOption;
+import com.flowci.domain.node.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.exception.YmlException;
 import com.flowci.parser.v1.Node;

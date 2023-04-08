@@ -1,6 +1,6 @@
 package com.flowci.parser.v2.yml;
 
-import com.flowci.domain.tree.DockerOption;
+import com.flowci.domain.node.DockerOption;
 import lombok.Getter;
 import lombok.Setter;
 

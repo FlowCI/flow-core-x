@@ -19,7 +19,7 @@ package com.flowci.parser.v1.yml;
 import com.flowci.exception.YmlException;
 import com.flowci.parser.v1.FlowNode;
 import com.flowci.parser.v1.Node;
-import com.flowci.domain.tree.NodePath;
+import com.flowci.domain.node.NodePath;
 import com.flowci.parser.v1.Selector;
 import com.flowci.util.ObjectsHelper;
 import lombok.Getter;
@@ -27,7 +27,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 import static com.flowci.util.ObjectsHelper.*;

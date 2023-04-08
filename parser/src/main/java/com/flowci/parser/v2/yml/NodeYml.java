@@ -1,7 +1,7 @@
 package com.flowci.parser.v2.yml;
 
-import com.flowci.domain.tree.NodePath;
-import com.flowci.domain.tree.StepNode;
+import com.flowci.domain.node.NodePath;
+import com.flowci.domain.node.StepNode;
 import com.flowci.exception.YmlException;
 import lombok.Getter;
 import lombok.Setter;

@@ -18,7 +18,7 @@ package com.flowci.core.job.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.agent.domain.ShellOut;
-import com.flowci.domain.tree.DockerOption;
+import com.flowci.domain.node.DockerOption;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.util.StringHelper;

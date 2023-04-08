@@ -1,4 +1,4 @@
-package com.flowci.domain.tree;
+package com.flowci.domain.node;
 
 import com.flowci.domain.StringVars;
 import lombok.EqualsAndHashCode;

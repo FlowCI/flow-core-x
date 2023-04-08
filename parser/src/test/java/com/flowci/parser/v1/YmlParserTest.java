@@ -16,19 +16,15 @@
 
 package com.flowci.parser.v1;
 
-import com.flowci.domain.tree.DockerOption;
+import com.flowci.domain.node.DockerOption;
 import com.flowci.exception.YmlException;
-import com.flowci.domain.tree.NodePath;
+import com.flowci.domain.node.NodePath;
 import com.flowci.parser.TestUtil;
-import com.google.common.io.Files;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;

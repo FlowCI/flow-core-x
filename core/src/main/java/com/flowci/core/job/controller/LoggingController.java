@@ -21,7 +21,7 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.JobAction;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.service.LoggingService;
-import com.flowci.domain.tree.NodePath;
+import com.flowci.domain.node.NodePath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
