@@ -34,7 +34,7 @@ public class FlowYml extends NodeYml implements Convertable<FlowNode, Void> {
     }
 
     @Override
-    public FlowNode convert(Void ...ignore) {
+    public FlowNode convert(Void... ignore) {
         if (!hasCollection(steps)) {
             throw new YmlException("The 'steps' section must be defined");
         }
@@ -43,13 +43,15 @@ public class FlowYml extends NodeYml implements Convertable<FlowNode, Void> {
             throw new YmlException("Invalid flow name");
         }
 
-        return FlowNode.builder()
+        FlowNode flowNode = FlowNode.builder()
                 .name(StringHelper.hasValue(name) ? name : DEFAULT_NAME)
                 .vars(new StringVars(vars))
                 .condition(condition)
                 .dockers(dockers.stream().map(DockerOptionYml::convert).toList())
                 .agents(agents)
-                .steps(toStepNodeList(1))
                 .build();
+
+        flowNode.setSteps(toStepNodeList(flowNode, 1));
+        return flowNode;
     }
 }

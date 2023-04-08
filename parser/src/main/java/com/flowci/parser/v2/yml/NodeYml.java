@@ -1,15 +1,13 @@
 package com.flowci.parser.v2.yml;
 
+import com.flowci.domain.node.Node;
 import com.flowci.domain.node.NodePath;
 import com.flowci.domain.node.StepNode;
 import com.flowci.exception.YmlException;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 @Setter
@@ -33,7 +31,11 @@ public abstract class NodeYml {
      */
     protected Map<String, StepYml> steps = new LinkedHashMap<>();
 
-    protected List<StepNode> toStepNodeList(int depth) {
+    protected List<StepNode> toStepNodeList(Node parent, int depth) {
+        if (steps.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         if (depth > MaxStepDepth) {
             throw new YmlException("Max step depth is 2");
         }
@@ -46,6 +48,7 @@ public abstract class NodeYml {
             }
 
             StepNode node = entry.getValue().convert(depth + 1);
+            node.setParent(parent);
             node.setName(name);
             return node;
         }).toList();

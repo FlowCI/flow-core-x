@@ -35,11 +35,18 @@ public class YmlParserTest {
         assertNotNull(flow);
         assertEquals(5, flow.getSteps().size());
 
+        for (var flowStep : flow.getSteps()) {
+            assertEquals(flow, flowStep.getParent());
+        }
+
         var step2 = flow.getSteps().get(1);
         assertEquals(2, step2.getSteps().size());
+        assertEquals(step2, step2.getSteps().get(0).getParent());
+        assertEquals(step2, step2.getSteps().get(1).getParent());
 
         var step3 = flow.getSteps().get(2);
         assertEquals(1, step3.getSteps().size());
+        assertEquals(step3, step3.getSteps().get(0).getParent());
     }
 
     private void shouldParseStepYmlProperties(FlowYml flow) {

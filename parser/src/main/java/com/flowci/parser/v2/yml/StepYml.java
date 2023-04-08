@@ -53,7 +53,7 @@ public class StepYml extends NodeYml implements Convertable<StepNode, Integer> {
     public StepNode convert(Integer ...params) {
         int depth = params[0];
 
-        return StepNode.builder()
+        var stepNode = StepNode.builder()
                 .vars(new StringVars(vars))
                 .condition(condition)
                 .dockers(dockers.stream().map(DockerOptionYml::convert).toList())
@@ -71,7 +71,9 @@ public class StepYml extends NodeYml implements Convertable<StepNode, Integer> {
                 .configs(new HashSet<>(configs))
                 .caches(new HashSet<>(caches.stream().map(FileOptionYml::convert).toList()))
                 .artifacts(new HashSet<>(artifacts.stream().map(FileOptionYml::convert).toList()))
-                .steps(toStepNodeList(depth))
                 .build();
+
+        stepNode.setSteps(toStepNodeList(stepNode, depth));
+        return stepNode;
     }
 }

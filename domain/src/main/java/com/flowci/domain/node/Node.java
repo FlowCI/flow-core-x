@@ -48,19 +48,14 @@ public abstract class Node implements Serializable {
     protected List<DockerOption> dockers;
 
     /**
-     * Parent node of tree structure
+     * Parent node in origin config
      */
     protected Node parent;
 
     /**
-     * Children steps represent origin yaml config
+     * Children steps in origin config
      */
     protected List<StepNode> steps;
-
-    /**
-     * Children steps represent tree structure
-     */
-    protected List<StepNode> children;
 
     public boolean hasParent() {
         return parent != null;
