@@ -2,6 +2,7 @@ package com.flowci.parser.v2.yml;
 
 import com.flowci.domain.StringVars;
 import com.flowci.domain.node.StepNode;
+import com.flowci.exception.YmlException;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -52,6 +53,10 @@ public class StepYml extends NodeYml implements Convertable<StepNode, Integer> {
     @Override
     public StepNode convert(Integer ...params) {
         int depth = params[0];
+
+        if (depth == MaxStepDepth && dependencies.size() > 0) {
+            throw new YmlException("The 'dependencies' not allowed on sub steps");
+        }
 
         var stepNode = StepNode.builder()
                 .vars(new StringVars(vars))

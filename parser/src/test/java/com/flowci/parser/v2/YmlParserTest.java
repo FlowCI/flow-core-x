@@ -24,8 +24,15 @@ public class YmlParserTest {
     }
 
     @Test
-    void whenConvertToFlowNode_thenShouldThrowExceptionIfStepDepthOverTwo() throws IOException {
+    void whenStepDepthOverTwo_thenShouldThrowException() throws IOException {
         var yml = TestUtil.loadContent("v2/flow-over-2-depth.yml");
+        var flowYml = YmlParser.parse(yml);
+        Assertions.assertThrows(YmlException.class, flowYml::convert);
+    }
+
+    @Test
+    void whenSubStepHasDependencies_thenShouldThrowException() throws IOException {
+        var yml = TestUtil.loadContent("v2/flow-sub-step-with-dependencies.yml");
         var flowYml = YmlParser.parse(yml);
         Assertions.assertThrows(YmlException.class, flowYml::convert);
     }
