@@ -45,26 +45,45 @@ public class ExecutionGraphV2Test {
         assertEquals(1, step2.getParents().size());
         assertEquals(step1, step2.getParents().get(0));
 
+        var step2Children = step2.getChildren();
+        assertEquals(1, step2Children.size());
+
+        var step2_1 = step2Children.get(0);
+        assertEquals("step-2-1", step2_1.getName());
+        assertEquals("root/step-2/step-2-1", step2_1.getPath());
+        assertEquals(1, step2_1.getChildren().size());
+        assertEquals(1, step2_1.getParents().size());
+        assertEquals(step2, step2_1.getParents().get(0));
+
+        var step2_2 = step2_1.getChildren().get(0);
+        assertEquals("step-2-2", step2_2.getName());
+        assertEquals("root/step-2/step-2-2", step2_2.getPath());
+        assertEquals(1, step2_2.getParents().size());
+        assertEquals(step2_1, step2_2.getParents().get(0));
+
         var step3 = step1Children.get(1);
         assertEquals("step-3", step3.getName());
         assertEquals("root/step-3", step3.getPath());
         assertEquals(1, step3.getParents().size());
         assertEquals(step1, step3.getParents().get(0));
 
-        var step2Children = step2.getChildren();
-        assertEquals(1, step2Children.size());
-
         var step3Children = step3.getChildren();
         assertEquals(1, step3Children.size());
 
-        assertEquals(step2Children.get(0), step3Children.get(0));
+        var step3_1 = step3Children.get(0);
+        assertEquals("step-3-1", step3_1.getName());
+        assertEquals("root/step-3/step-3-1", step3_1.getPath());
+        assertEquals(1, step3_1.getParents().size());
+        assertEquals(step3, step3_1.getParents().get(0));
 
-        var step4 = step2.getChildren().get(0);
+        var step4 = step3_1.getChildren().get(0);
+        assertEquals(step3_1.getChildren().get(0), step2_2.getChildren().get(0));
+
         assertEquals("step-4", step4.getName());
         assertEquals("root/step-4", step4.getPath());
         assertEquals(2, step4.getParents().size());
-        assertEquals(step2, step4.getParents().get(0));
-        assertEquals(step3, step4.getParents().get(1));
+        assertEquals(step2_2, step4.getParents().get(0));
+        assertEquals(step3_1, step4.getParents().get(1));
 
         var step4Children = step4.getChildren();
         assertEquals(1, step4Children.size());

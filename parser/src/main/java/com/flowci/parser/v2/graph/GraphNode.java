@@ -1,4 +1,4 @@
-package com.flowci.parser.v2;
+package com.flowci.parser.v2.graph;
 
 import com.flowci.domain.node.Node;
 import com.flowci.domain.node.StepNode;
@@ -19,6 +19,13 @@ public class GraphNode {
     private final Node node;
 
     private final List<GraphNode> children = new LinkedList<>();
+
+    public boolean isStage() {
+        if (node instanceof StepNode s) {
+            return s.isStage();
+        }
+        return false;
+    }
 
     public String getName() {
         return node.getName();

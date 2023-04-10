@@ -1,11 +1,10 @@
 package com.flowci.parser.v2;
 
-import com.flowci.domain.node.FlowNode;
-import com.flowci.domain.node.Node;
 import com.flowci.domain.node.NodePath;
 import com.flowci.domain.node.StepNode;
 import com.flowci.exception.CIException;
 import com.flowci.parser.ExecutionGraph;
+import com.flowci.parser.v2.graph.GraphNode;
 import com.flowci.parser.v2.yml.FlowYml;
 import lombok.Getter;
 
@@ -25,10 +24,10 @@ public class ExecutionGraphV2 implements ExecutionGraph {
         var flowNode = flowYml.convert();
         flowNode.setPath(NodePath.create(flowNode.getName()));
 
-        root = new GraphNode(flowNode);
+        this.root = new GraphNode(flowNode);
 
-        createGraphNodeMap(root);
-        buildGraph(root);
+        createStepGraphNodeMap(this.root);
+        buildGraph(this.root);
     }
 
     @Override
@@ -56,49 +55,76 @@ public class ExecutionGraphV2 implements ExecutionGraph {
         return null;
     }
 
-    private void createGraphNodeMap(GraphNode root) {
-        for (Node step : root.getNode().getSteps()) {
+    private void createStepGraphNodeMap(GraphNode root) {
+        for (StepNode step : root.getNode().getSteps()) {
             NodePath stepPath = NodePath.create(root.getPath(), step.getName());
             step.setPath(stepPath);
 
-            var graphNode = new GraphNode(step);
-            if (graphNodeMap.containsKey(graphNode.getName())) {
-                throw new CIException("Duplicate step name: " + graphNode.getName());
+            var stepGraphNode = new GraphNode(step);
+            if (graphNodeMap.containsKey(stepGraphNode.getName())) {
+                throw new CIException("Duplicate step name: " + stepGraphNode.getName());
             }
-            graphNodeMap.put(graphNode.getName(), graphNode);
+            graphNodeMap.put(stepGraphNode.getName(), stepGraphNode);
 
-            createGraphNodeMap(graphNode);
+            createStepGraphNodeMap(stepGraphNode);
         }
     }
 
     private void buildGraph(GraphNode root) {
         List<StepNode> steps = root.getNode().getSteps();
 
-        for (Node step : steps) {
-            var stepGraphNode = graphNodeMap.get(step.getName());
+        for (StepNode sn : steps) {
+            var stepGraphNode = graphNodeMap.get(sn.getName());
+            var dependencies = sn.getDependencies();
 
-            if (step instanceof StepNode stepNode) {
-                var dependencies = stepNode.getDependencies();
-
+            try {
                 if (dependencies.isEmpty()) {
                     stepGraphNode.getParents().add(root);
                     root.getChildren().add(stepGraphNode);
-                    root = stepGraphNode;
                     continue;
                 }
 
                 for (var depStepName : dependencies) {
                     var depGraphNode = graphNodeMap.get(depStepName);
+
                     if (depGraphNode == null) {
                         throw new CIException("Dependencies step {0} not defined", depStepName);
+                    }
+
+                    if (depGraphNode.isStage()) {
+                        depGraphNode = getLastNodeOnStage(depGraphNode);
                     }
 
                     stepGraphNode.getParents().add(depGraphNode);
                     depGraphNode.getChildren().add(stepGraphNode);
                 }
+            } finally {
+                root = sn.isStage() ? buildGraphOnStage(stepGraphNode) : stepGraphNode;
             }
+        }
+    }
+
+    private GraphNode getLastNodeOnStage(GraphNode stage) {
+        List<StepNode> steps = stage.getNode().getSteps();
+        GraphNode last = null;
+        for (StepNode sn : steps) {
+            last = graphNodeMap.get(sn.getName());
+        }
+        return last;
+    }
+
+    private GraphNode buildGraphOnStage(GraphNode root) {
+        List<StepNode> steps = root.getNode().getSteps();
+
+        for (StepNode sn : steps) {
+            var stepGraphNode = graphNodeMap.get(sn.getName());
+
+            stepGraphNode.getParents().add(root);
+            root.getChildren().add(stepGraphNode);
 
             root = stepGraphNode;
         }
+
+        return root;
     }
 }

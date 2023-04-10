@@ -88,21 +88,11 @@ public class StepNode extends Node {
     private List<String> dependencies;
 
     /**
-     * Indicate step as stage if there is no children steps
+     * Indicate step is a stage (virtual) that includes sub steps
      */
     @JsonIgnore
     public boolean isStage() {
-        return steps == null || steps.isEmpty();
-    }
-
-    @JsonIgnore
-    public boolean hasSingleChild() {
-        return !isStage() && steps.size() == 1;
-    }
-
-    @JsonIgnore
-    public boolean hasMultiChildren() {
-        return !isStage() && steps.size() > 1;
+        return steps != null && steps.size() > 0;
     }
 
     @JsonIgnore
