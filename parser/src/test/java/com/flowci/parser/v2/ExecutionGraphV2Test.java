@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ExecutionGraphV2Test {
 
     @Test
-    void whenGivenFlowYml_thenShouldCreateGraph() throws IOException {
+    void whenGivenYml_thenShouldCreateGraph() throws IOException {
         var yml = TestUtil.loadContent("v2/flow.yml");
         var flowYml = YmlParser.parse(yml);
 
@@ -22,6 +22,27 @@ public class ExecutionGraphV2Test {
         graphNodeShouldBeConnected(graph);
     }
 
+    @Test
+    void whenGivenYmlWithDuplicatedDependencies_thenShouldCreateGraph() throws IOException {
+        var yml = TestUtil.loadContent("v2/flow-duplicated-dependencies.yml");
+        var flowYml = YmlParser.parse(yml);
+
+        var graph = new ExecutionGraphV2(flowYml);
+        Assertions.assertNotNull(graph);
+
+        graphShouldBeCreatedWithDuplicatedDependencies(graph);
+    }
+
+    /**
+     * "v2/flow-duplicated-dependencies.yml"
+     */
+    private void graphShouldBeCreatedWithDuplicatedDependencies(ExecutionGraphV2 graph) {
+
+    }
+
+    /**
+     * v2/flow.yml
+     */
     private void graphNodeShouldBeConnected(ExecutionGraphV2 graph) {
         var root = graph.getRoot();
         assertEquals(FlowYml.DEFAULT_NAME, root.getName());

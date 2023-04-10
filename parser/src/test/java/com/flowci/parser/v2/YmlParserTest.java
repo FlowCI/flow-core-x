@@ -27,14 +27,18 @@ public class YmlParserTest {
     void whenStepDepthOverTwo_thenShouldThrowException() throws IOException {
         var yml = TestUtil.loadContent("v2/flow-over-2-depth.yml");
         var flowYml = YmlParser.parse(yml);
-        Assertions.assertThrows(YmlException.class, flowYml::convert);
+
+        var exception = Assertions.assertThrows(YmlException.class, flowYml::convert);
+        assertEquals("Max step depth is 2", exception.getMessage());
     }
 
     @Test
     void whenSubStepHasDependencies_thenShouldThrowException() throws IOException {
         var yml = TestUtil.loadContent("v2/flow-sub-step-with-dependencies.yml");
         var flowYml = YmlParser.parse(yml);
-        Assertions.assertThrows(YmlException.class, flowYml::convert);
+
+        var exception = Assertions.assertThrows(YmlException.class, flowYml::convert);
+        assertEquals("The 'dependencies' not allowed on step-2-2 with sub steps", exception.getMessage());
     }
 
     private void shouldConvertToFlowNode(FlowYml flowYml) {

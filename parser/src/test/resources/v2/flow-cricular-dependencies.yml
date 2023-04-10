@@ -1,0 +1,28 @@
+version: 2
+
+steps:
+  step-1:
+    bash: "echo step 1"
+    dependencies:
+      - step-4
+
+  step-2:
+    bash: "echo step 2"
+    steps:
+      step-2-1:
+        bash: "echo step-2-1"
+      step-2-2:
+        bash: "echo step-2-2"
+
+  step-3:
+    bash: "echo step 3"
+    dependencies:
+      - step-4
+
+  step-4:
+    bash: "echo step 4"
+    dependencies:
+      - step-1
+    artifacts:
+      - name: jar
+        paths: [ "/path/jar", "/var/pwd" ]

@@ -47,10 +47,7 @@ public abstract class NodeYml {
                 throw new YmlException("Invalid name '{0}'", name);
             }
 
-            StepNode node = entry.getValue().convert(depth + 1);
-            node.setParent(parent);
-            node.setName(name);
-            return node;
+            return entry.getValue().convert(parent, name, depth);
         }).toList();
     }
 }

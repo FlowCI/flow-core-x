@@ -1,6 +1,7 @@
 package com.flowci.parser.v2.yml;
 
 import com.flowci.domain.StringVars;
+import com.flowci.domain.node.Node;
 import com.flowci.domain.node.StepNode;
 import com.flowci.exception.YmlException;
 import lombok.Getter;
@@ -12,7 +13,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class StepYml extends NodeYml implements Convertable<StepNode, Integer> {
+public class StepYml extends NodeYml implements Convertable<StepNode, Object> {
 
     /**
      * Bash script
@@ -51,14 +52,18 @@ public class StepYml extends NodeYml implements Convertable<StepNode, Integer> {
     private List<FileOptionYml> artifacts = new LinkedList<>();
 
     @Override
-    public StepNode convert(Integer ...params) {
-        int depth = params[0];
+    public StepNode convert(Object... params) {
+        var parent = (Node) params[0];
+        var name = (String) params[1];
+        int depth = (Integer) params[2];
 
         if (depth == MaxStepDepth && dependencies.size() > 0) {
-            throw new YmlException("The 'dependencies' not allowed on sub steps");
+            throw new YmlException("The ''dependencies'' not allowed on {0} with sub steps", name);
         }
 
         var stepNode = StepNode.builder()
+                .name(name)
+                .parent(parent)
                 .vars(new StringVars(vars))
                 .condition(condition)
                 .dockers(dockers.stream().map(DockerOptionYml::convert).toList())
@@ -78,7 +83,7 @@ public class StepYml extends NodeYml implements Convertable<StepNode, Integer> {
                 .artifacts(new HashSet<>(artifacts.stream().map(FileOptionYml::convert).toList()))
                 .build();
 
-        stepNode.setSteps(toStepNodeList(stepNode, depth));
+        stepNode.setSteps(toStepNodeList(stepNode, depth + 1));
         return stepNode;
     }
 }
