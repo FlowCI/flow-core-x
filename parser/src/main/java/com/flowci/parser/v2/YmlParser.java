@@ -7,7 +7,7 @@ import org.yaml.snakeyaml.error.YAMLException;
 
 public class YmlParser {
 
-    public static FlowYml load(String... ymls) {
+    public static FlowYml parse(String... ymls) {
         try {
             var root = new FlowYml();
 

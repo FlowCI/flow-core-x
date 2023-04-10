@@ -5,7 +5,7 @@ import com.flowci.domain.node.StepNode;
 
 import java.util.Collection;
 
-public interface FlowGraph {
+public interface ExecutionGraph {
 
     /**
      * Find step node by string path

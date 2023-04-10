@@ -16,7 +16,7 @@ public class YmlParserTest {
     @Test
     void whenGivenYAML_thenShouldParseFlowYaml() throws IOException {
         var yml = TestUtil.loadContent("v2/flow.yml");
-        var flow = YmlParser.load(yml);
+        var flow = YmlParser.parse(yml);
 
         shouldParseFlowYmlProperties(flow);
         shouldParseStepYmlProperties(flow);
@@ -26,7 +26,7 @@ public class YmlParserTest {
     @Test
     void whenConvertToFlowNode_thenShouldThrowExceptionIfStepDepthOverTwo() throws IOException {
         var yml = TestUtil.loadContent("v2/flow-over-2-depth.yml");
-        var flowYml = YmlParser.load(yml);
+        var flowYml = YmlParser.parse(yml);
         Assertions.assertThrows(YmlException.class, flowYml::convert);
     }
 
