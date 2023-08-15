@@ -14,10 +14,13 @@ public class K8s extends AbstractHealthIndicator {
     private AppProperties.K8s k8sProperties;
 
     @Override
-    protected void doHealthCheck(Health.Builder builder) throws Exception {
-        Status status = k8sProperties.isInCluster() ? Status.UP : Status.DOWN;
-        builder.status(status);
-        if (status == Status.UP) {
+    protected void doHealthCheck(Health.Builder builder) {
+        builder.status(Status.UP);
+
+        boolean isInCluster = k8sProperties.isInCluster();
+        builder.withDetail("isDeployedInCluster", isInCluster);
+
+        if (isInCluster) {
             builder.withDetail("namespace", k8sProperties.getNamespace())
                     .withDetail("pod", k8sProperties.getPod())
                     .withDetail("pod ip", k8sProperties.getPodIp());
