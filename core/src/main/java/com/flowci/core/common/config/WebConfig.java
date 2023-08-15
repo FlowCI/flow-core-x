@@ -23,7 +23,6 @@ import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.domain.Vars;
 import com.google.common.collect.ImmutableList;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

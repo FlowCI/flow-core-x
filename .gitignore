@@ -8,3 +8,4 @@ target/
 .classpath
 .factorypath
 *Proto.java
+.flattened-pom.xml
