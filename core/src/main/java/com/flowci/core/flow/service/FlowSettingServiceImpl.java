@@ -22,7 +22,7 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Settings;
 import com.flowci.core.flow.domain.WebhookStatus;
 import com.flowci.domain.VarValue;
-import com.flowci.exception.ArgumentException;
+import com.flowci.common.exception.ArgumentException;
 import com.flowci.util.StringHelper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

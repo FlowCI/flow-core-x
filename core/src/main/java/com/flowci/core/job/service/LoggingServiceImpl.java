@@ -29,7 +29,7 @@ import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.StepLogItem;
 import com.flowci.core.job.event.CacheShellLogEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
-import com.flowci.exception.NotFoundException;
+import com.flowci.common.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
 import com.flowci.util.FileHelper;

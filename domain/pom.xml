@@ -14,7 +14,7 @@
   <dependencies>
     <dependency>
       <groupId>com.flowci</groupId>
-      <artifactId>util</artifactId>
+      <artifactId>common</artifactId>
     </dependency>
 
     <dependency>

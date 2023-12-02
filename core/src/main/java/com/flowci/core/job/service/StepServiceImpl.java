@@ -24,7 +24,7 @@ import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.event.StepUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
-import com.flowci.exception.NotFoundException;
+import com.flowci.common.exception.NotFoundException;
 import com.flowci.tree.*;
 import com.flowci.util.StringHelper;
 import com.github.benmanes.caffeine.cache.Cache;

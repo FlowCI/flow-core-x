@@ -16,8 +16,8 @@
 
 package com.flowci.core.job.service;
 
+import com.flowci.common.exception.NotAvailableException;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.Job.Trigger;
@@ -27,7 +27,6 @@ import com.flowci.core.job.domain.JobYml;
 import com.flowci.domain.StringVars;
 import org.springframework.data.domain.Page;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
@@ -86,7 +85,7 @@ public interface JobService {
     /**
      * Create a job by flow and yml, job status will be PENDING -> LOADING -> CREATED,
      *
-     * @throws com.flowci.exception.NotAvailableException with job object in extra field
+     * @throws NotAvailableException with job object in extra field
      */
     Job create(Flow flow, List<SimpleYml> yml, Trigger trigger, StringVars input);
 

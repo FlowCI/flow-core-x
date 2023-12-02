@@ -25,14 +25,13 @@ import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.common.domain.http.ResponseMessage;
-import com.flowci.exception.AuthenticationException;
-import com.flowci.exception.ErrorCode;
+import com.flowci.common.exception.AuthenticationException;
+import com.flowci.common.exception.ErrorCode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 
 public class AuthControllerTest extends SpringScenario {
 

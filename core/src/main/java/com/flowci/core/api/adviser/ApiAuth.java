@@ -17,7 +17,7 @@
 package com.flowci.core.api.adviser;
 
 import com.flowci.core.agent.service.AgentService;
-import com.flowci.exception.AuthenticationException;
+import com.flowci.common.exception.AuthenticationException;
 import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

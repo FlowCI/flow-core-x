@@ -16,6 +16,7 @@
 
 package com.flowci.core.flow.service;
 
+import com.flowci.common.exception.NotFoundException;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.flow.domain.FlowYml;
@@ -31,14 +32,14 @@ public interface YmlService {
     /**
      * Get yml list by flow id
      *
-     * @throws com.flowci.exception.NotFoundException if YML not found
+     * @throws NotFoundException if YML not found
      */
     FlowYml get(String flowId);
 
     /**
      * Get NodeTree from yaml
      *
-     * @throws com.flowci.exception.NotFoundException if YML not found
+     * @throws NotFoundException if YML not found
      */
     NodeTree getTree(String flowId);
 

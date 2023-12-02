@@ -17,8 +17,10 @@
 package com.flowci.tree.test;
 
 import com.flowci.tree.TriggerFilter;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author yang
@@ -31,20 +33,20 @@ public class FilterTest {
         condition.getBranch().add("feature/*");
         condition.getBranch().add("personal/.+");
 
-        Assert.assertTrue(condition.isMatchBranch("feature/fb_123"));
-        Assert.assertTrue(condition.isMatchBranch("personal/my-branch"));
+        assertTrue(condition.isMatchBranch("feature/fb_123"));
+        assertTrue(condition.isMatchBranch("personal/my-branch"));
     }
 
     @Test
     public void should_available_if_condition_defined() {
         TriggerFilter condition = new TriggerFilter();
         condition.getBranch().add("feature/*");
-        Assert.assertTrue(condition.available());
+        assertTrue(condition.available());
     }
 
     @Test
     public void should_not_available_if_no_condition_defined() {
         TriggerFilter condition = new TriggerFilter();
-        Assert.assertFalse(condition.available());
+        assertFalse(condition.available());
     }
 }

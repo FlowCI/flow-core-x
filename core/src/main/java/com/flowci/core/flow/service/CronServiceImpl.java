@@ -25,7 +25,7 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.event.FlowInitEvent;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.event.CreateNewJobEvent;
-import com.flowci.exception.NotFoundException;
+import com.flowci.common.exception.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;

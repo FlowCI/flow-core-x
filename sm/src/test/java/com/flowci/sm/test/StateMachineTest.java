@@ -1,11 +1,13 @@
 package com.flowci.sm.test;
 
 import com.flowci.sm.*;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class StateMachineTest {
 
@@ -24,7 +26,7 @@ public class StateMachineTest {
     }
 
     @Test
-    public void should_call_hook_only_once_when_current_state_changed() {
+    void should_call_hook_only_once_when_current_state_changed() {
         sm.add(AtoC, new Action<TestContext>() {
             @Override
             public void accept(TestContext ctx) throws Exception {
@@ -45,12 +47,12 @@ public class StateMachineTest {
 
         sm.execute(A, C, new TestContext());
 
-        Assert.assertTrue(shouldExecute.get());
-        Assert.assertEquals(1, shouldCallOnceOnly.get());
+        assertTrue(shouldExecute.get());
+        assertEquals(1, shouldCallOnceOnly.get());
     }
 
     @Test
-    public void should_skip_target_hook_after_event_if_target_state_changed() {
+    void should_skip_target_hook_after_event_if_target_state_changed() {
         sm.add(AtoB, new Action<TestContext>() {
             @Override
             public void accept(TestContext ctx) throws Exception {
@@ -75,8 +77,8 @@ public class StateMachineTest {
 
         sm.execute(A, B, new TestContext());
 
-        Assert.assertTrue(shouldExecute.get());
-        Assert.assertTrue(shouldNotExecute.get());
-        Assert.assertTrue(shouldExecuteOnHook.get());
+        assertTrue(shouldExecute.get());
+        assertTrue(shouldNotExecute.get());
+        assertTrue(shouldExecuteOnHook.get());
     }
 }

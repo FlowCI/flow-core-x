@@ -2,7 +2,7 @@ package com.flowci.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.domain.ObjectWrapper;
-import com.google.common.base.Strings;
+import com.flowci.util.StringHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -83,12 +83,7 @@ public final class RegularStepNode extends Node {
 
     @JsonIgnore
     public boolean hasPlugin() {
-        return !Strings.isNullOrEmpty(plugin);
-    }
-
-    @JsonIgnore
-    public boolean hasCondition() {
-        return !Strings.isNullOrEmpty(condition);
+        return StringHelper.hasValue(plugin);
     }
 
     @JsonIgnore

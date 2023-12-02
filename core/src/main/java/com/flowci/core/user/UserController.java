@@ -21,9 +21,8 @@ import com.flowci.core.auth.service.AuthService;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.user.domain.*;
 import com.flowci.core.user.service.UserService;
-import com.flowci.exception.ArgumentException;
+import com.flowci.common.exception.ArgumentException;
 
-import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 

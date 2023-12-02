@@ -4,7 +4,7 @@ import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.git.domain.GitConfig;
 import com.flowci.core.git.service.GitConfigService;
-import com.flowci.exception.ArgumentException;
+import com.flowci.common.exception.ArgumentException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

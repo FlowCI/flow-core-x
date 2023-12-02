@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.git.domain.*;
 import com.flowci.core.git.util.BranchHelper;
-import com.flowci.exception.ArgumentException;
+import com.flowci.common.exception.ArgumentException;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableMap;

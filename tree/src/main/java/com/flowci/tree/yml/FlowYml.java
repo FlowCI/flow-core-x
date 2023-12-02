@@ -16,7 +16,7 @@
 
 package com.flowci.tree.yml;
 
-import com.flowci.exception.YmlException;
+import com.flowci.common.exception.YmlException;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
 import com.flowci.tree.NodePath;

@@ -18,7 +18,7 @@ package com.flowci.core.job.service;
 
 import com.flowci.core.agent.domain.ShellOut;
 import com.flowci.core.job.domain.JobYml;
-import com.flowci.exception.CIException;
+import com.flowci.common.exception.CIException;
 
 public interface JobActionService {
 

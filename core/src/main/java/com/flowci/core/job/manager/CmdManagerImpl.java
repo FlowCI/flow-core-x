@@ -27,7 +27,7 @@ import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.domain.DockerOption;
 import com.flowci.domain.Vars;
-import com.flowci.exception.StatusException;
+import com.flowci.common.exception.StatusException;
 import com.flowci.tree.*;
 import com.flowci.util.ObjectsHelper;
 import com.flowci.util.StringHelper;

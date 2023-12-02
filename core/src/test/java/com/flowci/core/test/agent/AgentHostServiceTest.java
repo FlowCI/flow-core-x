@@ -6,7 +6,7 @@ import com.flowci.core.agent.domain.LocalUnixAgentHost;
 import com.flowci.core.agent.service.AgentHostService;
 import com.flowci.core.agent.service.AgentService;
 import com.flowci.core.test.ZookeeperScenario;
-import com.flowci.exception.NotAvailableException;
+import com.flowci.common.exception.NotAvailableException;
 import com.google.common.collect.Sets;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;

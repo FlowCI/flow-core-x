@@ -22,7 +22,7 @@ import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.VarValue;
 import com.flowci.domain.Vars;
-import com.flowci.exception.ArgumentException;
+import com.flowci.common.exception.ArgumentException;
 import com.flowci.store.Pathable;
 import com.flowci.tree.NodePath;
 import com.flowci.util.StringHelper;

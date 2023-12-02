@@ -27,8 +27,8 @@ import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.domain.Vars;
-import com.flowci.exception.DuplicateException;
-import com.flowci.exception.NotFoundException;
+import com.flowci.common.exception.DuplicateException;
+import com.flowci.common.exception.NotFoundException;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.YmlParser;
@@ -39,7 +39,6 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;

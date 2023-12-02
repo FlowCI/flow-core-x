@@ -21,7 +21,7 @@ import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.git.converter.*;
 import com.flowci.core.git.domain.GitTrigger;
 import com.flowci.core.git.event.GitHookEvent;
-import com.flowci.exception.ArgumentException;
+import com.flowci.common.exception.ArgumentException;
 import com.flowci.util.StringHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

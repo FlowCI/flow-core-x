@@ -22,7 +22,7 @@ import com.flowci.core.flow.domain.MatrixItem;
 import com.flowci.core.flow.domain.MatrixType;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.MatrixService;
-import com.flowci.exception.ArgumentException;
+import com.flowci.common.exception.ArgumentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

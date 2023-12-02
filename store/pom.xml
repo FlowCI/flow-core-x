@@ -14,18 +14,12 @@
     <dependencies>
         <dependency>
             <groupId>com.flowci</groupId>
-            <artifactId>util</artifactId>
+            <artifactId>common</artifactId>
         </dependency>
 
         <dependency>
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

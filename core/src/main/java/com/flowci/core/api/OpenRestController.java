@@ -28,7 +28,7 @@ import com.flowci.core.job.service.CacheService;
 import com.flowci.core.job.service.LoggingService;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.user.domain.User;
-import com.flowci.exception.ArgumentException;
+import com.flowci.common.exception.ArgumentException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;

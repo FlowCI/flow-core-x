@@ -16,9 +16,7 @@
 
 package com.flowci.tree;
 
-import com.flowci.exception.ArgumentException;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.flowci.common.exception.ArgumentException;
 import lombok.Getter;
 
 import java.util.*;
@@ -127,7 +125,7 @@ public final class NodeTree {
             return Collections.emptyList();
         }
 
-        return Lists.newArrayList(nextWithSameParent);
+        return List.of(nextWithSameParent);
     }
 
     public List<Node> post(NodePath path) {
@@ -215,7 +213,7 @@ public final class NodeTree {
         flatted.put(root.getPath(), root);
 
         if (!root.hasChildren()) {
-            return Lists.newArrayList(root);
+            return List.of(root);
         }
 
         if (root instanceof ParallelStepNode) {
@@ -238,7 +236,7 @@ public final class NodeTree {
             return prevs;
         }
 
-        List<Node> prevs = Lists.newArrayList(root);
+        List<Node> prevs = List.of(root);
 
         for (int i = 0; i < root.getChildren().size(); i++) {
             Node current = root.getChildren().get(i);
@@ -269,7 +267,7 @@ public final class NodeTree {
         if (!isPostStep(n)) {
             ParallelStepNode parent = n.getParent(ParallelStepNode.class);
             if (parent != null) {
-                return Lists.newArrayList(findPostSteps(parent));
+                return new ArrayList<>(findPostSteps(parent));
             }
         }
 
@@ -278,7 +276,7 @@ public final class NodeTree {
             post.addAll(findNextPost(next));
         }
 
-        return Lists.newArrayList(post);
+        return new ArrayList<>(post);
     }
 
     private Collection<Node> findNextPost(Node node) {
@@ -335,7 +333,7 @@ public final class NodeTree {
 
     private Collection<Node> findPostSteps(RegularStepNode r) {
         if (r.isPost()) {
-            return Sets.newHashSet(r);
+            return Set.of(r);
         }
         return Collections.emptyList();
     }

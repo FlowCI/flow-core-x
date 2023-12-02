@@ -16,7 +16,7 @@
 
 package com.flowci.core.agent.domain;
 
-import com.flowci.exception.ArgumentException;
+import com.flowci.common.exception.ArgumentException;
 import lombok.Getter;
 import lombok.Setter;
 

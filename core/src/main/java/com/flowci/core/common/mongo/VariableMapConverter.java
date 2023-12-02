@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.TypedVars;
 import com.flowci.domain.Vars;
-import com.flowci.exception.ArgumentException;
+import com.flowci.common.exception.ArgumentException;
 import java.io.IOException;
 import java.util.Objects;
 import lombok.Getter;

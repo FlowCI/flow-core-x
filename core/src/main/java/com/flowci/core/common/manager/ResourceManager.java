@@ -1,6 +1,6 @@
 package com.flowci.core.common.manager;
 
-import com.flowci.exception.UnsupportedException;
+import com.flowci.common.exception.UnsupportedException;
 import org.springframework.core.io.FileUrlResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;

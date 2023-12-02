@@ -3,7 +3,7 @@ package com.flowci.core.git.client;
 import com.flowci.core.git.domain.GitCommitStatus;
 import com.flowci.core.git.domain.GitConfigWithHost;
 import com.flowci.core.secret.domain.TokenSecret;
-import com.flowci.exception.ArgumentException;
+import com.flowci.common.exception.ArgumentException;
 import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;

@@ -12,8 +12,7 @@
     <modules>
         <module>domain</module>
         <module>core</module>
-        <module>util</module>
-        <module>exception</module>
+        <module>common</module>
         <module>tree</module>
         <module>zookeeper</module>
         <module>store</module>
@@ -24,15 +23,10 @@
     <properties>
         <revision>1.23.01</revision>
         <lombok.version>1.18.22</lombok.version>
-        <guava.version>31.0.1-jre</guava.version>
-        <junit.version>4.13.1</junit.version>
-        <springboot.version>2.6.0</springboot.version>
-        <snakeyaml.version>1.32</snakeyaml.version>
-        <jackson.version>2.13.1</jackson.version>
+        <springboot.version>3.2.0</springboot.version>
         <curator.version>4.3.0</curator.version>
         <caffeine.version>2.6.2</caffeine.version>
         <h2.version>1.4.197</h2.version>
-        <wiremock.version>2.18.0</wiremock.version>
         <jgit.version>5.0.3.201809091024-r</jgit.version>
         <jsch.version>0.1.55</jsch.version>
         <docker-java.version>3.2.1</docker-java.version>
@@ -41,13 +35,14 @@
         <java-jwt.version>3.8.1</java-jwt.version>
         <minio.version>6.0.11</minio.version>
         <log4j.version>2.18.0</log4j.version>
-        <kubernetes-client.version>5.11.1</kubernetes-client.version>
+        <kubernetes-client.version>5.11.2</kubernetes-client.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
         <flatten-maven-plugin.version>1.4.1</flatten-maven-plugin.version>
+        <groovy-all.version>3.0.7</groovy-all.version>
     </properties>
 
     <build>
@@ -188,7 +183,7 @@
 
             <dependency>
                 <groupId>com.flowci</groupId>
-                <artifactId>exception</artifactId>
+                <artifactId>common</artifactId>
                 <version>${version}</version>
             </dependency>
 
@@ -257,7 +252,7 @@
             <dependency>
                 <groupId>org.codehaus.groovy</groupId>
                 <artifactId>groovy-all</artifactId>
-                <version>3.0.4</version>
+                <version>${groovy-all.version}</version>
                 <type>pom</type>
             </dependency>
 
@@ -273,18 +268,16 @@
                 <version>${curator.version}</version>
                 <scope>test</scope>
             </dependency>
-
-            <dependency>
-                <groupId>com.github.tomakehurst</groupId>
-                <artifactId>wiremock</artifactId>
-                <version>${wiremock.version}</version>
-                <scope>test</scope>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <!--Common required libraries-->
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -292,14 +285,14 @@
         </dependency>
 
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

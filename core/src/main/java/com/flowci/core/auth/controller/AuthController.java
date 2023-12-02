@@ -20,7 +20,7 @@ package com.flowci.core.auth.controller;
 import com.flowci.core.auth.domain.Tokens;
 import com.flowci.core.auth.service.AuthService;
 import com.flowci.core.user.domain.User;
-import com.flowci.exception.AuthenticationException;
+import com.flowci.common.exception.AuthenticationException;
 import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

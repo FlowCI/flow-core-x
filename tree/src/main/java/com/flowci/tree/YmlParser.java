@@ -16,7 +16,7 @@
 
 package com.flowci.tree;
 
-import com.flowci.exception.YmlException;
+import com.flowci.common.exception.YmlException;
 import com.flowci.tree.yml.FlowYml;
 import com.flowci.util.YamlHelper;
 import org.yaml.snakeyaml.error.YAMLException;

@@ -16,7 +16,7 @@
 
 package com.flowci.store;
 
-import com.flowci.util.FileHelper;
+import com.flowci.common.helper.FileHelper;
 
 import java.io.FileInputStream;
 import java.io.IOException;

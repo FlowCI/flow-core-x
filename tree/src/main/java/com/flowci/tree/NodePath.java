@@ -16,13 +16,10 @@
 
 package com.flowci.tree;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Range;
-import com.google.common.collect.Sets;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.springframework.util.StringUtils;
 import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.Serializable;
@@ -35,13 +32,15 @@ import java.util.*;
 @EqualsAndHashCode(of = {"pathInStr"})
 public final class NodePath implements Serializable {
 
+    public static final int MIN_NAME_LENGTH = 1;
+
+    public static final int MAX_NAME_LENGTH = 100;
+
     public static final String PathSeparator = "/";
 
-    private static final Set<String> Reserved = Sets.newHashSet("*", ";", ".", "/");
+    private static final Set<String> Reserved = Set.of("*", ";", ".", "/");
 
     private static final int MaxDepth = 10;
-
-    private static final Range<Integer> NameLengthRange = Range.closed(1, 100);
 
     private final List<String> paths = new ArrayList<>(MaxDepth);
 
@@ -78,7 +77,7 @@ public final class NodePath implements Serializable {
             String[] names = nameOrPath.split(PathSeparator);
             if (names.length > 0) {
                 for (String name : names) {
-                    if (Strings.isNullOrEmpty(name.trim())) {
+                    if (!StringUtils.hasLength(name.trim())) {
                         continue;
                     }
 
@@ -92,7 +91,7 @@ public final class NodePath implements Serializable {
             }
 
             String name = nameOrPath;
-            if (Strings.isNullOrEmpty(name)) {
+            if (!StringUtils.hasLength(name.trim())) {
                 continue;
             }
 
@@ -139,7 +138,7 @@ public final class NodePath implements Serializable {
     }
 
     public NodePath root() {
-        return new NodePath(Lists.newArrayList(paths.get(0)));
+        return new NodePath(List.of(paths.get(0)));
     }
 
     public String name() {
@@ -156,11 +155,11 @@ public final class NodePath implements Serializable {
     public static boolean validate(String name) {
         name = name.trim();
 
-        if (Strings.isNullOrEmpty(name) || name.startsWith(PathSeparator)) {
+        if (!StringUtils.hasLength(name) || name.startsWith(PathSeparator)) {
             return false;
         }
 
-        if (!NameLengthRange.contains(name.length())) {
+        if (name.length() > MAX_NAME_LENGTH || name.length() < MIN_NAME_LENGTH) {
             return false;
         }
 

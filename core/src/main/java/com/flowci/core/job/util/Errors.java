@@ -16,8 +16,8 @@
 
 package com.flowci.core.job.util;
 
-import com.flowci.exception.CIException;
-import com.flowci.exception.StatusException;
+import com.flowci.common.exception.CIException;
+import com.flowci.common.exception.StatusException;
 
 public abstract class Errors {
 
