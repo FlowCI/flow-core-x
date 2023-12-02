@@ -53,7 +53,7 @@ import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.YmlParser;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import lombok.extern.log4j.Log4j2;
 import org.junit.Assert;
 import org.junit.Before;

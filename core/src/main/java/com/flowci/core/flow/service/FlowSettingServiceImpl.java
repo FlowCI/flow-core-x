@@ -23,7 +23,7 @@ import com.flowci.core.flow.domain.Settings;
 import com.flowci.core.flow.domain.WebhookStatus;
 import com.flowci.domain.VarValue;
 import com.flowci.common.exception.ArgumentException;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

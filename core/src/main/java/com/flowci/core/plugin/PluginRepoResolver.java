@@ -22,7 +22,8 @@ import com.flowci.common.exception.NotFoundException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Repository;

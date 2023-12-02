@@ -17,8 +17,7 @@
 package com.flowci.core.flow.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

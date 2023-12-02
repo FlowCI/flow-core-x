@@ -16,6 +16,8 @@
 
 package com.flowci.core.flow.service;
 
+import com.flowci.common.exception.ArgumentException;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
@@ -27,8 +29,6 @@ import com.flowci.core.secret.service.SecretService;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
 import com.flowci.domain.SimpleSecret;
-import com.flowci.common.exception.ArgumentException;
-import com.flowci.util.StringHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;

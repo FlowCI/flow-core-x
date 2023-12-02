@@ -16,6 +16,7 @@
 
 package com.flowci.core.job.controller;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.agent.domain.TtyCmd;
 import com.flowci.core.auth.controller.WebAuth;
 import com.flowci.core.common.manager.SpringEventManager;
@@ -23,7 +24,6 @@ import com.flowci.core.job.event.TtyStatusUpdateEvent;
 import com.flowci.core.job.service.TtyService;
 import com.flowci.core.user.domain.User;
 import com.flowci.common.exception.AuthenticationException;
-import com.flowci.util.StringHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.DestinationVariable;

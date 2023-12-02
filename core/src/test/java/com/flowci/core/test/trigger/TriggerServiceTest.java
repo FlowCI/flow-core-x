@@ -17,7 +17,7 @@ import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;

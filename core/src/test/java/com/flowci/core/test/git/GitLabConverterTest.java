@@ -23,7 +23,7 @@ import com.flowci.core.git.converter.TriggerConverter;
 import com.flowci.core.git.domain.*;
 import com.flowci.core.git.domain.GitTrigger.GitEvent;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

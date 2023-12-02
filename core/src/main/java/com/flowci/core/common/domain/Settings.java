@@ -1,6 +1,6 @@
 package com.flowci.core.common.domain;
 
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import lombok.Setter;

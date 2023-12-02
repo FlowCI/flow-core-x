@@ -26,7 +26,7 @@ import com.flowci.core.user.domain.User;
 import com.flowci.domain.VarType;
 import com.flowci.domain.VarValue;
 import com.flowci.common.exception.ErrorCode;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import org.assertj.core.util.Lists;
 import org.junit.Assert;
 import org.junit.Before;

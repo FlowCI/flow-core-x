@@ -22,10 +22,5 @@
       <groupId>com.flowci</groupId>
       <artifactId>common</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
-    </dependency>
   </dependencies>
 </project>

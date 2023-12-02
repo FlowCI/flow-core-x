@@ -23,13 +23,13 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.event.BroadcastEvent;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.google.common.collect.ImmutableMap;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.Map;
 

@@ -31,7 +31,7 @@ import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.domain.*;
 import com.flowci.tree.*;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;

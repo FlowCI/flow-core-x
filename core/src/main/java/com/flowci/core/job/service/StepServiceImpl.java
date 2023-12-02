@@ -16,6 +16,7 @@
 
 package com.flowci.core.job.service;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.dao.ExecutedCmdDao;
@@ -26,7 +27,6 @@ import com.flowci.core.job.event.StepUpdateEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.common.exception.NotFoundException;
 import com.flowci.tree.*;
-import com.flowci.util.StringHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

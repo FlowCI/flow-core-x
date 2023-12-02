@@ -1,13 +1,13 @@
 package com.flowci.core.git.converter;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.git.domain.GitPatchSetTrigger;
 import com.flowci.core.git.domain.GitTrigger;
 import com.flowci.core.git.domain.GitTriggerable;
 import com.flowci.core.git.domain.GitUser;
 import com.flowci.core.git.util.BranchHelper;
-import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

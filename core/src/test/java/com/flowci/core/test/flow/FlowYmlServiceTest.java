@@ -25,7 +25,7 @@ import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.common.exception.NotFoundException;
 import com.flowci.common.exception.YmlException;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

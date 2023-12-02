@@ -1,7 +1,7 @@
 package com.flowci.docker.domain;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.domain.StringVars;
-import com.flowci.util.StringHelper;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import lombok.Getter;
 import lombok.Setter;

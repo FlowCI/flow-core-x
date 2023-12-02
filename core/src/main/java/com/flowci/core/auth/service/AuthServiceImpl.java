@@ -17,6 +17,7 @@
 
 package com.flowci.core.auth.service;
 
+import com.flowci.common.helper.HashingHelper;
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.auth.dao.UserAuthDao;
 import com.flowci.core.auth.domain.PermissionMap;
@@ -29,7 +30,6 @@ import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
 import com.flowci.common.exception.AuthenticationException;
 import com.flowci.common.exception.NotFoundException;
-import com.flowci.util.HashingHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

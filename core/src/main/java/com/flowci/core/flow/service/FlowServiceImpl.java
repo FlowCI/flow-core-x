@@ -16,6 +16,7 @@
 
 package com.flowci.core.flow.service;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.HttpRequestManager;
@@ -44,7 +45,6 @@ import com.flowci.common.exception.DuplicateException;
 import com.flowci.common.exception.NotFoundException;
 import com.flowci.common.exception.StatusException;
 import com.flowci.store.FileManager;
-import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -16,6 +16,7 @@
 
 package com.flowci.core.job.service;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.job.dao.JobArtifactDao;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.Job;
@@ -26,7 +27,6 @@ import com.flowci.common.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
 import com.flowci.store.StringPath;
-import com.flowci.util.StringHelper;
 import com.google.api.client.util.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,7 +122,7 @@ public class ArtifactServiceImpl implements ArtifactService {
     }
 
     private static String formatSrcDir(String dir) {
-        if (!StringHelper.hasValue(dir)) {
+        if (StringHelper.isEmpty(dir)) {
             return StringHelper.EMPTY;
         }
 

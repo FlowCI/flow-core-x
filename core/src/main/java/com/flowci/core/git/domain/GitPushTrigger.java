@@ -17,12 +17,12 @@
 package com.flowci.core.git.domain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.domain.StringVars;
-import com.flowci.util.ObjectsHelper;
-import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -70,7 +70,7 @@ public class GitPushTrigger extends GitTrigger {
 
     @Override
     public boolean isSkip() {
-        if (!ObjectsHelper.hasCollection(commits)) {
+        if (CollectionUtils.isEmpty(commits)) {
             return false;
         }
 

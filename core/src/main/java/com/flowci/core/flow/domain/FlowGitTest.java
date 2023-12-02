@@ -16,10 +16,10 @@
 
 package com.flowci.core.flow.domain;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.SimpleKeyPair;
-import com.flowci.util.StringHelper;
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 /**

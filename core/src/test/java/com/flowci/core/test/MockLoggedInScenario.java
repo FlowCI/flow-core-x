@@ -3,7 +3,7 @@ package com.flowci.core.test;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.user.domain.User;
-import com.flowci.util.HashingHelper;
+import com.flowci.common.helper.HashingHelper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.mockito.Mockito;

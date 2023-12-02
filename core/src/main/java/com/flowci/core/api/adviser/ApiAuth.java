@@ -16,15 +16,14 @@
 
 package com.flowci.core.api.adviser;
 
-import com.flowci.core.agent.service.AgentService;
 import com.flowci.common.exception.AuthenticationException;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
+import com.flowci.core.agent.service.AgentService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * To verify token from agent

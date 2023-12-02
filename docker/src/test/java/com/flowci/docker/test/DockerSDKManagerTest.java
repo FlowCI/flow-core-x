@@ -6,43 +6,51 @@ import com.flowci.docker.DockerSDKManager;
 import com.flowci.docker.domain.ContainerStartOption;
 import com.flowci.docker.domain.Unit;
 import com.github.dockerjava.api.exception.NotFoundException;
-import org.junit.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-@Ignore
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@Disabled
 public class DockerSDKManagerTest {
 
     private DockerManager manager;
 
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         manager = new DockerSDKManager(DockerManager.DockerLocalHost);
     }
 
-    @After
-    public void clean() {
+    @AfterEach
+    void clean() {
         manager = null;
     }
 
     @Test
-    public void should_pull_image() throws Exception {
+    void should_pull_image() throws Exception {
         manager.getImageManager().pull("ubuntu:18.04", 60, System.out::println);
     }
 
-    @Test(expected = Exception.class)
-    public void should_throw_exception_if_image_not_found() throws Exception {
-        manager.getImageManager().pull("ubuntu:notfound", 120, null);
+    @Test
+    void should_throw_exception_if_image_not_found() {
+        assertThrows(Exception.class, () -> {
+            manager.getImageManager().pull("ubuntu:notfound", 120, null);
+        });
     }
 
     @Test
-    public void should_list_containers() throws Exception {
+    void should_list_containers() throws Exception {
         List<Unit> containers = manager.getContainerManager().list(null, null);
-        Assert.assertNotNull(containers);
+        assertNotNull(containers);
     }
 
     @Test
-    public void should_create_start_and_delete_container() throws Exception {
+    void should_create_start_and_delete_container() throws Exception {
         ContainerStartOption option = new ContainerStartOption();
         option.setImage("ubuntu:18.04");
         option.addEnv("FLOW_TEST", "hello.world");
@@ -53,7 +61,7 @@ public class DockerSDKManagerTest {
 
         ContainerManager cm = manager.getContainerManager();
         String cid = cm.start(option);
-        Assert.assertNotNull(cid);
+        assertNotNull(cid);
 
         cm.wait(cid, 60, (frame -> {
             System.out.print(new String(frame.getData()));
@@ -63,18 +71,24 @@ public class DockerSDKManagerTest {
         cm.delete(cid);
     }
 
-    @Test(expected = NotFoundException.class)
-    public void should_throw_exception_when_resume_cid_not_exist() throws Exception {
-        manager.getContainerManager().resume("1231231");
+    @Test
+    void should_throw_exception_when_resume_cid_not_exist() {
+        assertThrows(NotFoundException.class, () -> {
+            manager.getContainerManager().resume("1231231");
+        });
     }
 
-    @Test(expected = NotFoundException.class)
-    public void should_throw_exception_when_stop_cid_not_exist() throws Exception {
-        manager.getContainerManager().stop("1231231");
+    @Test
+    void should_throw_exception_when_stop_cid_not_exist() {
+        assertThrows(NotFoundException.class, () -> {
+            manager.getContainerManager().stop("1231231");
+        });
     }
 
-    @Test(expected = NotFoundException.class)
-    public void should_throw_exception_when_delete_cid_not_exist() throws Exception {
-        manager.getContainerManager().delete("1231231");
+    @Test
+    void should_throw_exception_when_delete_cid_not_exist() {
+        assertThrows(NotFoundException.class, () -> {
+            manager.getContainerManager().delete("1231231");
+        });
     }
 }

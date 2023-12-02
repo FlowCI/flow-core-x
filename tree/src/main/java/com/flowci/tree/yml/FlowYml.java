@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
@@ -32,7 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import static com.flowci.util.ObjectsHelper.*;
+import static com.flowci.common.helper.ObjectsHelper.*;
 
 /**
  * @author yang
@@ -87,7 +88,7 @@ public class FlowYml extends YmlBase<FlowNode> {
 
         setDockerToNode(node);
 
-        if (!hasCollection(steps)) {
+        if (CollectionUtils.isEmpty(steps)) {
             throw new YmlException("The 'steps' section must be defined");
         }
 

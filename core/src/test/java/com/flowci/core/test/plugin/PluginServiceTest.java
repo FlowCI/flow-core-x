@@ -21,7 +21,7 @@ import com.flowci.core.plugin.event.RepoCloneEvent;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.ObjectWrapper;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;

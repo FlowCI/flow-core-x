@@ -17,8 +17,8 @@
 
 package com.flowci.core.common.rabbit;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.config.QueueConfig;
-import com.flowci.util.StringHelper;
 import com.rabbitmq.client.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

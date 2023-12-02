@@ -1,6 +1,10 @@
 package com.flowci.core.git.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.common.exception.ArgumentException;
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.exception.UnsupportedException;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.git.client.GerritApiClient;
@@ -18,16 +22,12 @@ import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.domain.TokenSecret;
 import com.flowci.core.secret.event.GetSecretEvent;
-import com.flowci.common.exception.ArgumentException;
-import com.flowci.common.exception.NotFoundException;
-import com.flowci.common.exception.UnsupportedException;
-import com.flowci.util.StringHelper;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.net.http.HttpClient;
 import java.util.*;
 
@@ -86,7 +86,7 @@ public class GitConfigServiceImpl implements GitConfigService {
         Job job = event.getJob();
 
         String gitSourceStr = JobContextHelper.getGitSource(job);
-        if (!StringHelper.hasValue(gitSourceStr)) {
+        if (StringHelper.isEmpty(gitSourceStr)) {
             log.info("no git source on job {} - {}", job.getFlowName(), job.getBuildNumber());
             return;
         }

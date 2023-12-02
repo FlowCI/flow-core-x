@@ -18,9 +18,12 @@ package com.flowci.domain.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.domain.StringVars;
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
-import org.junit.Assert;
-import org.junit.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author yang
@@ -30,15 +33,14 @@ public class JsonableTest {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
-    public void should_parse_variable_map_to_json() throws IOException {
+    void should_parse_variable_map_to_json() throws IOException {
         StringVars vm = new StringVars();
         vm.put("hello", "world");
         String json = mapper.writeValueAsString(vm);
-        Assert.assertNotNull(json);
+        assertNotNull(json);
 
         StringVars value = mapper.readValue(json, StringVars.class);
-        Assert.assertNotNull(value);
-        Assert.assertEquals("world", value.get("hello"));
+        assertNotNull(value);
+        assertEquals("world", value.get("hello"));
     }
-
 }

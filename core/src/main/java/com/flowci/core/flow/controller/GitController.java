@@ -16,13 +16,13 @@
 
 package com.flowci.core.flow.controller;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.FlowAction;
 import com.flowci.core.flow.domain.FlowGitTest;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.GitConnService;
-import com.flowci.util.StringHelper;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

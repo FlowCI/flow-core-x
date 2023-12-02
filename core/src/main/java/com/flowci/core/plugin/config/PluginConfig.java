@@ -16,9 +16,9 @@
 
 package com.flowci.core.plugin.config;
 
+import com.flowci.common.helper.FileHelper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.plugin.PluginRepoResolver;
-import com.flowci.util.FileHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.http.server.GitServlet;
 import org.springframework.beans.factory.annotation.Autowired;

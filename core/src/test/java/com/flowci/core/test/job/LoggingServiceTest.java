@@ -5,7 +5,7 @@ import com.flowci.core.job.service.StepService;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.job.domain.Step;
 import com.flowci.store.FileManager;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import java.io.IOException;
 import org.junit.After;
 import org.junit.Assert;

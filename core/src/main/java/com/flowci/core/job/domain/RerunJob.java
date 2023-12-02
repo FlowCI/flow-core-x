@@ -16,9 +16,8 @@
 
 package com.flowci.core.job.domain;
 
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
-
-import javax.validation.constraints.NotEmpty;
 
 @Data
 public class RerunJob {

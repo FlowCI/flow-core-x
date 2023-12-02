@@ -17,14 +17,13 @@
 package com.flowci.core.job.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.AgentProfile;
 import com.flowci.core.common.domain.Mongoable;
-import com.flowci.core.common.domain.Variables;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.store.Pathable;
-import com.flowci.util.StringHelper;
 import com.google.common.collect.ImmutableSet;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

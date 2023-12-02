@@ -1,14 +1,13 @@
 package com.flowci.core.git.controller;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.git.domain.GitConfig;
 import com.flowci.core.git.domain.GitConfigWithHost;
-import com.flowci.util.StringHelper;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 public abstract class Request {
 

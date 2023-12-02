@@ -2,37 +2,38 @@ package com.flowci.zookeeper.test;
 
 import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class ZookeeperClientTest {
 
     private ZookeeperClient client;
 
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         ExecutorService executor = Executors.newFixedThreadPool(1);
         String host = System.getenv().getOrDefault("FLOWCI_ZK_HOST", "127.0.0.1:2181");
         client = new ZookeeperClient(host, 5, 10, executor);
         client.start();
     }
 
-    @After
-    public void cleanup() {
+    @AfterEach
+    void cleanup() {
         if (client != null) {
             client.close();
         }
     }
 
     @Test
-    public void should_lock() throws InterruptedException {
+    void should_lock() throws InterruptedException {
         String lockPath = client.makePath("/lock-test", "test");
 
         CountDownLatch latch = new CountDownLatch(2);
@@ -72,7 +73,7 @@ public class ZookeeperClientTest {
         }).start();
 
         latch.await();
-        Assert.assertTrue(client.exist(lockPath));
+        assertTrue(client.exist(lockPath));
     }
 
     private void sleep(int second) {

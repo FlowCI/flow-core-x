@@ -20,7 +20,7 @@ package com.flowci.core.test.common;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.helper.CipherHelper.RSA;
 import com.flowci.domain.SimpleKeyPair;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import com.google.common.base.Strings;
 import org.junit.Assert;
 import org.junit.Test;

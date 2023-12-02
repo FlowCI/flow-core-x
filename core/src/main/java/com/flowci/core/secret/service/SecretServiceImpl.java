@@ -16,6 +16,7 @@
 
 package com.flowci.core.secret.service;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.helper.CipherHelper;
 import com.flowci.core.common.manager.SessionManager;
@@ -33,7 +34,6 @@ import com.flowci.common.exception.DuplicateException;
 import com.flowci.common.exception.NotFoundException;
 import com.flowci.common.exception.StatusException;
 import com.flowci.store.FileManager;
-import com.flowci.util.StringHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -69,7 +69,7 @@ public class SecretServiceImpl implements SecretService {
 
     @Override
     public List<Secret> listName(String category) {
-        if (!StringHelper.hasValue(category)) {
+        if (StringHelper.isEmpty(category)) {
             return secretDao.listNameOnly();
         }
 

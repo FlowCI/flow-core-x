@@ -22,13 +22,13 @@ import com.flowci.core.secret.domain.Request;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.domain.SimpleKeyPair;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**

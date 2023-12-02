@@ -16,12 +16,12 @@
 
 package com.flowci.core.git.domain;
 
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.domain.StringVars;
-import com.flowci.common.exception.NotFoundException;
-import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

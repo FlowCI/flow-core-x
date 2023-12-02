@@ -19,6 +19,7 @@ package com.flowci.core.test.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.common.helper.HashingHelper;
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.test.MockMvcHelper;
@@ -29,8 +30,6 @@ import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.common.exception.AuthenticationException;
 import com.flowci.common.exception.ErrorCode;
 import com.flowci.common.exception.NotFoundException;
-import com.flowci.util.HashingHelper;
-import com.flowci.util.StringHelper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

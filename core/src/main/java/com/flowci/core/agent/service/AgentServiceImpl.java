@@ -17,6 +17,10 @@
 package com.flowci.core.agent.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.common.exception.DuplicateException;
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.exception.StatusException;
+import com.flowci.common.helper.ObjectsHelper;
 import com.flowci.core.agent.dao.AgentDao;
 import com.flowci.core.agent.dao.AgentProfileDao;
 import com.flowci.core.agent.domain.*;
@@ -32,21 +36,17 @@ import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.common.manager.SpringTaskManager;
 import com.flowci.core.common.rabbit.RabbitOperations;
 import com.flowci.core.job.event.NoIdleAgentEvent;
-import com.flowci.common.exception.DuplicateException;
-import com.flowci.common.exception.NotFoundException;
-import com.flowci.common.exception.StatusException;
 import com.flowci.tree.Selector;
-import com.flowci.util.ObjectsHelper;
 import com.flowci.zookeeper.InterLock;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.Sets;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
@@ -159,7 +159,7 @@ public class AgentServiceImpl implements AgentService {
             String agentId = Util.getAgentIdFromLockPath(path);
             Optional<Agent> optional = agentDao.findById(agentId);
 
-            if (!optional.isPresent()) {
+            if (optional.isEmpty()) {
                 try {
                     zk.delete(path, true);
                 } catch (Throwable ignore) {
@@ -175,7 +175,7 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public Agent get(String id) {
         Optional<Agent> optional = agentDao.findById(id);
-        if (!optional.isPresent()) {
+        if (optional.isEmpty()) {
             throw new NotFoundException("Agent {0} does not existed", id);
         }
         return optional.get();

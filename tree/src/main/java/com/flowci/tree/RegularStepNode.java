@@ -1,8 +1,8 @@
 package com.flowci.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.domain.ObjectWrapper;
-import com.flowci.util.StringHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -162,7 +162,7 @@ public final class RegularStepNode extends Node {
         return wrapper.getValue();
     }
 
-    protected void forEachBottomUpStep(Node node, Function<RegularStepNode, Boolean> onNode) {
+    private void forEachBottomUpStep(Node node, Function<RegularStepNode, Boolean> onNode) {
         super.forEachBottomUp(node, (n) -> {
             if (n instanceof RegularStepNode) {
                 return onNode.apply((RegularStepNode) n);

@@ -18,6 +18,7 @@ package com.flowci.core.flow.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.helper.DateHelper;
 import com.flowci.core.flow.dao.MatrixItemDao;
 import com.flowci.core.flow.domain.Flow;
@@ -31,7 +32,7 @@ import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.common.exception.NotFoundException;
 import com.flowci.tree.NodeTree;
-import com.flowci.util.StringHelper;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
@@ -40,7 +41,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
 

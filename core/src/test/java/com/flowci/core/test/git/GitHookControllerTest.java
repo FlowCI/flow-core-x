@@ -23,7 +23,7 @@ import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.test.flow.FlowMockHelper;
 import com.flowci.domain.ObjectWrapper;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

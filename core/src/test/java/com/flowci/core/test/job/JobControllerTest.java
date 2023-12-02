@@ -25,7 +25,7 @@ import com.flowci.core.job.domain.*;
 import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.flow.FlowMockHelper;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;

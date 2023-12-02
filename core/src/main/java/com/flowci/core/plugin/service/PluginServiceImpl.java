@@ -18,6 +18,9 @@ package com.flowci.core.plugin.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.common.exception.ArgumentException;
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.ResourceManager;
@@ -30,9 +33,7 @@ import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.plugin.event.RepoCloneEvent;
 import com.flowci.domain.Input;
 import com.flowci.domain.Vars;
-import com.flowci.common.exception.ArgumentException;
-import com.flowci.common.exception.NotFoundException;
-import com.flowci.util.StringHelper;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -42,7 +43,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -166,7 +166,7 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public Plugin get(String name) {
         Optional<Plugin> optional = pluginDao.findByName(name);
-        if (!optional.isPresent()) {
+        if (optional.isEmpty()) {
             throw new NotFoundException("The plugin {0} is not found", name);
         }
         return optional.get();

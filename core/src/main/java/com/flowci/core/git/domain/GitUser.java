@@ -16,10 +16,8 @@
 
 package com.flowci.core.git.domain;
 
-import com.flowci.util.StringHelper;
-import lombok.Builder;
+import com.flowci.common.helper.StringHelper;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 

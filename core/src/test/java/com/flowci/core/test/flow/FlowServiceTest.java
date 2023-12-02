@@ -38,7 +38,7 @@ import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.domain.*;
 import com.flowci.common.exception.ArgumentException;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;

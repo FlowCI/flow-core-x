@@ -18,7 +18,7 @@ package com.flowci.domain;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.flowci.util.ObjectsHelper;
+import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -63,7 +63,7 @@ public abstract class Vars<V> extends LinkedHashMap<String, V> implements Serial
         return Objects.isNull(value) ? defaultValue : value;
     }
 
-    public V get(String []keys, V defaultValue) {
+    public V get(String[] keys, V defaultValue) {
         for (var key : keys) {
             V value = get(key);
             if (Objects.isNull(value)) {
@@ -84,7 +84,7 @@ public abstract class Vars<V> extends LinkedHashMap<String, V> implements Serial
     }
 
     public Vars<V> merge(Vars<V> other, boolean overwrite) {
-        if (!ObjectsHelper.hasCollection(other)) {
+        if (CollectionUtils.isEmpty(other)) {
             return this;
         }
 

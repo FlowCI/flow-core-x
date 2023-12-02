@@ -32,7 +32,7 @@ import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.common.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
-import com.flowci.util.FileHelper;
+import com.flowci.common.helper.FileHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
