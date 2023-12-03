@@ -26,8 +26,7 @@ import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.common.exception.ErrorCode;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,6 +34,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 /**
@@ -60,28 +61,28 @@ public class AgentControllerTest extends MockLoggedInScenario {
     private ObjectMapper objectMapper;
 
     @Test
-    public void should_duplicate_error_when_create_agent_with_same_name() throws Throwable {
+    void  should_duplicate_error_when_create_agent_with_same_name() throws Throwable {
         createAgent("same.name", null, StatusCode.OK);
         createAgent("same.name", null, ErrorCode.DUPLICATE);
     }
 
     @Test
-    public void should_list_agent() throws Throwable {
+    void  should_list_agent() throws Throwable {
         Agent first = createAgent("first.agent", null, StatusCode.OK);
         Agent second = createAgent("second.agent", null, StatusCode.OK);
 
         ResponseMessage<List<Agent>> response =
                 mockMvcHelper.expectSuccessAndReturnClass(get("/agents"), AgentListResponseType);
-        Assert.assertEquals(StatusCode.OK, response.getCode());
+        assertEquals(StatusCode.OK, response.getCode());
 
         List<Agent> list = response.getData();
-        Assert.assertEquals(2, list.size());
-        Assert.assertTrue(list.contains(first));
-        Assert.assertTrue(list.contains(second));
+        assertEquals(2, list.size());
+        assertTrue(list.contains(first));
+        assertTrue(list.contains(second));
     }
 
     @Test
-    public void should_delete_agent() throws Throwable {
+    void  should_delete_agent() throws Throwable {
         Agent created = createAgent("should.delete", null, StatusCode.OK);
 
         DeleteAgent body = new DeleteAgent(created.getToken());
@@ -91,12 +92,12 @@ public class AgentControllerTest extends MockLoggedInScenario {
                                 .content(objectMapper.writeValueAsString(body))
                                 .contentType(MediaType.APPLICATION_JSON), AgentResponseType);
 
-        Assert.assertEquals(StatusCode.OK, responseOfDeleteAgent.getCode());
-        Assert.assertEquals(created, responseOfDeleteAgent.getData());
+        assertEquals(StatusCode.OK, responseOfDeleteAgent.getCode());
+        assertEquals(created, responseOfDeleteAgent.getData());
 
         ResponseMessage<Agent> responseOfGetAgent =
                 mockMvcHelper.expectSuccessAndReturnClass(get("/agents/" + created.getToken()), AgentResponseType);
-        Assert.assertEquals(ErrorCode.NOT_FOUND, responseOfGetAgent.getCode());
+        assertEquals(ErrorCode.NOT_FOUND, responseOfGetAgent.getCode());
     }
 
     private Agent createAgent(String name, Set<String> tags, Integer code) throws Exception {
@@ -108,7 +109,7 @@ public class AgentControllerTest extends MockLoggedInScenario {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(create)), AgentResponseType);
 
-        Assert.assertEquals(code, agentR.getCode());
+        assertEquals(code, agentR.getCode());
         return agentR.getData();
     }
 }

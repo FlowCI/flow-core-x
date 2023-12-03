@@ -1,19 +1,21 @@
 package com.flowci.core.test.job;
 
+import com.flowci.common.helper.StringHelper;
+import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.service.LoggingService;
 import com.flowci.core.job.service.StepService;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.core.job.domain.Step;
 import com.flowci.store.FileManager;
-import com.flowci.common.helper.StringHelper;
-import java.io.IOException;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.Resource;
+
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class LoggingServiceTest extends SpringScenario {
 
@@ -29,7 +31,7 @@ public class LoggingServiceTest extends SpringScenario {
     private String fileKey;
 
     @Test
-    public void should_save_log_to_dir() throws IOException {
+    void should_save_log_to_dir() throws IOException {
         // init:
         String cmdId = "dummy-cmd-id";
 
@@ -42,15 +44,15 @@ public class LoggingServiceTest extends SpringScenario {
         // when:
         String fileName = cmdId + ".log";
         fileKey = loggingService.save(fileName, load("flow.yml"));
-        Assert.assertNotNull(fileKey);
+        assertNotNull(fileKey);
 
         // then:
         Resource resource = loggingService.get(cmdId);
-        Assert.assertNotNull(resource);
+        assertNotNull(resource);
     }
 
-    @After
-    public void remove() throws IOException {
+    @AfterEach
+    void remove() throws IOException {
         if (StringHelper.hasValue(fileKey)) {
             fileManager.remove(fileKey);
         }

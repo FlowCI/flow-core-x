@@ -88,7 +88,7 @@ public class GitClient {
                 .setBranch(branch);
         setupSecret(cloneCommand);
 
-        try(Git ignored = cloneCommand.call()) {
+        try (Git ignored = cloneCommand.call()) {
 
         } catch (GitAPIException e) {
             throw new IOException(e.getMessage());
@@ -101,13 +101,15 @@ public class GitClient {
         }
 
         if (secret instanceof SimpleKeyPair) {
-            SecretCreator ssh = new SshSecret((SimpleKeyPair) secret);
-            ssh.setup(command);
+            try (SecretCreator ssh = new SshSecret((SimpleKeyPair) secret)) {
+                ssh.setup(command);
+            }
         }
 
         if (secret instanceof SimpleAuthPair) {
-            SecretCreator http = new HttpSecret((SimpleAuthPair) secret);
-            http.setup(command);
+            try (SecretCreator http = new HttpSecret((SimpleAuthPair) secret)) {
+                http.setup(command);
+            }
         }
 
         return command;

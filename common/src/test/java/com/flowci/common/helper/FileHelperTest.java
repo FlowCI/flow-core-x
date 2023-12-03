@@ -17,7 +17,6 @@
 
 package com.flowci.common.helper;
 
-import com.flowci.common.helper.FileHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -49,7 +48,8 @@ public class FileHelperTest {
         InputStream src = this.getClass().getClassLoader().getResourceAsStream("jacoco-report.zip");
         Assertions.assertNotNull(src);
 
-        Path destDir = Files.createDirectories(Paths.get(temp.getPath(), "jacoco-report"));;
+        Path destDir = Files.createDirectories(Paths.get(temp.getPath(), "jacoco-report"));
+        ;
         FileHelper.unzip(src, destDir);
 
         assertTrue(Files.exists(destDir));

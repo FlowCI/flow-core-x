@@ -28,15 +28,15 @@ import com.flowci.domain.VarValue;
 import com.flowci.common.exception.ErrorCode;
 import com.flowci.common.helper.StringHelper;
 import org.assertj.core.util.Lists;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
@@ -53,41 +53,41 @@ public class FlowControllerTest extends MockLoggedInScenario {
 
     private final String flowName = "hello_world";
 
-    @Before
-    public void createFlowWithYml() throws Exception {
+    @BeforeEach
+    void createFlowWithYml() throws Exception {
         String yml = StringHelper.toString(load("flow.yml"));
         flowMockHelper.create(flowName, yml);
     }
 
     @Test
-    public void should_get_flow_and_yml_then_delete() throws Exception {
+    void should_get_flow_and_yml_then_delete() throws Exception {
         ResponseMessage<Flow> getFlowResponse = mockMvcHelper
                 .expectSuccessAndReturnClass(get("/flows/" + flowName + "?group=false"), FlowMockHelper.FlowType);
-        Assert.assertEquals(StatusCode.OK, getFlowResponse.getCode());
-        Assert.assertEquals(flowName, getFlowResponse.getData().getName());
+        assertEquals(StatusCode.OK, getFlowResponse.getCode());
+        assertEquals(flowName, getFlowResponse.getData().getName());
 
         ResponseMessage<FlowYml> responseMessage = mockMvcHelper
                 .expectSuccessAndReturnClass(get("/flows/" + flowName + "/yml"), FlowMockHelper.FlowYmlType);
         FlowYml flowYml = responseMessage.getData();
-        Assert.assertEquals(1, flowYml.getList().size());
+        assertEquals(1, flowYml.getList().size());
 
         ResponseMessage<Flow> deleted = mockMvcHelper
                 .expectSuccessAndReturnClass(delete("/flows/" + flowName), FlowMockHelper.FlowType);
-        Assert.assertEquals(StatusCode.OK, deleted.getCode());
+        assertEquals(StatusCode.OK, deleted.getCode());
     }
 
     @Test
-    public void should_list_flows() throws Exception {
+    void should_list_flows() throws Exception {
         ResponseMessage<List<Flow>> listFlowResponse = mockMvcHelper
                 .expectSuccessAndReturnClass(get("/flows"), FlowMockHelper.ListFlowType);
 
-        Assert.assertEquals(StatusCode.OK, listFlowResponse.getCode());
-        Assert.assertEquals(1, listFlowResponse.getData().size());
-        Assert.assertEquals(flowName, listFlowResponse.getData().get(0).getName());
+        assertEquals(StatusCode.OK, listFlowResponse.getCode());
+        assertEquals(1, listFlowResponse.getData().size());
+        assertEquals(flowName, listFlowResponse.getData().get(0).getName());
     }
 
     @Test
-    public void should_list_users_of_flow() throws Exception {
+    void should_list_users_of_flow() throws Exception {
         User user1 = userService.create("user.1@flow.ci", "12345", User.Role.Developer);
         User user2 = userService.create("user.2@flow.ci", "12345", User.Role.Developer);
         User user3 = userService.create("user.3@flow.ci", "12345", User.Role.Developer);
@@ -95,35 +95,35 @@ public class FlowControllerTest extends MockLoggedInScenario {
         flowMockHelper.addUsers(flowName, user1, user2, user3);
 
         List<User> users = flowMockHelper.listUsers(flowName);
-        Assert.assertTrue(users.size() >= 3);
+        assertTrue(users.size() >= 3);
 
         flowMockHelper.removeUsers(flowName, user1, user2);
         users = flowMockHelper.listUsers(flowName);
-        Assert.assertTrue(users.size() >= 1);
+        assertFalse(users.isEmpty());
     }
 
     @Test
-    public void should_operate_vars_to_flow() throws Exception {
+    void should_operate_vars_to_flow() throws Exception {
         // init:
         Map<String, VarValue> vars = new HashMap<>();
         vars.put("FLOWCI_GIT_URL", VarValue.of("git@github.com:flowci/docs.git", VarType.GIT_URL));
 
         // to test add vars
         ResponseMessage msg = flowMockHelper.addVars(flowName, vars);
-        Assert.assertEquals(StatusCode.OK, msg.getCode());
+        assertEquals(StatusCode.OK, msg.getCode());
 
         // to test remove vars
         msg = flowMockHelper.removeVars(flowName, Lists.newArrayList("FLOWCI_GIT_URL"));
-        Assert.assertEquals(StatusCode.OK, msg.getCode());
+        assertEquals(StatusCode.OK, msg.getCode());
     }
 
     @Test
-    public void should_get_argument_error_if_invalid_var_format() throws Exception {
+    void should_get_argument_error_if_invalid_var_format() throws Exception {
         // init:
         Map<String, VarValue> vars = new HashMap<>();
         vars.put("FLOWCI_GIT_URL", VarValue.of("git@github.com", VarType.GIT_URL));
 
         ResponseMessage msg = flowMockHelper.addVars(flowName, vars);
-        Assert.assertEquals(ErrorCode.INVALID_ARGUMENT, msg.getCode());
+        assertEquals(ErrorCode.INVALID_ARGUMENT, msg.getCode());
     }
 }

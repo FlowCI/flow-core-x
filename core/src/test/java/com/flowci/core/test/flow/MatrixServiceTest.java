@@ -24,14 +24,16 @@ import com.flowci.core.flow.service.MatrixService;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.JobStatusChangeEvent;
 import com.flowci.core.test.SpringScenario;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author yang
@@ -42,7 +44,7 @@ public class MatrixServiceTest extends SpringScenario {
     private MatrixService matrixService;
 
     @Test
-    public void should_add_stats_item_when_job_status_changed() {
+    void should_add_stats_item_when_job_status_changed() {
         Job job = new Job();
         job.setId("1111");
         job.setFlowId("123-456");
@@ -53,22 +55,22 @@ public class MatrixServiceTest extends SpringScenario {
         ThreadHelper.sleep(1000);
 
         MatrixItem item = matrixService.get(job.getFlowId(), MatrixType.JOB_STATUS, DateHelper.toIntDay(new Date()));
-        Assert.assertNotNull(item);
-        Assert.assertEquals(Job.FINISH_STATUS.size(), item.getCounter().size());
+        assertNotNull(item);
+        assertEquals(Job.FINISH_STATUS.size(), item.getCounter().size());
 
-        Assert.assertEquals(new Float(1.0F), item.getCounter().get("SUCCESS"));
-        Assert.assertEquals(new Float(0.0F), item.getCounter().get("FAILURE"));
-        Assert.assertEquals(new Float(0.0F), item.getCounter().get("CANCELLED"));
-        Assert.assertEquals(new Float(0.0F), item.getCounter().get("TIMEOUT"));
+        assertEquals(Float.valueOf(1.0F), item.getCounter().get("SUCCESS"));
+        assertEquals(Float.valueOf(0.0F), item.getCounter().get("FAILURE"));
+        assertEquals(Float.valueOf(0.0F), item.getCounter().get("CANCELLED"));
+        assertEquals(Float.valueOf(0.0F), item.getCounter().get("TIMEOUT"));
 
-        Assert.assertEquals(new Float(1.0F), item.getTotal().get("SUCCESS"));
-        Assert.assertEquals(new Float(0.0F), item.getTotal().get("FAILURE"));
-        Assert.assertEquals(new Float(0.0F), item.getTotal().get("CANCELLED"));
-        Assert.assertEquals(new Float(0.0F), item.getTotal().get("TIMEOUT"));
+        assertEquals(Float.valueOf(1.0F), item.getTotal().get("SUCCESS"));
+        assertEquals(Float.valueOf(0.0F), item.getTotal().get("FAILURE"));
+        assertEquals(Float.valueOf(0.0F), item.getTotal().get("CANCELLED"));
+        assertEquals(Float.valueOf(0.0F), item.getTotal().get("TIMEOUT"));
     }
 
     @Test
-    public void should_list_stats_by_days() {
+    void should_list_stats_by_days() {
         String flowId = "11123123";
 
         Date yesterday = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
@@ -100,14 +102,14 @@ public class MatrixServiceTest extends SpringScenario {
         int fromDay = DateHelper.toIntDay(yesterday);
         int toDay = DateHelper.toIntDay(tomorrow);
         List<MatrixItem> list = matrixService.list(flowId, MatrixType.JOB_STATUS, fromDay, toDay);
-        Assert.assertNotNull(list);
-        Assert.assertEquals(3, list.size());
+        assertNotNull(list);
+        assertEquals(3, list.size());
 
         MatrixItem total = matrixService.get(flowId, MatrixType.JOB_STATUS, MatrixItem.ZERO_DAY);
-        Assert.assertNotNull(total);
-        Assert.assertEquals(2.0F, total.getCounter().get("SUCCESS"), 0.0);
-        Assert.assertEquals(1.0F, total.getCounter().get("FAILURE"), 0.0);
-        Assert.assertEquals(0.0F, total.getCounter().get("CANCELLED"), 0.0);
-        Assert.assertEquals(0.0F, total.getCounter().get("TIMEOUT"), 0.0);
+        assertNotNull(total);
+        assertEquals(2.0F, total.getCounter().get("SUCCESS"), 0.0);
+        assertEquals(1.0F, total.getCounter().get("FAILURE"), 0.0);
+        assertEquals(0.0F, total.getCounter().get("CANCELLED"), 0.0);
+        assertEquals(0.0F, total.getCounter().get("TIMEOUT"), 0.0);
     }
 }

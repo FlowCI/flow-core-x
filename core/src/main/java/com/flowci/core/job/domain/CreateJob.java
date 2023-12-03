@@ -17,7 +17,7 @@
 package com.flowci.core.job.domain;
 
 import com.flowci.domain.StringVars;
-import jakarta.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 
 /**

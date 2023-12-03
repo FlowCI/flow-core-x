@@ -17,19 +17,18 @@
 
 package com.flowci.core.test.common;
 
-import com.flowci.core.common.helper.CipherHelper;
-import com.flowci.core.common.helper.CipherHelper.RSA;
-import com.flowci.domain.SimpleKeyPair;
 import com.flowci.common.helper.StringHelper;
+import com.flowci.core.common.helper.CipherHelper;
 import com.google.common.base.Strings;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 
 import static com.flowci.core.common.helper.CipherHelper.RSA.fingerprintMd5;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class CipherHelperTest {
 
@@ -40,18 +39,18 @@ public class CipherHelperTest {
         final String secret = "ssdkF$HUy2A#D%kd";
 
         String encrypted = CipherHelper.AES.encrypt(source, secret);
-        Assert.assertFalse(Strings.isNullOrEmpty(encrypted));
+        assertFalse(Strings.isNullOrEmpty(encrypted));
 
         String decrypted = CipherHelper.AES.decrypt(encrypted, secret);
-        Assert.assertFalse(Strings.isNullOrEmpty(decrypted));
+        assertFalse(Strings.isNullOrEmpty(decrypted));
 
-        Assert.assertEquals(source, decrypted);
+        assertEquals(source, decrypted);
     }
 
     @Test
-    public void should_create_public_key_fingerprint() throws IOException, NoSuchAlgorithmException {
+    void should_create_public_key_fingerprint() throws IOException, NoSuchAlgorithmException {
         InputStream in = CipherHelper.class.getClassLoader().getResourceAsStream("pk_fingerprint");
         String publicKey = StringHelper.toString(in);
-        Assert.assertEquals("09:e6:ce:d3:ba:a3:ee:75:9e:96:7b:55:12:85:c6:4e", fingerprintMd5(publicKey));
+        assertEquals("09:e6:ce:d3:ba:a3:ee:75:9e:96:7b:55:12:85:c6:4e", fingerprintMd5(publicKey));
     }
 }

@@ -33,7 +33,6 @@ import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.plugin.event.RepoCloneEvent;
 import com.flowci.domain.Input;
 import com.flowci.domain.Vars;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -43,6 +42,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -247,11 +247,11 @@ public class PluginServiceImpl implements PluginService {
         String rd = appProperties.getResourceDomain();
         String source = plugin.getSourceWithDomain(rd);
 
-        if (!StringHelper.hasValue(source)) {
+        if (StringHelper.isEmpty(source)) {
             throw new NotFoundException("Plugin {0} source is missing for domain {1}", plugin.getName(), rd);
         }
 
-        GitClient client = new GitClient(source, null, null);
+        var client = new GitClient(source, null, null);
         client.klone(dir, plugin.getBranch());
 
         setMetaFromYamlFile(dir.toFile(), plugin);

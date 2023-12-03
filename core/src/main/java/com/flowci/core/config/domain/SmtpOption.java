@@ -2,7 +2,7 @@ package com.flowci.core.config.domain;
 
 import com.flowci.common.helper.StringHelper;
 import com.flowci.domain.SimpleAuthPair;
-import jakarta.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;

@@ -22,7 +22,7 @@ import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.domain.TokenSecret;
 import com.flowci.core.secret.event.GetSecretEvent;
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;

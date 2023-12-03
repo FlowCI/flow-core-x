@@ -13,25 +13,25 @@ import com.flowci.core.trigger.domain.EmailTrigger;
 import com.flowci.core.trigger.domain.Trigger;
 import com.flowci.core.trigger.event.EmailTemplateParsedEvent;
 import com.flowci.core.trigger.service.TriggerService;
-import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.SimpleAuthPair;
 import com.flowci.domain.StringVars;
 import com.flowci.domain.Vars;
 import com.flowci.common.helper.StringHelper;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationListener;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.testng.Assert;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TriggerServiceTest extends MockLoggedInScenario {
 
@@ -48,14 +48,14 @@ public class TriggerServiceTest extends MockLoggedInScenario {
 
     private final JavaMailSender sender = getSender();
 
-    @Before
-    public void mock() {
+    @BeforeEach
+    void mock() {
         Mockito.when(configService.get(config.getName())).thenReturn(config);
         Mockito.when(configService.getEmailSender(config.getName())).thenReturn(sender);
     }
 
     @Test
-    public void should_save_email_notification() {
+    void should_save_email_notification() {
         EmailTrigger en = new EmailTrigger();
         en.setName("default-email-notification");
         en.setSmtpConfig(config.getName());
@@ -64,14 +64,14 @@ public class TriggerServiceTest extends MockLoggedInScenario {
 
         triggerService.save(en);
 
-        Assert.assertNotNull(en.getId());
-        Assert.assertNotNull(en.getCreatedBy());
-        Assert.assertNotNull(en.getUpdatedBy());
+        assertNotNull(en.getId());
+        assertNotNull(en.getCreatedBy());
+        assertNotNull(en.getUpdatedBy());
     }
 
-    @Ignore
+    @Disabled
     @Test
-    public void should_send_email_with_condition() throws JsonProcessingException {
+    void should_send_email_with_condition() throws JsonProcessingException {
         EmailTrigger en = new EmailTrigger();
         en.setName("default-email-notification");
         en.setSmtpConfig(config.getName());
@@ -114,9 +114,9 @@ public class TriggerServiceTest extends MockLoggedInScenario {
             try {
                 String template = event.getTemplate().replaceAll("\\s", "");
                 String expected = StringHelper.toString(load("templates/email-template-expected-success.html")).replaceAll("\\s", "");
-                Assert.assertEquals(expected, template);
+                assertEquals(expected, template);
             } catch (IOException e) {
-                Assert.fail();
+                fail(e.getMessage());
             }
         });
 

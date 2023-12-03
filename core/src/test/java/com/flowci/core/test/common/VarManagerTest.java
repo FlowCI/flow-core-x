@@ -17,12 +17,14 @@
 package com.flowci.core.test.common;
 
 import com.flowci.core.common.manager.VarManager;
-import com.flowci.domain.Input;
 import com.flowci.core.test.SpringScenario;
+import com.flowci.domain.Input;
 import com.flowci.domain.VarType;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author yang
@@ -33,65 +35,63 @@ public class VarManagerTest extends SpringScenario {
     private VarManager varManager;
 
     @Test
-    public void should_verify_integer() {
+    void should_verify_integer() {
         Input v = new Input()
-            .setName("test")
-            .setAlias("test")
-            .setRequired(true)
-            .setType(VarType.INT);
+                .setName("test")
+                .setAlias("test")
+                .setRequired(true)
+                .setType(VarType.INT);
 
-        Assert.assertTrue(varManager.verify(v, "123"));
-        Assert.assertFalse(varManager.verify(v, ""));
-        Assert.assertFalse(varManager.verify(v, "123A"));
+        assertTrue(varManager.verify(v, "123"));
+        assertFalse(varManager.verify(v, ""));
+        assertFalse(varManager.verify(v, "123A"));
     }
 
     @Test
-    public void should_verify_email() {
+    void should_verify_email() {
         Input in = new Input()
-            .setName("test")
-            .setAlias("test")
-            .setRequired(false)
-            .setType(VarType.EMAIL);
+                .setName("test")
+                .setAlias("test")
+                .setRequired(false)
+                .setType(VarType.EMAIL);
 
-
-        Assert.assertTrue(varManager.verify(in, "hi@flow.ci"));
-        Assert.assertTrue(varManager.verify(in, ""));
-        Assert.assertFalse(varManager.verify(in, "123A"));
+        assertTrue(varManager.verify(in, "hi@flow.ci"));
+        assertTrue(varManager.verify(in, ""));
+        assertFalse(varManager.verify(in, "123A"));
     }
 
     @Test
-    public void should_verify_git_url() {
+    void should_verify_git_url() {
         Input in = new Input()
-            .setName("test")
-            .setAlias("test")
-            .setRequired(false)
-            .setType(VarType.GIT_URL);
+                .setName("test")
+                .setAlias("test")
+                .setRequired(false)
+                .setType(VarType.GIT_URL);
 
 
-        Assert.assertTrue(varManager.verify(in, "git@github.com:FlowCI/flow-platform-x.git"));
-        Assert.assertTrue(varManager.verify(in, ""));
+        assertTrue(varManager.verify(in, "git@github.com:FlowCI/flow-platform-x.git"));
+        assertTrue(varManager.verify(in, ""));
 
-        Assert.assertFalse(varManager.verify(in, "123A"));
-        Assert.assertFalse(varManager.verify(in, "git@github.com:FlowCI"));
-        Assert.assertFalse(varManager.verify(in, "git@github.com"));
-        Assert.assertFalse(varManager.verify(in, "http://github.com"));
+        assertFalse(varManager.verify(in, "123A"));
+        assertFalse(varManager.verify(in, "git@github.com:FlowCI"));
+        assertFalse(varManager.verify(in, "git@github.com"));
+        assertFalse(varManager.verify(in, "http://github.com"));
     }
 
     @Test
-    public void should_verify_web_url() {
+    void should_verify_web_url() {
         Input in = new Input()
-            .setName("test")
-            .setAlias("test")
-            .setRequired(false)
-            .setType(VarType.HTTP_URL);
+                .setName("test")
+                .setAlias("test")
+                .setRequired(false)
+                .setType(VarType.HTTP_URL);
 
+        assertTrue(varManager.verify(in, "http://www.google.com"));
+        assertTrue(varManager.verify(in, "http://github.com"));
+        assertTrue(varManager.verify(in, ""));
 
-        Assert.assertTrue(varManager.verify(in, "http://www.google.com"));
-        Assert.assertTrue(varManager.verify(in, "http://github.com"));
-        Assert.assertTrue(varManager.verify(in, ""));
-
-        Assert.assertFalse(varManager.verify(in, "123A"));
-        Assert.assertFalse(varManager.verify(in, "git@github.com:FlowCI"));
-        Assert.assertFalse(varManager.verify(in, "git@github.com"));
+        assertFalse(varManager.verify(in, "123A"));
+        assertFalse(varManager.verify(in, "git@github.com:FlowCI"));
+        assertFalse(varManager.verify(in, "git@github.com"));
     }
 }

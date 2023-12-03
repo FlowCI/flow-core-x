@@ -21,7 +21,7 @@ import com.flowci.common.helper.FileHelper;
 import com.flowci.core.common.event.AsyncEvent;
 import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.core.common.helper.ThreadHelper;
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.web.servlet.MultipartProperties;
 import org.springframework.cache.annotation.EnableCaching;

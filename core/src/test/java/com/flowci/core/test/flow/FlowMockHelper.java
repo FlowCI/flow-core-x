@@ -27,7 +27,6 @@ import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.user.domain.User;
 import com.flowci.domain.VarValue;
 import com.flowci.common.helper.StringHelper;
-import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
@@ -35,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 /**
@@ -78,14 +78,14 @@ public class FlowMockHelper {
                 post("/flows/" + name + "/users")
                         .content(objectMapper.writeValueAsBytes(toUserEmailList(users)))
                         .contentType(MediaType.APPLICATION_JSON), ResponseMessage.class);
-        Assert.assertEquals(StatusCode.OK, message.getCode());
+        assertEquals(StatusCode.OK, message.getCode());
     }
 
     List<User> listUsers(String name) throws Exception {
         ResponseMessage<List<User>> message = mockMvcHelper.expectSuccessAndReturnClass(
                 get("/flows/" + name + "/users"), UserListType);
 
-        Assert.assertEquals(StatusCode.OK, message.getCode());
+        assertEquals(StatusCode.OK, message.getCode());
         return message.getData();
     }
 
@@ -94,7 +94,7 @@ public class FlowMockHelper {
                 delete("/flows/" + name + "/users")
                         .content(objectMapper.writeValueAsBytes(toUserEmailList(users)))
                         .contentType(MediaType.APPLICATION_JSON), ResponseMessage.class);
-        Assert.assertEquals(StatusCode.OK, message.getCode());
+        assertEquals(StatusCode.OK, message.getCode());
     }
 
     ResponseMessage addVars(String name, Map<String, VarValue> vars) throws Exception {

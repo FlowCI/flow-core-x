@@ -19,16 +19,15 @@ package com.flowci.core.test.secret;
 import com.flowci.core.secret.domain.*;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.test.MockLoggedInScenario;
-import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.SimpleAuthPair;
 import org.assertj.core.util.Strings;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author yang
@@ -39,48 +38,48 @@ public class SecretServiceTest extends MockLoggedInScenario {
     private SecretService secretService;
 
     @Test
-    public void should_create_rsa_secret() {
+    void should_create_rsa_secret() {
         Secret rsa = secretService.createRSA("hello.rsa");
-        Assert.assertNotNull(rsa);
+        assertNotNull(rsa);
         shouldHasCreatedAtAndCreatedBy(rsa);
 
-        Assert.assertEquals(Secret.Category.SSH_RSA, rsa.getCategory());
-        Assert.assertEquals(sessionManager.getUserEmail(), rsa.getCreatedBy());
-        Assert.assertNotNull(rsa.getCreatedAt());
-        Assert.assertNotNull(rsa.getUpdatedAt());
+        assertEquals(Secret.Category.SSH_RSA, rsa.getCategory());
+        assertEquals(sessionManager.getUserEmail(), rsa.getCreatedBy());
+        assertNotNull(rsa.getCreatedAt());
+        assertNotNull(rsa.getUpdatedAt());
 
         Secret loaded = secretService.get("hello.rsa");
-        Assert.assertTrue(loaded instanceof RSASecret);
+        assertTrue(loaded instanceof RSASecret);
 
         RSASecret secret = (RSASecret) loaded;
-        Assert.assertFalse(Strings.isNullOrEmpty(secret.getPublicKey()));
-        Assert.assertFalse(Strings.isNullOrEmpty(secret.getPrivateKey()));
-        Assert.assertNotNull(secret.getMd5Fingerprint());
+        assertFalse(Strings.isNullOrEmpty(secret.getPublicKey()));
+        assertFalse(Strings.isNullOrEmpty(secret.getPrivateKey()));
+        assertNotNull(secret.getMd5Fingerprint());
     }
 
     @Test
-    public void should_create_auth_secret() {
+    void should_create_auth_secret() {
         SimpleAuthPair sa = new SimpleAuthPair();
         sa.setUsername("test@flow.ci");
         sa.setPassword("12345");
 
         Secret auth = secretService.createAuth("hello.auth", sa);
-        Assert.assertNotNull(auth);
-        Assert.assertEquals(Secret.Category.AUTH, auth.getCategory());
-        Assert.assertEquals(sessionManager.getUserEmail(), auth.getCreatedBy());
-        Assert.assertNotNull(auth.getCreatedAt());
-        Assert.assertNotNull(auth.getUpdatedAt());
+        assertNotNull(auth);
+        assertEquals(Secret.Category.AUTH, auth.getCategory());
+        assertEquals(sessionManager.getUserEmail(), auth.getCreatedBy());
+        assertNotNull(auth.getCreatedAt());
+        assertNotNull(auth.getUpdatedAt());
 
         Secret loaded = secretService.get("hello.auth");
-        Assert.assertTrue(loaded instanceof AuthSecret);
+        assertTrue(loaded instanceof AuthSecret);
 
         AuthSecret keyPair = (AuthSecret) loaded;
-        Assert.assertFalse(Strings.isNullOrEmpty(keyPair.getUsername()));
-        Assert.assertFalse(Strings.isNullOrEmpty(keyPair.getPassword()));
+        assertFalse(Strings.isNullOrEmpty(keyPair.getUsername()));
+        assertFalse(Strings.isNullOrEmpty(keyPair.getPassword()));
     }
 
     @Test
-    public void should_list_secret() {
+    void should_list_secret() {
         secretService.createRSA("hello.rsa.1");
         secretService.createRSA("hello.rsa.2");
 
@@ -88,24 +87,24 @@ public class SecretServiceTest extends MockLoggedInScenario {
         secretService.createAuth("hello.auth.2", SimpleAuthPair.of("111", "111"));
 
         List<Secret> list = secretService.list();
-        Assert.assertEquals(4, list.size());
+        assertEquals(4, list.size());
 
-        Assert.assertEquals("hello.rsa.1", list.get(0).getName());
-        Assert.assertEquals("hello.rsa.2", list.get(1).getName());
-        Assert.assertEquals("hello.auth.1", list.get(2).getName());
-        Assert.assertEquals("hello.auth.2", list.get(3).getName());
+        assertEquals("hello.rsa.1", list.get(0).getName());
+        assertEquals("hello.rsa.2", list.get(1).getName());
+        assertEquals("hello.auth.1", list.get(2).getName());
+        assertEquals("hello.auth.2", list.get(3).getName());
 
         List<Secret> names = secretService.listName(null);
-        Assert.assertEquals(4, names.size());
+        assertEquals(4, names.size());
 
-        Assert.assertEquals("hello.rsa.1", names.get(0).getName());
-        Assert.assertEquals("hello.rsa.2", names.get(1).getName());
-        Assert.assertEquals("hello.auth.1", list.get(2).getName());
-        Assert.assertEquals("hello.auth.2", list.get(3).getName());
+        assertEquals("hello.rsa.1", names.get(0).getName());
+        assertEquals("hello.rsa.2", names.get(1).getName());
+        assertEquals("hello.auth.1", list.get(2).getName());
+        assertEquals("hello.auth.2", list.get(3).getName());
     }
 
     @Test
-    public void should_create_android_sign_secret() {
+    void should_create_android_sign_secret() {
         AndroidSignOption option = new AndroidSignOption();
         option.setKeyStorePassword("12345");
         option.setKeyAlias("helloworld");
@@ -114,10 +113,10 @@ public class SecretServiceTest extends MockLoggedInScenario {
         MockMultipartFile ks = new MockMultipartFile("ks", "test.jks", null, "test data".getBytes());
 
         AndroidSign config = secretService.createAndroidSign("android-debug", ks, option);
-        Assert.assertEquals("test.jks", config.getKeyStoreFileName());
-        Assert.assertEquals("12345", config.getKeyStorePassword().getData());
+        assertEquals("test.jks", config.getKeyStoreFileName());
+        assertEquals("12345", config.getKeyStorePassword().getData());
 
-        Assert.assertEquals("helloworld", config.getKeyAlias());
-        Assert.assertEquals("678910", config.getKeyPassword().getData());
+        assertEquals("helloworld", config.getKeyAlias());
+        assertEquals("678910", config.getKeyPassword().getData());
     }
 }

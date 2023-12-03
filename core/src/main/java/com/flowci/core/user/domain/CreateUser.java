@@ -17,8 +17,8 @@
 package com.flowci.core.user.domain;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 
 /**

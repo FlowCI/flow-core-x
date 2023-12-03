@@ -22,7 +22,7 @@ import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.domain.Vars;
 import com.google.common.collect.ImmutableList;
-import jakarta.servlet.Filter;
+import javax.servlet.Filter;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;

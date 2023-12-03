@@ -17,18 +17,18 @@
 
 package com.flowci.core.test.auth;
 
+import com.flowci.common.exception.ErrorCode;
 import com.flowci.core.auth.domain.Tokens;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.User;
-import com.flowci.core.common.domain.http.ResponseMessage;
-import com.flowci.common.exception.ErrorCode;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 public class FlowAuthTest extends SpringScenario {
@@ -39,18 +39,18 @@ public class FlowAuthTest extends SpringScenario {
     @Autowired
     private MockMvcHelper mockMvcHelper;
 
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         authHelper.enableAuth();
     }
 
-    @After
-    public void reset() {
+    @AfterEach
+    void reset() {
         authHelper.disableAuth();
     }
 
     @Test
-    public void should_get_exception_if_user_not_admin() throws Exception {
+    void should_get_exception_if_user_not_admin() throws Exception {
         User user = userService.create("test@flow.ci", "12345", User.Role.Developer);
         ResponseMessage<Tokens> login = authHelper.login(user.getEmail(), user.getPasswordOnMd5());
         String token = login.getData().getToken();
@@ -61,6 +61,6 @@ public class FlowAuthTest extends SpringScenario {
                 post("/flows/test").header("Token", token), ResponseMessage.class);
 
         // then: should return 403 with no permission message
-        Assert.assertEquals(ErrorCode.NO_PERMISSION, response.getCode());
+        assertEquals(ErrorCode.NO_PERMISSION, response.getCode());
     }
 }

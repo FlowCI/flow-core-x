@@ -16,14 +16,15 @@
 
 package com.flowci.core.test.plugin;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.RepoCloneEvent;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.domain.ObjectWrapper;
-import com.flowci.common.helper.StringHelper;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.junit.*;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.io.UrlResource;
@@ -34,22 +35,21 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author yang
  */
+@WireMockTest(httpPort = 8080)
 public class PluginServiceTest extends SpringScenario {
 
     private static final String RepoURL = "http://localhost:8000/plugin/repo.json";
 
-    @ClassRule
-    public static WireMockRule wireMockRule = new WireMockRule(8000);
-
     @Autowired
     private PluginService pluginService;
 
-    @Before
-    public void mockPluginRepo() throws IOException {
+    @BeforeEach
+    void mockPluginRepo() throws IOException {
         InputStream load = load("plugin-repo.json");
         stubFor(get(urlPathEqualTo("/plugin/repo.json"))
                 .willReturn(aResponse()
@@ -58,7 +58,7 @@ public class PluginServiceTest extends SpringScenario {
     }
 
     @Test
-    public void should_clone_plugin_repo() throws Throwable {
+    void should_clone_plugin_repo() throws Throwable {
         // init counter
         CountDownLatch counter = new CountDownLatch(1);
         ObjectWrapper<Plugin> pluginWrapper = new ObjectWrapper<>();
@@ -72,6 +72,6 @@ public class PluginServiceTest extends SpringScenario {
         counter.await(30, TimeUnit.SECONDS);
 
         // then:
-        Assert.assertNotNull(pluginWrapper.getValue());
+        assertNotNull(pluginWrapper.getValue());
     }
 }

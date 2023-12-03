@@ -3,8 +3,9 @@ package com.flowci.core.test.git;
 import com.flowci.core.git.client.GitHubApiClient;
 import com.flowci.core.git.domain.GitCommit;
 import com.flowci.core.git.domain.GitRepo;
-import org.junit.Test;
-import org.testng.Assert;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GitHubClientTest {
 
@@ -14,17 +15,17 @@ public class GitHubClientTest {
         commit.setUrl("https://github.com/gy2006/ci-test.git");
 
         GitRepo repo = GitHubApiClient.getRepo(commit);
-        Assert.assertEquals("gy2006", repo.getOwner());
-        Assert.assertEquals("ci-test", repo.getName());
+        assertEquals("gy2006", repo.getOwner());
+        assertEquals("ci-test", repo.getName());
 
         commit.setUrl("git@github.com:gy2006/ci-test.git");
         repo = GitHubApiClient.getRepo(commit);
-        Assert.assertEquals("gy2006", repo.getOwner());
-        Assert.assertEquals("ci-test", repo.getName());
+        assertEquals("gy2006", repo.getOwner());
+        assertEquals("ci-test", repo.getName());
 
         commit.setUrl("ssh://git@github.com:gy2006/ci-test.git");
         repo = GitHubApiClient.getRepo(commit);
-        Assert.assertEquals("gy2006", repo.getOwner());
-        Assert.assertEquals("ci-test", repo.getName());
+        assertEquals("gy2006", repo.getOwner());
+        assertEquals("ci-test", repo.getName());
     }
 }

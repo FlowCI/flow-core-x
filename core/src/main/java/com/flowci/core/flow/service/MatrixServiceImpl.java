@@ -32,7 +32,7 @@ import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.common.exception.NotFoundException;
 import com.flowci.tree.NodeTree;
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;

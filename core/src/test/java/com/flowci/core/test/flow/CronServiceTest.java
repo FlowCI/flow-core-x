@@ -24,16 +24,17 @@ import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
 import com.flowci.core.test.ZookeeperScenario;
 import com.flowci.domain.ObjectWrapper;
-import lombok.extern.log4j.Log4j2;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author yang
@@ -44,13 +45,13 @@ public class CronServiceTest extends ZookeeperScenario {
     private final ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
 
     @Test
-    public void should_get_exec_time_from_crontab() throws InterruptedException {
+    void should_get_exec_time_from_crontab() throws InterruptedException {
         CronDefinition definition = CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX);
         CronParser parser = new CronParser(definition);
 
         Cron cron = parser.parse("* * * * *");
         ExecutionTime executionTime = ExecutionTime.forCron(cron);
-        Assert.assertNotNull(executionTime);
+        assertNotNull(executionTime);
 
         ZonedDateTime now = ZonedDateTime.now();
         long seconds = executionTime.timeToNextExecution(now).get().getSeconds();
@@ -65,6 +66,6 @@ public class CronServiceTest extends ZookeeperScenario {
         }, seconds, TimeUnit.SECONDS);
 
         counter.await();
-        Assert.assertTrue(result.getValue());
+        assertTrue(result.getValue());
     }
 }
