@@ -68,7 +68,7 @@ public class CacheServiceImpl implements CacheService {
         for (MultipartFile file : files) {
             try {
                 Pathable[] cachePath = getCachePath(job.getFlowId(), key);
-                fileManager.save(file.getOriginalFilename(), file.getInputStream(), cachePath);
+                fileManager.save(file.getOriginalFilename(), file.getInputStream(), file.getSize(), cachePath);
                 entity.getFiles().add(file.getOriginalFilename());
             } catch (IOException e) {
                 log.warn("failed to save file {} for cache {}", file.getName(), key);

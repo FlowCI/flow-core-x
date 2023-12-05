@@ -69,7 +69,7 @@ public class ReportServiceImpl implements ReportService {
         try (InputStream reportRaw = file.getInputStream()) {
 
             // save to file manager by unique report name
-            path.setValue(fileManager.save(name, reportRaw, reportPath));
+            path.setValue(fileManager.save(name, reportRaw, file.getSize(), reportPath));
 
             // save to job report db
             JobReport r = new JobReport();

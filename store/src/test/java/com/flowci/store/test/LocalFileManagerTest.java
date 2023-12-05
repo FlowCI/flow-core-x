@@ -57,7 +57,7 @@ public class LocalFileManagerTest {
 
         // when: save the file
         InputStream data = StringHelper.toInputStream(content);
-        String logPath = fileManager.save(fileName, data, dir);
+        String logPath = fileManager.save(fileName, data, -1, dir);
         assertNotNull(logPath);
 
         String expected = Paths.get(temp.getPath(), "flowid-test/10/logs/test.log").toString();

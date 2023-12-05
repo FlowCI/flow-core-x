@@ -97,7 +97,7 @@ public class MinioFileManager implements FileManager {
     }
 
     @Override
-    public String save(String fileName, InputStream data, Pathable... objs) throws IOException {
+    public String save(String fileName, InputStream data, long size, Pathable... objs) throws IOException {
         try {
             String bucketName = initBucket();
             String objectName = getObjectName(objs) + fileName;
@@ -106,7 +106,7 @@ public class MinioFileManager implements FileManager {
                     .builder()
                     .bucket(bucketName)
                     .object(objectName)
-                    .stream(data, -1, -1)
+                    .stream(data, size, -1)
                     .build());
             return bucketName + Separator + objectName;
         } catch (Exception e) {

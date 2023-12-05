@@ -63,7 +63,7 @@ public class MinioFileManagerTest {
 
         // when: save the file
         InputStream data = StringHelper.toInputStream(content);
-        String logPath = fileManager.save(fileName, data, dir);
+        String logPath = fileManager.save(fileName, data, content.length(), dir);
         assertNotNull(logPath);
         assertEquals("flows-test/1234567890/10/logs/test.log", logPath);
 

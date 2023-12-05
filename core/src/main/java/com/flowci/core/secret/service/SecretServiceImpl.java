@@ -16,6 +16,13 @@
 
 package com.flowci.core.secret.service;
 
+import com.flowci.common.domain.SecretField;
+import com.flowci.common.domain.SimpleAuthPair;
+import com.flowci.common.domain.SimpleKeyPair;
+import com.flowci.common.exception.ArgumentException;
+import com.flowci.common.exception.DuplicateException;
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.exception.StatusException;
 import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.helper.CipherHelper;
@@ -26,13 +33,6 @@ import com.flowci.core.secret.event.CreateAuthEvent;
 import com.flowci.core.secret.event.CreateRsaEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.docker.K8sManager;
-import com.flowci.common.domain.SecretField;
-import com.flowci.common.domain.SimpleAuthPair;
-import com.flowci.common.domain.SimpleKeyPair;
-import com.flowci.common.exception.ArgumentException;
-import com.flowci.common.exception.DuplicateException;
-import com.flowci.common.exception.NotFoundException;
-import com.flowci.common.exception.StatusException;
 import com.flowci.store.FileManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -155,7 +155,12 @@ public class SecretServiceImpl implements SecretService {
             secret.setKeyAlias(option.getKeyAlias());
             secret.setKeyPassword(SecretField.of(option.getKeyPassword()));
 
-            fileManager.save(keyStore.getOriginalFilename(), keyStore.getInputStream(), secret.getPath());
+            fileManager.save(
+                    keyStore.getOriginalFilename(),
+                    keyStore.getInputStream(),
+                    keyStore.getSize(),
+                    secret.getPath());
+            
             return save(secret);
         } catch (IOException e) {
             throw new StatusException(e.getMessage());

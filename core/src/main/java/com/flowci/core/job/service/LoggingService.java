@@ -17,9 +17,9 @@
 package com.flowci.core.job.service;
 
 import org.springframework.core.io.Resource;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collection;
 
 /**
@@ -30,10 +30,9 @@ public interface LoggingService {
     /**
      * Save log into file system, return the id of file
      *
-     * @param fileName {cmd id}.log
-     * @param stream   file stream
+     * @param file file
      */
-    String save(String fileName, InputStream stream) throws IOException;
+    String save(MultipartFile file);
 
     /**
      * Get log resource

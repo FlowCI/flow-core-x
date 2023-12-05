@@ -58,7 +58,7 @@ public class LocalFileManager implements FileManager {
     }
 
     @Override
-    public String save(String fileName, InputStream data, Pathable... objs) throws IOException {
+    public String save(String fileName, InputStream data, long ignore, Pathable... objs) throws IOException {
         Path dir = connect(base, objs);
         if (!Files.exists(dir)) {
             create(objs);

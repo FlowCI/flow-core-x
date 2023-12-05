@@ -16,14 +16,14 @@
 
 package com.flowci.core.job.service;
 
+import com.flowci.common.exception.DuplicateException;
+import com.flowci.common.exception.NotAvailableException;
+import com.flowci.common.exception.NotFoundException;
 import com.flowci.common.helper.StringHelper;
 import com.flowci.core.job.dao.JobArtifactDao;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobArtifact;
-import com.flowci.common.exception.DuplicateException;
-import com.flowci.common.exception.NotAvailableException;
-import com.flowci.common.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
 import com.flowci.store.StringPath;
@@ -68,7 +68,7 @@ public class ArtifactServiceImpl implements ArtifactService {
 
         try (InputStream reportRaw = file.getInputStream()) {
             // save to file manager by file name
-            String path = fileManager.save(file.getOriginalFilename(), reportRaw, artifactPath);
+            String path = fileManager.save(file.getOriginalFilename(), reportRaw, file.getSize(), artifactPath);
 
             JobArtifact artifact = new JobArtifact();
             artifact.setJobId(job.getId());
