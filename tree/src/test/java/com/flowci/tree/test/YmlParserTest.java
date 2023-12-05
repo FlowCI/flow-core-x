@@ -17,7 +17,7 @@
 package com.flowci.tree.test;
 
 import com.flowci.common.exception.YmlException;
-import com.flowci.domain.DockerOption;
+import com.flowci.common.domain.DockerOption;
 import com.flowci.tree.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

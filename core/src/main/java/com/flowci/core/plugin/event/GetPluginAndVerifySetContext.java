@@ -1,6 +1,6 @@
 package com.flowci.core.plugin.event;
 
-import com.flowci.domain.Vars;
+import com.flowci.common.domain.Vars;
 import lombok.Getter;
 import lombok.Setter;
 

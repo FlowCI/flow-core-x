@@ -16,6 +16,7 @@
 
 package com.flowci.core.test.job;
 
+import com.flowci.common.domain.*;
 import com.flowci.common.helper.StringHelper;
 import com.flowci.core.agent.dao.AgentDao;
 import com.flowci.core.agent.domain.*;
@@ -49,7 +50,6 @@ import com.flowci.core.job.util.JobContextHelper;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.test.ZookeeperScenario;
-import com.flowci.domain.*;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
 import com.flowci.tree.NodeTree;

@@ -2,18 +2,25 @@
 
 version: '3'
 services:
-  db:
-    image: bitnami/mongodb:5.0
+  db-1:
+    image: mongo:6
     restart: always
-    container_name: flowci-debug-db
+    container_name: flowci-debug-db-1
     ports:
       - "27017:27017"
+    entrypoint: [
+      "/usr/bin/mongod",
+      "--port", "27017",
+      "--replSet", "rs0",
+      "--bind_ip_all",
+    ]
+
+  db-init:
+    image: mongo:6
+    container_name: flowci-debug-db-init
     volumes:
-      - ./create_db.js:/docker-entrypoint-initdb.d/create_db.js
-    environment:
-      MONGODB_REPLICA_SET_MODE: primary
-      MONGODB_ROOT_PASSWORD: flowci
-      MONGODB_REPLICA_SET_KEY: replicakey123
+      - ./script:/ws
+    entrypoint: "/ws/mongo_init.sh"
 
   zk:
     image: zookeeper:3.6

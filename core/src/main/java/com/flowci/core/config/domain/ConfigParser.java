@@ -1,7 +1,7 @@
 package com.flowci.core.config.domain;
 
 import com.flowci.common.helper.YamlHelper;
-import com.flowci.domain.SimpleAuthPair;
+import com.flowci.common.domain.SimpleAuthPair;
 import com.flowci.common.exception.YmlException;
 import lombok.NonNull;
 import org.yaml.snakeyaml.Yaml;

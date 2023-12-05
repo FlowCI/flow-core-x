@@ -21,7 +21,7 @@ import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.job.domain.Job.Trigger;
-import com.flowci.domain.StringVars;
+import com.flowci.common.domain.StringVars;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

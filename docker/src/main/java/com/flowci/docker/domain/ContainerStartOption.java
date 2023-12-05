@@ -1,6 +1,6 @@
 package com.flowci.docker.domain;
 
-import com.flowci.domain.StringVars;
+import com.flowci.common.domain.StringVars;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
 import lombok.Getter;

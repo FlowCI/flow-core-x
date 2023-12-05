@@ -17,7 +17,7 @@
 package com.flowci.tree.yml;
 
 import com.flowci.common.helper.ObjectsHelper;
-import com.flowci.domain.DockerOption;
+import com.flowci.common.domain.DockerOption;
 import lombok.Getter;
 import lombok.Setter;
 

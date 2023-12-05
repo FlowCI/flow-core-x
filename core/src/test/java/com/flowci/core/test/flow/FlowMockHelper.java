@@ -25,7 +25,7 @@ import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.user.domain.User;
-import com.flowci.domain.VarValue;
+import com.flowci.common.domain.VarValue;
 import com.flowci.common.helper.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

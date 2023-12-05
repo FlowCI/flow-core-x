@@ -17,8 +17,8 @@
 package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.domain.SimpleAuthPair;
-import com.flowci.domain.SimpleKeyPair;
+import com.flowci.common.domain.SimpleAuthPair;
+import com.flowci.common.domain.SimpleKeyPair;
 
 import java.util.List;
 

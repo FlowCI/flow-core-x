@@ -19,7 +19,7 @@ package com.flowci.core.test.secret;
 import com.flowci.core.secret.domain.*;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.test.MockLoggedInScenario;
-import com.flowci.domain.SimpleAuthPair;
+import com.flowci.common.domain.SimpleAuthPair;
 import org.assertj.core.util.Strings;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

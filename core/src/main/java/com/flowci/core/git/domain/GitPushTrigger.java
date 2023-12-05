@@ -19,7 +19,7 @@ package com.flowci.core.git.domain;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.helper.JacksonHelper;
-import com.flowci.domain.StringVars;
+import com.flowci.common.domain.StringVars;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.util.CollectionUtils;

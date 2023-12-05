@@ -5,8 +5,8 @@ import com.flowci.common.helper.PatternHelper;
 import com.flowci.common.helper.StringHelper;
 import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
-import com.flowci.domain.Input;
-import com.flowci.domain.VarType;
+import com.flowci.common.domain.Input;
+import com.flowci.common.domain.VarType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

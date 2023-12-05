@@ -23,7 +23,7 @@ import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
 import com.flowci.core.test.ZookeeperScenario;
-import com.flowci.domain.ObjectWrapper;
+import com.flowci.common.domain.ObjectWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 

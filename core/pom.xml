@@ -15,17 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>com.flowci</groupId>
-            <artifactId>domain</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.flowci</groupId>
             <artifactId>docker</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.flowci</groupId>
-            <artifactId>sm</artifactId>
         </dependency>
 
         <dependency>

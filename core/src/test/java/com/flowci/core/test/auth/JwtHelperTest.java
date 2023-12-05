@@ -20,7 +20,7 @@ package com.flowci.core.test.auth;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.auth.helper.JwtHelper;
-import com.flowci.domain.ObjectWrapper;
+import com.flowci.common.domain.ObjectWrapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

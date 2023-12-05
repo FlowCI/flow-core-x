@@ -10,13 +10,11 @@
   <version>${revision}</version>
 
   <modules>
-    <module>domain</module>
     <module>core</module>
     <module>common</module>
     <module>tree</module>
     <module>zookeeper</module>
     <module>store</module>
-    <module>sm</module>
     <module>docker</module>
   </modules>
 
@@ -33,7 +31,7 @@
     <cron-utils.version>9.1.6</cron-utils.version>
     <amqp-client.version>5.9.0</amqp-client.version>
     <java-jwt.version>3.8.1</java-jwt.version>
-    <minio.version>6.0.11</minio.version>
+    <minio.version>8.5.7</minio.version>
     <log4j.version>2.22.0</log4j.version>
     <kubernetes-client.version>5.11.2</kubernetes-client.version>
     <maven.compiler.source>17</maven.compiler.source>
@@ -149,19 +147,7 @@
     <dependencies>
       <dependency>
         <groupId>com.flowci</groupId>
-        <artifactId>domain</artifactId>
-        <version>${version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.flowci</groupId>
         <artifactId>docker</artifactId>
-        <version>${version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.flowci</groupId>
-        <artifactId>sm</artifactId>
         <version>${version}</version>
       </dependency>
 

@@ -19,9 +19,9 @@ package com.flowci.core.common.mongo;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flowci.domain.StringVars;
-import com.flowci.domain.TypedVars;
-import com.flowci.domain.Vars;
+import com.flowci.common.domain.StringVars;
+import com.flowci.common.domain.TypedVars;
+import com.flowci.common.domain.Vars;
 import com.flowci.common.exception.ArgumentException;
 import java.io.IOException;
 import java.util.Objects;

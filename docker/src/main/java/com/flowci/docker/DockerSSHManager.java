@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.common.helper.StringHelper;
 import com.flowci.docker.domain.*;
-import com.flowci.domain.ObjectWrapper;
+import com.flowci.common.domain.ObjectWrapper;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Image;

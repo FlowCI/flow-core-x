@@ -16,7 +16,8 @@
 
 package com.flowci.store;
 
-import io.minio.MinioClient;
+import io.minio.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +26,7 @@ import java.io.InputStream;
  * Minio storage manager,
  * instance created on @see com.flowci.core.common.config.StorageConfig
  */
+@Slf4j
 public class MinioFileManager implements FileManager {
 
     private static final String Separator = "/";
@@ -57,14 +59,19 @@ public class MinioFileManager implements FileManager {
     @Override
     public boolean exist(Pathable... objs) {
         try {
-            if (!minioClient.bucketExists(bucket)) {
+            if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build())) {
                 return false;
             }
 
             String objectName = getObjectName(objs);
-            minioClient.statObject(bucket, objectName);
+            minioClient.statObject(StatObjectArgs
+                    .builder()
+                    .bucket(bucket)
+                    .object(objectName)
+                    .build());
             return true;
         } catch (Exception e) {
+            log.error("Minio Error", e);
             return false;
         }
     }
@@ -72,14 +79,19 @@ public class MinioFileManager implements FileManager {
     @Override
     public boolean exist(String fileName, Pathable... objs) {
         try {
-            if (!minioClient.bucketExists(bucket)) {
+            if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build())) {
                 return false;
             }
 
             String objectName = getObjectName(objs) + fileName;
-            minioClient.statObject(bucket, objectName);
+            minioClient.statObject(StatObjectArgs
+                    .builder()
+                    .bucket(bucket)
+                    .object(objectName)
+                    .build());
             return true;
         } catch (Exception e) {
+            log.error("Minio Error", e);
             return false;
         }
     }
@@ -89,7 +101,13 @@ public class MinioFileManager implements FileManager {
         try {
             String bucketName = initBucket();
             String objectName = getObjectName(objs) + fileName;
-            minioClient.putObject(bucketName, objectName, data, null, null, null, null);
+
+            minioClient.putObject(PutObjectArgs
+                    .builder()
+                    .bucket(bucketName)
+                    .object(objectName)
+                    .stream(data, -1, -1)
+                    .build());
             return bucketName + Separator + objectName;
         } catch (Exception e) {
             throw new IOException(e.getMessage());
@@ -100,7 +118,11 @@ public class MinioFileManager implements FileManager {
     public InputStream read(String fileName, Pathable... objs) throws IOException {
         try {
             String objectName = getObjectName(objs) + fileName;
-            return minioClient.getObject(bucket, objectName);
+            return minioClient.getObject(GetObjectArgs
+                    .builder()
+                    .bucket(bucket)
+                    .object(objectName)
+                    .build());
         } catch (Exception e) {
             throw new IOException(e.getMessage());
         }
@@ -110,7 +132,10 @@ public class MinioFileManager implements FileManager {
     public String remove(String fileName, Pathable... objs) throws IOException {
         try {
             String objectName = getObjectName(objs) + fileName;
-            minioClient.removeObject(bucket, objectName);
+            minioClient.removeObject(RemoveObjectArgs.builder()
+                    .bucket(bucket)
+                    .object(objectName)
+                    .build());
             return bucket + Separator + objectName;
         } catch (Exception e) {
             throw new IOException(e.getMessage());
@@ -120,7 +145,10 @@ public class MinioFileManager implements FileManager {
     @Override
     public String remove(String filePath) throws IOException {
         try {
-            minioClient.removeObject(bucket, filePath);
+            minioClient.removeObject(RemoveObjectArgs
+                    .builder()
+                    .bucket(bucket)
+                    .object(filePath).build());
             return filePath;
         } catch (Exception e) {
             throw new IOException(e.getMessage());
@@ -128,8 +156,8 @@ public class MinioFileManager implements FileManager {
     }
 
     private String initBucket() throws Exception {
-        if (!minioClient.bucketExists(bucket)) {
-            minioClient.makeBucket(bucket);
+        if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build())) {
+            minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
         }
         return bucket;
     }

@@ -18,6 +18,7 @@ package com.flowci.core.test.flow;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.common.domain.*;
 import com.flowci.common.exception.ArgumentException;
 import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.GitSource;
@@ -38,7 +39,6 @@ import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.test.MockLoggedInScenario;
-import com.flowci.domain.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;

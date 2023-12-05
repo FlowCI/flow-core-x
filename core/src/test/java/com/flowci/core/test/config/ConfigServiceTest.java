@@ -7,7 +7,7 @@ import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.core.test.MockLoggedInScenario;
-import com.flowci.domain.SimpleAuthPair;
+import com.flowci.common.domain.SimpleAuthPair;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;

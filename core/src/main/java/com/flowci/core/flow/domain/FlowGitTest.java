@@ -17,8 +17,8 @@
 package com.flowci.core.flow.domain;
 
 import com.flowci.common.helper.StringHelper;
-import com.flowci.domain.SimpleAuthPair;
-import com.flowci.domain.SimpleKeyPair;
+import com.flowci.common.domain.SimpleAuthPair;
+import com.flowci.common.domain.SimpleKeyPair;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;

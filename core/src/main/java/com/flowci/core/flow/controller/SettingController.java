@@ -6,7 +6,7 @@ import com.flowci.core.flow.domain.FlowAction;
 import com.flowci.core.flow.domain.Settings;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.FlowSettingService;
-import com.flowci.domain.VarValue;
+import com.flowci.common.domain.VarValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;

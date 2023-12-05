@@ -24,7 +24,7 @@ import com.flowci.core.job.domain.Job.Trigger;
 import com.flowci.core.job.domain.JobDesc;
 import com.flowci.core.job.domain.JobItem;
 import com.flowci.core.job.domain.JobYml;
-import com.flowci.domain.StringVars;
+import com.flowci.common.domain.StringVars;
 import org.springframework.data.domain.Page;
 
 import java.util.Collection;

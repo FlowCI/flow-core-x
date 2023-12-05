@@ -17,8 +17,8 @@
 package com.flowci.core.secret.service;
 
 import com.flowci.core.secret.domain.*;
-import com.flowci.domain.SimpleAuthPair;
-import com.flowci.domain.SimpleKeyPair;
+import com.flowci.common.domain.SimpleAuthPair;
+import com.flowci.common.domain.SimpleKeyPair;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

@@ -21,7 +21,7 @@ import com.flowci.core.trigger.domain.Trigger;
 import com.flowci.core.trigger.domain.TriggerDelivery;
 import com.flowci.core.trigger.domain.WebhookTrigger;
 import com.flowci.core.trigger.event.EmailTemplateParsedEvent;
-import com.flowci.domain.Vars;
+import com.flowci.common.domain.Vars;
 import com.flowci.common.exception.DuplicateException;
 import com.flowci.common.exception.NotFoundException;
 import com.flowci.common.exception.StatusException;

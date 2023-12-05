@@ -18,9 +18,9 @@
 package com.flowci.core.common.mongo;
 
 import com.flowci.core.common.helper.CipherHelper;
-import com.flowci.domain.SimpleAuthPair;
-import com.flowci.domain.SimpleKeyPair;
-import com.flowci.domain.SecretField;
+import com.flowci.common.domain.SimpleAuthPair;
+import com.flowci.common.domain.SimpleKeyPair;
+import com.flowci.common.domain.SecretField;
 import lombok.Getter;
 import org.bson.Document;
 import org.springframework.core.convert.converter.Converter;

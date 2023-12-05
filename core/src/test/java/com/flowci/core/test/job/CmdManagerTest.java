@@ -16,6 +16,7 @@
 
 package com.flowci.core.test.job;
 
+import com.flowci.common.domain.*;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.CreateOption;
@@ -29,7 +30,6 @@ import com.flowci.core.job.service.StepService;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.test.MockLoggedInScenario;
-import com.flowci.domain.*;
 import com.flowci.tree.*;
 import com.flowci.common.helper.StringHelper;
 import com.google.common.collect.Lists;

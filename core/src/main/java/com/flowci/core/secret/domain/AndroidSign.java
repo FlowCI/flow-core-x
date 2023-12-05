@@ -1,6 +1,6 @@
 package com.flowci.core.secret.domain;
 
-import com.flowci.domain.SecretField;
+import com.flowci.common.domain.SecretField;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;

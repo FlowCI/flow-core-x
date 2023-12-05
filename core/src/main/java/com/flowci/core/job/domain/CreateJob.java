@@ -16,7 +16,7 @@
 
 package com.flowci.core.job.domain;
 
-import com.flowci.domain.StringVars;
+import com.flowci.common.domain.StringVars;
 import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 

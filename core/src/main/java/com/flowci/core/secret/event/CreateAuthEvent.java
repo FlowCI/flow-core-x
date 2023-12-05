@@ -1,7 +1,7 @@
 package com.flowci.core.secret.event;
 
 import com.flowci.core.secret.domain.AuthSecret;
-import com.flowci.domain.SimpleAuthPair;
+import com.flowci.common.domain.SimpleAuthPair;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;

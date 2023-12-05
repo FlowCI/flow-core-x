@@ -2,9 +2,9 @@ package com.flowci.core.flow.domain;
 
 import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.Mongoable;
-import com.flowci.domain.TypedVars;
-import com.flowci.domain.VarValue;
-import com.flowci.domain.Vars;
+import com.flowci.common.domain.TypedVars;
+import com.flowci.common.domain.VarValue;
+import com.flowci.common.domain.Vars;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.index.Indexed;

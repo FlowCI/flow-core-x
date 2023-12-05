@@ -19,11 +19,9 @@ package com.flowci.core.job.event;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.job.domain.Job.Trigger;
-import com.flowci.domain.StringVars;
+import com.flowci.common.domain.StringVars;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
-
-import java.util.List;
 
 /**
  * Start job from jobRunExecutor

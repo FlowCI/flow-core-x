@@ -22,7 +22,7 @@ import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.flow.FlowMockHelper;
-import com.flowci.domain.ObjectWrapper;
+import com.flowci.common.domain.ObjectWrapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;

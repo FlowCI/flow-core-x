@@ -18,8 +18,8 @@ package com.flowci.core.test.common;
 
 import com.flowci.core.common.manager.VarManager;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.domain.Input;
-import com.flowci.domain.VarType;
+import com.flowci.common.domain.Input;
+import com.flowci.common.domain.VarType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

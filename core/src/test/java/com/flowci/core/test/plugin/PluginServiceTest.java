@@ -21,7 +21,7 @@ import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.RepoCloneEvent;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.domain.ObjectWrapper;
+import com.flowci.common.domain.ObjectWrapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

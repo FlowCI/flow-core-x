@@ -17,7 +17,7 @@
 package com.flowci.core.plugin.service;
 
 import com.flowci.core.plugin.domain.Plugin;
-import com.flowci.domain.Vars;
+import com.flowci.common.domain.Vars;
 import org.springframework.core.io.Resource;
 
 import java.nio.file.Path;

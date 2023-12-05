@@ -24,7 +24,7 @@ import com.flowci.common.helper.StringHelper;
 import com.flowci.core.job.dao.JobReportDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobReport;
-import com.flowci.domain.ObjectWrapper;
+import com.flowci.common.domain.ObjectWrapper;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
 import lombok.extern.slf4j.Slf4j;

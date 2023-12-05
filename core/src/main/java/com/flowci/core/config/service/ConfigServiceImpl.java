@@ -10,7 +10,7 @@ import com.flowci.core.config.domain.TextConfig;
 import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
-import com.flowci.domain.SimpleAuthPair;
+import com.flowci.common.domain.SimpleAuthPair;
 import com.flowci.common.exception.ArgumentException;
 import com.flowci.common.exception.DuplicateException;
 import com.flowci.common.exception.NotFoundException;

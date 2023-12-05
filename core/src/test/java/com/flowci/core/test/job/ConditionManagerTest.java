@@ -2,7 +2,7 @@ package com.flowci.core.test.job;
 
 import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.domain.StringVars;
+import com.flowci.common.domain.StringVars;
 import groovy.util.ScriptException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

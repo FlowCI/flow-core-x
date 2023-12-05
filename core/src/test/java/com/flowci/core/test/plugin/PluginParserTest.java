@@ -18,9 +18,9 @@ package com.flowci.core.test.plugin;
 
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.domain.PluginParser;
-import com.flowci.domain.Input;
-import com.flowci.domain.VarType;
-import com.flowci.domain.Version;
+import com.flowci.common.domain.Input;
+import com.flowci.common.domain.VarType;
+import com.flowci.common.domain.Version;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;

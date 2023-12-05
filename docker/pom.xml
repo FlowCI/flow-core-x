@@ -14,23 +14,12 @@
   <dependencies>
     <dependency>
       <groupId>com.flowci</groupId>
-      <artifactId>domain</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.flowci</groupId>
       <artifactId>common</artifactId>
     </dependency>
 
     <dependency>
       <groupId>com.github.docker-java</groupId>
       <artifactId>docker-java</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>junit</groupId>
-          <artifactId>junit</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>

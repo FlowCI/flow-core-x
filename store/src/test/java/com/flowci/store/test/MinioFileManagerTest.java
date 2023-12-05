@@ -21,8 +21,6 @@ import com.flowci.store.FileManager;
 import com.flowci.store.MinioFileManager;
 import com.flowci.store.Pathable;
 import io.minio.MinioClient;
-import io.minio.errors.InvalidEndpointException;
-import io.minio.errors.InvalidPortException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -44,11 +42,16 @@ public class MinioFileManagerTest {
     private FileManager fileManager;
 
     @BeforeEach
-    void init() throws InvalidPortException, InvalidEndpointException {
+    void init() {
         String endpoint = System.getenv().getOrDefault("FLOWCI_MINIO_ENDPOINT", "http://localhost:9000");
         String key = System.getenv().getOrDefault("FLOWCI_MINIO_KEY", "minio");
         String secret = System.getenv().getOrDefault("FLOWCI_MINIO_SECRET", "minio123");
-        MinioClient client = new MinioClient(endpoint, key, secret);
+
+        MinioClient client = MinioClient.builder()
+                .endpoint(endpoint)
+                .credentials(key, secret)
+                .build();
+
         fileManager = new MinioFileManager(client, bucket);
     }
 

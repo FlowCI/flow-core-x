@@ -23,8 +23,6 @@ import com.flowci.core.flow.service.FlowItemService;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
-import com.flowci.domain.SimpleAuthPair;
-import com.flowci.domain.SimpleKeyPair;
 import com.google.common.collect.Lists;
 import org.springframework.web.bind.annotation.*;
 

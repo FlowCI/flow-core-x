@@ -20,8 +20,6 @@ import com.flowci.store.FileManager;
 import com.flowci.store.LocalFileManager;
 import com.flowci.store.MinioFileManager;
 import io.minio.MinioClient;
-import io.minio.errors.InvalidEndpointException;
-import io.minio.errors.InvalidPortException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -47,11 +45,15 @@ public class StorageConfig {
 
     @Bean
     @ConditionalOnProperty(name = "app.minio.enabled", havingValue = "true")
-    public MinioClient minioClient() throws InvalidPortException, InvalidEndpointException {
+    public MinioClient minioClient() {
         URL endpoint = minioProperties.getEndpoint();
         String key = minioProperties.getKey();
         String secret = minioProperties.getSecret();
-        return new MinioClient(endpoint, key, secret);
+
+        return MinioClient.builder()
+                .endpoint(endpoint)
+                .credentials(key, secret)
+                .build();
     }
 
     @Bean("fileManager")

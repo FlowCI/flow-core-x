@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.adviser.CorsFilter;
 import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.core.plugin.domain.Plugin;
-import com.flowci.domain.Vars;
+import com.flowci.common.domain.Vars;
 import com.google.common.collect.ImmutableList;
 import javax.servlet.Filter;
 import lombok.AllArgsConstructor;

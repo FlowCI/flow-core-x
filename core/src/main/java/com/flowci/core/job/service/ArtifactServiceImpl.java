@@ -27,7 +27,6 @@ import com.flowci.common.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
 import com.flowci.store.StringPath;
-import com.google.api.client.util.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,6 +36,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -108,7 +108,7 @@ public class ArtifactServiceImpl implements ArtifactService {
 
     private static Pathable[] getArtifactPath(Job job, String srcDir) {
         String[] split = srcDir.split(Separator);
-        List<Pathable> list = Lists.newArrayListWithCapacity(split.length + 3);
+        List<Pathable> list = new ArrayList<>(split.length + 3);
 
         list.add(job::getFlowId);
         list.add(job);

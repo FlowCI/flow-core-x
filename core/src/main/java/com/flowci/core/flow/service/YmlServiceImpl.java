@@ -29,7 +29,7 @@ import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
-import com.flowci.domain.Vars;
+import com.flowci.common.domain.Vars;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.YmlParser;
