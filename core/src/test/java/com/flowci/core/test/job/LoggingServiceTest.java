@@ -6,7 +6,6 @@ import com.flowci.core.job.service.LoggingService;
 import com.flowci.core.job.service.StepService;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.store.FileManager;
-import com.github.jknack.handlebars.internal.Files;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -14,11 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.Resource;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 

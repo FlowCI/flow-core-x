@@ -16,31 +16,30 @@
 
 package com.flowci.core.test.plugin;
 
-import com.flowci.common.helper.StringHelper;
+import com.flowci.common.domain.ObjectWrapper;
+import com.flowci.core.common.manager.ResourceManager;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.RepoCloneEvent;
 import com.flowci.core.plugin.service.PluginService;
 import com.flowci.core.test.SpringScenario;
-import com.flowci.common.domain.ObjectWrapper;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.io.UrlResource;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /**
  * @author yang
  */
-@WireMockTest(httpPort = 8080)
 public class PluginServiceTest extends SpringScenario {
 
     private static final String RepoURL = "http://localhost:8000/plugin/repo.json";
@@ -48,13 +47,13 @@ public class PluginServiceTest extends SpringScenario {
     @Autowired
     private PluginService pluginService;
 
+    @MockBean
+    private ResourceManager resourceManager;
+
     @BeforeEach
-    void mockPluginRepo() throws IOException {
+    void mockPluginRepo() throws Exception {
         InputStream load = load("plugin-repo.json");
-        stubFor(get(urlPathEqualTo("/plugin/repo.json"))
-                .willReturn(aResponse()
-                        .withBody(StringHelper.toString(load))
-                        .withHeader("Content-Type", "application/json")));
+        when(resourceManager.getResource(any())).thenReturn(load);
     }
 
     @Test

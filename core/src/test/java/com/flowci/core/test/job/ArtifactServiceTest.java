@@ -34,8 +34,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 
 public class ArtifactServiceTest extends SpringScenario {
 
@@ -58,7 +57,7 @@ public class ArtifactServiceTest extends SpringScenario {
         ByteArrayInputStream content = new ByteArrayInputStream("content".getBytes());
         MockMultipartFile file = new MockMultipartFile("file", "test.jar", null, content);
 
-        Mockito.when(fileManager.save(eq(file.getOriginalFilename()), any(), any()))
+        Mockito.when(fileManager.save(eq(file.getOriginalFilename()), any(), anyLong(), any()))
                 .thenReturn("artifact/file/path");
 
         Mockito.when(fileManager.read(eq(file.getOriginalFilename()), any()))
