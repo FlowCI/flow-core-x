@@ -9,7 +9,7 @@ MVN_TEST		:= mvn test -T 4C
 CURRENT_DIR 	:= $(shell pwd)
 
 DOCKER_VOLUME	:= -v $(HOME)/.m2:/root/.m2 -v $(CURRENT_DIR):/ws
-DOCKER_IMG		:= maven:3-openjdk-11
+DOCKER_IMG		:= maven:3-amazoncorretto-17
 DOCKER_RUN 		:= docker run -it --rm -w /ws $(DOCKER_VOLUME) --network host $(DOCKER_IMG)
 
 DOCKER_BUILD 	:= ./build.sh
