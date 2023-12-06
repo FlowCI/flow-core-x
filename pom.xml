@@ -20,6 +20,11 @@
 
   <properties>
     <revision>1.23.01</revision>
+    <java.version>17</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <maven.compiler.release>${java.version}</maven.compiler.release>
+
     <lombok.version>1.18.22</lombok.version>
     <springboot.version>2.7.18</springboot.version>
     <curator.version>4.3.0</curator.version>
@@ -34,15 +39,12 @@
     <minio.version>8.5.7</minio.version>
     <log4j.version>2.22.0</log4j.version>
     <kubernetes-client.version>5.11.2</kubernetes-client.version>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
     <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
     <flatten-maven-plugin.version>1.4.1</flatten-maven-plugin.version>
     <groovy-all.version>3.0.8</groovy-all.version>
     <snakeyaml.version>2.2</snakeyaml.version>
-    <wiremock.version>3.3.1</wiremock.version>
   </properties>
 
   <build>
