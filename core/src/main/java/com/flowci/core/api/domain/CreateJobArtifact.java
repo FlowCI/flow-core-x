@@ -16,9 +16,8 @@
 
 package com.flowci.core.api.domain;
 
-import lombok.Data;
-
 import javax.validation.constraints.NotEmpty;
+import lombok.Data;
 
 @Data
 public class CreateJobArtifact {

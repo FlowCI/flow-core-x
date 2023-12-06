@@ -23,8 +23,7 @@ import com.flowci.core.job.domain.JobReport;
 import com.flowci.core.job.service.ReportService;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.store.FileManager;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -32,6 +31,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ReportServiceTest extends SpringScenario {
 
@@ -45,7 +47,7 @@ public class ReportServiceTest extends SpringScenario {
     private ReportService reportService;
 
     @Test
-    public void should_get_report_url_path() throws IOException {
+    void should_get_report_url_path() throws IOException {
         Job job = new Job();
         job.setFlowId("12345");
         job.setId("22222");
@@ -63,7 +65,7 @@ public class ReportServiceTest extends SpringScenario {
                 .thenReturn(new ByteArrayInputStream("content".getBytes()));
 
         String urlPath = reportService.fetch(job, report.getId());
-        Assert.assertNotNull(urlPath);
-        Assert.assertEquals("/jobs/22222/reports/11111/hello.html", urlPath);
+        assertNotNull(urlPath);
+        assertEquals("/jobs/22222/reports/11111/hello.html", urlPath);
     }
 }

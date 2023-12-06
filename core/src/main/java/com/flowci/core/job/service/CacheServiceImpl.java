@@ -19,8 +19,8 @@ package com.flowci.core.job.service;
 import com.flowci.core.job.dao.JobCacheDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobCache;
-import com.flowci.exception.NotFoundException;
-import com.flowci.exception.StatusException;
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
 import com.flowci.store.StringPath;
@@ -68,7 +68,7 @@ public class CacheServiceImpl implements CacheService {
         for (MultipartFile file : files) {
             try {
                 Pathable[] cachePath = getCachePath(job.getFlowId(), key);
-                fileManager.save(file.getOriginalFilename(), file.getInputStream(), cachePath);
+                fileManager.save(file.getOriginalFilename(), file.getInputStream(), file.getSize(), cachePath);
                 entity.getFiles().add(file.getOriginalFilename());
             } catch (IOException e) {
                 log.warn("failed to save file {} for cache {}", file.getName(), key);

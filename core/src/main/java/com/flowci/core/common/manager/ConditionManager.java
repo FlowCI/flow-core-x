@@ -1,6 +1,6 @@
 package com.flowci.core.common.manager;
 
-import com.flowci.domain.Vars;
+import com.flowci.common.domain.Vars;
 import groovy.util.ScriptException;
 
 import javax.annotation.Nullable;

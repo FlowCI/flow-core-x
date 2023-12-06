@@ -17,14 +17,16 @@
 
 package com.flowci.core.auth.controller;
 
+import com.flowci.common.exception.AccessException;
+import com.flowci.common.exception.AuthenticationException;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.auth.service.AuthService;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.user.domain.User;
-import com.flowci.exception.AccessException;
-import com.flowci.exception.AuthenticationException;
-import com.flowci.util.StringHelper;
 import com.google.common.base.Strings;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -34,8 +36,6 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -56,9 +56,10 @@ public class WebAuth implements HandlerInterceptor {
 
     /**
      * Get user object from ws message header
+     *
      * @param headers
      * @return User object
-     * @exception AuthenticationException if Token header is missing or invalid token
+     * @throws AuthenticationException if Token header is missing or invalid token
      */
     public User validate(MessageHeaders headers) {
         MultiValueMap<String, String> map = headers.get(StompHeaderAccessor.NATIVE_HEADERS, MultiValueMap.class);
@@ -67,7 +68,7 @@ public class WebAuth implements HandlerInterceptor {
         }
 
         String token = map.getFirst(HeaderToken);
-        if (!StringHelper.hasValue(token)) {
+        if (StringHelper.isEmpty(token)) {
             throw new AuthenticationException("Invalid token");
         }
 

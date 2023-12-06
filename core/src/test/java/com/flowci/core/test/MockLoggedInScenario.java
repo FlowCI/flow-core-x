@@ -3,13 +3,15 @@ package com.flowci.core.test;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.common.manager.SessionManager;
 import com.flowci.core.user.domain.User;
-import com.flowci.util.HashingHelper;
-import org.junit.Assert;
-import org.junit.Before;
+import com.flowci.common.helper.HashingHelper;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public abstract class MockLoggedInScenario extends SpringScenario{
 
@@ -25,7 +27,7 @@ public abstract class MockLoggedInScenario extends SpringScenario{
     @MockBean
     protected SessionManager sessionManager;
 
-    @Before
+    @BeforeEach
     public void login() {
         Mockito.when(sessionManager.get()).thenReturn(defaultAdminUser);
         Mockito.when(sessionManager.getUserEmail()).thenReturn(defaultAdminUser.getEmail());
@@ -33,15 +35,14 @@ public abstract class MockLoggedInScenario extends SpringScenario{
     }
 
     protected void shouldHasCreatedAtAndCreatedBy(Mongoable obj) {
-        Assert.assertNotNull(obj.getCreatedAt());
-        Assert.assertNotNull(obj.getCreatedBy());
-        Assert.assertEquals(sessionManager.getUserEmail(), obj.getCreatedBy());
+        assertNotNull(obj.getCreatedAt());
+        assertNotNull(obj.getCreatedBy());
+        assertEquals(sessionManager.getUserEmail(), obj.getCreatedBy());
     }
 
     protected void shouldHasUpdatedAtAndUpdatedBy(Mongoable obj) {
-        Assert.assertNotNull(obj.getUpdatedAt());
-        Assert.assertNotNull(obj.getUpdatedBy());
-        Assert.assertEquals(sessionManager.getUserEmail(), obj.getUpdatedBy());
+        assertNotNull(obj.getUpdatedAt());
+        assertNotNull(obj.getUpdatedBy());
+        assertEquals(sessionManager.getUserEmail(), obj.getUpdatedBy());
     }
-
 }

@@ -18,6 +18,9 @@ package com.flowci.core.job.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.exception.StatusException;
+import com.flowci.common.helper.FileHelper;
 import com.flowci.core.agent.event.OnShellLogEvent;
 import com.flowci.core.agent.event.OnTTYLogEvent;
 import com.flowci.core.common.helper.CacheHelper;
@@ -29,10 +32,8 @@ import com.flowci.core.job.domain.Step;
 import com.flowci.core.job.domain.StepLogItem;
 import com.flowci.core.job.event.CacheShellLogEvent;
 import com.flowci.core.job.event.JobStatusChangeEvent;
-import com.flowci.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
-import com.flowci.util.FileHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -141,10 +143,18 @@ public class LoggingServiceImpl implements LoggingService {
     }
 
     @Override
-    public String save(String fileName, InputStream stream) throws IOException {
-        String cmdId = FileHelper.getName(fileName);
+    public String save(MultipartFile file) {
+        String filename = file.getOriginalFilename();
+        String cmdId = FileHelper.getName(filename);
+
         Pathable[] logDir = getLogDir(cmdId);
-        return fileManager.save(fileName, stream, logDir);
+
+        try (InputStream stream = file.getInputStream()) {
+            return fileManager.save(filename, stream, file.getSize(), logDir);
+        } catch (IOException e) {
+            log.error("Unable to save log file", e);
+            throw new StatusException("Unable to save log file");
+        }
     }
 
     @Override

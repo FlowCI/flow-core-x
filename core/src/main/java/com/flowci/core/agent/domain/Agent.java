@@ -18,10 +18,10 @@ package com.flowci.core.agent.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.common.domain.Mongoable;
-import com.flowci.domain.Common.OS;
-import com.flowci.domain.SimpleKeyPair;
-import com.flowci.domain.StringVars;
-import com.flowci.domain.Vars;
+import com.flowci.common.domain.Common.OS;
+import com.flowci.common.domain.SimpleKeyPair;
+import com.flowci.common.domain.StringVars;
+import com.flowci.common.domain.Vars;
 import com.flowci.tree.Selector;
 import com.google.common.base.Strings;
 import lombok.Getter;

@@ -22,8 +22,7 @@ import com.flowci.core.job.domain.JobArtifact;
 import com.flowci.core.job.service.ArtifactService;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.store.FileManager;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -33,8 +32,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.*;
 
 public class ArtifactServiceTest extends SpringScenario {
 
@@ -48,7 +48,7 @@ public class ArtifactServiceTest extends SpringScenario {
     private FileManager fileManager;
 
     @Test
-    public void should_get_artifact_with_src_stream() throws IOException {
+    void should_get_artifact_with_src_stream() throws IOException {
         Job job = new Job();
         job.setFlowId("1111");
         job.setBuildNumber(1L);
@@ -57,7 +57,7 @@ public class ArtifactServiceTest extends SpringScenario {
         ByteArrayInputStream content = new ByteArrayInputStream("content".getBytes());
         MockMultipartFile file = new MockMultipartFile("file", "test.jar", null, content);
 
-        Mockito.when(fileManager.save(eq(file.getOriginalFilename()), any(), any()))
+        Mockito.when(fileManager.save(eq(file.getOriginalFilename()), any(), anyLong(), any()))
                 .thenReturn("artifact/file/path");
 
         Mockito.when(fileManager.read(eq(file.getOriginalFilename()), any()))
@@ -67,16 +67,16 @@ public class ArtifactServiceTest extends SpringScenario {
         artifactService.save(job, "foo/boo", "md5..", file);
 
         // then: job artifact num should increased
-        Assert.assertEquals(1, jobDao.findById(job.getId()).get().getNumOfArtifact());
+        assertEquals(1, jobDao.findById(job.getId()).get().getNumOfArtifact());
 
         // then: fetch
         List<JobArtifact> list = artifactService.list(job);
-        Assert.assertEquals(1, list.size());
+        assertEquals(1, list.size());
 
         JobArtifact fetched = artifactService.fetch(job, list.get(0).getId());
-        Assert.assertNotNull(fetched);
-        Assert.assertNotNull(fetched.getSrc());
-        Assert.assertEquals("test.jar", fetched.getFileName());
-        Assert.assertEquals("artifact/file/path", fetched.getPath());
+        assertNotNull(fetched);
+        assertNotNull(fetched.getSrc());
+        assertEquals("test.jar", fetched.getFileName());
+        assertEquals("artifact/file/path", fetched.getPath());
     }
 }

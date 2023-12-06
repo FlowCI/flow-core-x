@@ -1,6 +1,6 @@
 package com.flowci.core.common.manager;
 
-import com.flowci.domain.Vars;
+import com.flowci.common.domain.Vars;
 import com.google.common.base.Strings;
 import groovy.lang.Binding;
 import groovy.lang.GroovyRuntimeException;

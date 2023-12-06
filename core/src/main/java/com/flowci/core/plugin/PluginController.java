@@ -16,9 +16,9 @@
 
 package com.flowci.core.plugin;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.service.PluginService;
-import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

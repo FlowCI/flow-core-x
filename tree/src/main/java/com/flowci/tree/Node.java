@@ -17,10 +17,10 @@
 package com.flowci.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.flowci.domain.DockerOption;
-import com.flowci.domain.ObjectWrapper;
-import com.flowci.domain.StringVars;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
+import com.flowci.common.domain.DockerOption;
+import com.flowci.common.domain.ObjectWrapper;
+import com.flowci.common.domain.StringVars;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;

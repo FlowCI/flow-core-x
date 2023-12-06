@@ -1,12 +1,12 @@
 package com.flowci.core.common.manager;
 
+import com.flowci.common.helper.ObjectsHelper;
+import com.flowci.common.helper.PatternHelper;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.config.event.GetConfigEvent;
-import com.flowci.domain.Input;
 import com.flowci.core.secret.event.GetSecretEvent;
-import com.flowci.domain.VarType;
-import com.flowci.util.ObjectsHelper;
-import com.flowci.util.PatternHelper;
-import com.flowci.util.StringHelper;
+import com.flowci.common.domain.Input;
+import com.flowci.common.domain.VarType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +19,7 @@ public class VarManager {
     private SpringEventManager eventManager;
 
     public boolean verify(Input input, String value) {
-        if (input.isRequired() && !StringHelper.hasValue(value)) {
+        if (input.isRequired() && StringHelper.isEmpty(value)) {
             return false;
         }
 

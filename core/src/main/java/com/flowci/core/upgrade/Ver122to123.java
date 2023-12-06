@@ -16,11 +16,11 @@
 
 package com.flowci.core.upgrade;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.Mongoable;
 import com.flowci.core.flow.domain.FlowYml;
 import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.job.domain.JobYml;
-import com.flowci.util.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

@@ -21,7 +21,7 @@ import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.service.JobService;
 import com.flowci.core.job.service.StepService;
-import com.flowci.exception.ArgumentException;
+import com.flowci.common.exception.ArgumentException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseController {

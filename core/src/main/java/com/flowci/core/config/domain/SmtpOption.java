@@ -1,12 +1,11 @@
 package com.flowci.core.config.domain;
 
-import com.flowci.domain.SimpleAuthPair;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
+import com.flowci.common.domain.SimpleAuthPair;
+import javax.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-
-import javax.validation.constraints.NotEmpty;
 
 import static com.flowci.core.config.domain.SmtpConfig.SecureType;
 

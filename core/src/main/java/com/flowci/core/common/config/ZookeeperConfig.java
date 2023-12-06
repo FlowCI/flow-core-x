@@ -16,11 +16,12 @@
 
 package com.flowci.core.common.config;
 
+import com.flowci.common.exception.CIException;
 import com.flowci.core.common.helper.ThreadHelper;
-import com.flowci.exception.CIException;
 import com.flowci.zookeeper.LocalServer;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.flowci.zookeeper.ZookeeperException;
+import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import javax.annotation.PreDestroy;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 

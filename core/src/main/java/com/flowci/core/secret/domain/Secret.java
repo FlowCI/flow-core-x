@@ -18,7 +18,7 @@ package com.flowci.core.secret.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.core.common.domain.Mongoable;
-import com.flowci.domain.SimpleSecret;
+import com.flowci.common.domain.SimpleSecret;
 import com.flowci.store.Pathable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

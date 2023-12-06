@@ -16,16 +16,18 @@
 
 package com.flowci.tree.test;
 
-import com.flowci.exception.YmlException;
+import com.flowci.common.exception.YmlException;
 import com.flowci.tree.yml.FlowYml;
 import com.flowci.tree.yml.StepYml;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FlowYmlTest {
 
     @Test
-    public void should_merge_flow_yml() {
+    void should_merge_flow_yml() {
         FlowYml main = new FlowYml();
         main.setName("test");
 
@@ -36,11 +38,11 @@ public class FlowYmlTest {
         other.getSteps().add(stepYml);
 
         main.merge(other);
-        Assert.assertEquals(main.getSteps(), other.getSteps());
+        assertEquals(main.getSteps(), other.getSteps());
     }
 
-    @Test(expected = YmlException.class)
-    public void should_throw_yml_exception_on_duplicated_element() {
+    @Test
+    void should_throw_yml_exception_on_duplicated_element() {
         var stepYml = new StepYml();
         stepYml.setName("step");
 
@@ -51,6 +53,8 @@ public class FlowYmlTest {
         FlowYml other = new FlowYml();
         other.getSteps().add(stepYml);
 
-        main.merge(other);
+        assertThrows(YmlException.class, () -> {
+            main.merge(other);
+        });
     }
 }

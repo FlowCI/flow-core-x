@@ -22,23 +22,25 @@ import com.flowci.core.agent.domain.AgentInit;
 import com.flowci.core.agent.event.AgentStatusEvent;
 import com.flowci.core.agent.event.OnConnectedEvent;
 import com.flowci.core.common.config.AppProperties;
-import com.flowci.domain.Common;
-import com.flowci.domain.ObjectWrapper;
+import com.flowci.common.domain.Common;
+import com.flowci.common.domain.ObjectWrapper;
 import com.flowci.zookeeper.ZookeeperClient;
-import lombok.extern.log4j.Log4j2;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.rules.TemporaryFolder;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.socket.adapter.standard.StandardWebSocketSession;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author yang
@@ -56,11 +58,11 @@ public abstract class ZookeeperScenario extends MockLoggedInScenario {
     @Autowired
     private AppProperties.Zookeeper zkProperties;
 
-    @ClassRule
-    public static TemporaryFolder temp = new TemporaryFolder();
+    @TempDir
+    public File temp;
 
-    @Before
-    public void cleanZkNodes() {
+    @BeforeEach
+    void cleanZkNodes() {
         String root = zkProperties.getAgentRoot();
         for (String child : zk.children(root)) {
             zk.delete(root + "/" + child, true);
@@ -84,8 +86,8 @@ public abstract class ZookeeperScenario extends MockLoggedInScenario {
 
         counter.await(10, TimeUnit.SECONDS);
 
-        Assert.assertNotNull(wrapper.getValue());
-        Assert.assertEquals(Status.IDLE, wrapper.getValue().getStatus());
+        assertNotNull(wrapper.getValue());
+        assertEquals(Status.IDLE, wrapper.getValue().getStatus());
 
         return wrapper.getValue();
     }
@@ -99,8 +101,8 @@ public abstract class ZookeeperScenario extends MockLoggedInScenario {
         zk.delete(agentPath, true);
         counter.await(10, TimeUnit.SECONDS);
 
-        Assert.assertNotNull(wrapper.getValue());
-        Assert.assertEquals(Status.OFFLINE, wrapper.getValue().getStatus());
+        assertNotNull(wrapper.getValue());
+        assertEquals(Status.OFFLINE, wrapper.getValue().getStatus());
         return wrapper.getValue();
     }
 

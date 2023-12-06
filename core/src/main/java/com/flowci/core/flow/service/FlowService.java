@@ -18,8 +18,6 @@ package com.flowci.core.flow.service;
 
 import com.flowci.core.flow.domain.CreateOption;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.domain.SimpleAuthPair;
-import com.flowci.domain.SimpleKeyPair;
 
 import java.util.List;
 

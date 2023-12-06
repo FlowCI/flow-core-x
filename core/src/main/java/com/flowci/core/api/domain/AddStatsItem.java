@@ -16,11 +16,12 @@
 
 package com.flowci.core.api.domain;
 
-import java.util.HashMap;
-import java.util.Map;
 import javax.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author yang
@@ -33,5 +34,4 @@ public final class AddStatsItem {
     private String type;
 
     private Map<String, Float> data = new HashMap<>();
-
 }

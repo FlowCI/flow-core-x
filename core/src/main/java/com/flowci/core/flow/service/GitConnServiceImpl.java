@@ -16,6 +16,8 @@
 
 package com.flowci.core.flow.service;
 
+import com.flowci.common.exception.ArgumentException;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.flow.domain.Flow;
@@ -24,18 +26,14 @@ import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.domain.RSASecret;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.domain.SimpleAuthPair;
-import com.flowci.domain.SimpleKeyPair;
-import com.flowci.domain.SimpleSecret;
-import com.flowci.exception.ArgumentException;
-import com.flowci.util.StringHelper;
+import com.flowci.common.domain.SimpleAuthPair;
+import com.flowci.common.domain.SimpleKeyPair;
+import com.flowci.common.domain.SimpleSecret;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 

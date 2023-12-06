@@ -18,6 +18,9 @@ package com.flowci.core.test.flow;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.common.domain.*;
+import com.flowci.common.exception.ArgumentException;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.domain.http.ResponseMessage;
@@ -36,12 +39,7 @@ import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.service.SecretService;
 import com.flowci.core.test.MockLoggedInScenario;
-import com.flowci.core.test.SpringScenario;
-import com.flowci.domain.*;
-import com.flowci.exception.ArgumentException;
-import com.flowci.util.StringHelper;
-import org.junit.*;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 
@@ -52,10 +50,12 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * @author yang
  */
-@FixMethodOrder(value = MethodSorters.JVM)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class FlowServiceTest extends MockLoggedInScenario {
 
     @Autowired
@@ -75,13 +75,13 @@ public class FlowServiceTest extends MockLoggedInScenario {
 
     private String defaultYml;
 
-    @Before
-    public void init() throws IOException {
+    @BeforeEach
+    void init() throws IOException {
         defaultYml = StringHelper.toString(load("flow.yml"));
     }
 
     @Test
-    public void should_create_with_default_vars() {
+    void should_create_with_default_vars() {
         var option = new CreateOption();
         option.setRawYaml(StringHelper.toBase64(defaultYml));
 
@@ -89,15 +89,15 @@ public class FlowServiceTest extends MockLoggedInScenario {
         shouldHasCreatedAtAndCreatedBy(flow);
 
         Vars<VarValue> vars = flow.getVars();
-        Assert.assertEquals(1, vars.size());
+        assertEquals(1, vars.size());
 
         VarValue nameVar = vars.get(Variables.Flow.Name);
-        Assert.assertEquals(flow.getName(), nameVar.getData());
-        Assert.assertFalse(nameVar.isEditable());
+        assertEquals(flow.getName(), nameVar.getData());
+        assertFalse(nameVar.isEditable());
     }
 
     @Test
-    public void should_list_flow_by_credential_name() {
+    void should_list_flow_by_credential_name() {
         // init:
         String secretName = "flow-ssh-ras-name";
         secretService.createRSA(secretName);
@@ -111,25 +111,27 @@ public class FlowServiceTest extends MockLoggedInScenario {
         flowSettingService.add(flow, vars);
 
         Vars<VarValue> variables = flowService.get(flow.getName()).getVars();
-        Assert.assertEquals(secretName, variables.get(Variables.Git.SECRET).getData());
+        assertEquals(secretName, variables.get(Variables.Git.SECRET).getData());
 
         // when:
         List<Flow> flows = flowService.listByCredential(secretName);
-        Assert.assertNotNull(flows);
-        Assert.assertEquals(1, flows.size());
+        assertNotNull(flows);
+        assertEquals(1, flows.size());
 
         // then:
-        Assert.assertEquals(flow.getName(), flows.get(0).getName());
-    }
-
-    @Test(expected = ArgumentException.class)
-    public void should_throw_exception_if_flow_name_is_invalid_when_create() {
-        String name = "hello.world";
-        flowService.create(name, new CreateOption());
+        assertEquals(flow.getName(), flows.get(0).getName());
     }
 
     @Test
-    public void should_start_job_with_condition() throws IOException, InterruptedException {
+    void should_throw_exception_if_flow_name_is_invalid_when_create() {
+        assertThrows(ArgumentException.class, () -> {
+            String name = "hello.world";
+            flowService.create(name, new CreateOption());
+        });
+    }
+
+    @Test
+    void should_start_job_with_condition() throws IOException, InterruptedException {
         String rawYaml = StringHelper.toString(load("flow-with-condition.yml"));
 
         CreateOption option = new CreateOption();
@@ -146,19 +148,19 @@ public class FlowServiceTest extends MockLoggedInScenario {
 
         CountDownLatch c = new CountDownLatch(1);
         addEventListener((ApplicationListener<CreateNewJobEvent>) e -> {
-            Assert.assertEquals(flow, e.getFlow());
+            assertEquals(flow, e.getFlow());
             c.countDown();
         });
 
         GitHookEvent e = new GitHookEvent(this, flow.getName(), trigger);
         multicastEvent(e);
 
-        Assert.assertTrue(c.await(5, TimeUnit.SECONDS));
+        assertTrue(c.await(5, TimeUnit.SECONDS));
     }
 
-    @Ignore
+    @Disabled
     @Test
-    public void should_list_remote_branches_via_ssh_rsa() throws IOException, InterruptedException {
+    void should_list_remote_branches_via_ssh_rsa() throws IOException, InterruptedException {
         // init: load private key
         TypeReference<ResponseMessage<SimpleKeyPair>> keyPairResponseType =
                 new TypeReference<ResponseMessage<SimpleKeyPair>>() {
@@ -193,12 +195,12 @@ public class FlowServiceTest extends MockLoggedInScenario {
 
         // then:
         countDown.await(30, TimeUnit.SECONDS);
-        Assert.assertTrue(branches.size() >= 1);
+        assertTrue(branches.size() >= 1);
     }
 
-    @Ignore
+    @Disabled
     @Test
-    public void should_list_remote_branches_via_http_with_credential() throws InterruptedException {
+    void should_list_remote_branches_via_http_with_credential() throws InterruptedException {
         // given:
         String credentialName = "test-auth-c";
         AuthSecret mocked = secretService.createAuth(credentialName, SimpleAuthPair.of("xxx", "xxx"));
@@ -226,6 +228,6 @@ public class FlowServiceTest extends MockLoggedInScenario {
         gitConnService.testConn(flow, gitUrl, mocked.getName());
 
         countDown.await(30, TimeUnit.SECONDS);
-        Assert.assertTrue(branches.size() >= 1);
+        assertTrue(branches.size() >= 1);
     }
 }

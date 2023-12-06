@@ -16,9 +16,9 @@
 
 package com.flowci.core.common.config;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.common.rabbit.RabbitOperations;
-import com.flowci.util.StringHelper;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;

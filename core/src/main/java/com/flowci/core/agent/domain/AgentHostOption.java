@@ -16,14 +16,14 @@
 
 package com.flowci.core.agent.domain;
 
-import com.flowci.exception.ArgumentException;
-import lombok.Getter;
-import lombok.Setter;
-
+import com.flowci.common.exception.ArgumentException;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.HashSet;
 import java.util.Set;
 

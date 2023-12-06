@@ -16,13 +16,15 @@
 
 package com.flowci.core.git.controller;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.git.converter.*;
 import com.flowci.core.git.domain.GitTrigger;
 import com.flowci.core.git.event.GitHookEvent;
-import com.flowci.exception.ArgumentException;
-import com.flowci.util.StringHelper;
+import com.flowci.common.exception.ArgumentException;
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,8 +32,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

@@ -2,18 +2,25 @@
 
 version: '3'
 services:
-  db:
-    image: bitnami/mongodb:5.0
+  db-1:
+    image: mongo:6
     restart: always
-    container_name: flowci-debug-db
+    container_name: flowci-debug-db-1
     ports:
       - "27017:27017"
+    entrypoint: [
+      "/usr/bin/mongod",
+      "--port", "27017",
+      "--replSet", "rs0",
+      "--bind_ip_all",
+    ]
+
+  db-init:
+    image: mongo:6
+    container_name: flowci-debug-db-init
     volumes:
-      - ./create_db.js:/docker-entrypoint-initdb.d/create_db.js
-    environment:
-      MONGODB_REPLICA_SET_MODE: primary
-      MONGODB_ROOT_PASSWORD: flowci
-      MONGODB_REPLICA_SET_KEY: replicakey123
+      - ./script:/ws
+    entrypoint: "/ws/mongo_init.sh"
 
   zk:
     image: zookeeper:3.6
@@ -30,11 +37,12 @@ services:
       - "15672:15672"
 
   minio:
-    image: minio/minio:RELEASE.2021-06-07T21-40-51Z
+    image: quay.io/minio/minio:RELEASE.2023-12-02T10-51-33Z
     container_name: flowci-debug-minio
     environment:
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
     ports:
       - "9000:9000"
-    command: server /data
+      - "9090:9090"
+    command: "server /data --console-address \":9090\""

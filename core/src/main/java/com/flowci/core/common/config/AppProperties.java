@@ -16,7 +16,8 @@
 
 package com.flowci.core.common.config;
 
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
+import javax.validation.constraints.NotBlank;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -26,7 +27,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.constraints.NotBlank;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;

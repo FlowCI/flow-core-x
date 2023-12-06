@@ -19,22 +19,18 @@ package com.flowci.core.test.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.common.exception.AuthenticationException;
+import com.flowci.common.exception.ErrorCode;
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.helper.HashingHelper;
 import com.flowci.core.common.domain.StatusCode;
+import com.flowci.core.common.domain.http.ResponseMessage;
 import com.flowci.core.common.manager.SessionManager;
-import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.MockMvcHelper;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.*;
 import com.flowci.core.user.event.UserDeletedEvent;
-import com.flowci.core.common.domain.http.ResponseMessage;
-import com.flowci.exception.AuthenticationException;
-import com.flowci.exception.ErrorCode;
-import com.flowci.exception.NotFoundException;
-import com.flowci.util.HashingHelper;
-import com.flowci.util.StringHelper;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.http.MediaType;
@@ -42,6 +38,7 @@ import org.springframework.http.MediaType;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -60,8 +57,8 @@ public class UserControllerTest extends SpringScenario {
     @Autowired
     private SessionManager sessionManager;
 
-    @Test(expected = AuthenticationException.class)
-    public void should_change_password_for_current_user_successfully() throws Exception {
+    @Test
+    void should_change_password_for_current_user_successfully() throws Exception {
         var dummy = new User();
         dummy.setId("1111");
         dummy.setPasswordOnMd5(HashingHelper.md5("22222"));
@@ -83,38 +80,38 @@ public class UserControllerTest extends SpringScenario {
                         .content(objectMapper.writeValueAsBytes(body))
                         .contentType(MediaType.APPLICATION_JSON), ResponseMessage.class);
 
-        Assert.assertEquals(StatusCode.OK, message.getCode());
+        assertEquals(StatusCode.OK, message.getCode());
 
         // then:
-        Assert.assertEquals(newPwOnMd5, userService.getByEmail(user.getEmail()).getPasswordOnMd5());
+        assertEquals(newPwOnMd5, userService.getByEmail(user.getEmail()).getPasswordOnMd5());
 
         // then: throw AuthenticationException
-        sessionManager.get();
+        assertThrows(AuthenticationException.class, () -> sessionManager.get());
     }
 
     @Test
-    public void should_create_user_successfully() throws Exception {
+    void should_create_user_successfully() throws Exception {
         createUser("test.create@flow.ci", "111111", User.Role.Admin);
 
         User created = userService.getByEmail("test.create@flow.ci");
-        Assert.assertEquals(User.Role.Admin, created.getRole());
-        Assert.assertNotNull(created.getCreatedBy());
-        Assert.assertNotNull(created.getCreatedAt());
-        Assert.assertNotNull(created.getUpdatedAt());
+        assertEquals(User.Role.Admin, created.getRole());
+        assertNotNull(created.getCreatedBy());
+        assertNotNull(created.getCreatedAt());
+        assertNotNull(created.getUpdatedAt());
     }
 
     @Test
-    public void should_fail_to_create_user_if_mail_invalid() throws Exception {
+    void should_fail_to_create_user_if_mail_invalid() throws Exception {
         ResponseMessage message = createUser("test.flow.ci", "111111", User.Role.Admin);
 
-        Assert.assertEquals(ErrorCode.INVALID_ARGUMENT, message.getCode());
+        assertEquals(ErrorCode.INVALID_ARGUMENT, message.getCode());
     }
 
     @Test
-    public void should_change_user_role_successfully() throws Exception {
+    void should_change_user_role_successfully() throws Exception {
         ResponseMessage<User> msg = createUser("test.change.role@flow.ci", "12345", User.Role.Developer);
         User user = msg.getData();
-        Assert.assertEquals(User.Role.Developer, user.getRole());
+        assertEquals(User.Role.Developer, user.getRole());
 
         ChangeRole body = new ChangeRole();
         body.setEmail(user.getEmail());
@@ -126,12 +123,12 @@ public class UserControllerTest extends SpringScenario {
                         .contentType(MediaType.APPLICATION_JSON)
                 , ResponseMessage.class);
 
-        Assert.assertEquals(StatusCode.OK, message.getCode());
-        Assert.assertEquals(User.Role.Admin, userService.getByEmail(user.getEmail()).getRole());
+        assertEquals(StatusCode.OK, message.getCode());
+        assertEquals(User.Role.Admin, userService.getByEmail(user.getEmail()).getRole());
     }
 
-    @Test(expected = NotFoundException.class)
-    public void should_delete_user_and_send_delete_event_out() throws Exception {
+    @Test
+    void should_delete_user_and_send_delete_event_out() throws Exception {
         ResponseMessage<User> created = createUser("test.delete@flow.ci", "12345", User.Role.Developer);
 
         DeleteUser body = new DeleteUser();
@@ -145,11 +142,11 @@ public class UserControllerTest extends SpringScenario {
                         .content(objectMapper.writeValueAsBytes(body))
                         .contentType(MediaType.APPLICATION_JSON), UserType);
 
-        Assert.assertTrue(counter.await(5, TimeUnit.SECONDS));
-        Assert.assertEquals(created.getData(), deleted.getData());
+        assertTrue(counter.await(5, TimeUnit.SECONDS));
+        assertEquals(created.getData(), deleted.getData());
 
         // then: throw not found exception
-        userService.getByEmail(created.getData().getEmail());
+        assertThrows(NotFoundException.class, () -> userService.getByEmail(created.getData().getEmail()));
     }
 
     private ResponseMessage<User> createUser(String email, String password, User.Role role) throws Exception {

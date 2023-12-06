@@ -16,6 +16,7 @@
 
 package com.flowci.core.flow.service;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.common.manager.HttpRequestManager;
@@ -36,15 +37,14 @@ import com.flowci.core.job.event.CreateNewJobEvent;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.core.user.event.UserDeletedEvent;
-import com.flowci.domain.StringVars;
-import com.flowci.domain.VarType;
-import com.flowci.domain.VarValue;
-import com.flowci.exception.ArgumentException;
-import com.flowci.exception.DuplicateException;
-import com.flowci.exception.NotFoundException;
-import com.flowci.exception.StatusException;
+import com.flowci.common.domain.StringVars;
+import com.flowci.common.domain.VarType;
+import com.flowci.common.domain.VarValue;
+import com.flowci.common.exception.ArgumentException;
+import com.flowci.common.exception.DuplicateException;
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.exception.StatusException;
 import com.flowci.store.FileManager;
-import com.flowci.util.StringHelper;
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -16,6 +16,7 @@
 
 package com.flowci.core.test.api;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.api.domain.CreateJobReport;
 import com.flowci.core.api.service.OpenRestService;
 import com.flowci.core.flow.domain.CreateOption;
@@ -27,12 +28,9 @@ import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobOutput.ContentType;
 import com.flowci.core.job.domain.JobReport;
 import com.flowci.core.test.MockLoggedInScenario;
-import com.flowci.core.test.SpringScenario;
 import com.flowci.core.user.domain.User;
-import com.flowci.util.StringHelper;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -41,6 +39,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class OpenRestServiceTest extends MockLoggedInScenario {
 
@@ -58,32 +58,32 @@ public class OpenRestServiceTest extends MockLoggedInScenario {
 
     private Flow flow;
 
-    @Before
-    public void init() throws IOException {
+    @BeforeEach
+    void init() throws IOException {
         var yaml = StringHelper.toString(load("flow.yml"));
         var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
         flow = flowService.create("user-test", option);
     }
 
     @Test
-    public void should_list_all_flow_users() {
+    void should_list_all_flow_users() {
         List<User> users = openRestService.users(flow.getName());
-        Assert.assertEquals(1, users.size());
+        assertEquals(1, users.size());
 
         User user = users.get(0);
-        Assert.assertNotNull(user.getEmail());
+        assertNotNull(user.getEmail());
 
-        Assert.assertNull(user.getPasswordOnMd5());
-        Assert.assertNull(user.getRole());
-        Assert.assertNull(user.getId());
-        Assert.assertNull(user.getCreatedAt());
-        Assert.assertNull(user.getCreatedBy());
-        Assert.assertNull(user.getUpdatedAt());
-        Assert.assertNull(user.getUpdatedBy());
+        assertNull(user.getPasswordOnMd5());
+        assertNull(user.getRole());
+        assertNull(user.getId());
+        assertNull(user.getCreatedAt());
+        assertNull(user.getCreatedBy());
+        assertNull(user.getUpdatedAt());
+        assertNull(user.getUpdatedBy());
     }
 
     @Test
-    public void should_save_job_report() throws IOException {
+    void should_save_job_report() throws IOException {
         // given:
         Job job = new Job();
         job.setId("12345");
@@ -103,7 +103,7 @@ public class OpenRestServiceTest extends MockLoggedInScenario {
 
         // then:
         List<JobReport> reports = jobReportDao.findAllByJobId(job.getId());
-        Assert.assertNotNull(reports);
-        Assert.assertEquals(1, reports.size());
+        assertNotNull(reports);
+        assertEquals(1, reports.size());
     }
 }

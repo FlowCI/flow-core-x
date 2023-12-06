@@ -16,30 +16,29 @@
 
 package com.flowci.core.flow.service;
 
+import com.flowci.common.exception.DuplicateException;
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.manager.ConditionManager;
 import com.flowci.core.common.manager.SpringEventManager;
 import com.flowci.core.config.event.GetConfigEvent;
 import com.flowci.core.flow.dao.FlowDao;
 import com.flowci.core.flow.dao.FlowYmlDao;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.flow.domain.FlowYml;
+import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.secret.event.GetSecretEvent;
-import com.flowci.domain.Vars;
-import com.flowci.exception.DuplicateException;
-import com.flowci.exception.NotFoundException;
+import com.flowci.common.domain.Vars;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.YmlParser;
-import com.flowci.util.StringHelper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.collect.ImmutableList;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;

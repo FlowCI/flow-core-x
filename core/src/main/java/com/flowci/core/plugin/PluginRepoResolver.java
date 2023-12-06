@@ -18,10 +18,11 @@ package com.flowci.core.plugin;
 
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.service.PluginService;
-import com.flowci.exception.NotFoundException;
+import com.flowci.common.exception.NotFoundException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+
 import javax.servlet.http.HttpServletRequest;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;

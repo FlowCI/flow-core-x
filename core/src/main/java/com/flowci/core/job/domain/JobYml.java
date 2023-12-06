@@ -16,8 +16,8 @@
 
 package com.flowci.core.job.domain;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.Mongoable;
-import com.flowci.util.StringHelper;
 import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 

@@ -16,8 +16,8 @@
 
 package com.flowci.core.git.domain;
 
-import com.flowci.domain.StringVars;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
+import com.flowci.common.domain.StringVars;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -79,7 +79,7 @@ public final class GitPrTrigger extends GitTrigger {
 
     @Override
     public boolean isSkip() {
-        if (!StringHelper.hasValue(title)) {
+        if (StringHelper.isEmpty(title)) {
             return false;
         }
         return title.contains(SkipMessage);

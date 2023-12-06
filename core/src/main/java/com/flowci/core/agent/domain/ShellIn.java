@@ -1,8 +1,8 @@
 package com.flowci.core.agent.domain;
 
-import com.flowci.domain.DockerOption;
-import com.flowci.domain.StringVars;
-import com.flowci.domain.Vars;
+import com.flowci.common.domain.DockerOption;
+import com.flowci.common.domain.StringVars;
+import com.flowci.common.domain.Vars;
 import com.flowci.tree.Cache;
 import com.google.common.base.Strings;
 import lombok.Getter;

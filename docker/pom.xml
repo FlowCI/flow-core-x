@@ -2,46 +2,34 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>flow-platform-x</artifactId>
-        <groupId>com.flowci</groupId>
-        <version>${revision}</version>
-    </parent>
+  <parent>
+    <artifactId>flow-platform-x</artifactId>
+    <groupId>com.flowci</groupId>
+    <version>${revision}</version>
+  </parent>
 
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>docker</artifactId>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>docker</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.flowci</groupId>
-            <artifactId>domain</artifactId>
-        </dependency>
+  <dependencies>
+    <dependency>
+      <groupId>com.flowci</groupId>
+      <artifactId>common</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>com.flowci</groupId>
-            <artifactId>util</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>com.github.docker-java</groupId>
+      <artifactId>docker-java</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>com.github.docker-java</groupId>
-            <artifactId>docker-java</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>com.jcraft</groupId>
+      <artifactId>jsch</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>com.jcraft</groupId>
-            <artifactId>jsch</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>kubernetes-client</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-client</artifactId>
+    </dependency>
+  </dependencies>
 </project>

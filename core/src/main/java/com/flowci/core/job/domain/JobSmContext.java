@@ -16,7 +16,7 @@
 
 package com.flowci.core.job.domain;
 
-import com.flowci.sm.Context;
+import com.flowci.common.sm.Context;
 import com.flowci.zookeeper.InterLock;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

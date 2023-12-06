@@ -24,8 +24,8 @@ import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.user.domain.User;
-import com.flowci.util.StringHelper;
 
 import java.time.Instant;
 import java.util.Date;

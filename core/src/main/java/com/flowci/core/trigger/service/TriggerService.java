@@ -3,7 +3,7 @@ package com.flowci.core.trigger.service;
 import com.flowci.core.trigger.domain.EmailTrigger;
 import com.flowci.core.trigger.domain.Trigger;
 import com.flowci.core.trigger.domain.WebhookTrigger;
-import com.flowci.domain.Vars;
+import com.flowci.common.domain.Vars;
 
 import java.util.List;
 

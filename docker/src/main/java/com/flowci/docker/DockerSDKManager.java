@@ -1,7 +1,7 @@
 package com.flowci.docker;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.docker.domain.*;
-import com.flowci.util.StringHelper;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.exception.DockerException;

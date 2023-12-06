@@ -1,12 +1,11 @@
 package com.flowci.core.secret.domain;
 
-import com.flowci.domain.SimpleAuthPair;
-import com.flowci.domain.SimpleKeyPair;
+import com.flowci.common.domain.SimpleAuthPair;
+import com.flowci.common.domain.SimpleKeyPair;
 import com.google.common.base.Strings;
+import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import javax.validation.constraints.NotEmpty;
 
 public abstract class Request {
 

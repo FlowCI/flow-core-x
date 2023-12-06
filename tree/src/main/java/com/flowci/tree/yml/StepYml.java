@@ -16,12 +16,11 @@
 
 package com.flowci.tree.yml;
 
-import com.flowci.exception.YmlException;
+import com.flowci.common.exception.YmlException;
+import com.flowci.common.helper.FileHelper;
+import com.flowci.common.helper.ObjectsHelper;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.tree.*;
-import com.flowci.util.FileHelper;
-import com.flowci.util.ObjectsHelper;
-import com.flowci.util.StringHelper;
-import com.google.common.collect.Sets;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -101,7 +100,7 @@ public class StepYml extends YmlBase<RegularStepNode> {
 
                 step.getParallel().put(subflowName, pFlowNode);
             }
-            
+
             return step;
         }
 
@@ -112,11 +111,11 @@ public class StepYml extends YmlBase<RegularStepNode> {
         step.setRetry(retry);
         step.setTimeout(timeout);
         step.setPlugin(plugin);
-        step.setExports(Sets.newHashSet(exports));
+        step.setExports(new HashSet<>(exports));
         step.setAllowFailure(allow_failure != null && allow_failure);
         step.setEnvironments(getVariableMap());
-        step.setSecrets(Sets.newHashSet(secrets));
-        step.setConfigs(Sets.newHashSet(configs));
+        step.setSecrets(new HashSet<>(secrets));
+        step.setConfigs(new HashSet<>(configs));
 
         setCacheToNode(step);
         setDockerToNode(step);

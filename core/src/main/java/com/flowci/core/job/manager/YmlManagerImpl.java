@@ -19,7 +19,7 @@ package com.flowci.core.job.manager;
 import com.flowci.core.job.dao.JobYmlDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobYml;
-import com.flowci.exception.NotFoundException;
+import com.flowci.common.exception.NotFoundException;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.YmlParser;

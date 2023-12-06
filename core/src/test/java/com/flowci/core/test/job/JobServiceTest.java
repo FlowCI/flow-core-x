@@ -16,6 +16,8 @@
 
 package com.flowci.core.test.job;
 
+import com.flowci.common.domain.*;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.agent.dao.AgentDao;
 import com.flowci.core.agent.domain.*;
 import com.flowci.core.agent.event.AgentStatusEvent;
@@ -48,18 +50,12 @@ import com.flowci.core.job.util.JobContextHelper;
 import com.flowci.core.plugin.dao.PluginDao;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.test.ZookeeperScenario;
-import com.flowci.domain.*;
 import com.flowci.tree.FlowNode;
 import com.flowci.tree.Node;
 import com.flowci.tree.NodeTree;
 import com.flowci.tree.YmlParser;
-import com.flowci.util.StringHelper;
-import lombok.extern.log4j.Log4j2;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 
@@ -69,11 +65,13 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * @author yang
  */
 @Slf4j
-@FixMethodOrder(MethodSorters.JVM)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class JobServiceTest extends ZookeeperScenario {
 
     @Autowired
@@ -122,8 +120,8 @@ public class JobServiceTest extends ZookeeperScenario {
 
     private FlowYml ymlEntity;
 
-    @Before
-    public void mockFlowAndYml() throws IOException {
+    @BeforeEach
+    void mockFlowAndYml() throws IOException {
         var yaml = StringHelper.toString(load("flow.yml"));
         var option = new CreateOption().setRawYaml(StringHelper.toBase64(yaml));
         flow = flowService.create("hello", option);
@@ -131,7 +129,7 @@ public class JobServiceTest extends ZookeeperScenario {
     }
 
     @Test
-    public void should_create_job_with_expected_context() {
+    void should_create_job_with_expected_context() {
         // init:
         flow.getVars().put("LOCAL_VAR", VarValue.of("local", VarType.STRING));
         flowDao.save(flow);
@@ -144,50 +142,50 @@ public class JobServiceTest extends ZookeeperScenario {
         // when: create job
         Job job = jobService.create(flow, ymlEntity.getList(), Trigger.MANUAL, input);
         Vars<String> context = job.getContext();
-        Assert.assertNotNull(context);
+        assertNotNull(context);
 
         // then: related job should be added
         List<JobDesc> relatedList = jobService.listRelated(job);
-        Assert.assertEquals(1, relatedList.size());
-        Assert.assertEquals(job.getId(), relatedList.get(0).getId());
+        assertEquals(1, relatedList.size());
+        assertEquals(job.getId(), relatedList.get(0).getId());
 
         // then: default vars
-        Assert.assertTrue(context.containsKey(Variables.Flow.Name));
-        Assert.assertTrue(context.containsKey(Variables.App.ServerUrl));
+        assertTrue(context.containsKey(Variables.Flow.Name));
+        assertTrue(context.containsKey(Variables.App.ServerUrl));
 
-        Assert.assertTrue(context.containsKey(Variables.Job.Status));
-        Assert.assertTrue(context.containsKey(Variables.Job.BuildNumber));
-        Assert.assertTrue(context.containsKey(Variables.Job.Trigger));
-        Assert.assertTrue(context.containsKey(Variables.Job.TriggerBy));
-        Assert.assertTrue(context.containsKey(Variables.Job.StartAt));
-        Assert.assertTrue(context.containsKey(Variables.Job.FinishAt));
-        Assert.assertTrue(context.containsKey(Variables.Job.DurationInSeconds));
+        assertTrue(context.containsKey(Variables.Job.Status));
+        assertTrue(context.containsKey(Variables.Job.BuildNumber));
+        assertTrue(context.containsKey(Variables.Job.Trigger));
+        assertTrue(context.containsKey(Variables.Job.TriggerBy));
+        assertTrue(context.containsKey(Variables.Job.StartAt));
+        assertTrue(context.containsKey(Variables.Job.FinishAt));
+        assertTrue(context.containsKey(Variables.Job.DurationInSeconds));
 
         // then: vars should be included in job context
-        Assert.assertTrue(context.containsKey("LOCAL_VAR"));
-        Assert.assertTrue(context.containsKey("INPUT_VAR"));
-        Assert.assertTrue(context.containsKey("FLOW_WORKSPACE"));
-        Assert.assertTrue(context.containsKey("FLOW_VERSION"));
+        assertTrue(context.containsKey("LOCAL_VAR"));
+        assertTrue(context.containsKey("INPUT_VAR"));
+        assertTrue(context.containsKey("FLOW_WORKSPACE"));
+        assertTrue(context.containsKey("FLOW_VERSION"));
     }
 
     @Test
-    public void should_init_steps_cmd_after_job_created() {
+    void should_init_steps_cmd_after_job_created() {
         Job job = jobService.create(flow, ymlEntity.getList(), Trigger.MANUAL, StringVars.EMPTY);
 
         List<Step> steps = stepService.list(job);
-        Assert.assertNotNull(steps);
-        Assert.assertEquals(3, steps.size());
+        assertNotNull(steps);
+        assertEquals(3, steps.size());
 
         for (Step step : steps) {
-            Assert.assertNotNull(step.getFlowId());
-            Assert.assertNotNull(step.getJobId());
-            Assert.assertNotNull(step.getNodePath());
-            Assert.assertNotNull(step.getBuildNumber());
+            assertNotNull(step.getFlowId());
+            assertNotNull(step.getJobId());
+            assertNotNull(step.getNodePath());
+            assertNotNull(step.getBuildNumber());
         }
     }
 
     @Test
-    public void should_start_new_job() throws Throwable {
+    void should_start_new_job() throws Throwable {
         ObjectWrapper<Job> receivedJob = new ObjectWrapper<>();
 
         // init: register JobReceivedEvent
@@ -201,30 +199,30 @@ public class JobServiceTest extends ZookeeperScenario {
         Job job = jobService.create(flow, ymlEntity.getList(), Trigger.MANUAL, StringVars.EMPTY);
         job = jobService.get(job.getId());
 
-        Assert.assertEquals(Status.CREATED, job.getStatus());
-        Assert.assertTrue(job.getCurrentPath().isEmpty());
+        assertEquals(Status.CREATED, job.getStatus());
+        assertTrue(job.getCurrentPath().isEmpty());
 
         jobActionService.toStart(job.getId());
         job = jobService.get(job.getId());
-        Assert.assertEquals(Status.QUEUED, job.getStatus());
+        assertEquals(Status.QUEUED, job.getStatus());
 
-        Assert.assertNotNull(job);
-        Assert.assertNotNull(ymlManager.getTree(job));
+        assertNotNull(job);
+        assertNotNull(ymlManager.getTree(job));
 
         // then: confirm job is received from queue
         waitForJobFromQueue.await(10, TimeUnit.SECONDS);
-        Assert.assertEquals(0, waitForJobFromQueue.getCount());
-        Assert.assertEquals(job, receivedJob.getValue());
+        assertEquals(0, waitForJobFromQueue.getCount());
+        assertEquals(job, receivedJob.getValue());
     }
 
     @Test
-    public void should_get_job_expire() {
+    void should_get_job_expire() {
         Job job = jobService.create(flow, ymlEntity.getList(), Trigger.MANUAL, StringVars.EMPTY);
-        Assert.assertFalse(job.isExpired());
+        assertFalse(job.isExpired());
     }
 
     @Test
-    public void should_finish_whole_job() throws InterruptedException, IOException {
+    void should_finish_whole_job() throws InterruptedException, IOException {
         // init:
         Plugin p = new Plugin();
         p.setName("email"); // from yaml
@@ -283,25 +281,25 @@ public class JobServiceTest extends ZookeeperScenario {
         });
 
         jobActionService.toStart(job.getId());
-        Assert.assertTrue(counterForStep1.await(10, TimeUnit.SECONDS));
+        assertTrue(counterForStep1.await(10, TimeUnit.SECONDS));
 
         // then: verify step 1 agent
-        Assert.assertEquals(agent, agentForStep1.getValue());
-        Assert.assertEquals(job.getId(), agentForStep1.getValue().getJobId());
-        Assert.assertEquals(Agent.Status.BUSY, agentForStep1.getValue().getStatus());
+        assertEquals(agent, agentForStep1.getValue());
+        assertEquals(job.getId(), agentForStep1.getValue().getJobId());
+        assertEquals(Agent.Status.BUSY, agentForStep1.getValue().getStatus());
 
         // then: verify job status should be running
         job = jobService.get(job.getId());
-        Assert.assertEquals(Status.RUNNING, job.getStatus());
-        Assert.assertTrue(job.getCurrentPath().contains(firstStep.getNodePath()));
+        assertEquals(Status.RUNNING, job.getStatus());
+        assertTrue(job.getCurrentPath().contains(firstStep.getNodePath()));
 
         // then: verify step 1 cmd has been sent
         ShellIn cmd = (ShellIn) cmdForStep1.getValue();
-        Assert.assertEquals(firstStep.getId(), cmd.getId());
-        Assert.assertTrue(cmd.isAllowFailure());
-        Assert.assertEquals("echo step version", cmd.getInputs().get("FLOW_VERSION"));
-        Assert.assertEquals("echo step", cmd.getInputs().get("FLOW_WORKSPACE"));
-        Assert.assertEquals("echo hello\n", cmd.getBash().get(0));
+        assertEquals(firstStep.getId(), cmd.getId());
+        assertTrue(cmd.isAllowFailure());
+        assertEquals("echo step version", cmd.getInputs().get("FLOW_VERSION"));
+        assertEquals("echo step", cmd.getInputs().get("FLOW_WORKSPACE"));
+        assertEquals("echo hello\n", cmd.getBash().get(0));
 
         // when: make dummy response from agent for step 1
         firstStep.setStatus(Step.Status.SUCCESS);
@@ -311,22 +309,22 @@ public class JobServiceTest extends ZookeeperScenario {
         jobEventService.handleCallback(getShellOutFromStep(firstStep));
 
         // then: verify step 2 agent
-        Assert.assertTrue(counterForStep2.await(10, TimeUnit.SECONDS));
+        assertTrue(counterForStep2.await(10, TimeUnit.SECONDS));
 
-        Assert.assertEquals(agent, agentForStep2.getValue());
-        Assert.assertEquals(job.getId(), agentForStep2.getValue().getJobId());
-        Assert.assertEquals(Agent.Status.BUSY, agentForStep2.getValue().getStatus());
+        assertEquals(agent, agentForStep2.getValue());
+        assertEquals(job.getId(), agentForStep2.getValue().getJobId());
+        assertEquals(Agent.Status.BUSY, agentForStep2.getValue().getStatus());
 
         // then: verify job status should be running
         job = jobService.get(job.getId());
-        Assert.assertEquals(Status.RUNNING, job.getStatus());
-        Assert.assertTrue(job.getCurrentPath().contains(secondStep.getNodePath()));
+        assertEquals(Status.RUNNING, job.getStatus());
+        assertTrue(job.getCurrentPath().contains(secondStep.getNodePath()));
 
         // then: verify step 1 cmd has been sent
         cmd = (ShellIn) cmdForStep2.getValue();
-        Assert.assertEquals(secondStep.getId(), cmd.getId());
-        Assert.assertFalse(cmd.isAllowFailure());
-        Assert.assertEquals("echo 2", cmd.getBash().get(0));
+        assertEquals(secondStep.getId(), cmd.getId());
+        assertFalse(cmd.isAllowFailure());
+        assertEquals("echo 2", cmd.getBash().get(0));
 
         // when: make dummy response from agent for step 2
         secondStep.setStatus(Step.Status.SUCCESS);
@@ -336,11 +334,11 @@ public class JobServiceTest extends ZookeeperScenario {
         jobEventService.handleCallback(getShellOutFromStep(secondStep));
 
         // // then: should job with SUCCESS status and sent notification task
-        Assert.assertEquals(Status.SUCCESS, jobService.get(job.getId()).getStatus());
+        assertEquals(Status.SUCCESS, jobService.get(job.getId()).getStatus());
     }
 
     @Test
-    public void should_handle_cmd_callback_for_success_status() {
+    void should_handle_cmd_callback_for_success_status() {
         // init: agent and job
         Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
         Job job = prepareJobForRunningStatus(agent);
@@ -361,12 +359,12 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // then: job context should be updated
         job = jobDao.findById(job.getId()).get();
-        Assert.assertEquals(Status.RUNNING, job.getStatus());
-        Assert.assertEquals("hello.world", job.getContext().get("HELLO_WORLD"));
+        assertEquals(Status.RUNNING, job.getStatus());
+        assertEquals("hello.world", job.getContext().get("HELLO_WORLD"));
 
         // then: job current context should be updated
         Node secondNode = firstNode.getNext().get(0);
-        Assert.assertTrue(job.getCurrentPath().contains(secondNode.getPathAsString()));
+        assertTrue(job.getCurrentPath().contains(secondNode.getPathAsString()));
         Step secondStep = stepService.get(job.getId(), secondNode.getPath().getPathInStr());
 
         // when: cmd of second node been executed
@@ -379,13 +377,13 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // then: job context should be updated
         job = jobDao.findById(job.getId()).get();
-        Assert.assertEquals("hello.java", job.getContext().get("HELLO_JAVA"));
-        Assert.assertEquals("hello.world", job.getContext().get("HELLO_WORLD"));
-        Assert.assertEquals(Status.SUCCESS, job.getStatus());
+        assertEquals("hello.java", job.getContext().get("HELLO_JAVA"));
+        assertEquals("hello.world", job.getContext().get("HELLO_WORLD"));
+        assertEquals(Status.SUCCESS, job.getStatus());
     }
 
     @Test
-    public void should_handle_cmd_callback_for_failure_status() throws IOException {
+    void should_handle_cmd_callback_for_failure_status() throws IOException {
         // init: agent and job
         String yaml = StringHelper.toString(load("flow-with-failure.yml"));
         ymlEntity = ymlService.saveYml(flow, List.of(new SimpleYml("default", StringHelper.toBase64(yaml))));
@@ -404,12 +402,12 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // then: job should be failure
         job = jobDao.findById(job.getId()).get();
-        Assert.assertEquals(Status.FAILURE, job.getStatus());
-        Assert.assertTrue(job.getCurrentPath().contains("flow/step-1"));
+        assertEquals(Status.FAILURE, job.getStatus());
+        assertTrue(job.getCurrentPath().contains("flow/step-1"));
     }
 
     @Test
-    public void should_handle_cmd_callback_for_failure_status_but_allow_failure() throws IOException {
+    void should_handle_cmd_callback_for_failure_status_but_allow_failure() throws IOException {
         // init: agent and job
         String yaml = StringHelper.toString(load("flow-all-failure.yml"));
         ymlEntity = ymlService.saveYml(flow, List.of(new SimpleYml("default", StringHelper.toBase64(yaml))));
@@ -435,9 +433,9 @@ public class JobServiceTest extends ZookeeperScenario {
         Node secondNode = firstNode.getNext().get(0);
         Step secondCmd = stepService.get(job.getId(), secondNode.getPath().getPathInStr());
 
-        Assert.assertEquals(Status.RUNNING, job.getStatus());
-        Assert.assertTrue(job.getCurrentPath().contains(secondNode.getPathAsString()));
-        Assert.assertEquals("hello.world", job.getContext().get("HELLO_WORLD"));
+        assertEquals(Status.RUNNING, job.getStatus());
+        assertTrue(job.getCurrentPath().contains(secondNode.getPathAsString()));
+        assertEquals("hello.world", job.getContext().get("HELLO_WORLD"));
 
         // when: second cmd of node been timeout
         output = new StringVars();
@@ -450,12 +448,13 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // then: job should be timeout with error message
         job = jobDao.findById(job.getId()).get();
-        Assert.assertEquals(Status.SUCCESS, job.getStatus());
-        Assert.assertEquals("hello.timeout", job.getContext().get("HELLO_TIMEOUT"));
+        assertEquals(Status.SUCCESS, job.getStatus());
+        assertEquals("hello.timeout", job.getContext().get("HELLO_TIMEOUT"));
     }
 
-    @Test(timeout = 30 * 1000)
-    public void should_cancel_job_if_agent_offline() throws IOException, InterruptedException {
+    @Test
+    @Timeout(value = 30)
+    void should_cancel_job_if_agent_offline() throws IOException, InterruptedException {
         // init:
         String yaml = StringHelper.toString(load("flow-with-condition.yml"));
         ymlEntity = ymlService.saveYml(flow, List.of(new SimpleYml("default", StringHelper.toBase64(yaml))));
@@ -484,17 +483,17 @@ public class JobServiceTest extends ZookeeperScenario {
         // then: job should be cancelled
         waitForCancelled.await();
         job = jobService.get(job.getId());
-        Assert.assertEquals(Status.CANCELLED, job.getStatus());
+        assertEquals(Status.CANCELLED, job.getStatus());
 
         // then: step should be skipped
         List<Step> steps = stepService.list(job);
         for (Step step : steps) {
-            Assert.assertEquals(Step.Status.PENDING, step.getStatus());
+            assertEquals(Step.Status.PENDING, step.getStatus());
         }
     }
 
     @Test
-    public void should_rerun_job() {
+    void should_rerun_job() {
         // init: create old job wit success status
         Job job = jobService.create(flow, ymlEntity.getList(), Trigger.MANUAL, StringVars.EMPTY);
         job.setStatus(Status.SUCCESS);
@@ -503,25 +502,25 @@ public class JobServiceTest extends ZookeeperScenario {
 
         // when: rerun
         job = jobService.rerun(flow, job);
-        Assert.assertNotNull(job);
+        assertNotNull(job);
 
         // then: verify context
         Vars<String> context = job.getContext();
-        Assert.assertEquals(Status.QUEUED.toString(), context.get(Variables.Job.Status));
-        Assert.assertEquals("1", context.get(Variables.Job.BuildNumber));
-        Assert.assertNotNull(context.get(Variables.Job.Trigger));
-        Assert.assertNotNull(context.get(Variables.Job.TriggerBy));
+        assertEquals(Status.QUEUED.toString(), context.get(Variables.Job.Status));
+        assertEquals("1", context.get(Variables.Job.BuildNumber));
+        assertNotNull(context.get(Variables.Job.Trigger));
+        assertNotNull(context.get(Variables.Job.TriggerBy));
 
         // then: verify job properties
-        Assert.assertTrue(job.getCurrentPath().isEmpty());
-        Assert.assertFalse(job.isExpired());
-        Assert.assertNotNull(job.getCreatedAt());
-        Assert.assertNotNull(job.getCreatedBy());
-        Assert.assertEquals(Trigger.MANUAL, job.getTrigger());
+        assertTrue(job.getCurrentPath().isEmpty());
+        assertFalse(job.isExpired());
+        assertNotNull(job.getCreatedAt());
+        assertNotNull(job.getCreatedBy());
+        assertEquals(Trigger.MANUAL, job.getTrigger());
 
-        Assert.assertNull(job.getFinishAt());
-        Assert.assertNull(job.getStartAt());
-        Assert.assertTrue(job.getSnapshots().isEmpty());
+        assertNull(job.getFinishAt());
+        assertNull(job.getStartAt());
+        assertTrue(job.getSnapshots().isEmpty());
     }
 
     private Job prepareJobForRunningStatus(Agent agent) {
@@ -537,8 +536,8 @@ public class JobServiceTest extends ZookeeperScenario {
         job.setStatus(Status.RUNNING);
         JobContextHelper.setStatus(job, Status.RUNNING);
 
-        Assert.assertEquals(Status.RUNNING, job.getStatus());
-        Assert.assertEquals(Status.RUNNING, JobContextHelper.getStatus(job));
+        assertEquals(Status.RUNNING, job.getStatus());
+        assertEquals(Status.RUNNING, JobContextHelper.getStatus(job));
 
         return jobDao.save(job);
     }

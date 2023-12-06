@@ -16,18 +16,17 @@
 
 package com.flowci.core.job.service;
 
+import com.flowci.common.exception.DuplicateException;
+import com.flowci.common.exception.NotAvailableException;
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.job.dao.JobArtifactDao;
 import com.flowci.core.job.dao.JobDao;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.domain.JobArtifact;
-import com.flowci.exception.DuplicateException;
-import com.flowci.exception.NotAvailableException;
-import com.flowci.exception.NotFoundException;
 import com.flowci.store.FileManager;
 import com.flowci.store.Pathable;
 import com.flowci.store.StringPath;
-import com.flowci.util.StringHelper;
-import com.google.api.client.util.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,6 +36,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,7 +68,7 @@ public class ArtifactServiceImpl implements ArtifactService {
 
         try (InputStream reportRaw = file.getInputStream()) {
             // save to file manager by file name
-            String path = fileManager.save(file.getOriginalFilename(), reportRaw, artifactPath);
+            String path = fileManager.save(file.getOriginalFilename(), reportRaw, file.getSize(), artifactPath);
 
             JobArtifact artifact = new JobArtifact();
             artifact.setJobId(job.getId());
@@ -108,7 +108,7 @@ public class ArtifactServiceImpl implements ArtifactService {
 
     private static Pathable[] getArtifactPath(Job job, String srcDir) {
         String[] split = srcDir.split(Separator);
-        List<Pathable> list = Lists.newArrayListWithCapacity(split.length + 3);
+        List<Pathable> list = new ArrayList<>(split.length + 3);
 
         list.add(job::getFlowId);
         list.add(job);
@@ -122,7 +122,7 @@ public class ArtifactServiceImpl implements ArtifactService {
     }
 
     private static String formatSrcDir(String dir) {
-        if (!StringHelper.hasValue(dir)) {
+        if (StringHelper.isEmpty(dir)) {
             return StringHelper.EMPTY;
         }
 

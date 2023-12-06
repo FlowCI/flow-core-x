@@ -1,7 +1,6 @@
 package com.flowci.core.config.domain;
 
-import com.flowci.domain.SimpleAuthPair;
-import com.flowci.util.StringHelper;
+import com.flowci.common.domain.SimpleAuthPair;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;

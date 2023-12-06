@@ -16,7 +16,7 @@
 
 package com.flowci.core;
 
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;

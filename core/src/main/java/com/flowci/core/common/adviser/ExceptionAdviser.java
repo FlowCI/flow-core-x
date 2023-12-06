@@ -18,8 +18,8 @@ package com.flowci.core.common.adviser;
 
 import com.flowci.core.common.domain.StatusCode;
 import com.flowci.core.common.domain.http.ResponseMessage;
-import com.flowci.exception.CIException;
-import com.flowci.exception.ErrorCode;
+import com.flowci.common.exception.CIException;
+import com.flowci.common.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;

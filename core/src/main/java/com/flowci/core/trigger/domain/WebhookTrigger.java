@@ -1,13 +1,13 @@
 package com.flowci.core.trigger.domain;
 
-import com.flowci.util.ObjectsHelper;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.ObjectsHelper;
+import com.flowci.common.helper.StringHelper;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Pattern;
 import java.util.Map;
 
 @Getter

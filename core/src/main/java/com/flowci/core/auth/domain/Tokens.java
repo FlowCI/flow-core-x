@@ -36,5 +36,4 @@ public class Tokens {
 
     @NotEmpty
     private String refreshToken;
-
 }

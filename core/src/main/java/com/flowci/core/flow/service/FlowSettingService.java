@@ -19,7 +19,7 @@ package com.flowci.core.flow.service;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.flow.domain.Settings;
 import com.flowci.core.flow.domain.WebhookStatus;
-import com.flowci.domain.VarValue;
+import com.flowci.common.domain.VarValue;
 
 import java.util.List;
 import java.util.Map;

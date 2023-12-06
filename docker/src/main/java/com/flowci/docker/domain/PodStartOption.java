@@ -1,7 +1,7 @@
 package com.flowci.docker.domain;
 
-import com.flowci.util.ObjectsHelper;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.ObjectsHelper;
+import com.flowci.common.helper.StringHelper;
 import io.fabric8.kubernetes.api.model.*;
 import lombok.Getter;
 import lombok.Setter;

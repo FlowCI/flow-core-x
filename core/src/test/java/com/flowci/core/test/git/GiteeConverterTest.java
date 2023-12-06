@@ -22,12 +22,13 @@ import com.flowci.core.git.domain.*;
 import com.flowci.core.test.SpringScenario;
 import com.flowci.core.git.converter.GiteeConverter;
 import com.flowci.core.git.converter.TriggerConverter;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GiteeConverterTest extends SpringScenario {
 
@@ -35,123 +36,123 @@ public class GiteeConverterTest extends SpringScenario {
     private TriggerConverter giteeConverter;
 
     @Test
-    public void should_parse_ping_event() {
+    void should_parse_ping_event() {
         InputStream stream = load("gitee/webhook_ping.json");
 
         Optional<GitTrigger> optional = giteeConverter.convert(GiteeConverter.Ping, stream);
-        Assert.assertTrue(optional.isPresent());
+        assertTrue(optional.isPresent());
 
         GitPingTrigger trigger = (GitPingTrigger) optional.get();
-        Assert.assertNotNull(trigger);
+        assertNotNull(trigger);
     }
 
     @Test
-    public void should_parse_push_event() {
+    void should_parse_push_event() {
         InputStream stream = load("gitee/webhook_push.json");
 
         Optional<GitTrigger> optional = giteeConverter.convert(GiteeConverter.Push, stream);
-        Assert.assertTrue(optional.isPresent());
-        Assert.assertTrue(optional.get() instanceof GitPushTrigger);
+        assertTrue(optional.isPresent());
+        assertTrue(optional.get() instanceof GitPushTrigger);
 
         GitPushTrigger t = (GitPushTrigger) optional.get();
-        Assert.assertEquals(GitSource.GITEE, t.getSource());
-        Assert.assertEquals(GitTrigger.GitEvent.PUSH, t.getEvent());
-        Assert.assertEquals(1, t.getNumOfCommit());
-        Assert.assertEquals("2775902", t.getRepoId());
-        Assert.assertEquals("update README.md.\ntest pr message..", t.getMessage());
-        Assert.assertEquals("feature/222", t.getRef());
-        Assert.assertEquals("yang.guo", t.getSender().getName());
-        Assert.assertEquals("benqyang_2006@hotmail.com", t.getSender().getEmail());
-        Assert.assertEquals("gy2006", t.getSender().getUsername());
+        assertEquals(GitSource.GITEE, t.getSource());
+        assertEquals(GitTrigger.GitEvent.PUSH, t.getEvent());
+        assertEquals(1, t.getNumOfCommit());
+        assertEquals("2775902", t.getRepoId());
+        assertEquals("update README.md.\ntest pr message..", t.getMessage());
+        assertEquals("feature/222", t.getRef());
+        assertEquals("yang.guo", t.getSender().getName());
+        assertEquals("benqyang_2006@hotmail.com", t.getSender().getEmail());
+        assertEquals("gy2006", t.getSender().getUsername());
 
         var commit = t.getCommits().get(0);
-        Assert.assertEquals("ea926aebbe8738e903345534a9b158716b904816", commit.getId());
-        Assert.assertEquals("update README.md.\ntest pr message..", commit.getMessage());
-        Assert.assertEquals("https://gitee.com/gy2006/flow-test/commit/ea926aebbe8738e903345534a9b158716b904816", commit.getUrl());
-        Assert.assertEquals("2020-02-25T22:52:24+08:00", commit.getTime());
+        assertEquals("ea926aebbe8738e903345534a9b158716b904816", commit.getId());
+        assertEquals("update README.md.\ntest pr message..", commit.getMessage());
+        assertEquals("https://gitee.com/gy2006/flow-test/commit/ea926aebbe8738e903345534a9b158716b904816", commit.getUrl());
+        assertEquals("2020-02-25T22:52:24+08:00", commit.getTime());
 
-        Assert.assertEquals("gy2006", commit.getAuthor().getUsername());
-        Assert.assertEquals("benqyang_2006@hotmail.com", commit.getAuthor().getEmail());
-        Assert.assertEquals("yang.guo", commit.getAuthor().getName());
+        assertEquals("gy2006", commit.getAuthor().getUsername());
+        assertEquals("benqyang_2006@hotmail.com", commit.getAuthor().getEmail());
+        assertEquals("yang.guo", commit.getAuthor().getName());
 
         var vars = t.toVariableMap();
-        Assert.assertEquals("feature/222", vars.get(Variables.Git.BRANCH));
+        assertEquals("feature/222", vars.get(Variables.Git.BRANCH));
     }
 
     @Test
-    public void should_parse_tag_event() {
+    void should_parse_tag_event() {
         InputStream stream = load("gitee/webhook_tag.json");
 
         Optional<GitTrigger> optional = giteeConverter.convert(GiteeConverter.Tag, stream);
-        Assert.assertTrue(optional.isPresent());
-        Assert.assertTrue(optional.get() instanceof GitTagTrigger);
+        assertTrue(optional.isPresent());
+        assertTrue(optional.get() instanceof GitTagTrigger);
 
         GitPushTrigger t = (GitPushTrigger) optional.get();
-        Assert.assertNotNull(t);
-        Assert.assertEquals(GitSource.GITEE, t.getSource());
-        Assert.assertEquals(GitTrigger.GitEvent.TAG, t.getEvent());
-        Assert.assertEquals("2775902", t.getRepoId());
-        Assert.assertEquals("v0.1", t.getRef());
-        Assert.assertEquals("Initial commit", t.getMessage());
-        Assert.assertEquals("yang.guo", t.getSender().getName());
+        assertNotNull(t);
+        assertEquals(GitSource.GITEE, t.getSource());
+        assertEquals(GitTrigger.GitEvent.TAG, t.getEvent());
+        assertEquals("2775902", t.getRepoId());
+        assertEquals("v0.1", t.getRef());
+        assertEquals("Initial commit", t.getMessage());
+        assertEquals("yang.guo", t.getSender().getName());
 
         var vars = t.toVariableMap();
-        Assert.assertEquals("v0.1", vars.get(Variables.Git.BRANCH));
+        assertEquals("v0.1", vars.get(Variables.Git.BRANCH));
     }
 
     @Test
-    public void should_parse_pr_open_event() {
+    void should_parse_pr_open_event() {
         InputStream stream = load("gitee/webhook_pr_open.json");
 
         Optional<GitTrigger> optional = giteeConverter.convert(GiteeConverter.PR, stream);
         GitPrTrigger t = (GitPrTrigger) optional.get();
-        Assert.assertNotNull(t);
-        Assert.assertEquals(GitTrigger.GitEvent.PR_OPENED, t.getEvent());
-        Assert.assertEquals(GitSource.GITEE, t.getSource());
+        assertNotNull(t);
+        assertEquals(GitTrigger.GitEvent.PR_OPENED, t.getEvent());
+        assertEquals(GitSource.GITEE, t.getSource());
 
-        Assert.assertEquals("1", t.getNumber());
-        Assert.assertEquals("gitee create pr test", t.getTitle());
-        Assert.assertEquals("pr comments...\r\n1.aa\r\n2.bb\r\n3.cc", t.getBody());
-        Assert.assertEquals("2020-02-25T22:53:47+08:00", t.getTime());
-        Assert.assertEquals("https://gitee.com/gy2006/flow-test/pulls/1", t.getUrl());
-        Assert.assertEquals("1", t.getNumOfCommits());
-        Assert.assertEquals("1", t.getNumOfFileChanges());
-        Assert.assertEquals(Boolean.FALSE, t.getMerged());
+        assertEquals("1", t.getNumber());
+        assertEquals("gitee create pr test", t.getTitle());
+        assertEquals("pr comments...\r\n1.aa\r\n2.bb\r\n3.cc", t.getBody());
+        assertEquals("2020-02-25T22:53:47+08:00", t.getTime());
+        assertEquals("https://gitee.com/gy2006/flow-test/pulls/1", t.getUrl());
+        assertEquals("1", t.getNumOfCommits());
+        assertEquals("1", t.getNumOfFileChanges());
+        assertEquals(Boolean.FALSE, t.getMerged());
 
         // verify head repo
-        Assert.assertEquals("ea926aebbe8738e903345534a9b158716b904816", t.getHead().getCommit());
-        Assert.assertEquals("feature/222", t.getHead().getRef());
-        Assert.assertEquals("gy2006/flow-test", t.getHead().getRepoName());
-        Assert.assertEquals("https://gitee.com/gy2006/flow-test", t.getHead().getRepoUrl());
+        assertEquals("ea926aebbe8738e903345534a9b158716b904816", t.getHead().getCommit());
+        assertEquals("feature/222", t.getHead().getRef());
+        assertEquals("gy2006/flow-test", t.getHead().getRepoName());
+        assertEquals("https://gitee.com/gy2006/flow-test", t.getHead().getRepoUrl());
 
         // verify base repo
-        Assert.assertEquals("2e6e071da3f8c718d0969f3d96cedc848dab605e", t.getBase().getCommit());
-        Assert.assertEquals("master", t.getBase().getRef());
-        Assert.assertEquals("gy2006/flow-test", t.getBase().getRepoName());
-        Assert.assertEquals("https://gitee.com/gy2006/flow-test", t.getBase().getRepoUrl());
+        assertEquals("2e6e071da3f8c718d0969f3d96cedc848dab605e", t.getBase().getCommit());
+        assertEquals("master", t.getBase().getRef());
+        assertEquals("gy2006/flow-test", t.getBase().getRepoName());
+        assertEquals("https://gitee.com/gy2006/flow-test", t.getBase().getRepoUrl());
 
-        Assert.assertEquals("1666376", t.getSender().getId());
-        Assert.assertEquals("yang.guo", t.getSender().getName());
-        Assert.assertEquals("gy2006", t.getSender().getUsername());
-        Assert.assertEquals("benqyang_2006@hotmail.com", t.getSender().getEmail());
+        assertEquals("1666376", t.getSender().getId());
+        assertEquals("yang.guo", t.getSender().getName());
+        assertEquals("gy2006", t.getSender().getUsername());
+        assertEquals("benqyang_2006@hotmail.com", t.getSender().getEmail());
 
         var vars = t.toVariableMap();
-        Assert.assertEquals("feature/222", vars.get(Variables.Git.BRANCH));
+        assertEquals("feature/222", vars.get(Variables.Git.BRANCH));
     }
 
     @Test
-    public void should_parse_pr_merge_event() {
+    void should_parse_pr_merge_event() {
         InputStream stream = load("gitee/webhook_pr_merge.json");
 
         Optional<GitTrigger> optional = giteeConverter.convert(GiteeConverter.PR, stream);
 
         GitPrTrigger t = (GitPrTrigger) optional.get();
-        Assert.assertNotNull(t);
-        Assert.assertEquals(GitTrigger.GitEvent.PR_MERGED, t.getEvent());
-        Assert.assertEquals(GitSource.GITEE, t.getSource());
-        Assert.assertEquals(Boolean.TRUE, t.getMerged());
+        assertNotNull(t);
+        assertEquals(GitTrigger.GitEvent.PR_MERGED, t.getEvent());
+        assertEquals(GitSource.GITEE, t.getSource());
+        assertEquals(Boolean.TRUE, t.getMerged());
 
         var vars = t.toVariableMap();
-        Assert.assertEquals("master", vars.get(Variables.Git.BRANCH));
+        assertEquals("master", vars.get(Variables.Git.BRANCH));
     }
 }

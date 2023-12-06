@@ -14,7 +14,7 @@
     </envs>
     <module name="core" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.flowci.core.Application" />
-    <option name="VM_PARAMETERS" value="-Xms1g -Xmx1g -Xmn600m -XX:-UseAdaptiveSizePolicy -XX:SurvivorRatio=4 -verbose:gc" />
+    <option name="VM_PARAMETERS" value="--add-opens java.base/java.lang=ALL-UNNAMED -Xms1g -Xmx1g -Xmn600m -XX:-UseAdaptiveSizePolicy -XX:SurvivorRatio=4 -verbose:gc" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

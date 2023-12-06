@@ -16,10 +16,10 @@
 
 package com.flowci.core.job.util;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.Variables;
 import com.flowci.core.flow.domain.Flow;
 import com.flowci.core.job.domain.Job;
-import com.flowci.util.StringHelper;
 
 import static com.flowci.core.common.domain.Variables.Git.BRANCH;
 

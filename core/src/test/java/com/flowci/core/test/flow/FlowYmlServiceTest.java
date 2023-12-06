@@ -16,23 +16,24 @@
 
 package com.flowci.core.test.flow;
 
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.exception.YmlException;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.flow.domain.CreateOption;
 import com.flowci.core.flow.domain.Flow;
-import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.flow.domain.FlowYml;
+import com.flowci.core.flow.domain.SimpleYml;
 import com.flowci.core.flow.service.FlowService;
 import com.flowci.core.flow.service.YmlService;
 import com.flowci.core.test.MockLoggedInScenario;
-import com.flowci.exception.NotFoundException;
-import com.flowci.exception.YmlException;
-import com.flowci.util.StringHelper;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author yang
@@ -47,36 +48,38 @@ public class FlowYmlServiceTest extends MockLoggedInScenario {
 
     private Flow flow;
 
-    @Before
-    public void init() throws IOException {
+    @BeforeEach
+    void init() throws IOException {
         var raw = StringHelper.toString(load("flow.yml"));
         var option = new CreateOption().setRawYaml(StringHelper.toBase64(raw));
         flow = flowService.create("hello", option);
     }
 
     @Test
-    public void should_get_yml() {
+    void should_get_yml() {
         var entity = ymlService.get(flow.getId());
-        Assert.assertNotNull(entity);
-        Assert.assertNotNull(entity.getId());
-        Assert.assertEquals(flow.getId(), entity.getFlowId());
-        Assert.assertEquals(1, entity.getList().size());
+        assertNotNull(entity);
+        assertNotNull(entity.getId());
+        assertEquals(flow.getId(), entity.getFlowId());
+        assertEquals(1, entity.getList().size());
 
         var yml = entity.getList().get(0);
-        Assert.assertEquals(FlowYml.DEFAULT_NAME, yml.getName());
+        assertEquals(FlowYml.DEFAULT_NAME, yml.getName());
     }
 
-    @Test(expected = YmlException.class)
-    public void should_throw_exception_if_yml_illegal_yml_format() {
+    @Test
+    void should_throw_exception_if_yml_illegal_yml_format() {
         var illegalYml = new SimpleYml();
         illegalYml.setName("test");
         illegalYml.setRawInB64(StringHelper.toBase64("hell-..."));
 
-        ymlService.saveYml(flow, List.of(illegalYml));
+        assertThrows(YmlException.class, () -> {
+            ymlService.saveYml(flow, List.of(illegalYml));
+        });
     }
 
-    @Test(expected = NotFoundException.class)
-    public void should_throw_exception_if_plugin_not_found() throws IOException {
+    @Test
+    void should_throw_exception_if_plugin_not_found() throws IOException {
         // when:
         String ymlRaw = StringHelper.toString(load("flow-with-plugin-not-found.yml"));
 
@@ -85,6 +88,8 @@ public class FlowYmlServiceTest extends MockLoggedInScenario {
         illegalYml.setRawInB64(StringHelper.toBase64(ymlRaw));
 
         // then:
-        ymlService.saveYml(flow, List.of(illegalYml));
+        assertThrows(NotFoundException.class, () -> {
+            ymlService.saveYml(flow, List.of(illegalYml));
+        });
     }
 }

@@ -17,6 +17,7 @@
 
 package com.flowci.core.api;
 
+import com.flowci.common.exception.ArgumentException;
 import com.flowci.core.api.domain.AddStatsItem;
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
@@ -28,7 +29,6 @@ import com.flowci.core.job.service.CacheService;
 import com.flowci.core.job.service.LoggingService;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.user.domain.User;
-import com.flowci.exception.ArgumentException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -40,7 +40,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -121,11 +120,7 @@ public class OpenRestController {
 
     @PostMapping("/logs/upload")
     public void upload(@RequestPart("file") MultipartFile file) {
-        try (InputStream stream = file.getInputStream()) {
-            loggingService.save(file.getOriginalFilename(), stream);
-        } catch (IOException e) {
-            log.warn("Unable to save log, cause {}", e.getMessage());
-        }
+        loggingService.save(file);
     }
 
     @PostMapping("/cache/{jobId}/{key}/{os}")

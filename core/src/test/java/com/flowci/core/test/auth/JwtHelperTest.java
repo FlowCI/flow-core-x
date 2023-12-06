@@ -20,10 +20,11 @@ package com.flowci.core.test.auth;
 import com.flowci.core.common.helper.ThreadHelper;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.auth.helper.JwtHelper;
-import com.flowci.domain.ObjectWrapper;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import com.flowci.common.domain.ObjectWrapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class JwtHelperTest {
 
@@ -31,35 +32,35 @@ public class JwtHelperTest {
 
     private ObjectWrapper<String> token = new ObjectWrapper<>();
 
-    @Before
-    public void createToken() {
+    @BeforeEach
+    void createToken() {
         user.setRole(User.Role.Admin);
 
         token.setValue(JwtHelper.create(user, 60));
-        Assert.assertNotNull(token.getValue());
+        assertNotNull(token.getValue());
     }
 
     @Test
-    public void should_decode_token_and_get_user_id() {
+    void should_decode_token_and_get_user_id() {
         String email = JwtHelper.decode(token.getValue());
-        Assert.assertEquals(user.getEmail(), email);
+        assertEquals(user.getEmail(), email);
     }
 
     @Test
-    public void should_verify_token() {
+    void should_verify_token() {
         boolean verify = JwtHelper.verify(token.getValue(), user, false);
-        Assert.assertTrue(verify);
+        assertTrue(verify);
     }
 
     @Test
-    public void should_fail_if_pw_changed() {
+    void should_fail_if_pw_changed() {
         user.setPasswordOnMd5("22345");
         boolean verify = JwtHelper.verify(token.getValue(), user, false);
-        Assert.assertFalse(verify);
+        assertFalse(verify);
     }
 
     @Test
-    public void should_fail_if_token_expired() {
+    void should_fail_if_token_expired() {
         // init: set expired seconds to 1
         token.setValue(JwtHelper.create(user, 1));
 
@@ -68,6 +69,6 @@ public class JwtHelperTest {
         boolean verify = JwtHelper.verify(token.getValue(), user, true);
 
         // then: should be fail
-        Assert.assertFalse(verify);
+        assertFalse(verify);
     }
 }

@@ -17,7 +17,6 @@
 package com.flowci.core.test;
 
 import com.flowci.core.agent.domain.Agent;
-import com.flowci.core.agent.domain.AgentHost;
 import com.flowci.core.api.domain.SimpleUser;
 import com.flowci.core.common.domain.Settings;
 import com.flowci.core.common.rabbit.RabbitOperations;
@@ -35,11 +34,10 @@ import com.flowci.core.trigger.domain.Trigger;
 import com.flowci.core.trigger.domain.TriggerDelivery;
 import com.flowci.core.user.domain.User;
 import com.flowci.core.user.service.UserService;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -51,8 +49,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.InputStream;
 import java.util.Collections;
@@ -64,7 +60,6 @@ import java.util.Map;
  * @author yang
  */
 @Slf4j
-@RunWith(SpringRunner.class)
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = Config.class,
@@ -126,7 +121,7 @@ public abstract class SpringScenario {
 
     private final List<ApplicationListener<?>> listenersForTest = new LinkedList<>();
 
-    @Before
+    @BeforeEach
     public void mockSettingsService() {
         Settings s = new Settings();
         s.setServerUrl("http://127.0.0.1:8080");
@@ -134,14 +129,14 @@ public abstract class SpringScenario {
         Mockito.when(settingService.get()).thenReturn(s);
     }
 
-    @After
+    @AfterEach
     public void cleanListeners() {
         for (ApplicationListener<?> listener : listenersForTest) {
             applicationEventMulticaster.removeApplicationListener(listener);
         }
     }
 
-    @After
+    @AfterEach
     public void dbAndQueueCleanUp() {
         for (Flow flow : flowDao.findAll()) {
             jobsQueueManager.delete(flow.getQueueName());

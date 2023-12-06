@@ -16,6 +16,7 @@
 
 package com.flowci.core.job.service;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.Settings;
 import com.flowci.core.common.domain.Variables;
@@ -34,14 +35,14 @@ import com.flowci.core.job.event.JobsDeletedEvent;
 import com.flowci.core.job.manager.YmlManager;
 import com.flowci.core.job.util.JobContextHelper;
 import com.flowci.core.user.domain.User;
-import com.flowci.domain.StringVars;
-import com.flowci.domain.Vars;
-import com.flowci.exception.NotFoundException;
-import com.flowci.exception.StatusException;
+import com.flowci.common.domain.StringVars;
+import com.flowci.common.domain.Vars;
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.exception.StatusException;
 import com.flowci.store.FileManager;
 import com.flowci.tree.FlowNode;
-import com.flowci.util.StringHelper;
 import com.google.common.collect.Maps;
+import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -52,7 +53,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
@@ -214,7 +214,7 @@ public class JobServiceImpl implements JobService {
     @Override
     public List<JobDesc> listRelated(Job job) {
         String gitEventId = job.getContext().get(EVENT_ID);
-        if (!StringHelper.hasValue(gitEventId)) {
+        if (StringHelper.isEmpty(gitEventId)) {
             return Collections.emptyList();
         }
 

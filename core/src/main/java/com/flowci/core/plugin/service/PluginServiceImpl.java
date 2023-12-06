@@ -18,6 +18,9 @@ package com.flowci.core.plugin.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.common.exception.ArgumentException;
+import com.flowci.common.exception.NotFoundException;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.git.GitClient;
 import com.flowci.core.common.manager.ResourceManager;
@@ -28,11 +31,8 @@ import com.flowci.core.plugin.domain.PluginParser;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.plugin.event.RepoCloneEvent;
-import com.flowci.domain.Input;
-import com.flowci.domain.Vars;
-import com.flowci.exception.ArgumentException;
-import com.flowci.exception.NotFoundException;
-import com.flowci.util.StringHelper;
+import com.flowci.common.domain.Input;
+import com.flowci.common.domain.Vars;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -166,7 +166,7 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public Plugin get(String name) {
         Optional<Plugin> optional = pluginDao.findByName(name);
-        if (!optional.isPresent()) {
+        if (optional.isEmpty()) {
             throw new NotFoundException("The plugin {0} is not found", name);
         }
         return optional.get();
@@ -247,11 +247,11 @@ public class PluginServiceImpl implements PluginService {
         String rd = appProperties.getResourceDomain();
         String source = plugin.getSourceWithDomain(rd);
 
-        if (!StringHelper.hasValue(source)) {
+        if (StringHelper.isEmpty(source)) {
             throw new NotFoundException("Plugin {0} source is missing for domain {1}", plugin.getName(), rd);
         }
 
-        GitClient client = new GitClient(source, null, null);
+        var client = new GitClient(source, null, null);
         client.klone(dir, plugin.getBranch());
 
         setMetaFromYamlFile(dir.toFile(), plugin);

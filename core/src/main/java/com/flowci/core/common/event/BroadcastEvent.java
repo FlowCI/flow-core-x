@@ -1,5 +1,6 @@
 package com.flowci.core.common.event;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
@@ -18,5 +19,11 @@ public abstract class BroadcastEvent extends ApplicationEvent {
 
     public BroadcastEvent(Object source) {
         super(source);
+    }
+
+    @Override
+    @JsonIgnore
+    public Object getSource() {
+        return super.getSource();
     }
 }

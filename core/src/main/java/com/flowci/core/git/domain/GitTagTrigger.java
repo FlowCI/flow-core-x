@@ -1,6 +1,6 @@
 package com.flowci.core.git.domain;
 
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -16,22 +16,19 @@
 
 package com.flowci.core.flow.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.common.helper.ObjectsHelper;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.Mongoable;
-import com.flowci.util.ObjectsHelper;
-import com.flowci.util.StringHelper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.validator.internal.util.CollectionHelper;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author yang

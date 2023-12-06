@@ -1,7 +1,7 @@
 package com.flowci.core.secret.event;
 
 import com.flowci.core.secret.domain.RSASecret;
-import com.flowci.domain.SimpleKeyPair;
+import com.flowci.common.domain.SimpleKeyPair;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;

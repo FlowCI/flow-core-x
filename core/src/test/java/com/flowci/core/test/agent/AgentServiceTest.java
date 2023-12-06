@@ -18,8 +18,8 @@ package com.flowci.core.test.agent;
 
 import com.flowci.core.agent.domain.Agent;
 import com.flowci.core.agent.domain.Agent.Status;
-import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.AgentOption;
+import com.flowci.core.agent.domain.CmdIn;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.event.CmdSentEvent;
 import com.flowci.core.agent.service.AgentService;
@@ -27,13 +27,14 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.test.ZookeeperScenario;
 import com.flowci.zookeeper.ZookeeperClient;
 import com.google.common.collect.ImmutableSet;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author yang
@@ -50,22 +51,22 @@ public class AgentServiceTest extends ZookeeperScenario {
     private AgentService agentService;
 
     @Test
-    public void should_init_root_node() {
-        Assert.assertTrue(zk.exist(zkProperties.getAgentRoot()));
+    void should_init_root_node() {
+        assertTrue(zk.exist(zkProperties.getAgentRoot()));
     }
 
     @Test
-    public void should_create_agent_in_db() {
+    void should_create_agent_in_db() {
         Agent agent = agentService.create(new AgentOption()
                 .setName("hello.test")
                 .setTags(ImmutableSet.of("local", "android"))
         );
-        Assert.assertNotNull(agent);
-        Assert.assertEquals(agent, agentService.get(agent.getId()));
+        assertNotNull(agent);
+        assertEquals(agent, agentService.get(agent.getId()));
     }
 
     @Test
-    public void should_make_agent_online() throws InterruptedException {
+    void should_make_agent_online() throws InterruptedException {
         // init:
         Agent agent = agentService.create(new AgentOption()
                 .setName("hello.test")
@@ -76,12 +77,12 @@ public class AgentServiceTest extends ZookeeperScenario {
         Agent online = mockAgentOnline(agent.getToken());
 
         // then:
-        Assert.assertEquals(agent, online);
-        Assert.assertEquals(Status.IDLE, online.getStatus());
+        assertEquals(agent, online);
+        assertEquals(Status.IDLE, online.getStatus());
     }
 
     @Test
-    public void should_dispatch_cmd_to_agent() throws InterruptedException {
+    void should_dispatch_cmd_to_agent() throws InterruptedException {
         // init:
         CmdIn cmd = new ShellIn();
         Agent agent = agentService.create(new AgentOption().setName("hello.agent"));
@@ -96,6 +97,6 @@ public class AgentServiceTest extends ZookeeperScenario {
 
         // then:
         counter.await(10, TimeUnit.SECONDS);
-        Assert.assertEquals(0, counter.getCount());
+        assertEquals(0, counter.getCount());
     }
 }

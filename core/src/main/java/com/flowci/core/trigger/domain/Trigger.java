@@ -1,7 +1,7 @@
 package com.flowci.core.trigger.domain;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.Mongoable;
-import com.flowci.util.StringHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;

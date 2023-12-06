@@ -29,7 +29,7 @@ public interface FileManager {
     /**
      * Save file to storage, and return the file path
      */
-    String save(String fileName, InputStream data, Pathable... objs) throws IOException;
+    String save(String fileName, InputStream data, long size, Pathable... objs) throws IOException;
 
     /**
      * Read file content

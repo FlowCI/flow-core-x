@@ -7,17 +7,16 @@ import com.flowci.core.config.service.ConfigService;
 import com.flowci.core.secret.domain.AuthSecret;
 import com.flowci.core.secret.event.GetSecretEvent;
 import com.flowci.core.test.MockLoggedInScenario;
-import com.flowci.core.test.SpringScenario;
-import com.flowci.domain.SimpleAuthPair;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import com.flowci.common.domain.SimpleAuthPair;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import static com.flowci.core.config.domain.Config.Category.SMTP;
 import static com.flowci.core.config.domain.Config.Category.TEXT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ConfigServiceTest extends MockLoggedInScenario {
 
@@ -28,7 +27,7 @@ public class ConfigServiceTest extends MockLoggedInScenario {
     private ConfigService configService;
 
     @Test
-    public void should_create_smtp_config_with_secret() {
+    void should_create_smtp_config_with_secret() {
         // init:
         AuthSecret mockSecret = new AuthSecret();
         mockSecret.setName("smtp-secret");
@@ -49,14 +48,14 @@ public class ConfigServiceTest extends MockLoggedInScenario {
         SmtpConfig config = (SmtpConfig) configService.get("smtp-config");
         shouldHasCreatedAtAndCreatedBy(config);
 
-        Assert.assertNotNull(config.getId());
-        Assert.assertEquals(mockSecret.getUsername(), config.getAuth().getUsername());
-        Assert.assertEquals(mockSecret.getPassword(), config.getAuth().getPassword());
+        assertNotNull(config.getId());
+        assertEquals(mockSecret.getUsername(), config.getAuth().getUsername());
+        assertEquals(mockSecret.getPassword(), config.getAuth().getPassword());
 
         // then: test list
-        Assert.assertEquals(1, configService.list().size());
-        Assert.assertEquals(config, configService.list().get(0));
-        Assert.assertEquals(1, configService.list(SMTP).size());
-        Assert.assertEquals(0, configService.list(TEXT).size());
+        assertEquals(1, configService.list().size());
+        assertEquals(config, configService.list().get(0));
+        assertEquals(1, configService.list(SMTP).size());
+        assertEquals(0, configService.list(TEXT).size());
     }
 }

@@ -20,8 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowci.core.common.adviser.CorsFilter;
 import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.core.plugin.domain.Plugin;
-import com.flowci.domain.Vars;
+import com.flowci.common.domain.Vars;
 import com.google.common.collect.ImmutableList;
+import javax.servlet.Filter;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -37,7 +38,6 @@ import org.springframework.http.converter.support.AllEncompassingFormHttpMessage
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.*;
 
-import javax.servlet.Filter;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;

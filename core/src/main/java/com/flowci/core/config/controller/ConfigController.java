@@ -6,7 +6,7 @@ import com.flowci.core.config.domain.Config;
 import com.flowci.core.config.domain.ConfigAction;
 import com.flowci.core.config.domain.SmtpOption;
 import com.flowci.core.config.service.ConfigService;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;

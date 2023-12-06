@@ -1,7 +1,7 @@
 package com.flowci.docker;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.docker.domain.*;
-import com.flowci.util.StringHelper;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;

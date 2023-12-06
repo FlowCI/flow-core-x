@@ -16,7 +16,7 @@
 
 package com.flowci.core.git.util;
 
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import com.google.common.base.Strings;
 
 public abstract class BranchHelper {

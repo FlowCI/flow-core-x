@@ -16,7 +16,6 @@
 
 package com.flowci.tree;
 
-import com.google.common.collect.Sets;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -40,7 +39,7 @@ public class Selector implements Serializable {
     private Set<String> label = Collections.emptySet();
 
     public Selector(String... labels) {
-        this.label = Sets.newHashSet(labels);
+        this.label = Set.of(labels);
     }
 
     public String getId() {

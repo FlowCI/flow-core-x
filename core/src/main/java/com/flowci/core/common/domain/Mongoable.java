@@ -16,8 +16,7 @@
 
 package com.flowci.core.common.domain;
 
-import com.flowci.core.flow.domain.Flow;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,7 +26,6 @@ import org.springframework.data.domain.Sort;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Objects;
 
 /**
  * @author yang

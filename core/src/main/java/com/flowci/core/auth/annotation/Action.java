@@ -17,7 +17,7 @@
 
 package com.flowci.core.auth.annotation;
 
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
 public @interface Action {
 
     /**
-     *  The action name
+     * The action name
      */
     String value() default StringHelper.EMPTY;
 }

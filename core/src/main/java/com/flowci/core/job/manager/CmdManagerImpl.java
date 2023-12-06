@@ -16,6 +16,8 @@
 
 package com.flowci.core.job.manager;
 
+import com.flowci.common.helper.ObjectsHelper;
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.agent.domain.ShellIn;
 import com.flowci.core.agent.domain.ShellKill;
 import com.flowci.core.common.domain.Variables;
@@ -25,12 +27,10 @@ import com.flowci.core.job.domain.Step;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
-import com.flowci.domain.DockerOption;
-import com.flowci.domain.Vars;
-import com.flowci.exception.StatusException;
+import com.flowci.common.domain.DockerOption;
+import com.flowci.common.domain.Vars;
+import com.flowci.common.exception.StatusException;
 import com.flowci.tree.*;
-import com.flowci.util.ObjectsHelper;
-import com.flowci.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

@@ -16,17 +16,14 @@
 
 package com.flowci.core.test.git;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.job.domain.Job;
 import com.flowci.core.job.event.JobCreatedEvent;
 import com.flowci.core.test.MockLoggedInScenario;
 import com.flowci.core.test.MockMvcHelper;
-import com.flowci.core.test.SpringScenario;
 import com.flowci.core.test.flow.FlowMockHelper;
-import com.flowci.domain.ObjectWrapper;
-import com.flowci.util.StringHelper;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import com.flowci.common.domain.ObjectWrapper;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.http.MediaType;
@@ -34,6 +31,7 @@ import org.springframework.http.MediaType;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 /**
@@ -48,7 +46,7 @@ public class GitHookControllerTest extends MockLoggedInScenario {
     private MockMvcHelper mockMvcHelper;
 
     @Test
-    public void should_start_job_from_github_push_event() throws Exception {
+    void should_start_job_from_github_push_event() throws Exception {
         String yml = StringHelper.toString(load("flow.yml"));
         flowMockHelper.create("github-test", yml);
         String payload = StringHelper.toString(load("github/webhook_push.json"));
@@ -66,12 +64,12 @@ public class GitHookControllerTest extends MockLoggedInScenario {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload));
 
-        Assert.assertTrue(waitForJobCreated.await(10, TimeUnit.SECONDS));
-        Assert.assertNotNull(jobCreated.getValue());
+        assertTrue(waitForJobCreated.await(10, TimeUnit.SECONDS));
+        assertNotNull(jobCreated.getValue());
     }
 
     @Test
-    public void should_not_start_job_form_github_push_event_since_branch_not_match() throws Exception {
+    void should_not_start_job_form_github_push_event_since_branch_not_match() throws Exception {
         String yml = StringHelper.toString(load("flow-with-condition-dev-branch.yml"));
         flowMockHelper.create("github-test", yml);
         String payload = StringHelper.toString(load("github/webhook_push.json"));
@@ -89,7 +87,7 @@ public class GitHookControllerTest extends MockLoggedInScenario {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload));
 
-        Assert.assertFalse(waitForJobCreated.await(1, TimeUnit.SECONDS));
-        Assert.assertNull(jobCreated.getValue());
+        assertFalse(waitForJobCreated.await(1, TimeUnit.SECONDS));
+        assertNull(jobCreated.getValue());
     }
 }

@@ -1,11 +1,10 @@
 package com.flowci.core.flow.domain;
 
-import com.flowci.util.StringHelper;
-import lombok.Data;
-
+import com.flowci.common.helper.StringHelper;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import lombok.Data;
 
 @Data
 public final class Settings {

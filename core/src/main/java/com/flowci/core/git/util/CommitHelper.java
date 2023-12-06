@@ -1,7 +1,7 @@
 package com.flowci.core.git.util;
 
+import com.flowci.common.helper.StringHelper;
 import com.flowci.core.git.domain.GitCommit;
-import com.flowci.util.StringHelper;
 
 import java.util.Optional;
 
@@ -11,7 +11,7 @@ public abstract class CommitHelper {
 
     public static Optional<String> getChangeId(GitCommit commit) {
         String message = commit.getMessage();
-        if (!StringHelper.hasValue(message)) {
+        if (StringHelper.isEmpty(message)) {
             return Optional.empty();
         }
 

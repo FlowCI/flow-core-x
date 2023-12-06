@@ -2,7 +2,7 @@ package com.flowci.core.common.domain;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.flowci.util.StringHelper;
+import com.flowci.common.helper.StringHelper;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,7 +22,7 @@ public abstract class SourceWithDomain implements Serializable {
     private String sourceCn;
 
     public String getSourceWithDomain(String domain) {
-        if (!StringHelper.hasValue(domain)) return source;
+        if (StringHelper.isEmpty(domain)) return source;
         return DOMAIN_CN.equalsIgnoreCase(domain) ? sourceCn : source;
     }
 }
