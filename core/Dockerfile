@@ -3,7 +3,7 @@ FROM amazoncorretto:17-alpine3.18
 RUN apk add bash
 
 ENV WORKER=/flow.ci
-ENV JAR=flow-ci-core.jar
+ENV JAR=flowci-core.jar
 
 WORKDIR $WORKER
 

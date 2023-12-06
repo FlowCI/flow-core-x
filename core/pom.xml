@@ -131,11 +131,22 @@
   </dependencies>
 
   <build>
-    <finalName>flow-ci-core</finalName>
+    <finalName>flowci-core</finalName>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <mainClass>com.flowci.core.Application</mainClass>
+          <layout>JAR</layout>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
