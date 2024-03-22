@@ -26,7 +26,7 @@
     <maven.compiler.release>${java.version}</maven.compiler.release>
 
     <lombok.version>1.18.22</lombok.version>
-    <springboot.version>2.7.18</springboot.version>
+    <springboot.version>3.2.2</springboot.version>
     <curator.version>4.3.0</curator.version>
     <caffeine.version>2.6.2</caffeine.version>
     <h2.version>1.4.197</h2.version>

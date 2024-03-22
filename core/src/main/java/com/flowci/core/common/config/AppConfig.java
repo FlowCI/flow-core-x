@@ -21,8 +21,9 @@ import com.flowci.common.helper.FileHelper;
 import com.flowci.core.common.event.AsyncEvent;
 import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.core.common.helper.ThreadHelper;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.web.servlet.MultipartProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationEvent;
@@ -98,8 +99,9 @@ public class AppConfig {
     }
 
     @Bean(name = "applicationEventMulticaster")
-    public ApplicationEventMulticaster simpleApplicationEventMulticaster(TaskExecutor appTaskExecutor) {
-        SimpleApplicationEventMulticaster multicaster = new SimpleApplicationEventMulticaster() {
+    public ApplicationEventMulticaster simpleApplicationEventMulticaster(
+            @Qualifier("appTaskExecutor") TaskExecutor appTaskExecutor) {
+        var multicaster = new SimpleApplicationEventMulticaster() {
 
             private ResolvableType resolveDefaultEventType(ApplicationEvent event) {
                 return ResolvableType.forInstance(event);

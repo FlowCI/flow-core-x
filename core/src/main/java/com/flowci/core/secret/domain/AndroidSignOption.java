@@ -1,6 +1,6 @@
 package com.flowci.core.secret.domain;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -16,14 +16,14 @@
 
 package com.flowci.core.secret.controller;
 
+import com.flowci.common.domain.SimpleKeyPair;
 import com.flowci.core.auth.annotation.Action;
 import com.flowci.core.secret.domain.AndroidSignOption;
 import com.flowci.core.secret.domain.Request;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.secret.service.SecretService;
-import com.flowci.common.domain.SimpleKeyPair;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;

@@ -22,8 +22,11 @@ import com.flowci.core.common.helper.JacksonHelper;
 import com.flowci.core.plugin.domain.Plugin;
 import com.flowci.common.domain.Vars;
 import com.google.common.collect.ImmutableList;
-import javax.servlet.Filter;
+import jakarta.annotation.Resources;
+import jakarta.servlet.Filter;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,7 +48,6 @@ import java.util.Map;
 
 @EnableWebMvc
 @Configuration
-@AllArgsConstructor
 public class WebConfig {
 
     private final HandlerInterceptor apiAuth;
@@ -53,6 +55,14 @@ public class WebConfig {
     private final HandlerInterceptor webAuth;
 
     private final AppProperties appProperties;
+
+    public WebConfig(@Qualifier("apiAuth") HandlerInterceptor apiAuth,
+                     @Qualifier("webAuth") HandlerInterceptor webAuth,
+                     AppProperties appProperties) {
+        this.apiAuth = apiAuth;
+        this.webAuth = webAuth;
+        this.appProperties = appProperties;
+    }
 
     @Bean("staticResourceDir")
     public Path staticResourceDir() {

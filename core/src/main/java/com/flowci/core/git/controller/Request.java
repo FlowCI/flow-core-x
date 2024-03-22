@@ -4,8 +4,8 @@ import com.flowci.common.helper.StringHelper;
 import com.flowci.core.common.domain.GitSource;
 import com.flowci.core.git.domain.GitConfig;
 import com.flowci.core.git.domain.GitConfigWithHost;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 

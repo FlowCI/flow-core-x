@@ -17,7 +17,7 @@
 package com.flowci.core.common.config;
 
 import com.flowci.common.helper.StringHelper;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.boot.context.properties.ConfigurationProperties;

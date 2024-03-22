@@ -18,6 +18,8 @@ package com.flowci.core.plugin.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flowci.common.domain.Input;
+import com.flowci.common.domain.Vars;
 import com.flowci.common.exception.ArgumentException;
 import com.flowci.common.exception.NotFoundException;
 import com.flowci.common.helper.StringHelper;
@@ -31,8 +33,7 @@ import com.flowci.core.plugin.domain.PluginParser;
 import com.flowci.core.plugin.event.GetPluginAndVerifySetContext;
 import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.plugin.event.RepoCloneEvent;
-import com.flowci.common.domain.Input;
-import com.flowci.common.domain.Vars;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -42,7 +43,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -59,7 +59,7 @@ import java.util.*;
 @Component
 public class PluginServiceImpl implements PluginService {
 
-    private static final TypeReference<List<Plugin>> RepoListType = new TypeReference<List<Plugin>>() {
+    private static final TypeReference<List<Plugin>> RepoListType = new TypeReference<>() {
     };
 
     private static final String PluginFileName = "plugin.yml";

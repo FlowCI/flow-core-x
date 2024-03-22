@@ -21,7 +21,7 @@ import com.flowci.core.common.config.AppProperties;
 import com.flowci.core.common.domain.PushBody;
 import com.flowci.core.common.domain.PushEvent;
 import com.flowci.core.common.rabbit.RabbitOperations;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

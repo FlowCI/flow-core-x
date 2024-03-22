@@ -16,12 +16,12 @@
 
 package com.flowci.core.flow.domain;
 
-import com.flowci.common.helper.StringHelper;
 import com.flowci.common.domain.SimpleAuthPair;
 import com.flowci.common.domain.SimpleKeyPair;
+import com.flowci.common.helper.StringHelper;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
 
 /**
  * @author yang
@@ -48,7 +48,7 @@ public class FlowGitTest {
 
     public boolean hasUsernamePassword() {
         return auth != null
-            && StringHelper.hasValue(auth.getUsername())
-            && StringHelper.hasValue(auth.getPassword());
+                && StringHelper.hasValue(auth.getUsername())
+                && StringHelper.hasValue(auth.getPassword());
     }
 }

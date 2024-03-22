@@ -18,7 +18,6 @@ package com.flowci.core.plugin.config;
 
 import com.flowci.common.helper.FileHelper;
 import com.flowci.core.common.config.AppProperties;
-import com.flowci.core.plugin.PluginRepoResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.http.server.GitServlet;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,18 +46,5 @@ public class PluginConfig {
         String workspace = appProperties.getWorkspace().toString();
         Path pluginDir = Paths.get(workspace, "plugins");
         return FileHelper.createDirectory(pluginDir);
-    }
-
-    @Bean("gitServletBean")
-    public ServletRegistrationBean<GitServlet> gitServletBean(Path pluginDir, PluginRepoResolver pluginRepoResolver) {
-        GitServlet servlet = new GitServlet();
-        servlet.setRepositoryResolver(pluginRepoResolver);
-
-        ServletRegistrationBean<GitServlet> bean = new ServletRegistrationBean<>(servlet, GIT_URL + "/*");
-        bean.setLoadOnStartup(1);
-        bean.addInitParameter("base-path", pluginDir.toString());
-        bean.addInitParameter("export-all", "true");
-        bean.setAsyncSupported(true);
-        return bean;
     }
 }

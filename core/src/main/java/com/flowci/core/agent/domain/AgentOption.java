@@ -17,7 +17,7 @@
 package com.flowci.core.agent.domain;
 
 import com.google.common.base.Strings;
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

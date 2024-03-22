@@ -23,8 +23,8 @@ import com.flowci.core.git.converter.*;
 import com.flowci.core.git.domain.GitTrigger;
 import com.flowci.core.git.event.GitHookEvent;
 import com.flowci.common.exception.ArgumentException;
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -82,8 +82,6 @@ public class GitHookController {
     /**
      * Gerrit:
      *   - patch-created - wall be called for each patch push
-     * @param name
-     * @throws IOException
      */
     @PostMapping("/{name}")
     public void onGitTrigger(@PathVariable String name) throws IOException {

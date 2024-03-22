@@ -24,6 +24,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -50,7 +51,8 @@ public class QueueConfig {
     }
 
     @Bean
-    public Connection rabbitConnection(ThreadPoolTaskExecutor rabbitTaskExecutor) throws Throwable {
+    public Connection rabbitConnection(
+            @Qualifier("rabbitTaskExecutor") ThreadPoolTaskExecutor rabbitTaskExecutor) throws Throwable {
         log.info("Rabbit URI: {}", rabbitProperties.getUri());
 
         ConnectionFactory factory = new ConnectionFactory();

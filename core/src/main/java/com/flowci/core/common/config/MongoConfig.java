@@ -35,12 +35,14 @@ import com.mongodb.ConnectionString;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.mongo.MongoProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoManagedTypes;
 import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
@@ -90,10 +92,12 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
         return Objects.requireNonNull(connectionString.getDatabase());
     }
 
+    @SneakyThrows
     @NonNull
     @Override
     @Bean
-    public MongoMappingContext mongoMappingContext(MongoCustomConversions customConversions) throws ClassNotFoundException {
+    public MongoMappingContext mongoMappingContext(MongoCustomConversions customConversions,
+                                                   MongoManagedTypes mongoManagedTypes) {
         CustomizedMappingContext context = new CustomizedMappingContext();
         context.setInitialEntitySet(getInitialEntitySet());
         context.setSimpleTypeHolder(customConversions().getSimpleTypeHolder());

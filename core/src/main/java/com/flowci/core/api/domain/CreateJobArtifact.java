@@ -16,7 +16,7 @@
 
 package com.flowci.core.api.domain;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 @Data
