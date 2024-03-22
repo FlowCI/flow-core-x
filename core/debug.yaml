@@ -46,3 +46,20 @@ services:
       - "9000:9000"
       - "9090:9090"
     command: "server /data --console-address \":9090\""
+
+  prometheus:
+    image: prom/prometheus:v2.44.0
+    container_name: prometheus
+    ports:
+      - "9191:9090"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:9.5.2
+    container_name: grafana
+    ports:
+      - "3131:3000"
+    restart: unless-stopped
+    volumes:
+      - ./observability/grafana/datasources:/etc/grafana/provisioning/datasources
