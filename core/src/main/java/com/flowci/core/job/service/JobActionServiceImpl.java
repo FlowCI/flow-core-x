@@ -370,7 +370,7 @@ public class JobActionServiceImpl implements JobActionService {
                 String queue = job.getQueueName();
                 byte[] payload = job.getId().getBytes();
 
-                jobsQueueManager.send(queue, payload, job.getPriority(), job.getExpire());
+                jobsQueueManager.publish(queue, payload, job.getPriority(), job.getExpire());
                 logInfo(job, "enqueue");
             }
 
