@@ -143,7 +143,7 @@ public class AgentServiceImpl implements AgentService {
                 if (shouldPushBack) {
                     int randomSec = ObjectsHelper.randomNumber(MinIdleAgentPushBack, MaxIdleAgentPushBack);
                     ThreadHelper.sleep(randomSec * 1000L);
-                    idleAgentQueueManager.send(idleAgentQueue, agentId.getBytes());
+                    idleAgentQueueManager.publish(idleAgentQueue, agentId.getBytes());
                 }
             } catch (Exception e) {
                 log.warn(e.getMessage());
@@ -307,7 +307,7 @@ public class AgentServiceImpl implements AgentService {
                         update(agent, OFFLINE);
                     case BUSY:
                         update(agent, IDLE);
-                        idleAgentQueueManager.send(idleAgentQueue, agentId.getBytes());
+                        idleAgentQueueManager.publish(idleAgentQueue, agentId.getBytes());
                 }
             }
         } finally {
@@ -406,7 +406,7 @@ public class AgentServiceImpl implements AgentService {
             update(target, init.getStatus());
 
             if (target.isIdle() && event.isToIdleQueue()) {
-                idleAgentQueueManager.send(idleAgentQueue, target.getId().getBytes());
+                idleAgentQueueManager.publish(idleAgentQueue, target.getId().getBytes());
             }
 
             event.setAgent(target);
