@@ -145,6 +145,12 @@
         <configuration>
           <mainClass>com.flowci.core.Application</mainClass>
           <layout>JAR</layout>
+          <excludes>
+            <exclude>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </exclude>
+          </excludes>
         </configuration>
         <executions>
           <execution>
