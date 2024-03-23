@@ -25,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.TaskExecutor;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -64,19 +63,24 @@ public class RabbitOperations implements AutoCloseable {
     }
 
     public void declare(String queue, boolean durable) throws IOException {
-        this.channel.queueDeclare(queue, durable, false, false, null);
+        this.channel.queueDeclare(queue, durable, false, false, Map.of(
+                "x-single-active-consumer", true
+        ));
     }
 
     public void declareTemp(String queue) throws IOException {
-        this.channel.queueDeclare(queue, false, false, true, null);
+        this.channel.queueDeclare(queue, false, false, true, Map.of(
+                "x-single-active-consumer", true
+        ));
     }
 
     public void declare(String queue, boolean durable, Integer maxPriority, String dlExName) throws IOException {
-        Map<String, Object> props = new HashMap<>(3);
-        props.put("x-max-priority", maxPriority);
-        props.put("x-dead-letter-exchange", dlExName);
-        props.put("x-dead-letter-routing-key", QueueConfig.JobDlRoutingKey);
-        this.channel.queueDeclare(queue, durable, false, false, props);
+        this.channel.queueDeclare(queue, durable, false, false, Map.of(
+                "x-max-priority", maxPriority,
+                "x-dead-letter-exchange", dlExName,
+                "x-dead-letter-routing-key", QueueConfig.JobDlRoutingKey,
+                "x-single-active-consumer", true
+        ));
     }
 
     public boolean delete(String queue) {
@@ -108,9 +112,9 @@ public class RabbitOperations implements AutoCloseable {
     }
 
     /**
-     * Send to routing key with default exchange
+     * Publish data with routing key to default exchange
      */
-    public boolean send(String routingKey, byte[] body) {
+    public boolean publish(String routingKey, byte[] body) {
         try {
             this.channel.basicPublish(StringHelper.EMPTY, routingKey, null, body);
             return true;
@@ -120,9 +124,9 @@ public class RabbitOperations implements AutoCloseable {
     }
 
     /**
-     * Send to routing key with default exchange and priority
+     * Publish data with routing key and priority to default exchange
      */
-    public boolean send(String routingKey, byte[] body, Integer priority, int expireInSecond) {
+    public boolean publish(String routingKey, byte[] body, Integer priority, int expireInSecond) {
         try {
             AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
                     .priority(priority)

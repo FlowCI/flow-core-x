@@ -104,6 +104,12 @@
     </dependency>
 
     <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>
     </dependency>
@@ -139,6 +145,12 @@
         <configuration>
           <mainClass>com.flowci.core.Application</mainClass>
           <layout>JAR</layout>
+          <excludes>
+            <exclude>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </exclude>
+          </excludes>
         </configuration>
         <executions>
           <execution>
