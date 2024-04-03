@@ -19,9 +19,7 @@ package com.flowci.core.plugin.config;
 import com.flowci.common.helper.FileHelper;
 import com.flowci.core.common.config.AppProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jgit.http.server.GitServlet;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -35,8 +33,6 @@ import java.nio.file.Paths;
 @Slf4j
 @Configuration
 public class PluginConfig {
-
-    private static final String GIT_URL = "/git/plugins";
 
     @Autowired
     private AppProperties appProperties;

@@ -123,6 +123,11 @@ public class Plugin extends SourceWithDomain {
 
     private Meta meta;
 
+    /**
+     * The path of where the plugin located
+     */
+    private String dir;
+
     public Plugin(String name, Version version) {
         this.setName(name);
         this.setVersion(version);

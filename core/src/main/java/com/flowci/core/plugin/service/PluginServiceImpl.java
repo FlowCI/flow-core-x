@@ -35,6 +35,9 @@ import com.flowci.core.plugin.event.GetPluginEvent;
 import com.flowci.core.plugin.event.RepoCloneEvent;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
@@ -43,12 +46,12 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.util.*;
 
@@ -212,6 +215,7 @@ public class PluginServiceImpl implements PluginService {
                 appTaskExecutor.execute(() -> {
                     try {
                         clone(plugin);
+                        compressToTarGzip(plugin);
                         pluginDao.save(plugin);
                         context.publishEvent(new RepoCloneEvent(this, plugin));
                         log.info("Plugin {} been clone", plugin);
@@ -256,8 +260,55 @@ public class PluginServiceImpl implements PluginService {
 
         setMetaFromYamlFile(dir.toFile(), plugin);
 
+        plugin.setDir(dir.toString());
         plugin.setSynced(true);
         plugin.setSyncTime(Date.from(Instant.now()));
+    }
+
+    private void compressToTarGzip(Plugin plugin) throws IOException {
+        log.info("Start to compress plugin: {}", plugin);
+
+        var pluginDir = getPluginRepoDir(plugin.getName(), plugin.getVersion().toString());
+        var tarFile = getPluginTarFile(plugin.getName(), plugin.getVersion().toString());
+
+        try (var fOut = Files.newOutputStream(tarFile);
+             var buffOut = new BufferedOutputStream(fOut);
+             var gzOut = new GzipCompressorOutputStream(buffOut);
+             var tOut = new TarArchiveOutputStream(gzOut)) {
+
+            Files.walkFileTree(pluginDir, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(
+                        Path file,
+                        BasicFileAttributes attributes
+                ) throws IOException {
+
+                    // only copy files, no symbolic links
+                    if (attributes.isSymbolicLink()) {
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    // get filename
+                    Path targetFile = pluginDir.relativize(file);
+
+                    var tarEntry = new TarArchiveEntry(file.toFile(), targetFile.toString());
+                    tOut.putArchiveEntry(tarEntry);
+                    Files.copy(file, tOut);
+                    tOut.closeArchiveEntry();
+
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) {
+                    log.warn("Unable to tar.gz : {}{}", file, exc);
+                    plugin.setSynced(false);
+                    return FileVisitResult.TERMINATE;
+                }
+            });
+
+            tOut.finish();
+        }
     }
 
     private void setMetaFromYamlFile(File dir, Plugin plugin) throws IOException {
@@ -293,5 +344,9 @@ public class PluginServiceImpl implements PluginService {
      */
     private Path getPluginRepoDir(String name, String version) {
         return Paths.get(pluginDir.toString(), name, version);
+    }
+
+    private Path getPluginTarFile(String name, String version) {
+        return Paths.get(getPluginRepoDir(name, version) + ".tar.gz");
     }
 }
