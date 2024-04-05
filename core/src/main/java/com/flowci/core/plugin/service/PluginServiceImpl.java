@@ -168,10 +168,24 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public Plugin get(String name) {
-        Optional<Plugin> optional = pluginDao.findByName(name);
-        if (optional.isEmpty()) {
+        var plugins = pluginDao.findByNameAndLatest(name, true);
+
+        if (plugins.isEmpty()) {
             throw new NotFoundException("The plugin {0} is not found", name);
         }
+
+        return plugins.get(0);
+    }
+
+    @Override
+    public Plugin get(String name, String version) {
+        var key = Plugin.buildKey(name, version);
+        var optional = pluginDao.findByKey(key);
+
+        if (optional.isEmpty()) {
+            throw new NotFoundException("The plugin {0} is not found", key);
+        }
+
         return optional.get();
     }
 
@@ -203,13 +217,18 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
+    public Path getTarGzip(Plugin plugin) {
+        return getPluginTarFile(plugin.getName(), plugin.getVersion().toString());
+    }
+
+    @Override
     public void load(Resource repoUri) {
         try {
             pluginDao.deleteAll();
 
             var is = resourceManager.getResource(repoUri);
-            List<Plugin> plugins = objectMapper.readValue(is, RepoListType);
-            pluginDao.insert(plugins);
+            var plugins = objectMapper.readValue(is, RepoListType);
+            markLatestVersion(plugins);
 
             for (Plugin plugin : plugins) {
                 appTaskExecutor.execute(() -> {
@@ -219,8 +238,10 @@ public class PluginServiceImpl implements PluginService {
                         pluginDao.save(plugin);
                         context.publishEvent(new RepoCloneEvent(this, plugin));
                         log.info("Plugin {} been clone", plugin);
+                    } catch (IOException e) {
+                        log.warn("Unable to clone or compress plugin repo: {} {}", plugin.getSource(), e.getMessage());
                     } catch (Exception e) {
-                        log.warn("Unable to clone plugin repo {} {}", plugin.getSource(), e.getMessage());
+                        log.warn("Unable to save plugin: {} {}", plugin.getSource(), e.getMessage());
                     }
                 });
             }
@@ -244,9 +265,29 @@ public class PluginServiceImpl implements PluginService {
         }
     }
 
-    private void clone(Plugin plugin) throws Exception {
+    private void markLatestVersion(Collection<Plugin> plugins) {
+        var map = new HashMap<String, Plugin>(plugins.size());
+
+        for (Plugin p : plugins) {
+            var exist = map.get(p.getName());
+
+            if (exist == null) {
+                p.setLatest(true);
+                map.put(p.getName(), p);
+                continue;
+            }
+
+            if (p.getVersion().compareTo(exist.getVersion()) > 0) {
+                exist.setLatest(false);
+                p.setLatest(true);
+                map.put(p.getName(), p);
+            }
+        }
+    }
+
+    private void clone(Plugin plugin) throws IOException {
         log.info("Start to load plugin: {}", plugin);
-        Path dir = getPluginRepoDir(plugin.getName(), plugin.getVersion().toString());
+        Path dir = getDir(plugin);
 
         String rd = appProperties.getResourceDomain();
         String source = plugin.getSourceWithDomain(rd);
@@ -255,21 +296,26 @@ public class PluginServiceImpl implements PluginService {
             throw new NotFoundException("Plugin {0} source is missing for domain {1}", plugin.getName(), rd);
         }
 
-        var client = new GitClient(source, null, null);
-        client.klone(dir, plugin.getBranch());
+        try {
+            var client = new GitClient(source, null, null);
+            client.klone(dir, plugin.getBranch());
 
-        setMetaFromYamlFile(dir.toFile(), plugin);
+            setMetaFromYamlFile(dir.toFile(), plugin);
 
-        plugin.setDir(dir.toString());
-        plugin.setSynced(true);
-        plugin.setSyncTime(Date.from(Instant.now()));
+            plugin.createKey();
+            plugin.setDir(dir.toString());
+            plugin.setSynced(true);
+            plugin.setSyncTime(Date.from(Instant.now()));
+        } catch (Exception e) {
+            throw new IOException(e.getMessage());
+        }
     }
 
     private void compressToTarGzip(Plugin plugin) throws IOException {
         log.info("Start to compress plugin: {}", plugin);
 
-        var pluginDir = getPluginRepoDir(plugin.getName(), plugin.getVersion().toString());
-        var tarFile = getPluginTarFile(plugin.getName(), plugin.getVersion().toString());
+        var pluginDir = getDir(plugin);
+        var tarFile = getTarGzip(plugin);
 
         try (var fOut = Files.newOutputStream(tarFile);
              var buffOut = new BufferedOutputStream(fOut);

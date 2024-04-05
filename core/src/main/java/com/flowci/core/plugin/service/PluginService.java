@@ -48,9 +48,14 @@ public interface PluginService {
     Collection<Plugin> list(Set<String> tags);
 
     /**
-     * Get plugin by name
+     * Get latest plugin by name
      */
     Plugin get(String name);
+
+    /**
+     * Get plugin by name and version
+     */
+    Plugin get(String name, String version);
 
     /**
      * Get ReadMe.md content
@@ -66,6 +71,11 @@ public interface PluginService {
      * Get repo file path
      */
     Path getDir(Plugin plugin);
+
+    /**
+     * Get tar.gz file path
+     */
+    Path getTarGzip(Plugin plugin);
 
     /**
      * Load plugin repo info from uri, refresh database and clone

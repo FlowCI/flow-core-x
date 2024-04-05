@@ -18,6 +18,7 @@
 package com.flowci.core.api;
 
 import com.flowci.common.exception.ArgumentException;
+import com.flowci.common.exception.StatusException;
 import com.flowci.core.api.domain.AddStatsItem;
 import com.flowci.core.api.domain.CreateJobArtifact;
 import com.flowci.core.api.domain.CreateJobReport;
@@ -27,6 +28,8 @@ import com.flowci.core.flow.domain.MatrixCounter;
 import com.flowci.core.job.domain.JobCache;
 import com.flowci.core.job.service.CacheService;
 import com.flowci.core.job.service.LoggingService;
+import com.flowci.core.plugin.domain.Plugin;
+import com.flowci.core.plugin.service.PluginService;
 import com.flowci.core.secret.domain.Secret;
 import com.flowci.core.user.domain.User;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +43,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -60,6 +66,9 @@ public class OpenRestController {
 
     @Autowired
     private CacheService cacheService;
+
+    @Autowired
+    private PluginService pluginService;
 
     @GetMapping("/secret/{name}")
     public Secret getSecret(@PathVariable String name) {
@@ -147,5 +156,22 @@ public class OpenRestController {
                 .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file + "\"")
                 .body(new InputStreamResource(stream));
+    }
+
+    @GetMapping(value = "/plugin/{name}/{version}/download", produces = "application/tar+gzip")
+    public byte[] downloadPlugin(@PathVariable String name,
+                                 @PathVariable String version) throws IOException {
+        Plugin plugin = pluginService.get(name);
+
+        if (!plugin.isSynced()) {
+            throw new StatusException("Plugin is not available");
+        }
+
+        Path tarFile = pluginService.getTarGzip(plugin);
+        if (!Files.exists(tarFile)) {
+            throw new StatusException("Plugin is not found");
+        }
+
+        return Files.readAllBytes(tarFile);
     }
 }

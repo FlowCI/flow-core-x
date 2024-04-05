@@ -31,7 +31,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PluginDao extends MongoRepository<Plugin, String> {
 
-    Optional<Plugin> findByName(String name);
+    Optional<Plugin> findByKey(String key);
+
+    List<Plugin> findByNameAndLatest(String name, boolean latest);
 
     List<Plugin> findAllByTagsIn(Set<String> tags);
 }

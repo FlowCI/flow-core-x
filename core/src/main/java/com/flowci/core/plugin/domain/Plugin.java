@@ -41,6 +41,10 @@ import java.util.*;
 @ToString(of = {"name", "version", "branch"})
 public class Plugin extends SourceWithDomain {
 
+    public static String buildKey(String name, String version) {
+        return String.format("%s@%s", name, version);
+    }
+
     /**
      * Metadata from YAML plugin file
      */
@@ -106,9 +110,12 @@ public class Plugin extends SourceWithDomain {
 
     private Date syncTime;
 
-    // the following properties should be loaded from plugin repository.json file
+    // key property from name and version
+    @Indexed(name = "index_plugins_key", unique = true)
+    private String key;
 
-    @Indexed(name = "index_plugins_name", unique = true)
+    // the following properties should be loaded from plugin repository.json file
+    @Indexed(name = "index_plugins_name")
     private String name;
 
     private String branch = "master";
@@ -123,13 +130,14 @@ public class Plugin extends SourceWithDomain {
 
     private Meta meta;
 
+    private boolean latest;
+
     /**
      * The path of where the plugin located
      */
     private String dir;
 
-    public Plugin(String name, Version version) {
-        this.setName(name);
-        this.setVersion(version);
+    public void createKey() {
+        this.key = buildKey(name, version.toString());
     }
 }
