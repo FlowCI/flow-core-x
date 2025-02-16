@@ -10,7 +10,7 @@ spring:
     import:
       - classpath:application-management.yaml
       - classpath:application-db.yaml
-      - classpath:application-ci.yaml
+      - classpath:application-flowci.yaml
 
 server:
   port: ${FLOWCI_SERVER_PORT:8080}

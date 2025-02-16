@@ -2,15 +2,20 @@ package com.flowci.build.business;
 
 import com.flowci.SpringTest;
 import com.flowci.build.model.Build;
+import com.flowci.common.business.PublishRabbitEvent;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 
 class WaitForAgentTest extends SpringTest {
+
+    @MockBean
+    private PublishRabbitEvent publishRabbitEvent;
 
     @Autowired
     private MockRepositoriesConfig mockRepositoriesConfig;
