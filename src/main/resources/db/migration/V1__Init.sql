@@ -41,7 +41,7 @@ CREATE TABLE flows_user
 
 -- build related tables --
 
-CREATE TABLE build
+CREATE TABLE builds
 (
     id             BIGSERIAL PRIMARY KEY,
     flow_id        BIGINT                      NOT NULL,
@@ -60,8 +60,8 @@ CREATE TABLE build
     UNIQUE (flow_id, build_date, build_sequence)
 );
 
-DROP SEQUENCE IF EXISTS build_id_sequence;
-CREATE SEQUENCE build_id_sequence START 10000 INCREMENT 1 OWNED BY build.id;
+DROP SEQUENCE IF EXISTS builds_id_sequence;
+CREATE SEQUENCE builds_id_sequence START 10000 INCREMENT 1 OWNED BY builds.id;
 
 -- trigger function to create build_date, build_sequence and build_alias on insert
 CREATE OR REPLACE FUNCTION auto_build_sequence() RETURNS trigger AS
@@ -84,11 +84,11 @@ $build_sequence$ LANGUAGE plpgsql;
 -- add trigger on insert
 CREATE TRIGGER build_sequence_trigger
     BEFORE INSERT
-    ON "build"
+    ON "builds"
     FOR EACH ROW
 EXECUTE PROCEDURE auto_build_sequence();
 
-CREATE TABLE build_yaml
+CREATE TABLE builds_yaml
 (
     id         BIGINT PRIMARY KEY,
     variables  json                        NOT NULL,

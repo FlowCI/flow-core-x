@@ -16,7 +16,7 @@ import java.util.Set;
 @Data
 @EqualsAndHashCode(callSuper = false, of = {"id"})
 @Entity
-@Table(name = "build")
+@Table(name = "builds")
 public class Build extends EntityBase {
 
     public enum Trigger {
@@ -51,7 +51,7 @@ public class Build extends EntityBase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "build_id_gen")
-    @SequenceGenerator(name = "build_id_gen", sequenceName = "build_id_sequence", allocationSize = 1)
+    @SequenceGenerator(name = "build_id_gen", sequenceName = "builds_id_sequence", allocationSize = 1)
     private Long id;
 
     private Long flowId;

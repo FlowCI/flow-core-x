@@ -12,7 +12,7 @@ import org.hibernate.annotations.Type;
 
 @Data
 @Entity
-@Table(name = "build_yaml")
+@Table(name = "builds_yaml")
 @EqualsAndHashCode(callSuper = false, of = "id")
 public class BuildYaml extends EntityBase {
 
