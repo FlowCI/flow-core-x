@@ -71,7 +71,7 @@ BEGIN
 
     SELECT COALESCE(MAX(build_sequence) + 1, 1)
     INTO NEW.build_sequence
-    FROM "build"
+    FROM "builds"
     WHERE flow_id = NEW.flow_id
       AND build_date = NEW.build_date;
 

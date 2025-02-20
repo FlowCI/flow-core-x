@@ -1,6 +1,7 @@
 package com.flowci.flow.repo;
 
 import com.flowci.flow.model.Flow;
+import com.flowci.flow.model.FlowWithBuildStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -18,4 +19,10 @@ public interface FlowRepo extends JpaRepository<Flow, Long> {
             "and f.parentId = ?1 " +
             "order by f.createdAt")
     List<Flow> findAllByParentIdAndUserIdOrderByCreatedAt(Long parentId, Long userId);
+
+    @Query("select new FlowWithBuildStatus(f.id, f.name, b.status) " +
+            "from Flow f " +
+            "inner join Build b on f.id = b.flowId " +
+            "where f.id = ?1")
+    FlowWithBuildStatus findFlowWithBuildStatusByUserId(Long flowId);
 }

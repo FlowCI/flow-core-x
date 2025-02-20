@@ -1,6 +1,8 @@
 package com.flowci.flow.repo;
 
 import com.flowci.SpringTestWithDB;
+import com.flowci.build.model.Build;
+import com.flowci.build.repo.BuildRepo;
 import com.flowci.flow.model.Flow;
 import com.flowci.flow.model.FlowUser;
 import org.instancio.InstancioApi;
@@ -19,6 +21,9 @@ class FlowRepoTest extends SpringTestWithDB {
 
     @Autowired
     private FlowUserRepo flowUserRepo;
+
+    @Autowired
+    private BuildRepo buildRepo;
 
     @Test
     void givenFlow_whenSaving_thenIdAndTimestampCreated() {
@@ -68,6 +73,23 @@ class FlowRepoTest extends SpringTestWithDB {
 
         var flowsForUser2 = flowRepo.findAllByParentIdAndUserIdOrderByCreatedAt(flow.getParentId(), user2.getUserId());
         assertEquals(1, flowsForUser2.size());
+    }
+
+    @Test
+    void whenFindFlowWithBuildStatus_thenReturn() {
+        var flow = mockFlow().create();
+        flowRepo.save(flow);
+
+        var build = newDummyInstance(Build.class)
+                .ignore(field(Build::getId))
+                .set(field(Build::getFlowId), flow.getId())
+                .set(field(Build::getStatus), Build.Status.QUEUED)
+                .create();
+        buildRepo.save(build);
+
+        var entity = flowRepo.findFlowWithBuildStatusByUserId(flow.getId());
+        assertNotNull(entity);
+        assertEquals(Build.Status.QUEUED, entity.getLastBuildStatus());
     }
 
     private InstancioApi<Flow> mockFlow() {
