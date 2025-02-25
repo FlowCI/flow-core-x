@@ -16,7 +16,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <spring-boot.version>3.3.7</spring-boot.version>
+    <spring-boot.version>3.3.8</spring-boot.version>
     <instancio-junit.version>2.9.0</instancio-junit.version>
     <testcontainers.version>1.20.4</testcontainers.version>
     <springdoc-openapi.version>2.5.0</springdoc-openapi.version>
@@ -26,6 +26,8 @@
     <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
     <hypersistence-utils-hibernate-63.version>3.9.0</hypersistence-utils-hibernate-63.version>
     <jackson.version>2.17.3</jackson.version>
+    <wiremock-spring-boot.version>3.7.0</wiremock-spring-boot.version>
+    <httpclient5.version>5.3.1</httpclient5.version>
   </properties>
 
   <dependencyManagement>
@@ -154,6 +156,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
+      <version>${httpclient5.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
@@ -166,16 +174,9 @@
     </dependency>
 
     <dependency>
-      <groupId>au.com.dius.pact.provider</groupId>
-      <artifactId>junit5</artifactId>
-      <version>${pact.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>au.com.dius.pact.consumer</groupId>
-      <artifactId>junit5</artifactId>
-      <version>${pact.version}</version>
+      <groupId>org.wiremock.integrations</groupId>
+      <artifactId>wiremock-spring-boot</artifactId>
+      <version>${wiremock-spring-boot.version}</version>
       <scope>test</scope>
     </dependency>
 
