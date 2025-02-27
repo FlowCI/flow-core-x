@@ -12,10 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -39,6 +36,7 @@ public class ParseYamlV2Impl implements ParseYamlV2 {
             for (var step : flowV2.getSteps()) {
                 step.setParent(flowV2);
             }
+
             validateSteps(flowV2);
             buildGraph(flowV2);
             return flowV2;
@@ -93,35 +91,59 @@ public class ParseYamlV2Impl implements ParseYamlV2 {
 
     private void buildGraph(FlowV2 flow) {
         var steps = flow.getSteps();
+
+        // set name - step mapping
         var map = new HashMap<String, StepV2>(steps.size());
+        flow.setStepNameMapping(map);
+
         for (var step : steps) {
             map.put(step.getName(), step);
         }
 
         for (var step : steps) {
-            if (step.getDependsOn() == null) {
+            if (CollectionUtils.isEmpty(step.getDependsOn())) {
                 continue;
             }
 
             for (var dep : step.getDependsOn()) {
                 var depStep = map.get(dep);
+
+                // link next
                 depStep.getNext().add(step);
             }
         }
 
         for (var step : steps) {
-            checkCircularDependencies(List.of(step), new HashSet<>());
+            checkCircularDependencies(List.of(step), new HashMap<>());
         }
     }
 
-    private void checkCircularDependencies(List<StepV2> steps, Set<StepV2> traversed) {
+    private void checkCircularDependencies(List<StepV2> steps, HashMap<StepV2, Integer> traversed) {
         for (var step : steps) {
-            if (!traversed.add(step)) {
-                throw new InvalidYamlException("circular dependency found");
+            Integer numEncountered = traversed.get(step);
+
+            if (numEncountered == null) {
+                traversed.put(step, 1);
+                checkCircularDependencies(step.getNext(), traversed);
+                continue;
             }
 
-            traversed.add(step);
+            int numOfDepends = step.getDependsOn() == null ? 0 : step.getDependsOn().size();
+            if (numOfDepends == 0 || numEncountered > numOfDepends) {
+                throw new InvalidYamlException("circular dependency found on step: " + step.getName());
+            }
+
+            traversed.put(step, numEncountered + 1);
             checkCircularDependencies(step.getNext(), traversed);
         }
+    }
+
+    /**
+     * Ex:
+     *  A <-- B <-- C
+     *  A <-- C
+     */
+    private void checkDuplicatedDependsOn(List<StepV2> steps) {
+
     }
 }

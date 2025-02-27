@@ -28,6 +28,7 @@
     <jackson.version>2.17.3</jackson.version>
     <wiremock-spring-boot.version>3.7.0</wiremock-spring-boot.version>
     <httpclient5.version>5.3.1</httpclient5.version>
+    <git-commit-id-maven-plugin.version>5.0.1</git-commit-id-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -159,6 +160,12 @@
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
       <version>${httpclient5.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -178,6 +185,12 @@
       <artifactId>wiremock-spring-boot</artifactId>
       <version>${wiremock-spring-boot.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.errorprone</groupId>
+          <artifactId>error_prone_annotations</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -214,6 +227,26 @@
               <groupId>org.projectlombok</groupId>
               <artifactId>lombok</artifactId>
             </exclude>
+            <execution>
+              <goals>
+                <goal>repackage</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>initialize</id>
+              <goals>
+                <goal>build-info</goal>
+              </goals>
+              <phase>initialize</phase>
+              <configuration>
+                <additionalProperties>
+                  <encoding.source>UTF-8</encoding.source>
+                  <encoding.reporting>UTF-8</encoding.reporting>
+                  <java.source>${maven.compiler.source}</java.source>
+                  <java.target>${maven.compiler.target}</java.target>
+                </additionalProperties>
+              </configuration>
+            </execution>
           </excludes>
         </configuration>
       </plugin>
@@ -252,6 +285,34 @@
             <goals>
               <goal>report</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>io.github.git-commit-id</groupId>
+        <artifactId>git-commit-id-maven-plugin</artifactId>
+        <version>${git-commit-id-maven-plugin.version}</version>
+        <configuration>
+          <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <generateGitPropertiesFilename>${project.build.outputDirectory}/META-INF/git.properties</generateGitPropertiesFilename>
+          <commitIdGenerationMode>full</commitIdGenerationMode>
+          <dateFormat>yyyy-MM-dd'T'HH:mm:ssXXX</dateFormat>
+          <includeOnlyProperties>
+            <includeOnlyProperty>^git.commit.id.full</includeOnlyProperty>
+            <includeOnlyProperty>^git.commit.time$</includeOnlyProperty>
+            <includeOnlyProperty>^git.branch</includeOnlyProperty>
+            <includeOnlyProperty>^git.tags</includeOnlyProperty>
+          </includeOnlyProperties>
+          <verbose>false</verbose>
+        </configuration>
+        <executions>
+          <execution>
+            <id>get-the-git-infos</id>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+            <phase>initialize</phase>
           </execution>
         </executions>
       </plugin>

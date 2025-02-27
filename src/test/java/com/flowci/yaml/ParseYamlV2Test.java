@@ -86,6 +86,39 @@ class ParseYamlV2Test extends SpringTest {
         assertEquals("host", step2Docker.getNetwork());
     }
 
+    @Test
+    void givenYamlWithParallelSteps_whenParsing_thenReturnFlowObject() {
+        var content = getResourceAsString("yaml/v2_success_parallel_steps.yaml");
+        var flowV2 = parseYamlV2.invoke(content);
+        assertNotNull(flowV2);
+
+        // next steps of flow should be the steps without deps
+        var next = flowV2.next(null);
+        assertEquals(2, next.size());
+        assertEquals("step_abc", next.get(0).getName());
+        assertEquals("step_1", next.get(1).getName());
+
+        next = flowV2.next("step_1");
+        assertEquals(2, next.size());
+        assertEquals("step_2_A_1", next.get(0).getName());
+        assertEquals("step_2_B", next.get(1).getName());
+
+        next = flowV2.next("step_2_A_1");
+        assertEquals(1, next.size());
+        assertEquals("step_2_A_2", next.getFirst().getName());
+
+        next = flowV2.next("step_2_A_2");
+        assertEquals(1, next.size());
+        assertEquals("step_3", next.getFirst().getName());
+
+        next = flowV2.next("step_2_B");
+        assertEquals(1, next.size());
+        assertEquals("step_3", next.getFirst().getName());
+
+        next = flowV2.next("step_3");
+        assertEquals(0, next.size());
+    }
+
     @ParameterizedTest
     @CsvSource({
             "v2_step_name_invalid.yaml,step name 'step 1' is invalid",
@@ -93,8 +126,8 @@ class ParseYamlV2Test extends SpringTest {
             "v2_step_depends_on_not_found.yaml,depends on 'step_not_there' is not found",
             "v2_commands_missing.yaml,at least one command under step 'step_1' is required",
             "v2_commands_without_script.yaml,bash or powershell is required",
-            "v2_circular_dependency_on_all_depends.yaml,circular dependency found",
-            "v2_circular_dependency_with_separate_step.yaml,circular dependency found",
+            "v2_circular_dependency_on_all_depends.yaml,circular dependency found on step: step_d",
+            "v2_circular_dependency_with_separate_step.yaml,circular dependency found on step: step_c",
     })
     void givenInvalidYaml_whenParsing_thenThrowException(String yamlFile, String expectedMsg) {
         var content = getResourceAsString("yaml/" + yamlFile);
