@@ -1,6 +1,7 @@
 package com.flowci.build.model;
 
 import com.flowci.common.model.EntityBase;
+import com.flowci.common.model.Variables;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.annotation.Nullable;
@@ -77,15 +78,9 @@ public class Build extends EntityBase {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @org.hibernate.annotations.Type(StringArrayType.class)
-    private String[] agentTags;
-
     @Type(JsonType.class)
     private GitRef gitRef;
 
-    /**
-     * Assigned agent id
-     */
-    @Nullable
-    private Long agentId;
+    @Type(JsonType.class)
+    private Variables context;
 }

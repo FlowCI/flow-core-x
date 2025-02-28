@@ -1,8 +1,9 @@
 package com.flowci.yaml;
 
 import com.flowci.SpringTest;
-import com.flowci.yaml.business.ParseYamlV2;
+import com.flowci.yaml.business.ParseYaml;
 import com.flowci.yaml.exception.InvalidYamlException;
+import com.flowci.yaml.model.v2.FlowV2;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -13,12 +14,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class ParseYamlV2Test extends SpringTest {
 
     @Autowired
-    private ParseYamlV2 parseYamlV2;
+    private ParseYaml parseYamlV2;
 
     @Test
     void givenYaml_whenParsing_thenReturnFlowObject() {
         var content = getResourceAsString("yaml/v2_success.yaml");
-        var flowV2 = parseYamlV2.invoke(content);
+        var flowV2 = (FlowV2) parseYamlV2.invoke(content);
         assertNotNull(flowV2);
 
         // verify agents
@@ -89,7 +90,7 @@ class ParseYamlV2Test extends SpringTest {
     @Test
     void givenYamlWithParallelSteps_whenParsing_thenReturnFlowObject() {
         var content = getResourceAsString("yaml/v2_success_parallel_steps.yaml");
-        var flowV2 = parseYamlV2.invoke(content);
+        var flowV2 = (FlowV2) parseYamlV2.invoke(content);
         assertNotNull(flowV2);
 
         // next steps of flow should be the steps without deps

@@ -4,7 +4,7 @@ import com.flowci.common.RequestContextHolder;
 import com.flowci.common.exception.NotAvailableException;
 import com.flowci.flow.business.UpdateFlowYamlContent;
 import com.flowci.flow.repo.FlowYamlRepo;
-import com.flowci.yaml.business.ParseYamlV2;
+import com.flowci.yaml.business.ParseYaml;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,7 +18,7 @@ import static java.lang.String.format;
 @AllArgsConstructor
 public class UpdateFlowYamlContentImpl implements UpdateFlowYamlContent {
 
-    private final ParseYamlV2 parseYamlV2;
+    private final ParseYaml parseYamlV2;
     private final FlowYamlRepo flowYamlRepo;
     private final RequestContextHolder requestContextHolder;
 

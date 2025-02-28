@@ -1,5 +1,6 @@
-package com.flowci.yaml.model;
+package com.flowci.yaml.model.v2;
 
+import com.flowci.yaml.model.Base;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,7 +10,7 @@ import java.util.Map;
 
 @Getter
 @Setter
-public abstract class BaseV2 {
+public abstract class BaseV2 implements Base<DockerV2> {
 
     private static final Integer DEFAULT_TIMEOUT = 1800;
 

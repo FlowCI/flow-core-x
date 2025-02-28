@@ -1,6 +1,7 @@
-package com.flowci.yaml.model;
+package com.flowci.yaml.model.v2;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flowci.yaml.model.Docker;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,7 +10,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class DockerV2 {
+public class DockerV2 implements Docker {
 
     private String image;
 

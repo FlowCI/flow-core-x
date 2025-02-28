@@ -3,8 +3,8 @@ package com.flowci.flow.business;
 import com.flowci.SpringTest;
 import com.flowci.common.RequestContextHolder;
 import com.flowci.flow.model.FlowYaml;
-import com.flowci.yaml.business.ParseYamlV2;
-import com.flowci.yaml.model.FlowV2;
+import com.flowci.yaml.business.ParseYaml;
+import com.flowci.yaml.model.v2.FlowV2;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ class UpdateFlowYamlContentTest extends SpringTest {
     private MockRepositoriesConfig mockRepositoriesConfig;
 
     @MockBean
-    private ParseYamlV2 mockParseYamlV2;
+    private ParseYaml mockParseYamlV2;
 
     @MockBean
     private RequestContextHolder mockRequestContextHolder;

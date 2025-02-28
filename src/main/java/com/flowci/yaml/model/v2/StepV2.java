@@ -1,23 +1,27 @@
-package com.flowci.yaml.model;
+package com.flowci.yaml.model.v2;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flowci.common.model.Variables;
+import com.flowci.yaml.model.Step;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
 @EqualsAndHashCode(of = "name", callSuper = false)
-public class StepV2 extends BaseV2 {
+public class StepV2 extends BaseV2 implements Step<DockerV2, StepV2, CommandV2> {
 
     private static final Boolean DEFAULT_ALLOW_FAILURE = false;
 
     private String name;
+
+    private Set<String> agents;
 
     // dependency steps name
     @JsonProperty("depends_on")
@@ -32,6 +36,9 @@ public class StepV2 extends BaseV2 {
 
     private List<CommandV2> commands;
 
+    /**
+     * Output environment variables
+     */
     private List<String> output;
 
     private List<String> secrets;

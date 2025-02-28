@@ -4,15 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.flowci.common.validator.ValidName;
-import com.flowci.yaml.business.ParseYamlV2;
+import com.flowci.yaml.business.ParseYaml;
 import com.flowci.yaml.exception.InvalidYamlException;
-import com.flowci.yaml.model.FlowV2;
-import com.flowci.yaml.model.StepV2;
+import com.flowci.yaml.model.Step;
+import com.flowci.yaml.model.v2.FlowV2;
+import com.flowci.yaml.model.v2.StepV2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -20,7 +22,7 @@ import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
 @Component
-public class ParseYamlV2Impl implements ParseYamlV2 {
+public class ParseYamlV2Impl implements ParseYaml {
 
     private static final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
     private static final ValidName.NameValidator nameValidator = new ValidName.NameValidator();
@@ -34,7 +36,9 @@ public class ParseYamlV2Impl implements ParseYamlV2 {
         try {
             var flowV2 = objectMapper.readValue(yaml, FlowV2.class);
             for (var step : flowV2.getSteps()) {
-                step.setParent(flowV2);
+                if (step instanceof StepV2 v2) {
+                    v2.setParent(flowV2);
+                }
             }
 
             validateSteps(flowV2);
@@ -48,7 +52,7 @@ public class ParseYamlV2Impl implements ParseYamlV2 {
 
     private void validateSteps(FlowV2 flow) {
         var steps = flow.getSteps();
-        if (CollectionUtils.isEmpty(steps)) {
+        if (isEmpty(steps)) {
             throw new InvalidYamlException("at least one step is required");
         }
 
@@ -78,7 +82,7 @@ public class ParseYamlV2Impl implements ParseYamlV2 {
 
     private void validateCommands(StepV2 step) {
         var commands = step.getCommands();
-        if (CollectionUtils.isEmpty(commands)) {
+        if (isEmpty(commands)) {
             throw new InvalidYamlException(format("at least one command under step '%s' is required", step.getName()));
         }
 
@@ -101,7 +105,7 @@ public class ParseYamlV2Impl implements ParseYamlV2 {
         }
 
         for (var step : steps) {
-            if (CollectionUtils.isEmpty(step.getDependsOn())) {
+            if (isEmpty(step.getDependsOn())) {
                 continue;
             }
 
@@ -118,7 +122,7 @@ public class ParseYamlV2Impl implements ParseYamlV2 {
         }
     }
 
-    private void checkCircularDependencies(List<StepV2> steps, HashMap<StepV2, Integer> traversed) {
+    private void checkCircularDependencies(List<Step> steps, HashMap<Step, Integer> traversed) {
         for (var step : steps) {
             Integer numEncountered = traversed.get(step);
 
@@ -136,14 +140,5 @@ public class ParseYamlV2Impl implements ParseYamlV2 {
             traversed.put(step, numEncountered + 1);
             checkCircularDependencies(step.getNext(), traversed);
         }
-    }
-
-    /**
-     * Ex:
-     *  A <-- B <-- C
-     *  A <-- C
-     */
-    private void checkDuplicatedDependsOn(List<StepV2> steps) {
-
     }
 }

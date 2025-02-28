@@ -1,5 +1,6 @@
-package com.flowci.yaml.model;
+package com.flowci.yaml.model.v2;
 
+import com.flowci.yaml.model.Command;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,7 +8,7 @@ import static org.springframework.util.StringUtils.hasText;
 
 @Getter
 @Setter
-public class CommandV2 {
+public class CommandV2 implements Command {
 
     private String name; // optional
 

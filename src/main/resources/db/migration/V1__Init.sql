@@ -6,8 +6,8 @@ CREATE TABLE flows
     type       VARCHAR(10)                 NOT NULL,
     parent_id  BIGINT                      NOT NULL,
     name       VARCHAR(100) UNIQUE         NOT NULL,
-    variables  json                        NOT NULL,
-    git_link   json,
+    variables  JSON                        NOT NULL,
+    git_link   JSON,
     yaml       TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     created_by BIGINT,
@@ -47,12 +47,11 @@ CREATE TABLE builds
     flow_id        BIGINT                      NOT NULL,
     build_date     INTEGER                     NOT NULL,
     build_sequence BIGINT                      NOT NULL,
-    build_alias    varchar(50)                 NOT NULL,
-    trigger        varchar(20)                 NOT NULL,
-    status         varchar(20)                 NOT NULL,
-    agent_tags     varchar(20)[]               NOT NULL,
-    git_ref        json,
-    agent_id       BIGINT,
+    build_alias    VARCHAR(50)                 NOT NULL,
+    trigger        VARCHAR(20)                 NOT NULL,
+    status         VARCHAR(20)                 NOT NULL,
+    git_ref        JSON,
+    context        JSON                        NOT NULL,
     created_at     TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     created_by     BIGINT,
     updated_at     TIMESTAMP WITHOUT TIME ZONE NOT NULL,
@@ -91,10 +90,25 @@ EXECUTE PROCEDURE auto_build_sequence();
 CREATE TABLE builds_yaml
 (
     id         BIGINT PRIMARY KEY,
-    variables  json                        NOT NULL,
     yaml       TEXT                        NOT NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     created_by BIGINT,
     updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     updated_by BIGINT
 );
+
+CREATE TABLE jobs
+(
+    id           BIGINT PRIMARY KEY,
+    build_id     BIGINT        NOT NULL,
+    name         VARCHAR(100)  NOT NULL,
+    status       VARCHAR(20)   NOT NULL,
+    agent_tags   VARCHAR(20)[] NOT NULL,
+    dependencies BIGINT[]      NOT NULL,
+    agent_id     BIGINT,
+    variables    JSON,
+    output       JSON
+);
+
+DROP SEQUENCE IF EXISTS jobs_id_sequence;
+CREATE SEQUENCE jobs_id_sequence START 1000 INCREMENT 1 OWNED BY jobs.id;

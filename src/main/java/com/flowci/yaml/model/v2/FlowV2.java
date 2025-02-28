@@ -1,10 +1,10 @@
-package com.flowci.yaml.model;
+package com.flowci.yaml.model.v2;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.flowci.yaml.model.Flow;
 import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.LinkedList;
@@ -16,7 +16,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Setter
 @Getter
-public class FlowV2 extends BaseV2 {
+public class FlowV2 extends BaseV2 implements Flow<DockerV2, StepV2, CommandV2> {
 
     /**
      * List of agent tags
@@ -28,11 +28,13 @@ public class FlowV2 extends BaseV2 {
     @JsonIgnore
     private Map<String, StepV2> stepNameMapping;
 
+    @Override
     @JsonIgnore
     public StepV2 getStep(String name) {
         return stepNameMapping.get(name);
     }
 
+    @Override
     @JsonIgnore
     public List<StepV2> next(@Nullable String current) {
         if (!StringUtils.hasText(current)) {

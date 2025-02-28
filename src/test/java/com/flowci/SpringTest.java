@@ -3,6 +3,7 @@ package com.flowci;
 import com.flowci.agent.repo.AgentRepo;
 import com.flowci.build.repo.BuildRepo;
 import com.flowci.build.repo.BuildYamlRepo;
+import com.flowci.build.repo.JobRepo;
 import com.flowci.flow.repo.FlowRepo;
 import com.flowci.flow.repo.FlowUserRepo;
 import com.flowci.flow.repo.FlowYamlRepo;
@@ -59,6 +60,9 @@ public abstract class SpringTest {
 
         @MockBean
         private AgentRepo agentRepo;
+
+        @MockBean
+        private JobRepo jobRepo;
     }
 
     @DynamicPropertySource

@@ -6,10 +6,9 @@ import com.flowci.build.model.BuildYaml;
 import com.flowci.common.model.Variables;
 import com.flowci.flow.business.FetchFlow;
 import com.flowci.flow.business.FetchFlowYamlContent;
-import com.flowci.flow.model.Flow;
 import com.flowci.flow.model.FlowYaml;
-import com.flowci.yaml.business.ParseYamlV2;
-import com.flowci.yaml.model.FlowV2;
+import com.flowci.yaml.business.ParseYaml;
+import com.flowci.yaml.model.v2.FlowV2;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -30,7 +29,7 @@ class CreateBuildTest extends SpringTest {
     private FetchFlowYamlContent fetchFlowYamlContent;
 
     @MockBean
-    private ParseYamlV2 parseYamlV2;
+    private ParseYaml parseYamlV2;
 
     @Autowired
     private MockRepositoriesConfig mockRepositoriesConfig;
@@ -40,7 +39,7 @@ class CreateBuildTest extends SpringTest {
 
     @Test
     void givenFlow_whenCreating_thenBuildIsCreated() {
-        var mockFlow = newDummyInstance(Flow.class).create();
+        var mockFlow = newDummyInstance(com.flowci.flow.model.Flow.class).create();
         when(fetchFlow.invoke(anyLong())).thenReturn(mockFlow);
         var mockFlowYaml = newDummyInstance(FlowYaml.class).create();
         when(fetchFlowYamlContent.invoke(anyLong(), eq(false))).thenReturn(mockFlowYaml.getYaml());
@@ -64,10 +63,10 @@ class CreateBuildTest extends SpringTest {
         var build = buildCaptor.getValue();
         assertEquals(mockFlow.getId(), build.getFlowId());
         assertEquals(Build.Trigger.API, build.getTrigger());
+        assertEquals("hello", build.getContext().get("v1"));
+        assertEquals("world", build.getContext().get("v2"));
 
         var buildYaml = buildYamlCaptor.getValue();
-        assertEquals("hello", buildYaml.getVariables().get("v1"));
-        assertEquals("world", buildYaml.getVariables().get("v2"));
         assertEquals(mockFlowYaml.getYaml(), buildYaml.getYaml());
     }
 }
