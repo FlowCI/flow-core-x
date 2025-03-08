@@ -2,15 +2,10 @@ package com.flowci.yaml.model.v2;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flowci.yaml.model.Flow;
-import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.util.StringUtils;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -36,17 +31,13 @@ public class FlowV2 extends BaseV2 implements Flow<DockerV2, StepV2, CommandV2> 
 
     @Override
     @JsonIgnore
-    public List<StepV2> next(@Nullable String current) {
-        if (!StringUtils.hasText(current)) {
-            return stepsWithoutDependencies();
-        }
+    public List<StepV2> getNext() {
+        return stepsWithoutDependencies();
+    }
 
-        var step = stepNameMapping.get(current);
-        if (step == null) {
-            throw new IllegalArgumentException("Invalid step name: " + current);
-        }
-
-        return step.getNext();
+    public List<StepV2> getNext(String stepName) {
+        var step = stepNameMapping.get(stepName);
+        return step == null ? Collections.emptyList() : step.getNext();
     }
 
     private List<StepV2> stepsWithoutDependencies() {

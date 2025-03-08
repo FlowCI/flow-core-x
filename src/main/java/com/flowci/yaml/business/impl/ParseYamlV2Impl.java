@@ -7,6 +7,8 @@ import com.flowci.common.validator.ValidName;
 import com.flowci.yaml.business.ParseYaml;
 import com.flowci.yaml.exception.InvalidYamlException;
 import com.flowci.yaml.model.Step;
+import com.flowci.yaml.model.v2.CommandV2;
+import com.flowci.yaml.model.v2.DockerV2;
 import com.flowci.yaml.model.v2.FlowV2;
 import com.flowci.yaml.model.v2.StepV2;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +24,7 @@ import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
 @Component
-public class ParseYamlV2Impl implements ParseYaml {
+public class ParseYamlV2Impl implements ParseYaml<DockerV2, StepV2, CommandV2> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
     private static final ValidName.NameValidator nameValidator = new ValidName.NameValidator();

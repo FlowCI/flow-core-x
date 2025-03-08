@@ -94,29 +94,29 @@ class ParseYamlV2Test extends SpringTest {
         assertNotNull(flowV2);
 
         // next steps of flow should be the steps without deps
-        var next = flowV2.next(null);
+        var next = flowV2.getNext();
         assertEquals(2, next.size());
         assertEquals("step_abc", next.get(0).getName());
         assertEquals("step_1", next.get(1).getName());
 
-        next = flowV2.next("step_1");
+        next = flowV2.getNext("step_1");
         assertEquals(2, next.size());
         assertEquals("step_2_A_1", next.get(0).getName());
         assertEquals("step_2_B", next.get(1).getName());
 
-        next = flowV2.next("step_2_A_1");
+        next = flowV2.getNext("step_2_A_1");
         assertEquals(1, next.size());
         assertEquals("step_2_A_2", next.getFirst().getName());
 
-        next = flowV2.next("step_2_A_2");
+        next = flowV2.getNext("step_2_A_2");
         assertEquals(1, next.size());
         assertEquals("step_3", next.getFirst().getName());
 
-        next = flowV2.next("step_2_B");
+        next = flowV2.getNext("step_2_B");
         assertEquals(1, next.size());
         assertEquals("step_3", next.getFirst().getName());
 
-        next = flowV2.next("step_3");
+        next = flowV2.getNext("step_3");
         assertEquals(0, next.size());
     }
 

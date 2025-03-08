@@ -2,15 +2,17 @@ package com.flowci.build.model;
 
 import com.flowci.common.model.EntityBase;
 import com.flowci.common.model.Variables;
-import io.hypersistence.utils.hibernate.type.array.LongArrayType;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -34,18 +36,24 @@ public class Job extends EntityBase {
         TIMEOUT
     }
 
-    @Id
-    private Long id;
+    @Data
+    @Embeddable
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Id implements Serializable {
+        private Long buildId;
+        private String name;
+    }
 
-    private Long buildId;
-
-    private String name;
+    @EmbeddedId
+    private Id id;
 
     /**
-     * Dependency job id list
+     * Next step name list
      */
-    @org.hibernate.annotations.Type(LongArrayType.class)
-    private Long[] dependencies;
+    @Nullable
+    @org.hibernate.annotations.Type(StringArrayType.class)
+    private String[] next;
 
     @Enumerated(EnumType.STRING)
     private Status status;

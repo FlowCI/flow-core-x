@@ -99,16 +99,19 @@ CREATE TABLE builds_yaml
 
 CREATE TABLE jobs
 (
-    id           BIGINT PRIMARY KEY,
-    build_id     BIGINT        NOT NULL,
-    name         VARCHAR(100)  NOT NULL,
-    status       VARCHAR(20)   NOT NULL,
-    agent_tags   VARCHAR(20)[] NOT NULL,
-    dependencies BIGINT[]      NOT NULL,
+    build_id     BIGINT                      NOT NULL,
+    name         VARCHAR(100)                NOT NULL,
+    next         VARCHAR(100)[]              NOT NULL,
+    status       VARCHAR(20)                 NOT NULL,
+    agent_tags   VARCHAR(20)[]               NOT NULL,
+    dependencies BIGINT[],
     agent_id     BIGINT,
     variables    JSON,
-    output       JSON
-);
+    output       JSON,
+    created_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    created_by   BIGINT,
+    updated_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    updated_by   BIGINT,
 
-DROP SEQUENCE IF EXISTS jobs_id_sequence;
-CREATE SEQUENCE jobs_id_sequence START 1000 INCREMENT 1 OWNED BY jobs.id;
+    PRIMARY KEY (build_id, name)
+);

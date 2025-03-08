@@ -1,72 +1,77 @@
 package com.flowci.build.business;
 
-import com.flowci.SpringTest;
+import com.flowci.SpringTestWithDB;
 import com.flowci.build.model.Build;
-import com.flowci.build.model.BuildYaml;
+import com.flowci.build.model.Job;
+import com.flowci.build.repo.JobRepo;
 import com.flowci.common.model.Variables;
-import com.flowci.flow.business.FetchFlow;
-import com.flowci.flow.business.FetchFlowYamlContent;
-import com.flowci.flow.model.FlowYaml;
-import com.flowci.yaml.business.ParseYaml;
-import com.flowci.yaml.model.v2.FlowV2;
-import org.instancio.Instancio;
+import com.flowci.flow.business.CreateFlow;
+import com.flowci.flow.business.UpdateFlowYamlContent;
+import com.flowci.flow.model.CreateFlowParam;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 
-import static com.flowci.TestUtils.newDummyInstance;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Base64;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
 
-class CreateBuildTest extends SpringTest {
+class CreateBuildTest extends SpringTestWithDB {
 
-    @MockBean
-    private FetchFlow fetchFlow;
-
-    @MockBean
-    private FetchFlowYamlContent fetchFlowYamlContent;
-
-    @MockBean
-    private ParseYaml parseYamlV2;
+    @Value("classpath:yaml/v2_success_parallel_steps.yaml")
+    private Resource rawYamlResource;
 
     @Autowired
-    private MockRepositoriesConfig mockRepositoriesConfig;
+    private CreateFlow createFlow;
+
+    @Autowired
+    private UpdateFlowYamlContent updateFlowYamlContent;
 
     @Autowired
     private CreateBuild createBuild;
 
+    @Autowired
+    private JobRepo jobRepo;
+
     @Test
-    void givenFlow_whenCreating_thenBuildIsCreated() {
-        var mockFlow = newDummyInstance(com.flowci.flow.model.Flow.class).create();
-        when(fetchFlow.invoke(anyLong())).thenReturn(mockFlow);
-        var mockFlowYaml = newDummyInstance(FlowYaml.class).create();
-        when(fetchFlowYamlContent.invoke(anyLong(), eq(false))).thenReturn(mockFlowYaml.getYaml());
-        when(parseYamlV2.invoke(anyString())).thenReturn(Instancio.of(FlowV2.class).create());
+    void givenFlow_whenCreating_thenBuildIsCreated() throws IOException {
+        // given:
+        var yaml = rawYamlResource.getContentAsString(Charset.defaultCharset());
+        var flow = createFlow.invoke(new CreateFlowParam("test_flow", null, null));
+        updateFlowYamlContent.invoke(flow.getId(), Base64.getEncoder().encodeToString(yaml.getBytes()));
 
-        var mockBuildRepo = mockRepositoriesConfig.getBuildRepo();
-        var buildCaptor = ArgumentCaptor.forClass(Build.class);
-        when(mockBuildRepo.save(buildCaptor.capture()))
-                .thenAnswer(opt -> opt.getArgument(0));
-
-        var mockBuildYamlRepo = mockRepositoriesConfig.getBuildYamlRepo();
-        var buildYamlCaptor = ArgumentCaptor.forClass(BuildYaml.class);
-        when(mockBuildYamlRepo.save(buildYamlCaptor.capture()))
-                .thenAnswer(opt -> opt.getArgument(0));
-
+        // when: create build
         var inputs = new Variables();
         inputs.put("v1", "hello");
         inputs.put("v2", "world");
-        createBuild.invoke(1L, Build.Trigger.API, inputs);
+        var build = createBuild.invoke(flow.getId(), Build.Trigger.API, inputs);
 
-        var build = buildCaptor.getValue();
-        assertEquals(mockFlow.getId(), build.getFlowId());
+        // then:
+        assertEquals(flow.getId(), build.getFlowId());
         assertEquals(Build.Trigger.API, build.getTrigger());
         assertEquals("hello", build.getContext().get("v1"));
         assertEquals("world", build.getContext().get("v2"));
 
-        var buildYaml = buildYamlCaptor.getValue();
-        assertEquals(mockFlowYaml.getYaml(), buildYaml.getYaml());
+        var step_abc = jobRepo.findById(new Job.Id(build.getId(), "step_abc")).orElseThrow();
+        assertArrayEquals(new String[]{}, step_abc.getNext());
+
+        var step_1 = jobRepo.findById(new Job.Id(build.getId(), "step_1")).orElseThrow();
+        assertArrayEquals(new String[]{"step_2_A_1", "step_2_B"}, step_1.getNext());
+
+        var step_2_a_1 = jobRepo.findById(new Job.Id(build.getId(), "step_2_A_1")).orElseThrow();
+        assertArrayEquals(new String[]{"step_2_A_2"}, step_2_a_1.getNext());
+
+        var step_2_a_2 = jobRepo.findById(new Job.Id(build.getId(), "step_2_A_2")).orElseThrow();
+        assertArrayEquals(new String[]{"step_3"}, step_2_a_2.getNext());
+
+        var step_2_B = jobRepo.findById(new Job.Id(build.getId(), "step_2_B")).orElseThrow();
+        assertArrayEquals(new String[]{"step_3"}, step_2_B.getNext());
+
+        var step_3 = jobRepo.findById(new Job.Id(build.getId(), "step_3")).orElseThrow();
+        assertArrayEquals(new String[]{}, step_3.getNext());
     }
 }

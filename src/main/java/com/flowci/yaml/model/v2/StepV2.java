@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -51,6 +52,19 @@ public class StepV2 extends BaseV2 implements Step<DockerV2, StepV2, CommandV2> 
 
     // ref to next steps
     private List<StepV2> next = new LinkedList<>();
+
+    @Override
+    public Set<String> getAgents() {
+        if (this.agents != null) {
+            return this.agents;
+        }
+
+        if (this.parent.getAgents() != null) {
+            return this.parent.getAgents();
+        }
+
+        return Collections.emptySet();
+    }
 
     @Override
     public DockerV2 getDocker() {
